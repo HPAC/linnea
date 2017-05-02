@@ -1,0 +1,39 @@
+from ..algebra.expression import Equal, Matrix, Vector, Scalar
+
+from ..algebra.properties import Property as properties
+
+from ..algebra.equations import Equations
+
+from .graph import properties as gp
+
+from .. import temporaries
+
+_counter = 0
+
+
+def add_expression(expr, _properties):
+    # TODO what happens if the same expression is added a second time
+    # - with the same properties?
+    # - with different properties?
+
+    global _counter
+    name = "".join(["SP", str(_counter)])
+    _counter +=1
+    lhs = None
+    if expr.has_property(properties.MATRIX):
+        lhs = Matrix(name, expr.size)
+    elif expr.has_property(properties.VECTOR):
+        lhs = Vector(name, expr.size)
+    elif expr.has_property(properties.SCALAR):
+        lhs = Scalar(name)
+
+    graph = gp.PropertyGraph(Equations(Equal(lhs, expr)))
+    graph.derivation()
+
+    for node in graph.nodes:
+        # TODO equations[0] doesn't make any sense. Because of tricks, new
+        # equations can be added.
+        expr = node.equations[0].rhs
+        tmp = temporaries.create_tmp(expr, True, _properties=_properties)
+        # generate tmp here
+    # print(temporaries._table_of_temporaries)
