@@ -4,6 +4,7 @@ from ..derivation.graph.constructive import DerivationGraph
 
 from collections import namedtuple
 
+import os.path
 import time
 from .. import examples
 
@@ -134,7 +135,7 @@ def run(save_output=False):
 
     output = []
 
-    output_file_path = "".join([config.language.name, "/example_trace.txt"])
+    output_file_path = os.path.join(config.output_path, config.language.name, 'example_trace.txt')
     if save_output:
         output_file = open(output_file_path, "w")
     else:
