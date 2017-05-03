@@ -1,7 +1,7 @@
 
 import argparse
 
-parser = argparse.ArgumentParser(prog="clak2")
+parser = argparse.ArgumentParser(prog="linnea")
 parser.add_argument("input", help="Relative path to the definition of the input.")
 args = parser.parse_args()
 
