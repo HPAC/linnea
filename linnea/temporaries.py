@@ -70,7 +70,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
     try:
         tmp = _table_of_temporaries[equiv_expr]
     except KeyError:
-        name = "".join(["tmp", get_identifier()])
+        name = "tmp{}".format(get_identifier())
         size = expr.size
 
         # rows, columns = size
@@ -105,25 +105,24 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
 
 # @profile
 def _get_equivalent(expr):
-    # expr = copy.deepcopy(expr)
-    # Before calling _flatten_equivalent(), it is tested whether that's actually
-    # necessary, i.e. if any Symbol has an equivalent expression.
-    for node, _ in expr.preorder_iter():
-        if isinstance(node, ae.Symbol) and node.name in _equivalent_expressions:
-            # expr = ar.to_SOP(at.simplify(_flatten_equivalent(expr)))
-            # TODO: This is horrible. Is there any way to fix it?
-            expr = ar.to_SOP(at.simplify(ar.to_SOP(_flatten_equivalent(expr))))
-            break
-    return expr
+    # TODO: This is horrible. Is there any way to fix it?
+    new_expr = _flatten_equivalent(expr)
+    return ar.to_SOP(at.simplify(ar.to_SOP(new_expr))) if new_expr is not expr else expr
 
 def _flatten_equivalent(expr):
     if isinstance(expr, ae.Symbol):
-        if expr.name in _equivalent_expressions:
-            return _equivalent_expressions[expr.name]
-        else:
-            return expr
-    else:
-        return type(expr)(*[_flatten_equivalent(operand) for operand in expr.operands])
+        return _equivalent_expressions.get(expr.name, expr)
+    elif isinstance(expr, ae.Operator):
+        new_operands = []
+        changed = False
+        for operand in expr.operands:
+            new_operand = _flatten_equivalent(operand)
+            if new_operand is not operand:
+                changed = True
+            new_operands.append(new_operand)
+        return type(expr)(*new_operands) if changed else expr
+    return expr
+
 
 
 def set_equivalent(expr_before, expr_after):

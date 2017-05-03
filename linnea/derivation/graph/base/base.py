@@ -72,7 +72,7 @@ class GraphBase(object):
                         previous_node_id = current_node.id
                         current_node = current_node.successors[path_idx]
                         # optimal_nodes.add(current_node.id)
-                        optimal_edges.add((previous_node_id, current_node.id))    
+                        optimal_edges.add((previous_node_id, current_node.id))
                 else:
                     break
 
@@ -88,8 +88,8 @@ class GraphBase(object):
 
         out = "".join([node.to_dot(optimal_edges) for node in self.nodes])
         out = "\n".join(["digraph G {", "ranksep=2.5;", "rankdir=TB;", out, "}"])
-        return out        
-        
+        return out
+
 
     def to_dot_file(self, name=None):
         if name is "date":
@@ -105,7 +105,7 @@ class GraphBase(object):
         else:
             file_name = name
             output_file = open(file_name, "wt")
-        output_file.write(self.to_dot()) 
+        output_file.write(self.to_dot())
         print("Output was saved in %s" % file_name)
         output_file.close()
 
@@ -116,7 +116,7 @@ class GraphBase(object):
         nodes = " ".join([node.name for node in self.active_nodes])
         out = "".join([out, nodes, "]"])
         return out
-    
+
     def all_algorithms(self, graph_node, path=[], cost=0):
         if graph_node.successors == [] and graph_node.is_terminal():
             yield path, cost
@@ -136,7 +136,7 @@ class GraphBase(object):
 
         terminal_nodes.sort(key=operator.attrgetter("accumulated_cost"))
         # print([node.accumulated_cost for node in terminal_nodes])
-        
+
         current_node = terminal_nodes[0]
         predecessor = current_node.optimal_path_predecessor
         path = []
@@ -183,7 +183,7 @@ class GraphBase(object):
     #     for node in self.nodes:
     #         self._topological_sort_visit(node, temp, perm, stack)
 
-    #     return list(stack) 
+    #     return list(stack)
 
     # def shortest_path(self):
 
@@ -191,7 +191,7 @@ class GraphBase(object):
 
 
     #     _d = dict()
-    #     _d[self.root.id] = 0        
+    #     _d[self.root.id] = 0
     #     # _d = [math.inf]*len(self.nodes)
     #     # _d[0] = 0
     #     _p = dict()
@@ -302,7 +302,7 @@ class GraphNodeBase(object):
 
     def update_cost(self, new_cost, predecessor):
         """Updates self.accumulated_cost of all successors.
-        
+
         When merging GraphNodes, the accumulated_cost (which is
         the minimal cost of all paths) of that node most likely changes. If
         there are any successors, those changes have to be propagated
@@ -334,6 +334,7 @@ class GraphNodeBase(object):
         #out = "".join([self.name, " [shape=box, label=\"", str(self.get_payload()), "\"];\n" ])
         eqns_str = str(self.get_payload())
         # TODO use html module?
+        eqns_str = eqns_str.replace('\n', '\\n')
         eqns_str = eqns_str.replace("{", "&#123;")
         eqns_str = eqns_str.replace("}", "&#125;")
         out = """{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost)
