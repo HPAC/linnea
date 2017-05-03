@@ -1,6 +1,9 @@
 import enum
 import importlib
 import os.path
+import json
+
+_CONFIG_FILE = 'config.json'
 
 class LanguageNotSet(Exception):
     pass
@@ -34,13 +37,8 @@ comment = None
 
 language = None
 
-output_path = os.path.expanduser("~/Promotion/code/workspace")
-if not os.path.exists(output_path):
-    raise DirectoryDoesNotExist(output_path)
-
-experiments_path = os.path.expanduser("~/Promotion/code/experiments")
-if not os.path.exists(experiments_path):
-    raise DirectoryDoesNotExist(experiments_path)
+output_path = None
+experiments_path = None
 
 class CDataType(enum.Enum):
     float = 0
@@ -102,8 +100,30 @@ def set_data_type(data_type):
             global float64
             float64 = True
         else:
-            raise UnsupportedDataType()        
+            raise UnsupportedDataType()
 
 def init():
     from .algebra import property_DNs
     property_DNs._init()
+
+    global output_path, experiments_path
+    output_path = os.path.abspath(os.path.expanduser(output_path))
+    experiments_path = os.path.abspath(os.path.expanduser(experiments_path))
+
+def load_config():
+    if os.path.exists(_CONFIG_FILE):
+        with open(_CONFIG_FILE) as jsonfile:
+            settings = globals()
+            for key, value in json.load(jsonfile).items():
+                if key == 'language':
+                    set_language(Language[value])
+                elif key == 'c_data_type':
+                    set_language(CDataType[value])
+                elif key == 'julia_data_type':
+                    set_language(JuliaDataType[value])
+                elif key in settings and not key.startswith('_'):
+                    settings[key] = value
+                else:
+                    raise KeyError('Unknown setting: {}'.format(key))
+
+load_config()
