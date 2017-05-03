@@ -40,7 +40,7 @@ class FactorizationKernel(Kernel):
         # TODO for something like generalized schur decomposition, I potentially also need context
 
     def set_match(self, match_dict, context, CSE_rules=False, blocked_products=False, set_equivalent=True, equiv_expr=None):
-        
+
         matched_kernel = super(FactorizationKernel, self).set_match(match_dict, CSE_rules)
 
         #############
@@ -56,14 +56,14 @@ class FactorizationKernel(Kernel):
             # if there is no dict for current buildingblock, create
             # everything and store them in new dict
             ops = self._set_match(match_dict, _input_expr)
-            temporaries._table_of_factors[self.id] = {str(_input_expr): ops}
+            temporaries._table_of_factors[self.id] = {_input_expr: ops}
         else:
             try:
-                ops = op_dict[str(_input_expr)]
+                ops = op_dict[_input_expr]
             except KeyError:
                 # if there is nothing stored for this match, create and store everything
                 ops = self._set_match(match_dict, _input_expr)
-                op_dict[str(_input_expr)] = ops
+                op_dict[_input_expr] = ops
 
         _output_expr, _arg_dict, _partial_operand_dict, kernel_io = ops
         # print(_partial_operand_dict)
@@ -130,7 +130,7 @@ class FactorizationKernel(Kernel):
                 _blocked.append( transpose(Times(ch1, ch2)) )
                 _blocked.append( invert(Times(ch1, ch2)) )
             # matched_kernel.blocked_products = _blocked
-            blocked_operations.set_blocked([str(op) for op in _blocked])
+            blocked_operations.set_blocked(_blocked)
 
         return matched_kernel
 
@@ -167,7 +167,7 @@ class FactorizationKernel(Kernel):
 
             replacement_dict[output_operand.operand.variable_name] = operand
 
-            
+
             # Constructing output.
             if output_operand.overwriting:
                 kernel_io.add_output(output_operand.overwriting, operand, output_operand.storage_format)
@@ -204,7 +204,7 @@ def window(seq, n=2):
     it = iter(seq)
     result = tuple(itertools.islice(it, n))
     if len(result) == n:
-        yield result    
+        yield result
     for elem in it:
         result = result[1:] + (elem,)
         yield result

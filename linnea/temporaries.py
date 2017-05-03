@@ -17,7 +17,7 @@ def get_identifier():
 # _table_of_temporaries stores temporaries based on the expressions
 # they are equivalent to
 # Example:
-# {"Times(A, B, C)": tmp1}
+# {Times(A, B, C): tmp1}
 _table_of_temporaries = dict()
 
 # For each temporary, it is stored to which expression it is equivalent, (for
@@ -31,11 +31,10 @@ _equivalent_expressions = dict()
 #
 # self.table_of_factors is a dictionary of dictionaries:
 # keys for self.table_of_factors are kernel IDs.
-#   for each ID, there is a dict mapping the matched expression (as a
-#   string) to operands.
+#   for each ID, there is a dict mapping the matched expression to operands.
 # Example:
 # {42:
-#   {"S": L1, "P": L2}
+#   {S: L1, P: L2}
 #  }
 _table_of_factors = dict()
 
@@ -50,7 +49,7 @@ def clear():
 def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
     # The value of set_equivalent does not matter if equiv_expr is not None.
 
-    
+
     if equiv_expr:
         # This allows to explicitly specify the equivalent expression for expr.
         # If there are temporaries, they are replaced (as a rule of thumb, this
@@ -67,11 +66,9 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
     # store real expressions in a sorted list and use bisect to find them.
 
     # print(expr, set_equivalent, equiv_expr, _properties)
-    
-    equiv_expr_str = str(equiv_expr)
 
     try:
-        tmp = _table_of_temporaries[equiv_expr_str]
+        tmp = _table_of_temporaries[equiv_expr]
     except KeyError:
         name = "".join(["tmp", get_identifier()])
         size = expr.size
@@ -96,7 +93,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
         if set_equivalent:
             # This is effectively a two-way dictionary (or bijective mapping)
             _equivalent_expressions[name] = equiv_expr
-            _table_of_temporaries[equiv_expr_str] = tmp
+            _table_of_temporaries[equiv_expr] = tmp
 
     # for special properties
     if _properties:
@@ -157,11 +154,11 @@ def set_equivalent(expr_before, expr_after):
 
     # return
     path_before, path_after = expr_diff(expr_before, expr_after)
-    # subexpr_before = 
-    # subexpr_after = 
+    # subexpr_before =
+    # subexpr_after =
     tmp = create_tmp(expr_before[path_before], True)
-    _table_of_temporaries[str(_get_equivalent(expr_after[path_after]))] = tmp
-    
+    _table_of_temporaries[_get_equivalent(expr_after[path_after])] = tmp
+
     set_equivalent_upwards(expr_before, expr_after)
 
 def set_equivalent_upwards(expr_before, expr_after):
@@ -180,7 +177,7 @@ def set_equivalent_upwards(expr_before, expr_after):
     functions makes sure that this does not happen by doing the following: After
     transformations that may cause this problem (probably all of them), we
     compute the diff paths of expr_before and expr_after (the root expressions).
-    Now, we look for the subexpression of expr_before with the longest prefix of 
+    Now, we look for the subexpression of expr_before with the longest prefix of
     its diff path that is in the tables (it should always exist, in the worst
     case, it is the root expression). Then, we take the prefix of the same
     length for expr_after and add entries for this expression to the tables.
@@ -199,13 +196,13 @@ def set_equivalent_upwards(expr_before, expr_after):
     for i in reversed(range(len(path_before))):
         # print(path_before[:i])
         equiv_subexpr_before = _get_equivalent(expr_before[path_before[:i]])
-        if str(equiv_subexpr_before) in _table_of_temporaries:
+        if equiv_subexpr_before in _table_of_temporaries:
             equiv_subexpr_after = _get_equivalent(expr_after[path_after[:i]])
-            if str(equiv_subexpr_after) not in _table_of_temporaries: 
+            if equiv_subexpr_after not in _table_of_temporaries:
                 # print(str(_get_equivalent(expr_before[path_before[:i]])))
                 # print(str(_get_equivalent(expr_after[path_after[:i]])))
                 tmp = create_tmp(equiv_subexpr_before, True)
-                _table_of_temporaries[str(equiv_subexpr_after)] = tmp
+                _table_of_temporaries[equiv_subexpr_after] = tmp
                 break
 
 
