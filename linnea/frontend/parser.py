@@ -77,16 +77,28 @@ class LinneaParser(Parser):
         )
 
     @graken()
+    def _identifier_(self):
+        self._pattern(r'[a-zA-Z_][a-zA-Z0-9_]*')
+
+    @graken()
+    def _constant_(self):
+        self._pattern(r'[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?')
+
+    @graken()
+    def _integer_(self):
+        self._pattern(r'[0-9]+')
+
+    @graken('Model')
     def _model_(self):
         self._var_declarations_()
-        self.name_last_node('var_declarations')
-        self._op_declarations_()
-        self.name_last_node('op_declarations')
-        self._assignments_()
-        self.name_last_node('assignments')
+        self.name_last_node('vars')
+        self._symbol_declarations_()
+        self.name_last_node('symbols')
+        self._equations_()
+        self.name_last_node('equations')
         self._check_eof()
         self.ast._define(
-            ['assignments', 'op_declarations', 'var_declarations'],
+            ['equations', 'symbols', 'vars'],
             []
         )
 
@@ -99,165 +111,145 @@ class LinneaParser(Parser):
         self._closure(block0)
 
     @graken()
-    def _op_declarations_(self):
+    def _symbol_declarations_(self):
 
         def block0():
-            self._op_declaration_()
+            self._symbol_declaration_()
             self.add_last_node_to_name('@')
         self._closure(block0)
 
     @graken()
-    def _assignments_(self):
+    def _equations_(self):
 
         def block0():
-            self._assignment_()
+            self._equation_()
             self.add_last_node_to_name('@')
         self._closure(block0)
 
-    @graken()
+    @graken('Size')
     def _var_declaration_(self):
         self._identifier_()
-        self.name_last_node('lhs')
+        self.name_last_node('name')
         self._token('=')
         self._cut()
         self._integer_()
-        self.name_last_node('rhs')
+        self.name_last_node('value')
         self.ast._define(
-            ['lhs', 'rhs'],
+            ['name', 'value'],
             []
         )
 
     @graken()
-    def _op_declaration_(self):
+    def _symbol_declaration_(self):
         with self._choice():
             with self._option():
-                with self._group():
-                    self._token('Scalar')
-                    self.name_last_node('optype')
-                    self._cut()
-                    self._identifier_()
-                    self.name_last_node('name')
-                    self._token('<')
-                    self._io_()
-                    self.name_last_node('iotype')
-                    self._token('>')
+                self._scalar_()
             with self._option():
-                with self._group():
-                    self._token('RowVector')
-                    self.name_last_node('optype')
-                    self._cut()
-                    self._identifier_()
-                    self.name_last_node('name')
-                    self._dim_vector_()
-                    self.name_last_node('dims')
-                    self._token('<')
-                    self._io_()
-                    self.name_last_node('iotype')
-
-                    def block7():
-                        self._token(',')
-                        self._properties_()
-                        self.add_last_node_to_name('properties')
-                    self._closure(block7)
-                    self._token('>')
+                self._row_vector_()
             with self._option():
-                with self._group():
-                    self._token('ColumnVector')
-                    self.name_last_node('optype')
-                    self._cut()
-                    self._identifier_()
-                    self.name_last_node('name')
-                    self._dim_vector_()
-                    self.name_last_node('dims')
-                    self._token('<')
-                    self._io_()
-                    self.name_last_node('iotype')
-
-                    def block13():
-                        self._token(',')
-                        self._properties_()
-                        self.add_last_node_to_name('properties')
-                    self._closure(block13)
-                    self._token('>')
+                self._column_vector_()
             with self._option():
-                with self._group():
-                    self._token('Matrix')
-                    self.name_last_node('optype')
-                    self._cut()
-                    self._identifier_()
-                    self.name_last_node('name')
-                    self._dim_matrix_()
-                    self.name_last_node('dims')
-                    self._token('<')
-                    self._io_()
-                    self.name_last_node('iotype')
-
-                    def block19():
-                        self._token(',')
-                        self._properties_()
-                        self.add_last_node_to_name('properties')
-                    self._closure(block19)
-                    self._token('>')
+                self._matrix_()
             with self._option():
-                with self._group():
-                    self._token('IdentityMatrix')
-                    self.name_last_node('optype')
-                    self._cut()
-                    self._identifier_()
-                    self.name_last_node('name')
-                    self._dim_matrix_()
-                    self.name_last_node('dims')
+                self._identity_matrix_()
             self._error('no available options')
+
+    @graken('Scalar')
+    def _scalar_(self):
+        self._token('Scalar')
+        self._cut()
+        self._identifier_()
+        self.name_last_node('name')
+        self._token('<')
+        self._io_()
+        self.name_last_node('iotype')
+        self._token('>')
         self.ast._define(
-            ['dims', 'iotype', 'name', 'optype'],
+            ['iotype', 'name'],
+            []
+        )
+
+    @graken('RowVector')
+    def _row_vector_(self):
+        self._token('RowVector')
+        self._cut()
+        self._identifier_()
+        self.name_last_node('name')
+        self._dim_vector_()
+        self.name_last_node('dims')
+        self._token('<')
+        self._io_()
+        self.name_last_node('iotype')
+
+        def block3():
+            self._token(',')
+            self._properties_()
+            self.add_last_node_to_name('properties')
+        self._closure(block3)
+        self._token('>')
+        self.ast._define(
+            ['dims', 'iotype', 'name'],
             ['properties']
         )
 
-    @graken()
-    def _assignment_(self):
-        self._identifier_()
-        self.name_last_node('lhs')
-        self._token('=')
+    @graken('ColumnVector')
+    def _column_vector_(self):
+        self._token('ColumnVector')
         self._cut()
-        self._expression_()
-        self.name_last_node('rhs')
+        self._identifier_()
+        self.name_last_node('name')
+        self._dim_vector_()
+        self.name_last_node('dims')
+        self._token('<')
+        self._io_()
+        self.name_last_node('iotype')
+
+        def block3():
+            self._token(',')
+            self._properties_()
+            self.add_last_node_to_name('properties')
+        self._closure(block3)
+        self._token('>')
         self.ast._define(
-            ['lhs', 'rhs'],
-            []
+            ['dims', 'iotype', 'name'],
+            ['properties']
         )
 
-    @graken()
-    def _identifier_(self):
-        self._pattern(r'[a-zA-Z_][a-zA-Z0-9_]*')
+    @graken('Matrix')
+    def _matrix_(self):
+        self._token('Matrix')
+        self._cut()
+        self._identifier_()
+        self.name_last_node('name')
+        self._dim_matrix_()
+        self.name_last_node('dims')
+        self._token('<')
+        self._io_()
+        self.name_last_node('iotype')
 
-    @graken()
-    def _constant_(self):
-        self._pattern(r'[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?')
+        def block3():
+            self._token(',')
+            self._properties_()
+            self.add_last_node_to_name('properties')
+        self._closure(block3)
+        self._token('>')
+        self.ast._define(
+            ['dims', 'iotype', 'name'],
+            ['properties']
+        )
 
-    @graken()
-    def _integer_(self):
-        self._pattern(r'[0-9]+')
-
-    @graken()
-    def _func_unary_prefix_(self):
-        with self._choice():
-            with self._option():
-                self._token('trans')
-            with self._option():
-                self._token('inv')
-            with self._option():
-                self._token('det')
-            with self._option():
-                self._token('norm')
-            with self._option():
-                self._token('exp')
-            with self._option():
-                self._token('log')
-            self._error('expecting one of: det exp inv log norm trans')
-
-    @graken()
-    def _func_unary_suffix_(self):
-        self._token("'")
+    @graken('IdentityMatrix')
+    def _identity_matrix_(self):
+        self._token('IdentityMatrix')
+        self._cut()
+        self._identifier_()
+        self.name_last_node('name')
+        self._dim_matrix_()
+        self.name_last_node('dims')
+        self.ast._define(
+            ['dims', 'name'],
+            []
+        )
 
     @graken()
     def _io_(self):
@@ -347,123 +339,153 @@ class LinneaParser(Parser):
                 self.name_last_node('@')
             self._error('expecting one of: Banded ColumnPanel Diagonal FullRank Hessenberg LowerTriangular Non-singular Orthogonal RowPanel SPD Square Symmetric Tridiagonal UnitDiagonal UpperTriangular')
 
+    @graken('Equation')
+    def _equation_(self):
+        self._symbol_()
+        self.name_last_node('lhs')
+        self._token('=')
+        self._cut()
+        self._expression_()
+        self.name_last_node('rhs')
+        self.ast._define(
+            ['lhs', 'rhs'],
+            []
+        )
+
     @graken()
     def _expression_(self):
         with self._choice():
             with self._option():
-                self._term_()
-                self.add_last_node_to_name('args')
-                self._token('*')
-                self.name_last_node('op')
-                self._expression_()
-                self.add_last_node_to_name('args')
+                self._addition_()
+            with self._option():
+                self._subtraction_()
             with self._option():
                 self._term_()
-                self.name_last_node('@')
             self._error('no available options')
+
+    @graken('Plus')
+    def _addition_(self):
+        self._term_()
+        self.name_last_node('left')
+        self._token('+')
+        self.name_last_node('op')
+        self._cut()
+        self._expression_()
+        self.name_last_node('right')
         self.ast._define(
-            ['op'],
-            ['args']
+            ['left', 'op', 'right'],
+            []
+        )
+
+    @graken('Subtract')
+    def _subtraction_(self):
+        self._term_()
+        self.name_last_node('left')
+        self._token('-')
+        self.name_last_node('op')
+        self._cut()
+        self._expression_()
+        self.name_last_node('right')
+        self.ast._define(
+            ['left', 'op', 'right'],
+            []
         )
 
     @graken()
     def _term_(self):
         with self._choice():
             with self._option():
-                self._token('-')
-                self.name_last_node('op')
-                self._term_()
-                self.add_last_node_to_name('args')
+                self._multiplication_()
             with self._option():
                 self._factor_()
-                self.add_last_node_to_name('args')
-                self._token('*')
-                self.name_last_node('op')
-                self._term_()
-                self.add_last_node_to_name('args')
-            with self._option():
-                self._factor_()
-                self.name_last_node('@')
             self._error('no available options')
+
+    @graken('Times')
+    def _multiplication_(self):
+        self._factor_()
+        self.name_last_node('left')
+        self._token('*')
+        self.name_last_node('op')
+        self._cut()
+        self._term_()
+        self.name_last_node('right')
         self.ast._define(
-            ['op'],
-            ['args']
+            ['left', 'op', 'right'],
+            []
         )
 
     @graken()
     def _factor_(self):
         with self._choice():
             with self._option():
-                self._atom_()
-                self.add_last_node_to_name('args')
-                self._token('^')
-                self.name_last_node('op')
-                self._atom_()
-                self.add_last_node_to_name('args')
+                self._subexpression_()
             with self._option():
-                self._atom_()
-                self.add_last_node_to_name('args')
-                self._func_unary_suffix_()
-                self.name_last_node('op')
+                self._transposed_expr_()
             with self._option():
-                self._atom_()
-                self.name_last_node('@')
+                self._inverted_expr_()
+            with self._option():
+                self._literal_expr_()
+            with self._option():
+                self._symbol_()
             self._error('no available options')
-        self.ast._define(
-            ['op'],
-            ['args']
-        )
 
     @graken()
-    def _atom_(self):
+    def _subexpression_(self):
+        self._token('(')
+        self._cut()
+        self._expression_()
+        self.name_last_node('@')
+        self._token(')')
+
+    @graken('Transpose')
+    def _transposed_expr_(self):
         with self._choice():
             with self._option():
-                self._token('(')
+                self._token('trans(')
                 self._expression_()
-                self.name_last_node('@')
+                self.name_last_node('arg')
                 self._token(')')
             with self._option():
-                self._func_unary_prefix_()
-                self.name_last_node('op')
-                self._token('(')
-                self._expression_()
-                self.add_last_node_to_name('args')
-                self._token(')')
-            with self._option():
-                self._identifier_()
-                self.name_last_node('@')
-            with self._option():
-                self._constant_()
-                self.name_last_node('@')
+                self._factor_()
+                self.name_last_node('arg')
+                self._token("'")
             self._error('no available options')
         self.ast._define(
-            ['op'],
-            ['args']
+            ['arg'],
+            []
+        )
+
+    @graken('Inverse')
+    def _inverted_expr_(self):
+        self._token('inv(')
+        self._expression_()
+        self.name_last_node('arg')
+        self._token(')')
+        self.ast._define(
+            ['arg'],
+            []
+        )
+
+    @graken('Number')
+    def _literal_expr_(self):
+        self._constant_()
+        self.name_last_node('value')
+        self.ast._define(
+            ['value'],
+            []
+        )
+
+    @graken('Symbol')
+    def _symbol_(self):
+        self._identifier_()
+        self.name_last_node('name')
+        self.ast._define(
+            ['name'],
+            []
         )
 
 
 class LinneaSemantics(object):
-    def model(self, ast):
-        return ast
-
-    def var_declarations(self, ast):
-        return ast
-
-    def op_declarations(self, ast):
-        return ast
-
-    def assignments(self, ast):
-        return ast
-
-    def var_declaration(self, ast):
-        return ast
-
-    def op_declaration(self, ast):
-        return ast
-
-    def assignment(self, ast):
-        return ast
-
     def identifier(self, ast):
         return ast
 
@@ -473,10 +495,37 @@ class LinneaSemantics(object):
     def integer(self, ast):
         return ast
 
-    def func_unary_prefix(self, ast):
+    def model(self, ast):
         return ast
 
-    def func_unary_suffix(self, ast):
+    def var_declarations(self, ast):
+        return ast
+
+    def symbol_declarations(self, ast):
+        return ast
+
+    def equations(self, ast):
+        return ast
+
+    def var_declaration(self, ast):
+        return ast
+
+    def symbol_declaration(self, ast):
+        return ast
+
+    def scalar(self, ast):
+        return ast
+
+    def row_vector(self, ast):
+        return ast
+
+    def column_vector(self, ast):
+        return ast
+
+    def matrix(self, ast):
+        return ast
+
+    def identity_matrix(self, ast):
         return ast
 
     def io(self, ast):
@@ -491,16 +540,40 @@ class LinneaSemantics(object):
     def properties(self, ast):
         return ast
 
+    def equation(self, ast):
+        return ast
+
     def expression(self, ast):
+        return ast
+
+    def addition(self, ast):
+        return ast
+
+    def subtraction(self, ast):
         return ast
 
     def term(self, ast):
         return ast
 
+    def multiplication(self, ast):
+        return ast
+
     def factor(self, ast):
         return ast
 
-    def atom(self, ast):
+    def subexpression(self, ast):
+        return ast
+
+    def transposed_expr(self, ast):
+        return ast
+
+    def inverted_expr(self, ast):
+        return ast
+
+    def literal_expr(self, ast):
+        return ast
+
+    def symbol(self, ast):
         return ast
 
 
@@ -522,4 +595,3 @@ if __name__ == '__main__':
     print('JSON:')
     print(json.dumps(asjson(ast), indent=2))
     print()
-

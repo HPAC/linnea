@@ -12,6 +12,12 @@ _UNARY = {
     ae.Inverse: 'inv',
 }
 
+_SUPPORTED_PROPERTIES = {
+    'Square', 'SPD', 'ColumnPanel', 'RowPanel', 'Diagonal', 'Tridiagonal',
+    'Banded', 'LowerTriangular', 'UpperTriangular', 'UnitDiagonal', 'Symmetric',
+    'Hessenberg', 'Orthogonal', 'FullRank', 'Non-singular'
+}
+
 def export(equations):
     """Export a set of equations to the input string format."""
     # TODO: Add support for names of sizes once they are saved with the symbols
@@ -21,7 +27,8 @@ def export(equations):
     for eq in equations:
         for expr, _ in eq.preorder_iter(lambda e: isinstance(e, ae.Symbol)):
             if expr not in symbols:
-                prop_str = ', '.join(p.value for p in expr.properties)
+                props = ['InOut'] + [p.value for p in expr.properties if p.value in _SUPPORTED_PROPERTIES]
+                prop_str = ', '.join(props)
                 if isinstance(expr, ae.Matrix):
                     var_declarations.append(
                         '{}_rows = {}'.format(expr.name, expr.size[0]))

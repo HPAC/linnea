@@ -18,17 +18,19 @@ with open(args.input, "r" ) as input_file:
 
     from . import examples
 
-    from .frontend.AST_translation import ASTTranslator
+    from grako.model import ModelBuilderSemantics
+    from .frontend.AST_translation import LinneaWalker
     from .frontend.parser import LinneaParser
 
-    parser = LinneaParser()
+    parser = LinneaParser(semantics=ModelBuilderSemantics())
     ast = parser.parse(input_file.read(), rule_name = "model")
 
-    ast_translator = ASTTranslator(ast)
+    walker = LinneaWalker()
+    walker.walk(ast)
 
-    graph = DerivationGraph(ast_translator.equations)
+    graph = DerivationGraph(walker.equations)
     trace = graph.derivation(10, 6)
     # print(":".join(str(t) for t in trace))
 
     graph.to_dot_file()
-    graph.algorithms_to_files(pseudocode=True, experiment=args.input.split(".")[0])
+    graph.algorithms_to_files(pseudocode=True, name=args.input.split(".")[0])

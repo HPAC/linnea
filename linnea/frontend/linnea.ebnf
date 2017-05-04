@@ -1,31 +1,28 @@
+@@grammar::Linnea
 @@eol_comments :: /#.*?$/
 # @@whitespace :: /[\t ]+/
 # @@whitespace :: /[^\S\r\n]+/
-
-model = var_declarations:var_declarations op_declarations:op_declarations assignments:assignments $ ;
-
-var_declarations = { @+:var_declaration } ;
-op_declarations = { @+:op_declaration } ;
-assignments = { @+:assignment } ;
-
-var_declaration = lhs:identifier "=" ~ rhs:integer ;
-
-
-op_declaration = 
-            | (optype:"Scalar" ~ name:identifier "<" iotype:io ">")
-            | (optype:"RowVector" ~ name:identifier dims:dim_vector "<" iotype:io { "," properties+:properties } ">")
-            | (optype:"ColumnVector" ~ name:identifier dims:dim_vector "<" iotype:io { "," properties+:properties } ">")
-            | (optype:"Matrix" ~ name:identifier dims:dim_matrix "<" iotype:io { "," properties+:properties } ">")
-            | (optype:"IdentityMatrix" ~ name:identifier dims:dim_matrix);
-assignment = lhs:identifier "=" ~ rhs:expression ;
 
 identifier = ?"[a-zA-Z_][a-zA-Z0-9_]*" ;
 constant = ?"[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?" ;
 integer = ?"[0-9]+" ;
 # eol = ?"[\r\n]+";
 
-func_unary_prefix = "trans" | "inv" | "det" | "norm" | "exp" | "log";
-func_unary_suffix = "'";
+model::Model = vars:var_declarations symbols:symbol_declarations equations:equations $ ;
+
+var_declarations = { @+:var_declaration } ;
+symbol_declarations = { @+:symbol_declaration } ;
+equations = { @+:equation } ;
+
+var_declaration::Size = name:identifier "=" ~ value:integer ;
+
+symbol_declaration = scalar | row_vector | column_vector | matrix | identity_matrix ;
+scalar::Scalar = "Scalar" ~ name:identifier "<" iotype:io ">";
+row_vector::RowVector = "RowVector" ~ name:identifier dims:dim_vector "<" iotype:io { "," properties+:properties } ">";
+column_vector::ColumnVector = "ColumnVector" ~ name:identifier dims:dim_vector "<" iotype:io { "," properties+:properties } ">";
+matrix::Matrix = "Matrix" ~ name:identifier dims:dim_matrix "<" iotype:io { "," properties+:properties } ">";
+identity_matrix::IdentityMatrix = "IdentityMatrix" ~ name:identifier dims:dim_matrix;
+
 io = "Input" | "Output" | "InOut" | "Intermediate";
 dim_vector = "(" length:identifier ")";
 dim_matrix = "(" rows:identifier "," columns:identifier ")";
@@ -36,24 +33,19 @@ properties =
         | @:"UnitDiagonal"      | @:"Symmetric"         | @:"Hessenberg"
         | @:"Orthogonal"        | @:"FullRank"          | @:"Non-singular" ;
 
+equation::Equation = lhs:symbol "=" ~ rhs:expression ;
 
-expression =
-        #| args:term { op+:("+" | "-") args:term }+
-        #| (op:("+" | "-"))>{ args:term }+
-        | args+:term op:"*" args+:expression
-        | @:term ;
-term =  
-        | op:"-" args+:term
-        #| op:"*">{ args+:factor }+
-        | args+:factor op:"*" args+:term
-        | @:factor ;
-factor =
-        | args+:atom op:"^" args+:atom
-        | args+:atom op:func_unary_suffix
-        | @:atom ;
-atom =  
-        | "(" @:expression ")"
-        | op:func_unary_prefix "(" args+:expression  ")"
-        | @:identifier
-        | @:constant ;
+expression = addition | subtraction | term ;
+addition::Plus = left:term op:'+' ~ right:expression ;
+subtraction::Subtract = left:term op:'-' ~ right:expression ;
+
+term = multiplication | factor ;
+multiplication::Times = left:factor op:'*' ~ right:term ;
+
+factor = subexpression | transposed_expr | inverted_expr | literal_expr | symbol ;
+subexpression = "(" ~ @:expression ")" ;
+transposed_expr::Transpose =  "trans(" arg:expression ")" | arg:factor "'" ;
+inverted_expr::Inverse =  "inv(" arg:expression ")" ;
+literal_expr::Number = value:constant ;
+symbol::Symbol = name:identifier ;
 
