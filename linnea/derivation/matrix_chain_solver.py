@@ -20,14 +20,14 @@ class MatrixChainSolver(object):
     def __init__(self, expr):
         self.expr = expr
         self.n = len(self.expr.operands) # TODO remove?
-        
+
         n = len(self.expr.operands)
 
         self.costs = [[math.inf for _ in range(n)] for _ in range(n)]
         self.sol = [[None for _ in range(n)] for _ in range(n)]
         self.tmps = [[None for _ in range(n)] for _ in range(n)]
         self.matched_kernels = [[None for _ in range(n)] for _ in range(n)]
-        
+
         for i in range(n):
             self.costs[i][i] = 0
             self.tmps[i][i] = self.expr.operands[i]
@@ -67,7 +67,7 @@ class MatrixChainSolver(object):
 
                     product = Times(self.tmps[i][k], self.tmps[k+1][j])
 
-                    if blocked_operations.is_blocked(str(product)):
+                    if blocked_operations.is_blocked(product):
                         # print("blocked", product)
                         continue
 
@@ -121,7 +121,7 @@ class MatrixChainSolver(object):
 
         if not self.tmps[0][n-1]:
             # If there is no temporary for the entire chain, then no solution was
-            # found. 
+            # found.
             # I don't think it's possible to detect ealier that no solution will be
             # found. Even if some parts can not be computed at all (i.e. some
             # tmps[i][j]) remain empty, it's still possible that the entire chain can

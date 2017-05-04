@@ -21,14 +21,14 @@ class MatrixChainSolver(object):
     def __init__(self, expr):
         self.expr = expr
         self.n = len(self.expr.operands) # TODO remove?
-        
+
         n = len(self.expr.operands)
 
         self.costs = [[math.inf for _ in range(n)] for _ in range(n)]
         self.sol = [[None for _ in range(n)] for _ in range(n)]
         self.tmps = [[None for _ in range(n)] for _ in range(n)]
         self.matched_kernels = [[None for _ in range(n)] for _ in range(n)]
-        
+
         for i in range(n):
             self.costs[i][i] = 0
             self.tmps[i][i] = self.expr.operands[i]
@@ -68,7 +68,7 @@ class MatrixChainSolver(object):
 
                     product = Times(self.tmps[i][k], self.tmps[k+1][j])
 
-                    if blocked_operations.is_blocked(str(product)):
+                    if blocked_operations.is_blocked(product):
                         # print("blocked", product)
                         continue
 
@@ -96,10 +96,10 @@ class MatrixChainSolver(object):
                         else:
                             self.matched_kernels[i][j] = matched_kernels
                             self.tmps[i][j] = tmp
-                            
+
                         self.costs[i][j] = cost
                         self.sol[i][j] = k
-                
+
                 if DN_solution_found:
                     # Calling set_match here is a performance optimization. It
                     # is a fairly expensive function, and before this point,
@@ -110,7 +110,7 @@ class MatrixChainSolver(object):
                     # worst case to at most n^2. However, it is possible that
                     # this has absolutely no effect because n^3 is not reached
                     # anyway.
-                    # This optimization is not possible when using the matrix 
+                    # This optimization is not possible when using the matrix
                     # chain graph because in that case, it's not possible to
                     # obtain the cost without doing all of the other
                     # computations.
@@ -121,7 +121,7 @@ class MatrixChainSolver(object):
 
         if not self.tmps[0][n-1]:
             # If there is no temporary for the entire chain, then no solution was
-            # found. 
+            # found.
             # I don't think it's possible to detect ealier that no solution will be
             # found. Even if some parts can not be computed at all (i.e. some
             # tmps[i][j]) remain empty, it's still possible that the entire chain can
