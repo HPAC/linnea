@@ -64,8 +64,7 @@ plu = FactorizationKernel(
                         lambda _A: _A.has_property(properties.NON_SINGULAR) and \
                               not _A.has_property(properties.DIAGONAL) and \
                               not _A.has_property(properties.TRIANGULAR) and \
-                              not _A.has_property(properties.ORTHOGONAL) and \
-                              not _A.has_property(properties.SYMMETRIC)
+                              not _A.has_property(properties.ORTHOGONAL)
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
