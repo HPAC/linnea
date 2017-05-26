@@ -3,6 +3,9 @@ import itertools
 import operator
 import copy
 import math
+import os
+
+from .... import config
 
 output_msg_add = "{2:>2n} {0:.<22}{1:.>5n}"
 # output_msg_add = "{2:>2n} {0}:{1:.>27n}"
@@ -109,6 +112,15 @@ class GraphBase(object):
         print("Output was saved in %s" % file_name)
         output_file.close()
 
+
+    def write_graph(self, output_name, file_name="graph"):
+        file_path = os.path.join(config.output_path, config.language.name, output_name, "{}.gv".format(file_name))
+        directory_name = os.path.dirname(file_path)
+        if not os.path.exists(directory_name):
+            os.makedirs(directory_name)
+        output_file = open(file_path, "wt")
+        output_file.write(self.to_dot())
+        output_file.close()
 
     def __str__(self):
         out = "".join(["Number of nodes: ", str(len(self.nodes)), "\n"])

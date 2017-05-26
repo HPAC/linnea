@@ -8,6 +8,7 @@ from .memory import memory as memory_module
 import copy
 import math
 import textwrap
+import os
 
 class Algorithm(object):
     """Represents an Algorithm and translates it to code.
@@ -119,8 +120,8 @@ class Algorithm(object):
 
         if config.c:
             code_list.append("int info = 0;\n\n")
-        elif config.julia:
-            code_list.append("using Base.LinAlg.BLAS\nusing Base.LinAlg\n\n")
+        # elif config.julia:
+        #     code_list.append("using Base.LinAlg.BLAS\nusing Base.LinAlg\n\n")
 
         for line_number, matched_kernel in enumerate(self.matched_kernels):
             code_list.append(self._matched_kernel_to_code(matched_kernel, line_number))
@@ -517,3 +518,38 @@ class MatchedKernel(object):
                 new_lines.append(line)
         return new_lines
 
+
+julia_template = textwrap.dedent(
+                        """
+                        using Base.LinAlg.BLAS
+                        using Base.LinAlg
+
+                        function {}({})
+                        {}
+                            return ({})
+                        end
+                        """)
+
+
+# TODO move all of this to utils
+# choose template based on config
+
+def algorithm_to_file(output_name, algorithm_name, algorithm, input, output):
+    file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms", "{}.{}".format(algorithm_name, config.filename_extension))
+    directory_name = os.path.dirname(file_name)
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
+    output_file = open(file_name, "wt")
+    experiment_str = algorithm_to_str(algorithm_name, algorithm, input, output)
+    # experiment_str = julia_template.format(algorithm_name, input, textwrap.indent(algorithm, "    "), output)
+    output_file.write(experiment_str)
+    output_file.close()
+    # print(file_name)
+
+def algorithm_to_str(function_name, algorithm, input, output):
+    if config.julia:
+        experiment_str = julia_template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
+    else:
+        raise config.LanguageOptionNotImplemented()
+    
+    return experiment_str

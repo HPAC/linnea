@@ -1100,5 +1100,6 @@ diagmv = KernelDescription(
 # A[:,invperm(p)] # A*P^T
 # A[invperm(p),:] # P*A
 # A[p,:] # P^T*A
+# perumation*permutation
 # what about diagonal A? could be almost the same as vector
 

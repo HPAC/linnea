@@ -4,16 +4,6 @@ from .. import config
 import textwrap
 import os.path
 
-algorithm_template = textwrap.dedent(
-                        """
-                        using Base.LinAlg.BLAS
-                        using Base.LinAlg
-
-                        function {}({})
-                        {}
-                            return ({})
-                        end
-                        """)
 
 op_gen_file_template = textwrap.dedent(
                         """
@@ -34,19 +24,8 @@ experiment_template = textwrap.dedent(
                             )
 
 
-def experiment_to_file(experiment_name, algorithm_name, algorithm, input, output):
-    file_name = os.path.join(config.experiments_path, config.language.name, experiment_name, "algorithms", "{}.jl".format(algorithm_name))
-    directory_name = os.path.dirname(file_name)
-    if not os.path.exists(directory_name):
-        os.makedirs(directory_name)
-    output_file = open(file_name, "wt")
-    experiment_str = algorithm_template.format(algorithm_name, input, textwrap.indent(algorithm, "    "), output)
-    output_file.write(experiment_str)
-    output_file.close()
-    # print(file_name)
-
-def operand_generator_to_file(experiment_name, operands, output_str):
-    file_name = os.path.join(config.experiments_path, config.language.name, experiment_name, "operand_generator.jl")
+def operand_generator_to_file(output_name, operands, output_str):
+    file_name = os.path.join(config.output_path, config.language.name, output_name, "operand_generator.jl")
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)

@@ -38,7 +38,6 @@ comment = None
 language = None
 
 output_path = None
-experiments_path = None
 
 class CDataType(enum.Enum):
     float = 0
@@ -106,9 +105,10 @@ def init():
     from .algebra import property_DNs
     property_DNs._init()
 
-    global output_path, experiments_path
+    global output_path
     output_path = os.path.abspath(os.path.expanduser(output_path))
-    experiments_path = os.path.abspath(os.path.expanduser(experiments_path))
+    if not os.path.exists(output_path):
+        raise DirectoryDoesNotExist(output_path)
 
 def load_config():
     if os.path.exists(_CONFIG_FILE):
