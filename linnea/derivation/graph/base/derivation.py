@@ -56,60 +56,6 @@ class DerivationGraphBase(base.GraphBase):
         return new_nodes
 
 
-    # def algorithms_to_files(self, pseudocode=False, experiments=False, name=None):
-    #     # TODO additional optional argument all/optimal to specify whether to
-    #     # generate all algorithms or only the optimal one
-
-    #     algorithm_paths = list(self.all_algorithms(self.root))
-    #     algorithm_paths.sort(key=operator.itemgetter(1))
-
-    #     # algorithm_paths = [self.optimal_algorithm_path()]
-
-    #     number_of_algorithms = len(algorithm_paths)
-    #     self.print("Number of algorithms: {}".format(number_of_algorithms))
-    #     if number_of_algorithms > 100:
-    #         algorithm_paths = algorithm_paths[0:100]
-
-    #     for n, (algorithm_path, cost) in enumerate(algorithm_paths):
-            
-    #         matched_kernels = []
-    #         current_node = self.root
-    #         for idx in algorithm_path:
-    #             edge_label = current_node.edge_labels[idx]
-    #             matched_kernels.extend(edge_label.matched_kernels)
-    #             current_node = current_node.successors[idx]
-
-    #         algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
-
-    #         file_name = os.path.join(config.output_path, config.language.name, "algorithms", "algorithm{}{}".format(str(n), config.filename_extension))
-    #         output_file = open(file_name, "wt")
-    #         # try:
-    #         #     output_file.write(algorithm.code())
-    #         # except KeyError:
-    #         #     pass
-    #         code = algorithm.code()
-    #         output_file.write(code)
-    #         output_file.close()
-
-    #         if pseudocode:
-    #             file_name = os.path.join(config.output_path, "pseudocode", "algorithm{}.txt".format(n))
-    #             output_file = open(file_name, "wt")
-    #             output_file.write(algorithm.pseudocode())
-    #             output_file.close()
-
-    #         if experiments:
-    #             # code_lines = code.splitlines()
-    #             # del code_lines[1:3] # remove "using Base.LinAlg..."
-    #             # code = "\n".join(code_lines)
-    #             cge.experiment_to_file(name, "algorithm{}".format(n), code, algorithm.experiment_input, algorithm.experiment_output)
-
-    #     if experiments:
-    #         input, output = self.root.equations.input_output()
-    #         input_str = ", ".join([operand.name for operand in input])
-    #         output_str = ", ".join([operand.name for operand in output])
-    #         cge.experiment_to_file(name, "naive", self.root.equations.to_julia_expression(), input_str, output_str)
-    #         cge.operand_generator_to_file(name, input, input_str)
-
     def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, max_algorithms=1, graph=False):
 
         algorithm_paths = list(self.all_algorithms(self.root))
