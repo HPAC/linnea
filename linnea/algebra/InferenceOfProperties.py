@@ -225,7 +225,7 @@ def admitsFactorization(expr):
     return infer_property_test_function(expr, properties.ADMITS_FACTORIZATION, admitsFactorizationTF)
 
 def admitsFactorizationTF(node):
-    return not (isDiagonalB(node) or isTriangularB(node) or isOrthogonal(node) or isOrthogonalColumns(node) or isPermutation(node))
+    return not (isDiagonalB(node) or isTriangularB(node) or isOrthogonal(node) or isOrthogonalColumns(node) or isOrthogonalRows(node) or isPermutation(node))
 
 def isScalar(expr):
     return infer_property_test_function(expr, properties.SCALAR, isScalarTF)
