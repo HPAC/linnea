@@ -8,6 +8,9 @@ _CONFIG_FILE = 'config.json'
 class LanguageNotSet(Exception):
     pass
 
+class OutputPathNotSet(Exception):
+    pass
+
 class DataTypeNotSet(Exception):
     pass
 
@@ -106,9 +109,10 @@ def init():
     property_DNs._init()
 
     global output_path
-    output_path = os.path.abspath(os.path.expanduser(output_path))
-    if not os.path.exists(output_path):
-        raise DirectoryDoesNotExist(output_path)
+    if output_path:
+        output_path = os.path.abspath(os.path.expanduser(output_path))
+        if not os.path.exists(output_path):
+            raise DirectoryDoesNotExist(output_path)
 
 def load_config():
     if os.path.exists(_CONFIG_FILE):

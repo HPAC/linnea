@@ -58,6 +58,9 @@ class DerivationGraphBase(base.GraphBase):
 
     def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, max_algorithms=1, graph=False):
 
+        if not config.output_path:
+            raise config.OutputPathNotSet("Unable to write output: output_path not set.")
+
         algorithm_paths = list(self.all_algorithms(self.root))
         algorithm_paths.sort(key=operator.itemgetter(1))
 
