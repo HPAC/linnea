@@ -61,10 +61,7 @@ cf = lambda d: (2*d["N"]**2)/3
 plu = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(properties.NON_SINGULAR) and \
-                              not _A.has_property(properties.DIAGONAL) and \
-                              not _A.has_property(properties.TRIANGULAR) and \
-                              not _A.has_property(properties.ORTHOGONAL)
+                        lambda _A: _A.has_property(properties.NON_SINGULAR)
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
@@ -100,11 +97,7 @@ qr_square = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
                         lambda _A: _A.has_property(properties.FULL_RANK) and \
-                              _A.has_property(properties.SQUARE) \
-                              and not _A.has_property(properties.TRIANGULAR) \
-                              and not _A.has_property(properties.DIAGONAL) \
-                              and not _A.has_property(properties.ORTHOGONAL) \
-                              and not _A.has_property(properties.ORTHOGONAL_COLUMNS)
+                              _A.has_property(properties.SQUARE)
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
@@ -140,11 +133,7 @@ qr_column = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
                         lambda _A: _A.has_property(properties.FULL_RANK) and \
-                          _A.has_property(properties.COLUMN_PANEL) \
-                          and not _A.has_property(properties.TRIANGULAR) \
-                          and not _A.has_property(properties.DIAGONAL) \
-                          and not _A.has_property(properties.ORTHOGONAL) \
-                          and not _A.has_property(properties.ORTHOGONAL_COLUMNS),
+                          _A.has_property(properties.COLUMN_PANEL)
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
@@ -179,9 +168,7 @@ def cf_eigen(d):
 eigendecomposition = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(properties.SPD) or 
-                              (_A.has_property(properties.SYMMETRIC) \
-                                and not _A.has_property(properties.DIAGONAL))
+                        lambda _A: _A.has_property(properties.SYMMETRIC)
                     )
     ),
     [InputOperand(_A, StorageFormat.symmetric_triangular)],
@@ -212,17 +199,7 @@ _V = matchpy.Wildcard.symbol("_V")
 cf = lambda d: 14*d["M"]*d["N"]**2 + 8*d["N"]**3
 
 singular_value = FactorizationKernel(
-    matchpy.Pattern(_A,
-                    # lambda d: d["_A"].has_property(properties.MATRIX)
-                    # checking those properties is important when applying
-                    # factorizations to special properties
-                    matchpy.CustomConstraint(
-                        lambda _A: not _A.has_property(properties.DIAGONAL) and \
-                          not _A.has_property(properties.TRIANGULAR) and \
-                          not _A.has_property(properties.ORTHOGONAL_COLUMNS) and \
-                          not _A.has_property(properties.ORTHOGONAL)
-                    )
-    ),
+    matchpy.Pattern(_A),
     [InputOperand(_A, StorageFormat.full)],
     Times(_U, _S, _V),
     [OutputOperand(_U, _A, ("M", "M"), [properties.ORTHOGONAL], StorageFormat.svdfact_U),

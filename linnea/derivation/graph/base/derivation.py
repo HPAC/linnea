@@ -371,9 +371,8 @@ class DerivationGraphBase(base.GraphBase):
             else:
                 continue
 
-            # TODO is this necessary?
-            # if not node.has_property(properties.ADMITS_FACTORIZATION):
-            #     continue
+            if not node.has_property(properties.ADMITS_FACTORIZATION):
+                continue
 
             for type in collections_module.factorizations_by_type:
                 for kernel in type:
