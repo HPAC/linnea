@@ -109,7 +109,12 @@ def isSPD(node):
 
 def isNonSingular(node):
     if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.NON_SINGULAR, isNonSingular)
+        # if infer_property_symbol(node, properties.SQUARE, isSquare) and infer_property_symbol(node, properties.FULL_RANK, isFullRank):
+        if isSquare(node) and isFullRank(node):
+            node.properties.add(properties.NON_SINGULAR)
+            return True
+        else:
+            return infer_property_symbol(node, properties.NON_SINGULAR, isNonSingular)
     if isinstance(node, ae.Plus): # ?
         return False
     if isinstance(node, ae.Times):
@@ -151,9 +156,9 @@ def isFullRank(node):
     #if isinstance(node, ae.Times): # Give a careful thought
         #return all(isFullRank(factor) for factor in node.operands)
     if isinstance(node, ae.Transpose):
-        return isNonSingular(node.operand)
+        return isFullRank(node.operand)
     if isinstance(node, ae.Inverse):
-        return isNonSingular(node.operand)
+        return isFullRank(node.operand)
     return False
 
 def isSquare(expr):
