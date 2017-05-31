@@ -1,6 +1,6 @@
 from ...algebra.expression import Matrix, Equal, Times
 from ...algebra.transformations import transpose, conjugate_transpose, invert
-
+from ...algebra.properties import Property as properties
 
 from ... import temporaries
 
@@ -162,6 +162,7 @@ class FactorizationKernel(Kernel):
             # TODO what if the output is a scalar? Check sizes.
 
             operand = Matrix(name, size, input_expr.indices)
+            operand.set_property(properties.FACTOR)
             for property in output_operand.properties:
                 operand.set_property(property)
 
