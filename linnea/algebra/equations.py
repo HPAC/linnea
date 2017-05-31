@@ -53,6 +53,9 @@ class Equations(object):
         # copy(equations) was used.
         raise NotImplementedError()
 
+    def __hash__(self):
+        return hash(tuple(self.equations))
+
     def insert(self, position, value):
         self.equations.insert(position, value)
 

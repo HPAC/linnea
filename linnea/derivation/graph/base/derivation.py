@@ -23,7 +23,7 @@ from ...matrix_sum import decompose_sum
 
 from ...utils import select_optimal_match
 from ....code_generation.memory import memory as memory_module
-from ....code_generation.utils import Algorithm
+from ....code_generation import utils as cgu
 from ....code_generation import experiments as cge
 from .... import config
 from .... import temporaries
@@ -56,19 +56,23 @@ class DerivationGraphBase(base.GraphBase):
         return new_nodes
 
 
-    def algorithms_to_files(self, pseudocode=False, experiments=False, name=None):
-        # TODO additional optional argument all/optimal to specify whether to
-        # generate all algorithms or only the optimal one
+    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, max_algorithms=1, graph=False):
+
+        if not config.output_path:
+            raise config.OutputPathNotSet("Unable to write output: output_path not set.")
 
         algorithm_paths = list(self.all_algorithms(self.root))
         algorithm_paths.sort(key=operator.itemgetter(1))
 
-        # algorithm_paths = [self.optimal_algorithm_path()]
-
         number_of_algorithms = len(algorithm_paths)
         self.print("Number of algorithms: {}".format(number_of_algorithms))
-        if number_of_algorithms > 100:
-            algorithm_paths = algorithm_paths[0:100]
+        if number_of_algorithms > max_algorithms:
+            algorithm_paths = algorithm_paths[:max_algorithms]
+
+        if code or pseudocode or operand_generator:
+            directory_name = os.path.join(config.output_path, config.language.name, output_name)
+            if not os.path.exists(directory_name):
+                os.makedirs(directory_name)
 
         for n, (algorithm_path, cost) in enumerate(algorithm_paths):
             
@@ -79,38 +83,58 @@ class DerivationGraphBase(base.GraphBase):
                 matched_kernels.extend(edge_label.matched_kernels)
                 current_node = current_node.successors[idx]
 
-            algorithm = Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
-            # algorithm.liveness_analysis()
-            # algorithm.pseudocode()
+            algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
 
-            file_name = os.path.join(config.output_path, config.language.name, "algorithms", "algorithm{}{}".format(str(n), config.filename_extension))
-            output_file = open(file_name, "wt")
-            # try:
-            #     output_file.write(algorithm.code())
-            # except KeyError:
-            #     pass
-            code = algorithm.code()
-            output_file.write(code)
-            output_file.close()
+            if code:
+                # TODO change
+                # here, I need to generat functions
+                cgu.algorithm_to_file(output_name, "algorithm{}".format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
+                # code_gen.algorithm_to_file(output_name, algorithm_name, algorithm, input, output)
+                # file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms", "algorithm{}{}".format(str(n), config.filename_extension))
+                # output_file = open(file_name, "wt")
+                # # try:
+                # #     output_file.write(algorithm.code())
+                # # except KeyError:
+                # #     pass
+                # _code = algorithm.code()
+                # output_file.write(_code)
+                # output_file.close()
 
             if pseudocode:
-                file_name = os.path.join(config.output_path, "pseudocode", "algorithm{}.txt".format(n))
+                file_name = os.path.join(config.output_path, config.language.name, output_name, "pseudocode", "algorithm{}.txt".format(n))
+                directory_name = os.path.dirname(file_name)
+                if not os.path.exists(directory_name):
+                    os.makedirs(directory_name)
                 output_file = open(file_name, "wt")
                 output_file.write(algorithm.pseudocode())
                 output_file.close()
 
-            if experiments:
-                code_lines = code.splitlines()
-                del code_lines[1:3] # remove "using Base.LinAlg..."
-                code = "\n".join(code_lines)
-                cge.experiment_to_file(name, "algorithm{}".format(n), code, algorithm.experiment_input, algorithm.experiment_output)
 
-        if experiments:
+        if operand_generator:
             input, output = self.root.equations.input_output()
             input_str = ", ".join([operand.name for operand in input])
             output_str = ", ".join([operand.name for operand in output])
-            cge.experiment_to_file(name, "naive", self.root.equations.to_julia_expression(), input_str, output_str)
-            cge.operand_generator_to_file(name, input, input_str)
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str)
+            cge.operand_generator_to_file(output_name, input, input_str)
+
+        if graph:
+            self.write_graph(output_name)
+
+        # TODO missing
+        # - change paths and use name
+
+    def optimal_algorithm_to_str(self):
+        matched_kernels, cost, final_equations = self.optimal_algorithm()
+        if matched_kernels:
+            algorithm = cgu.Algorithm(self.root.equations, final_equations, matched_kernels, cost)
+            code = algorithm.code()
+            # code_lines = code.splitlines()
+            # del code_lines[1:3] # remove "using Base.LinAlg..."
+            # code = "\n".join(code_lines)
+            function_name = "linnea_function{:X}".format(hash(self.root.equations))
+            return function_name, cgu.algorithm_to_str(function_name, code, algorithm.experiment_input, algorithm.experiment_output)
+        else:
+            return None, None
 
 
     def metric_mins(self):
@@ -350,9 +374,8 @@ class DerivationGraphBase(base.GraphBase):
             else:
                 continue
 
-            # TODO is this necessary?
-            # if not node.has_property(properties.ADMITS_FACTORIZATION):
-            #     continue
+            if not node.has_property(properties.ADMITS_FACTORIZATION):
+                continue
 
             for type in collections_module.factorizations_by_type:
                 for kernel in type:

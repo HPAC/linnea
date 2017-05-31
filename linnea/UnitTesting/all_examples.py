@@ -135,11 +135,11 @@ def run(save_output=False):
 
     output = []
 
-    output_file_path = os.path.join(config.output_path, config.language.name, 'example_trace.txt')
+    traces_file_path = os.path.join(config.output_path, config.language.name, 'example_traces.txt')
     if save_output:
-        output_file = open(output_file_path, "w")
+        traces_file = open(traces_file_path, "w")
     else:
-        output_file = open(output_file_path)
+        traces_file = open(traces_file_path)
 
     for example in all_examples:
         name = example.__name__
@@ -150,12 +150,13 @@ def run(save_output=False):
         # print(example().eqns.to_julia_expression())
         if save_output:
             print(name, time_format.format(execution_time))
-            print(to_file_format.format(name, execution_time, ":".join(str(t) for t in trace)), file=output_file)
-            graph.to_dot_file("".join([config.language.name, "/graphs/", example.__name__, ".gv"]))
+            print(to_file_format.format(name, execution_time, ":".join(str(t) for t in trace)), file=traces_file)
+            # graph.to_dot_file("".join([config.language.name, "/graphs/", example.__name__, ".gv"]))
+            graph.write_graph(example.__name__, "archived_graph")
 
         else:
-            graph.algorithms_to_files(pseudocode=True)
-            _, old_execution_time, old_trace = next(output_file).split(" ")
+            # graph.write_graph("graph_old")
+            _, old_execution_time, old_trace = next(traces_file).split(" ")
             old_trace = old_trace.rstrip() # removing newline character
             print_string = print_format.format(name, execution_time, old_execution_time)
             # print(":".join(str(t) for t in trace))
@@ -166,4 +167,4 @@ def run(save_output=False):
         temporaries.clear()
         partitioning.clear()
 
-    output_file.close()
+    traces_file.close()

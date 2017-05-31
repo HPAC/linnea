@@ -533,6 +533,7 @@ class Example021(object):
         B = Matrix("B", (n, n))
         B.set_property(properties.SQUARE)
         B.set_property(properties.NON_SINGULAR)
+        # B.set_property(properties.SPD)
         B.set_property(properties.INPUT)
 
         x = Vector("x", (n, sONE))
