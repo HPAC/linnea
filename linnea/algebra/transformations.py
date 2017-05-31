@@ -819,7 +819,7 @@ def undistribute_inverse(expr):
             new_operands = []
             for inverted, group in itertools.groupby(operands, admits_undistribution):
                 group = list(group)
-                print(group)
+                # print(group)
                 if inverted and len(group) > 1:
                     new_operands.append(ae.Inverse(invert(ae.Times(*group))))
                 else:
