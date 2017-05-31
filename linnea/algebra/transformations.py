@@ -6,7 +6,7 @@ import matchpy
 import itertools
 
 class TransformationError(Exception):
-    pass        
+    pass
 
 # @profile
 def simplify(expr):
@@ -71,7 +71,7 @@ def simplify(expr):
         # combined.
         if scalars and isinstance(scalars[0], ae.ConstantScalar) and scalars[0].value == 1:
             del scalars[0]
-        
+
         ############################
         # Removing Q^T Q where Q has OrthogonalColumns property
         #
@@ -103,7 +103,7 @@ def simplify(expr):
             while True:
                 l = len(non_scalars)
                 # l-1 is used because for l = 3, we don't need i == 2 (i.e.
-                # the last position). In that case, range = [0], and for 
+                # the last position). In that case, range = [0], and for
                 # i == 0, A1 == A2^{-1} and A2^{-1} == A3 is checked.
                 for i in range(0, l-1, 2):
                     if non_scalars[i].inverse_of(non_scalars[i+1]):
@@ -141,7 +141,7 @@ def simplify(expr):
             # Dealing with scalar sums.
             #
             # If possible, numeric and symbolic scalars are added up here.
-            
+
             terms = []
             new_value = 0
             for operand in expr.operands:
@@ -186,7 +186,7 @@ def simplify(expr):
                 # Constructing new terms.
                 if numeric_sum == 1:
                     if len(symbolic_list[0]) > 1:
-                        new_terms.append(ae.Times(symbolic_list[0]))
+                        new_terms.append(ae.Times(*symbolic_list[0]))
                     else:
                         new_terms.append(symbolic_list[0][0])
                 elif numeric_sum == 0:
@@ -204,7 +204,7 @@ def simplify(expr):
                 # new_values == 0, but new_terms is empty
                 new_terms.append(ae.ConstantScalar(new_value))
 
-            operands = new_terms 
+            operands = new_terms
 
             # print("after", expr)
 
@@ -253,7 +253,7 @@ def simplify(expr):
                             # It is safe to assume that there are no products of
                             # multiple ConstantScalars because they were
                             # eliminated when the operands of the current were
-                            # simplified. 
+                            # simplified.
                             numeric_constants.append(scalar[0])
                         else:
                             # Single symbolic scalar.
@@ -293,7 +293,7 @@ def simplify(expr):
                 else:
                     sum_of_scalars_list = [ae.ConstantScalar(numeric_sum)] + remaining_scalars
 
-                # print("plus", sum_of_scalars_list)        
+                # print("plus", sum_of_scalars_list)
 
                 # Creating new terms.
                 if sum_of_scalars_list:
@@ -313,7 +313,7 @@ def simplify(expr):
                     new_terms.append(ae.Times(*non_scalar_list[0]))
                 else:
                     new_terms.append(non_scalar_list[0][0])
-                
+
                 # print("terms", new_terms)
 
             operands = new_terms
@@ -383,7 +383,7 @@ def invert(expr):
     elif isinstance(expr, matchpy.Wildcard): # For Wildcards
         return ae.Inverse(expr)
     elif isinstance(expr, ae.Equal):
-        raise TransformationError("invert can not be applied to %r" % expr) 
+        raise TransformationError("invert can not be applied to %r" % expr)
     else:
         raise NotImplementedError("Error in expression.invert() while dealing with %r" % expr)
 
@@ -564,7 +564,7 @@ def conjugate_transpose(expr):
     elif isinstance(expr, matchpy.Wildcard): # For Wildcards
         return ae.ConjugateTranspose(expr)
     else:
-        raise TransformationError("conjugate_transpose can not be applied to %r" % expr)    
+        raise TransformationError("conjugate_transpose can not be applied to %r" % expr)
 
 def invert_conjugate(expr):
     """Returns the inverse-conjugate of expr.
@@ -603,8 +603,8 @@ def invert_conjugate(expr):
     elif isinstance(expr, matchpy.Wildcard): # For Wildcards
         return ae.InverseConjugate(expr)
     else:
-        raise TransformationError("invert_conjugate can not be applied to %r" % expr) 
-    
+        raise TransformationError("invert_conjugate can not be applied to %r" % expr)
+
 def invert_conjugate_transpose(expr):
     """Returns the inverse-conjugate-transpose of expr.
 
@@ -638,14 +638,14 @@ def invert_conjugate_transpose(expr):
     elif isinstance(expr, ae.ConstantScalar):
         return ae.ConstantScalar(1/expr.value.conjugate())
     elif isinstance(expr, ae.Plus):
-        operands = [conjugate_transpose(operand) for operand in expr.operands] 
+        operands = [conjugate_transpose(operand) for operand in expr.operands]
         return ae.Inverse(ae.Plus(*operands))
     elif isinstance(expr, ae.Times):
         return _distribute_inverse(expr, ae.InverseConjugateTranspose, invert_conjugate_transpose, False)
     elif isinstance(expr, matchpy.Wildcard): # For Wildcards
         return ae.InverseConjugateTranspose(expr)
     else:
-        raise TransformationError("invert_conjugate_transpose can not be applied to %r" % expr) 
+        raise TransformationError("invert_conjugate_transpose can not be applied to %r" % expr)
 
 # @profile
 def _distribute_inverse(expr, operator, operator_fct, reverse):
@@ -653,7 +653,7 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
 
     Additionally, scalars are moved to the front of the product.
 
-    Distributing the inverse over products works similar for the operators 
+    Distributing the inverse over products works similar for the operators
     Inverse, InverseTranspose, InverseConjugate and InverseConjugateTranspose.
     This function helps to avoid code duplication.
 
@@ -767,7 +767,7 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
     # else:
     #     operands = scalars + new_operands
     #     expr = ae.Times(*operands)
-    
+
     # print("distribute OUT", expr)
     # expr.to_dot_file()
     # return expr
