@@ -78,6 +78,8 @@ class Property(enum.Enum):
     PERMUTATION = "Permutation"
     #
     ADMITS_FACTORIZATION = "AdmitsFactorization"
+    #
+    FACTOR = "Factor"
 
     __ordering__ = {
         (IDENTITY, DIAGONAL),

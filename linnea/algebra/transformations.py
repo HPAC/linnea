@@ -784,3 +784,48 @@ def flatten_times(list):
         else:
             new_list.append(expr)
     return new_list
+
+def admits_undistribution(expr):
+    """Test if the expression admits undistribution.
+
+    An expression admits undistribution of the inverse if it is an inverted
+    expression and if it does not have the property "Factor".
+
+    Args:
+        expr (Expression)
+
+    Returns:
+        True if expression admits undistribution, False otherwise.
+    """
+    return not expr.has_property(properties.FACTOR) and isinstance(expr, (ae.Inverse, ae.InverseTranspose, ae.InverseConjugate, ae.InverseConjugateTranspose))
+
+def undistribute_inverse(expr):
+    """Undistributes the inverse operator.
+
+    This function undistributes the inverse operator for operands in a product
+    that do not have the property "Factor", that is, operands which are not the
+    result of a factorization.
+
+    Args:
+        expr (Expression): An expression.
+
+    Returns:
+        Expression: The input expression, with undistributed inverses.
+    """
+    if isinstance(expr, ae.Operator):
+        operands = map(undistribute_inverse, expr.operands)
+
+        if isinstance(expr, ae.Times):
+            new_operands = []
+            for inverted, group in itertools.groupby(operands, admits_undistribution):
+                group = list(group)
+                print(group)
+                if inverted and len(group) > 1:
+                    new_operands.append(ae.Inverse(invert(ae.Times(*group))))
+                else:
+                    new_operands.extend(group) 
+            operands = new_operands
+
+        return type(expr)(*operands)
+    else:
+        return expr

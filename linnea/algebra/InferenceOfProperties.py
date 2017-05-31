@@ -54,6 +54,17 @@ def isIdentity(node):
         return isIdentity(node.operand)
     return False
 
+def isFactor(node):
+    if isinstance(node, ae.Symbol):
+        return infer_property_symbol(node, properties.FACTOR, isFactor)
+    if isinstance(node, ae.Transpose):
+        return isFactor(node.operand)
+    if isinstance(node, ae.Inverse):
+        return isFactor(node.operand)
+    if isinstance(node, ae.InverseTranspose):
+        return isFactor(node.operand)
+    return False
+
 def isUnitDiagonal(node):
     if isinstance(node, ae.Symbol):
         return infer_property_symbol(node, properties.UNIT_DIAGONAL, isUnitDiagonal)
@@ -392,6 +403,7 @@ property_to_function = {
     properties.PERMUTATION: isPermutation,
     # properties.EXISTS_LU: isExistsLU,
     properties.ADMITS_FACTORIZATION: admitsFactorization,
+    properties.FACTOR: isFactor,
 }
 
 def infer_property(expr, prop):
