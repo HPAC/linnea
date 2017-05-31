@@ -164,13 +164,33 @@ def isOrthogonalRows(node):
 def isFullRank(node):
     if isinstance(node, ae.Symbol):
         return infer_property_symbol(node, properties.FULL_RANK, isFullRank)
-    #if isinstance(node, ae.Times): # Give a careful thought
-        #return all(isFullRank(factor) for factor in node.operands)
+    if isinstance(node, ae.Times):
+        return all(isFullRank(factor) for factor in node.operands) and is_full_rank_product(node)
     if isinstance(node, ae.Transpose):
         return isFullRank(node.operand)
     if isinstance(node, ae.Inverse):
         return isFullRank(node.operand)
+    if isinstance(node, ae.InverseTranspose):
+        return isFullRank(node.operand)
     return False
+
+def is_full_rank_product(expr):
+    """Tests if product is full rank based on operand sizes.
+
+    Args:
+        expr (Expression): This expression is assumed to be a product.
+
+    Returns:
+        True if product is full rank, False if not.
+
+    TODO:
+        - This function does not work correctly with inner products.
+        - Consider bandwidth?
+    """
+    max_rank = min(expr.size)
+    _, non_scalars = expr.split_operands()
+    min_interior_size = min(operand.size[1] for operand in non_scalars[:-1])
+    return min_interior_size >= max_rank
 
 def isSquare(expr):
     return infer_property_test_function(expr, properties.SQUARE, isSquareTF)
