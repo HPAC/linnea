@@ -16,7 +16,7 @@ op_gen_file_template = textwrap.dedent(
                         end
                         """)
 
-op_gen_line_template = """{name} = generate(Shape.{shape}({size}), Set([{properties}]))"""
+op_gen_line_template = """{name} = generate({size}, [{properties}])"""
 
 experiment_template = textwrap.dedent(
                             """
@@ -33,17 +33,24 @@ def operand_generator_to_file(output_name, operands, output_str):
     op_gen_lines = []
     for operand in operands:
         replacement = {"name": operand.name}
-        if operand.has_property(properties.SYMMETRIC):
-            replacement["shape"] = "Symmetric"
-        elif operand.has_property(properties.DIAGONAL):
-            replacement["shape"] = "Diagonal"
-        elif operand.has_property(properties.LOWER_TRIANGULAR):
-            replacement["shape"] = "Triangular"
+        property_replacements = []
+        if properties.SYMMETRIC in operand.properties:
+            property_replacements.append("Shape.Symmetric")
+        if properties.DIAGONAL in operand.properties:
+            property_replacements.append("Shape.Diagonal")
+        if properties.LOWER_TRIANGULAR in operand.properties:
+            property_replacements.append("Shape.LowerTriangular")
+        if properties.UPPER_TRIANGULAR in operand.properties:
+            property_replacements.append("Shape.UpperTriangular")
+        if properties.SPD in operand.properties:
+            property_replacements.append("Properties.SPD")
         else:
-            replacement["shape"] = "MISSING"
+            property_replacements.append("Properties.Random")
+
+
         replacement["size"] = ", ".join(str(val) for val in operand.size)
 
-        replacement["properties"] = ""
+        replacement["properties"] = ", ".join(property_replacements)
 
         op_gen_lines.append(op_gen_line_template.format(**replacement))
 
