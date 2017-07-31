@@ -8,7 +8,7 @@ import os.path
 op_gen_file_template = textwrap.dedent(
                         """
                         push!(LOAD_PATH, "/Users/henrik/Promotion/code/linalg_tests/julia/")
-                        using Benchmarker
+                        using Generator
 
                         function operand_generator()
                         {}
@@ -46,9 +46,10 @@ def operand_generator_to_file(output_name, operands, output_str):
             property_replacements.append("Properties.SPD")
         else:
             property_replacements.append("Properties.Random")
+            property_replacements.append("Shape.General")
 
 
-        replacement["size"] = ", ".join(str(val) for val in operand.size)
+        replacement["size"] = str(operand.size)
 
         replacement["properties"] = ", ".join(property_replacements)
 
