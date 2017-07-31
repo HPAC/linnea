@@ -37,7 +37,7 @@ class Expression(matchpy.Expression):
             self.partitioning
         except AttributeError:
             self.partitioning = (set(), set())
-            
+
         if not isinstance(self, BlockedExpression) and not isinstance(self, Symbol):
             for operand in self.operands:
                 operand.init_partitioning()
@@ -394,7 +394,7 @@ class Symbol(matchpy.Symbol, Expression):
 class Constant(object):
     """docstring for Constant"""
     pass
-        
+
 
 ######################
 # operators
@@ -420,7 +420,7 @@ class Equal(Operator):
 
     # @lhs.setter
     # def lhs(self, value):
-    #     self.operands[0] = value        
+    #     self.operands[0] = value
 
     @property
     def rhs(self):
@@ -437,7 +437,7 @@ class Equal(Operator):
     @property
     def rows(self):
         return self.operands[0].rows
-    
+
     @property
     def columns(self):
         return self.operands[0].columns
@@ -468,7 +468,7 @@ class Plus(Operator):
     @property
     def rows(self):
         return self.operands[0].rows
-    
+
     @property
     def columns(self):
         return self.operands[0].columns
@@ -575,7 +575,7 @@ class Times(Operator):
 
         # Even though scalars have bandwidth (0, 0), which does not affect the
         # result, their size (1, 1) can affect the result. Thus, it's necessary
-        # to use split_operands here. 
+        # to use split_operands here.
         scalars, non_scalars = self.split_operands()
         if non_scalars:
             sizes = [operand.size for operand in non_scalars]
@@ -665,7 +665,7 @@ class Identity(Operator):
     @property
     def rows(self):
         return self.operands[0].rows
-    
+
     @property
     def columns(self):
         return self.operands[0].columns
@@ -676,7 +676,7 @@ class Identity(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value      
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -702,7 +702,7 @@ class Transpose(Operator):
     @property
     def rows(self):
         return self.operands[0].columns
-    
+
     @property
     def columns(self):
         return self.operands[0].rows
@@ -713,7 +713,7 @@ class Transpose(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value      
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -743,7 +743,7 @@ class Conjugate(Operator):
     @property
     def rows(self):
         return self.operands[0].rows
-    
+
     @property
     def columns(self):
         return self.operands[0].columns
@@ -754,7 +754,7 @@ class Conjugate(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value  
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -781,7 +781,7 @@ class ConjugateTranspose(Operator):
     @property
     def rows(self):
         return self.operands[0].columns
-    
+
     @property
     def columns(self):
         return self.operands[0].rows
@@ -792,7 +792,7 @@ class ConjugateTranspose(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value  
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -819,7 +819,7 @@ class Inverse(Operator):
     @property
     def rows(self):
         return self.operands[0].columns
-    
+
     @property
     def columns(self):
         return self.operands[0].rows
@@ -830,7 +830,7 @@ class Inverse(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value  
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -862,7 +862,7 @@ class InverseTranspose(Operator):
     @property
     def rows(self):
         return self.operands[0].rows
-    
+
     @property
     def columns(self):
         return self.operands[0].columns
@@ -873,7 +873,7 @@ class InverseTranspose(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value  
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -903,7 +903,7 @@ class InverseConjugate(Operator):
     @property
     def rows(self):
         return self.operands[0].columns
-    
+
     @property
     def columns(self):
         return self.operands[0].rows
@@ -914,7 +914,7 @@ class InverseConjugate(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value  
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -941,7 +941,7 @@ class InverseConjugateTranspose(Operator):
     @property
     def rows(self):
         return self.operands[0].rows
-    
+
     @property
     def columns(self):
         return self.operands[0].columns
@@ -952,7 +952,7 @@ class InverseConjugateTranspose(Operator):
 
     @operand.setter
     def operand(self, value):
-        self.operands[0] = value  
+        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -980,11 +980,20 @@ class Vector(Symbol):
         if (size[0]==1 and size[1]==1) or (size[0]!=1 and size[1]!=1):
             raise ValueError("Symbol with size {} is not a vector.".format(size))
 
+    def __repr__(self):
+        if self.size[0] == 1:
+            return 'Vector({!r}, cols={})'.format(self.name, self.size[1])
+        else:
+            return 'Vector({!r}, rows={})'.format(self.name, self.size[0])
+
 
 class Matrix(Symbol):
     """docstring for Matrix"""
     def __init__(self, name, size, indices=set()):
         super(Matrix, self).__init__(name, size, indices)
+
+    def __repr__(self):
+        return 'Matrix({!r}, size={})'.format(self.name, self.size)
 
 
 ######################
