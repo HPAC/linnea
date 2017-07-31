@@ -43,6 +43,10 @@ diagsv = list(reductions.diagsv.generate_kernels())
 diagmmr = list(reductions.diagmmr.generate_kernels())
 diagmml = list(reductions.diagmml.generate_kernels())
 diagmv = list(reductions.diagmv.generate_kernels())
+# direct solvers (so far for matrix chain paper only. Problem: They overwrite A and B, which can not be expressed at the moment)
+posv = list(reductions.posv.generate_kernels())
+sysv = list(reductions.sysv.generate_kernels())
+gesv = list(reductions.gesv.generate_kernels())
 
 # MISSING: permuation kernels
 

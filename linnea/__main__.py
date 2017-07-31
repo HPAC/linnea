@@ -33,4 +33,10 @@ with open(args.input, "r" ) as input_file:
     # print(":".join(str(t) for t in trace))
 
     graph.to_dot_file()
-    graph.algorithms_to_files(pseudocode=True, name=args.input.split(".")[0])
+    graph.write_output(code=True,
+                       pseudocode=True,
+                       # output_name=args.input.split(".")[0],
+                       output_name="tmp",
+                       operand_generator=True,
+                       max_algorithms=100,
+                       graph=True)

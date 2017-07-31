@@ -532,7 +532,7 @@ julia_template = textwrap.dedent(
 
 
 def algorithm_to_file(output_name, algorithm_name, algorithm, input, output):
-    file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms", "{}.{}".format(algorithm_name, config.filename_extension))
+    file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms", "{}{}".format(algorithm_name, config.filename_extension))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)

@@ -714,6 +714,113 @@ trtri = KernelDescription(
 #     [KernelType.identity, KernelType.transpose]
 #     )
 
+
+# POSV
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+A.set_property(properties.SPD)
+B = Matrix("B", (m, n))
+cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+Base.LinAlg.LAPACK.potrf!('L', A)
+Base.LinAlg.LAPACK.potrs!('L', A, B)
+"""
+
+posv = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Inverse(A), B)}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.symmetric_triangular),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "Base.LinAlg.LAPACK.posv!('L', $A, $B)",
+    "",
+    [SizeArgument("M", B, "rows"),
+     SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# sysv
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+A.set_property(properties.SYMMETRIC)
+B = Matrix("B", (m, n))
+cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+(A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
+Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+TODO For whatever reason, sytrs is very slow. Investigate.
+"""
+
+sysv = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Inverse(A), B)}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.symmetric_triangular),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "Base.LinAlg.LAPACK.sysv!('L', $A, $B)",
+    "",
+    [SizeArgument("M", B, "rows"),
+     SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# gesv
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+B = Matrix("B", (m, n))
+cf = lambda d: 2*(d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+Base.LinAlg.LAPACK.gesv!($A, $B)
+"""
+
+gesv = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Op1(Inverse(A)), B)}
+    ),
+    [
+        OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
+    ],  # variants
+    [InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "($A, ipiv, info) = Base.LinAlg.LAPACK.getrf!($A)\nBase.LinAlg.LAPACK.getrs!($transA, $A, ipiv, $B)",
+    "",
+    [SizeArgument("M", B, "rows"),
+     SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
 # diaginv (diagonal matrix inversion)
 
 A = Matrix("A", (n, n))
