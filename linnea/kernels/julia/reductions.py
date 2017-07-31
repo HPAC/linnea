@@ -471,7 +471,13 @@ B = Matrix("B", (k, n))
 C = Matrix("C", (m, n))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: (d["M"]**2)*d["N"]
+cf = lambda d: d["M"]*d["N"]*d["K"]
+"""
+The names for the sizes in this cost function do not make a lot of sense.
+However, it is not possible to do something more consistent because of the
+side argument. A more intuitive way to describe the cost would be n^2*m, where
+n is the size of matrix A, and m is the "other" size.
+"""
 
 symm = KernelDescription(
     ExpressionKV(
@@ -494,8 +500,9 @@ symm = KernelDescription(
     "",
     "symm!($side, $uplo, $alpha, $A, $B, $beta, $C)",
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
+     SizeArgument("K", A, "rows"),
      StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
     )
 
@@ -543,7 +550,13 @@ A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda d: (d["N"]**2)*d["M"]
+cf = lambda d: d["M"]*d["N"]*d["K"]
+"""
+The names for the sizes in this cost function do not make a lot of sense.
+However, it is not possible to do something more consistent because of the
+side argument. A more intuitive way to describe the cost would be n^2*m, where
+n is the size of matrix A, and m is the "other" size.
+"""
 
 
 trmm = KernelDescription(
@@ -568,6 +581,7 @@ trmm = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
+     SizeArgument("K", A, "rows"),
      PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -579,7 +593,13 @@ A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda d: (d["N"]**2)*d["M"]
+cf = lambda d: d["M"]*d["N"]*d["K"]
+"""
+The names for the sizes in this cost function do not make a lot of sense.
+However, it is not possible to do something more consistent because of the
+side argument. A more intuitive way to describe the cost would be n^2*m, where
+n is the size of matrix A, and m is the "other" size.
+"""
 
 """
 TODO also use the following?
@@ -609,6 +629,7 @@ trsm = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
+     SizeArgument("K", A, "rows"),
      PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
