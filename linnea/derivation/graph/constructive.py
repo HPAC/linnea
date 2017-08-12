@@ -132,7 +132,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             mins = self.metric_mins()
             #print(mins)
             pruned_nodes = self.DS_prune(mins)
-            self.print_DS("Nodes pruned:", merged_nodes)
+            self.print_DS("Nodes pruned:", pruned_nodes)
             trace.append(pruned_nodes)
 
             terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
