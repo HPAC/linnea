@@ -115,6 +115,7 @@ class DerivationGraphBase(base.GraphBase):
             input_str = ", ".join([operand.name for operand in input])
             output_str = ", ".join([operand.name for operand in output])
             cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str)
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Blaze), input_str, output_str, ".cpp")
             cge.operand_generator_to_file(output_name, input, input_str)
 
         if graph:

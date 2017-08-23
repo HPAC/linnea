@@ -9,6 +9,8 @@ from . import utils
 
 from .. import config
 
+from ..config import CppLibrary
+
 dot_table_node = """{0} [shape=record, label="{{{{ {1} | {2} }}| {3} | {4} }}"];\n"""
 
 class Expression(matchpy.Expression):
@@ -391,6 +393,9 @@ class Symbol(matchpy.Symbol, Expression):
     def to_julia_expression(self):
         return self.name
 
+    def to_cpp_expression(self, lib):
+        return self.name
+
 class Constant(object):
     """docstring for Constant"""
     pass
@@ -447,6 +452,9 @@ class Equal(Operator):
 
     def to_julia_expression(self):
         return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
+
+    def to_cpp_expression(self, lib):
+        return "{0} = {1};".format(*map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
 class Plus(Operator):
     """docstring for Plus"""
@@ -610,6 +618,9 @@ class Times(Operator):
         # return "({0})".format(operand_str)
         return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
 
+    def to_cpp_expression(self, lib):
+        return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
+
 
 class LinSolveL(Operator):
     """docstring for LinSolveL
@@ -724,6 +735,14 @@ class Transpose(Operator):
 
     def to_julia_expression(self):
         return "{0}'".format(self.operands[0].to_julia_expression())
+
+    def to_cpp_expression(self, lib):
+        op = self.operands[0].to_cpp_expression(lib)
+        return {
+            CppLibrary.Blaze : "blaze::trans({0})",
+            CppLibrary.Eigen : "({0}).transpose()",
+            CppLibrary.Armadillo : "({0}).t()"
+        }.get(lib).format(op)
 
 
 class Conjugate(Operator):
@@ -845,6 +864,14 @@ class Inverse(Operator):
     def to_julia_expression(self):
         return "inv({0})".format(self.operands[0].to_julia_expression())
 
+    def to_cpp_expression(self, lib):
+        op = self.operands[0].to_cpp_expression(lib)
+        return {
+            CppLibrary.Blaze : "blaze::inv({0})",
+            CppLibrary.Eigen : "({0}).inverse()",
+            CppLibrary.Armadillo : "({0}).i()"
+        }.get(lib).format(op)
+
 class InverseTranspose(Operator):
     """docstring for InverseTranspose"""
 
@@ -885,6 +912,14 @@ class InverseTranspose(Operator):
 
     def to_julia_expression(self):
         return "inv({0}')".format(self.operands[0].to_julia_expression())
+
+    def to_cpp_expression(self, lib):
+        op = self.operands[0].to_cpp_expression(lib)
+        return {
+            CppLibrary.Blaze : "blaze::inv(blaze::trans({0}))",
+            CppLibrary.Eigen : "({0}).transpose().inverse()",
+            CppLibrary.Armadillo : "({0}).t().i()"
+        }.get(lib).format(op)
 
 class InverseConjugate(Operator):
     """docstring for InverseConjugate"""
