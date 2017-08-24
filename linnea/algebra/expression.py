@@ -454,7 +454,11 @@ class Equal(Operator):
         return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
 
     def to_cpp_expression(self, lib):
-        return "{0} = {1};".format(*map(operator.methodcaller("to_cpp_expression", lib), self.operands))
+        return {
+            CppLibrary.Blaze : "auto {0} = blaze::eval({1});",
+            CppLibrary.Eigen : "auto {0} = ({1}).eval();",
+            CppLibrary.Armadillo : "auto {0} = ({1}).eval();"
+        }.get(lib).format(*map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
 class Plus(Operator):
     """docstring for Plus"""
