@@ -28,8 +28,8 @@ op_gen_file_template = {config.Language.Julia: textwrap.dedent(
                             """
                         )
                         }
-op_gen_line_template = {config.Language.Julia : "{name} = generate({size}, [{properties}])",
-                        config.Language.Cpp: "auto {name} = generator::generate<T, Gen>({size}, {properties});"}
+op_gen_line_template = {config.Language.Julia : "{name} = generate(({size}), [{properties}])",
+                        config.Language.Cpp: "auto {name} = generator::generate<T, Gen>({{{size}}}, {properties});"}
 
 experiment_template = textwrap.dedent(
                             """
@@ -39,6 +39,27 @@ experiment_template = textwrap.dedent(
 filename_extension = {config.Language.Julia : ".jl",
                       config.Language.Cpp: ".hpp"}
 
+operands_mapping_julia = {properties.SYMMETRIC: "Shape.Symmetric",
+                          properties.DIAGONAL: "Shape.Diagonal",
+                          properties.LOWER_TRIANGULAR: "Shape.LowerTriangular",
+                          properties.UPPER_TRIANGULAR: "Shape.UpperTriangular",
+                          properties.SPD: "Properties.SPD"
+                         }
+
+operands_mapping_cpp = {properties.SYMMETRIC: "generator::shape::self_adjoint{}",
+                        properties.DIAGONAL: "generator::shape::diagonal{}",
+                        properties.LOWER_TRIANGULAR: "generator::shape::lower_triangular{}",
+                        properties.UPPER_TRIANGULAR: "generator::shape::upper_triangular{}",
+                        properties.SPD: "generator::properties::spd{}"
+                        }
+operands_mapping = {config.Language.Julia: operands_mapping_julia,
+                    config.Language.Cpp : operands_mapping_cpp}
+
+random_operand =  {config.Language.Julia: ["Properties.Random", "Shape.General"],
+                    config.Language.Cpp : ["generator::properties::random{}"]}
+
+def map_operand(language, property):
+    return operands_mapping.get(language).get(property)
 
 def operand_generator_to_file(output_name, operands, output_str, language = config.Language.Julia, name_addition = ""):
     additional_name = "_{}".format(name_addition) if name_addition else ""
@@ -52,21 +73,13 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     for operand in operands:
         replacement = {"name": operand.name}
         property_replacements = []
-        if properties.SYMMETRIC in operand.properties:
-            property_replacements.append("Shape.Symmetric")
-        if properties.DIAGONAL in operand.properties:
-            property_replacements.append("Shape.Diagonal")
-        if properties.LOWER_TRIANGULAR in operand.properties:
-            property_replacements.append("Shape.LowerTriangular")
-        if properties.UPPER_TRIANGULAR in operand.properties:
-            property_replacements.append("Shape.UpperTriangular")
-        if properties.SPD in operand.properties:
-            property_replacements.append("Properties.SPD")
-        else:
-            property_replacements.append("Properties.Random")
-            property_replacements.append("Shape.General")
-
-        replacement["size"] = str(operand.size)
+        for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR,
+                     properties.UPPER_TRIANGULAR, properties.SPD]:
+            if prop in operand.properties:
+                property_replacements.append(map_operand(language, prop))
+        if not properties.SPD in operand.properties:
+            property_replacements.extend(random_operand.get(language))
+        replacement["size"] = ",".join(map(str, operand.size))
 
         replacement["properties"] = ", ".join(property_replacements)
 
@@ -78,3 +91,4 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     op_gen_file = op_gen_file_template.get(language).format(textwrap.indent(op_gen_lines, "    "), output_str)
     output_file.write(op_gen_file)
     output_file.close()
+
