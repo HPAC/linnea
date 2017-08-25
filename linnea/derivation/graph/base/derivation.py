@@ -109,12 +109,13 @@ class DerivationGraphBase(base.GraphBase):
                 output_file.write(algorithm.pseudocode())
                 output_file.close()
 
-
         if operand_generator:
             input, output = self.root.equations.input_output()
             input_str = ", ".join([operand.name for operand in input])
             output_str = ", ".join([operand.name for operand in output])
             cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str, config.Language.Julia)
+            cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_julia_expression(recommended=True),
+                                  input_str, output_str, config.Language.Julia)
             cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Blaze),
                                   input_str, output_str, config.Language.Cpp, ".hpp", "blaze")
             cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Eigen),

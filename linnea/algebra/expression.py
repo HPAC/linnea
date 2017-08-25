@@ -390,7 +390,7 @@ class Symbol(matchpy.Symbol, Expression):
         # output_file.write(out)
         return out
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
         return self.name
 
     def to_cpp_expression(self, lib):
@@ -450,8 +450,8 @@ class Equal(Operator):
     def __str__(self):
         return "{0} = {1}".format(*self.operands)
 
-    def to_julia_expression(self):
-        return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
+    def to_julia_expression(self, recommended=False):
+        return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
 
     def to_cpp_expression(self, lib):
         return {
@@ -616,11 +616,34 @@ class Times(Operator):
         operand_str = ' '.join(map(str, self.operands))
         return "({0})".format(operand_str)
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
         # TODO are parenthesis necessary?
         # operand_str = '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
         # return "({0})".format(operand_str)
-        return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
+        if recommended:
+            ops_str = ""
+            ops = self.operands.copy()
+            # just one element
+            if len(ops) == 1:
+                return ops.pop().to_julia_expression(recommended)
+            i=0
+            while i < len(ops):
+                if ops[i] is Inverse:
+                    if i != len(ops) - 1:
+                        ops_str += "({0}\{1})".format(
+                            ops[i].to_julia_expression(recommended),
+                            ops[i+1].to_julia_expression(recommended)
+                        )
+                        i += 2
+                    else:
+                        ops_str = "{0}/{1}".format(ops_str, ops[i].to_julia_expression(recommended))
+                        i += 1
+                else:
+                    ops_str += "*{0}".format(ops[i].to_julia_expression(recommended))
+                    i += 1
+            return ops_str
+        else:
+            return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
 
     def to_cpp_expression(self, lib):
         return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
@@ -737,8 +760,8 @@ class Transpose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self):
-        return "{0}'".format(self.operands[0].to_julia_expression())
+    def to_julia_expression(self, recommended=False):
+        return "{0}'".format(self.operands[0].to_julia_expression(recommended))
 
     def to_cpp_expression(self, lib):
         op = self.operands[0].to_cpp_expression(lib)
@@ -865,7 +888,7 @@ class Inverse(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
         return "inv({0})".format(self.operands[0].to_julia_expression())
 
     def to_cpp_expression(self, lib):
@@ -914,7 +937,7 @@ class InverseTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
         return "inv({0}')".format(self.operands[0].to_julia_expression())
 
     def to_cpp_expression(self, lib):

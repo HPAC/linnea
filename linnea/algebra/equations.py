@@ -182,8 +182,8 @@ class Equations(object):
         for equation in self.equations:
             equation.to_dot_file()
 
-    def to_julia_expression(self):
-        return "\n".join([equation.to_julia_expression() for equation in self.equations])
+    def to_julia_expression(self, recommended=False):
+        return "\n".join([equation.to_julia_expression(recommended) for equation in self.equations])
 
     def to_cpp_expression(self, lib):
         return "\n".join([equation.to_cpp_expression(lib) for equation in self.equations])
