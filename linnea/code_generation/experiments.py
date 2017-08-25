@@ -19,8 +19,8 @@ op_gen_file_template = {config.Language.Julia: textwrap.dedent(
                             """
                             #include <generator/generator.hpp>
 
-                            template<typename T, typename Gen>
-                            decltype(auto) operand_generator()
+                            template<typename Gen>
+                            decltype(auto) operand_generator(Gen && gen)
                             {{
                             {}
                                 return std::make_tuple({});
@@ -29,7 +29,7 @@ op_gen_file_template = {config.Language.Julia: textwrap.dedent(
                         )
                         }
 op_gen_line_template = {config.Language.Julia : "{name} = generate(({size}), [{properties}])",
-                        config.Language.Cpp: "auto {name} = generator::generate<T, Gen>({{{size}}}, {properties});"}
+                        config.Language.Cpp: "auto {name} = gen.generate({{{size}}}, {properties});"}
 
 experiment_template = textwrap.dedent(
                             """
