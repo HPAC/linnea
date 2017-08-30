@@ -130,7 +130,9 @@ class DerivationGraphBase(base.GraphBase):
                                   input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
             cge.operand_generator_to_file(output_name, input, input_str)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
-            #cge.benchmarker_to_file(output_name, input, input_str, language=config.Language.Cpp)
+            cge.benchmarker_to_file(output_name, algorithms_count=len(algorithm_paths), language=config.Language.Julia)
+
+            # create language runner
 
         if graph:
             self.write_graph(output_name)

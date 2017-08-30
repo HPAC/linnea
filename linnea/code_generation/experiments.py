@@ -7,7 +7,7 @@ import os.path
 
 op_gen_file_template = {config.Language.Julia: textwrap.dedent(
                             """
-                            using Generator
+                            using MatrixGenerator
 
                             function operand_generator()
                             {}
@@ -58,6 +58,50 @@ operands_mapping = {config.Language.Julia: operands_mapping_julia,
 random_operand =  {config.Language.Julia: ["Properties.Random", "Shape.General"],
                     config.Language.Cpp : ["generator::properties::random{}"]}
 
+
+benchmarker_code = {config.Language.Julia: textwrap.dedent(
+                    """
+                    using Base.Test
+                    using MatrixGenerator
+                    
+                    include("operand_generator.jl")
+                    have_algorithm = isfile("algorithms/algorithm0.jl")
+                    if have_algorithm
+                        include("algorithms/algorithm0.jl")
+                    end
+                    {0}
+                    include("algorithms/naive.jl")
+                    include("algorithms/recommended.jl")
+                    
+                    matrices = operand_generator()
+                    #test run
+                    result_naive = naive(matrices...)
+                    result_recommended = recommended(matrices...)
+                    @test result_recommended ≈ result_naive
+                    {1}
+                    
+                    plotter = Benchmarker.Plotter.Plot{{Float64}}("julia_results.txt", ["algorithm"]);
+                    {2}
+                    Benchmarker.Plotter.add_data(plotter, ["naive"], Benchmarker.measure(10, naive, matrices...) );
+                    Benchmarker.Plotter.add_data(plotter, ["recommended"], Benchmarker.measure(10, recommended, matrices...) );
+                    Benchmarker.Plotter.finish(plotter);
+                    """
+                ),
+                config.Language.Cpp: textwrap.dedent(
+                    """
+                    """
+                )
+                }
+
+algorithm_inclusion = {config.Language.Julia: "include(\"algorithms/algorithm{0}.jl\")",
+                    config.Language.Cpp: ""}
+
+algorithm_test = {config.Language.Julia: "@test algorithm{0}(matrices...) ≈ result_naive",
+                    config.Language.Cpp: ""}
+
+algorithm_plot = {config.Language.Julia: "Benchmarker.Plotter.add_data(plotter, [\"algorithm{0}\"], Benchmarker.measure(20, algorithm{0}, matrices...) );",
+                    config.Language.Cpp: ""}
+
 def map_operand(language, property):
     return operands_mapping.get(language).get(property)
 
@@ -89,6 +133,28 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     op_gen_lines = "\n".join(op_gen_lines)
     # print(op_gen_lines)
     op_gen_file = op_gen_file_template.get(language).format(textwrap.indent(op_gen_lines, "    "), output_str)
+    output_file.write(op_gen_file)
+    output_file.close()
+
+def benchmarker_to_file(output_name, algorithms_count, language):
+    file_name = os.path.join(config.output_path, config.language.name, output_name,
+                             "runner{}".format(filename_extension.get(language)))
+    output_file = open(file_name, "wt")
+    inclusions = []
+    tests = []
+    plots = []
+    incl_format = algorithm_inclusion.get(language)
+    test_format = algorithm_test.get(language)
+    plot_format = algorithm_plot.get(language)
+    for i in range(algorithms_count):
+        inclusions.append(incl_format.format(i))
+        tests.append(test_format.format(i))
+        plots.append(plot_format.format(i))
+    op_gen_file = benchmarker_code.get(language).format(
+        "\n".join(inclusions),
+        "\n".join(tests),
+        "\n".join(plots)
+    )
     output_file.write(op_gen_file)
     output_file.close()
 
