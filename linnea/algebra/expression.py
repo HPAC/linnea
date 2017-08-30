@@ -648,6 +648,8 @@ class Times(Operator):
                         op.to_julia_expression(recommended=True),
                         op_next.to_julia_expression(recommended=True)
                     )
+            elif idx == len(self.operands) - 1:
+                return op.to_julia_expression(recommended=True)
             else:
                 return "{0}*{1}".format(
                     op.to_julia_expression(recommended=True),
