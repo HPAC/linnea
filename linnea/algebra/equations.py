@@ -185,8 +185,8 @@ class Equations(object):
     def to_julia_expression(self, recommended=False):
         return "\n".join([equation.to_julia_expression(recommended) for equation in self.equations])
 
-    def to_cpp_expression(self, lib):
-        return "\n".join([equation.to_cpp_expression(lib) for equation in self.equations])
+    def to_cpp_expression(self, lib, recommended=False):
+        return "\n".join([equation.to_cpp_expression(lib, recommended) for equation in self.equations])
 
     def input_output(self):
         input = []

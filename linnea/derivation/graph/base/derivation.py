@@ -122,6 +122,12 @@ class DerivationGraphBase(base.GraphBase):
                                   input_str, output_str, config.Language.Cpp, ".hpp", "eigen")
             cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo),
                                   input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
+            cgu.algorithm_to_file(output_name, "recommended",
+                                  self.root.equations.to_cpp_expression(config.CppLibrary.Eigen, recommended=True),
+                                  input_str, output_str, config.Language.Cpp, ".hpp", "eigen")
+            cgu.algorithm_to_file(output_name, "recommended",
+                                  self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo, recommended=True),
+                                  input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
             cge.operand_generator_to_file(output_name, input, input_str)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
             #cge.benchmarker_to_file(output_name, input, input_str, language=config.Language.Cpp)

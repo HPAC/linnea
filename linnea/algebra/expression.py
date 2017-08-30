@@ -393,7 +393,7 @@ class Symbol(matchpy.Symbol, Expression):
     def to_julia_expression(self, recommended=False):
         return self.name
 
-    def to_cpp_expression(self, lib):
+    def to_cpp_expression(self, lib, recommended=False):
         return self.name
 
 class Constant(object):
@@ -453,12 +453,12 @@ class Equal(Operator):
     def to_julia_expression(self, recommended=False):
         return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
 
-    def to_cpp_expression(self, lib):
+    def to_cpp_expression(self, lib, recommended=False):
         return {
             CppLibrary.Blaze : "auto {0} = blaze::eval({1});",
             CppLibrary.Eigen : "auto {0} = ({1}).eval();",
             CppLibrary.Armadillo : "auto {0} = ({1}).eval();"
-        }.get(lib).format(*map(operator.methodcaller("to_cpp_expression", lib), self.operands))
+        }.get(lib).format(*map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
 
 class Plus(Operator):
     """docstring for Plus"""
@@ -656,6 +656,40 @@ class Times(Operator):
                     self.recommended_julia_expression(idx + 1)
                 )
 
+    def recommended_cpp_expression(self, lib, idx):
+        op = self.operands[idx]
+        if self.is_inverse_type(type(op)):
+            # there are at least two elements to process
+            #  since op is inverse, it will be inv(a) * b -> a \ b
+            # doesn't matter if b is inverse or not
+            if idx != len(self.operands) - 1:
+                return {
+                    CppLibrary.Eigen: "({0}.partialPivLU().solve({1}))",
+                    CppLibrary.Armadillo: "arma::solve({0}, {1}, arma::solve_opts::fast)"
+                }.get(lib).format(
+                    op.to_cpp_expression(lib, recommended=True, strip_inverse=True),
+                    self.recommended_cpp_expression(lib, idx + 1)
+                )
+            else:
+                return ("{0}*" if idx != len(self.operands) - 1 else "{0}").format(
+                    op.to_cpp_expression(lib, recommended=True))
+        else:
+            # only two elements are left
+            # leave if we decide to perform a/b for cpp as well
+            if idx == len(self.operands) - 2:
+                op_next = self.operands[idx + 1]
+                return "{0}*{1}".format(
+                    op.to_cpp_expression(lib, recommended=True),
+                    op_next.to_cpp_expression(lib, recommended=True)
+                )
+            elif idx == len(self.operands) - 1:
+                return op.to_cpp_expression(lib, recommended=True)
+            else:
+                return "{0}*{1}".format(
+                    op.to_cpp_expression(lib, recommended=True),
+                    self.recommended_cpp_expression(lib, idx + 1)
+                )
+
     def to_julia_expression(self, recommended=False):
         # TODO are parenthesis necessary?
         # operand_str = '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
@@ -665,8 +699,11 @@ class Times(Operator):
         else:
             return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
 
-    def to_cpp_expression(self, lib):
-        return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
+    def to_cpp_expression(self, lib, recommended=False):
+        if recommended:
+            return self.recommended_cpp_expression(lib, 0)
+        else:
+            return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
 
 class LinSolveL(Operator):
@@ -783,12 +820,12 @@ class Transpose(Operator):
     def to_julia_expression(self, recommended=False):
         return "{0}'".format(self.operands[0].to_julia_expression(recommended))
 
-    def to_cpp_expression(self, lib):
-        op = self.operands[0].to_cpp_expression(lib)
+    def to_cpp_expression(self, lib, recommended=False):
+        op = self.operands[0].to_cpp_expression(lib, recommended)
         return {
-            CppLibrary.Blaze : "blaze::trans({0})",
-            CppLibrary.Eigen : "({0}).transpose()",
-            CppLibrary.Armadillo : "({0}).t()"
+            CppLibrary.Blaze: "blaze::trans({0})",
+            CppLibrary.Eigen: "({0}).transpose()",
+            CppLibrary.Armadillo: "({0}).t()"
         }.get(lib).format(op)
 
 
@@ -914,8 +951,10 @@ class Inverse(Operator):
         else:
             return "inv({0})".format(self.operands[0].to_julia_expression(recommended))
 
-    def to_cpp_expression(self, lib):
-        op = self.operands[0].to_cpp_expression(lib)
+    def to_cpp_expression(self, lib, recommended=False, strip_inverse=False):
+        op = self.operands[0].to_cpp_expression(lib, recommended)
+        if strip_inverse:
+            return op
         return {
             CppLibrary.Blaze : "blaze::inv({0})",
             CppLibrary.Eigen : "({0}).inverse()",
@@ -966,8 +1005,10 @@ class InverseTranspose(Operator):
         else:
             return "inv({0}')".format(self.operands[0].to_julia_expression(recommended))
 
-    def to_cpp_expression(self, lib):
-        op = self.operands[0].to_cpp_expression(lib)
+    def to_cpp_expression(self, lib, recommended=False, strip_inverse=False):
+        op = self.operands[0].to_cpp_expression(lib, recommended)
+        if strip_inverse:
+            return op
         return {
             CppLibrary.Blaze : "blaze::inv(blaze::trans({0}))",
             CppLibrary.Eigen : "({0}).transpose().inverse()",
