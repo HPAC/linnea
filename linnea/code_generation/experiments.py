@@ -96,10 +96,10 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
 algorithm_inclusion = {config.Language.Julia: "include(\"algorithms/algorithm{0}.jl\")",
                     config.Language.Cpp: ""}
 
-algorithm_test = {config.Language.Julia: "@test algorithm{0}(matrices...) ≈ result_naive",
+algorithm_test = {config.Language.Julia: "@test algorithm{0}(map(MatrixGenerator.unwrap, matrices)...) ≈ result_naive",
                     config.Language.Cpp: ""}
 
-algorithm_plot = {config.Language.Julia: "Benchmarker.Plotter.add_data(plotter, [\"algorithm{0}\"], Benchmarker.measure(20, algorithm{0}, matrices...) );",
+algorithm_plot = {config.Language.Julia: "Benchmarker.Plotter.add_data(plotter, [\"algorithm{0}\"], Benchmarker.measure(20, algorithm{0}, map(MatrixGenerator.unwrap, matrices)...) );",
                     config.Language.Cpp: ""}
 
 def map_operand(language, property):
