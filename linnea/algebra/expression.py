@@ -616,32 +616,50 @@ class Times(Operator):
         operand_str = ' '.join(map(str, self.operands))
         return "({0})".format(operand_str)
 
+    def is_inverse_type(self, type):
+        return type in [Inverse, InverseTranspose]
+
+    def recommended_julia_expression(self, idx):
+        op = self.operands[idx]
+        if self.is_inverse_type(type(op)):
+            # there are at least two elements to process
+            #  since op is inverse, it will be inv(a) * b -> a \ b
+            # doesn't matter if b is inverse or not
+            if idx != len(self.operands) - 1:
+                return "({0}\{1})".format(
+                    op.to_julia_expression(recommended=True, strip_inverse=True),
+                    self.recommended_julia_expression(idx + 1)
+                )
+            else:
+                return ("{0}*" if idx != len(self.operands) - 1 else "{0}").format(op.to_julia_expression(recommended=True))
+        else:
+            # only two elements are left
+            if idx == len(self.operands) - 2:
+                op_next = self.operands[idx + 1]
+                # if next is an inverse, match a * inv(b) -> a / b
+                if self.is_inverse_type(type(op_next)):
+                    return "({0}/{1})".format(
+                        op.to_julia_expression(recommended=True),
+                        op_next.to_julia_expression(recommended=True, strip_inverse=True)
+                    )
+                # otherwise, simply finish
+                else:
+                    return "{0}*{1}".format(
+                        op.to_julia_expression(recommended=True),
+                        op_next.to_julia_expression(recommended=True)
+                    )
+            else:
+                return "{0}*{1}".format(
+                    op.to_julia_expression(recommended=True),
+                    self.recommended_julia_expression(idx + 1)
+                )
+
     def to_julia_expression(self, recommended=False):
         # TODO are parenthesis necessary?
         # operand_str = '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
         # return "({0})".format(operand_str)
         if recommended:
-            ops_str = ""
-            ops = self.operands.copy()
-            # just one element
-            if len(ops) == 1:
-                return ops.pop().to_julia_expression(recommended)
-            i=0
-            while i < len(ops):
-                if ops[i] is Inverse:
-                    if i != len(ops) - 1:
-                        ops_str += "({0}\{1})".format(
-                            ops[i].to_julia_expression(recommended),
-                            ops[i+1].to_julia_expression(recommended)
-                        )
-                        i += 2
-                    else:
-                        ops_str = "{0}/{1}".format(ops_str, ops[i].to_julia_expression(recommended))
-                        i += 1
-                else:
-                    ops_str += "*{0}".format(ops[i].to_julia_expression(recommended))
-                    i += 1
-            return ops_str
+            return self.recommended_julia_expression(0)
         else:
             return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
 
@@ -888,8 +906,11 @@ class Inverse(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self, recommended=False):
-        return "inv({0})".format(self.operands[0].to_julia_expression())
+    def to_julia_expression(self, recommended=False, strip_inverse=False):
+        if strip_inverse:
+            return self.operands[0].to_julia_expression(recommended)
+        else:
+            return "inv({0})".format(self.operands[0].to_julia_expression(recommended))
 
     def to_cpp_expression(self, lib):
         op = self.operands[0].to_cpp_expression(lib)
@@ -937,8 +958,11 @@ class InverseTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self, recommended=False):
-        return "inv({0}')".format(self.operands[0].to_julia_expression())
+    def to_julia_expression(self, recommended=False, strip_inverse=False):
+        if strip_inverse:
+            return "{0}'".format(self.operands[0].to_julia_expression(recommended))
+        else:
+            return "inv({0}')".format(self.operands[0].to_julia_expression(recommended))
 
     def to_cpp_expression(self, lib):
         op = self.operands[0].to_cpp_expression(lib)
