@@ -131,6 +131,7 @@ class DerivationGraphBase(base.GraphBase):
             cge.operand_generator_to_file(output_name, input, input_str)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
             cge.benchmarker_to_file(output_name, algorithms_count=len(algorithm_paths), language=config.Language.Julia)
+            cge.benchmarker_to_file(output_name, language=config.Language.Cpp)
 
             # create language runner
 

@@ -532,12 +532,16 @@ julia_template = textwrap.dedent(
 
 cpp_template = textwrap.dedent(
                         """
+                        struct {}
+                        {{
                         template<{}>
-                        decltype(auto) {}({})
+                        decltype(auto) operator()({})
                         {{
                         {}
-                            return std::move({});
+                            typedef std::remove_reference_t<decltype({})> return_t;
+                            return return_t({});
                         }}
+                        }};
                         """)
 
 def algorithm_to_file(output_name, algorithm_name, algorithm, input, output,
@@ -563,7 +567,7 @@ def algorithm_to_str(function_name, algorithm, input, output, language):
     elif language == config.Language.Cpp:
         types_list = ", ".join("typename Type_{}".format(op) for op in str.split(input, ", "))
         args_list = ", ".join("Type_{0} && {0}".format(op) for op in str.split(input, ", "))
-        experiment_str = cpp_template.format(types_list, function_name, args_list, textwrap.indent(algorithm, "    "), output)
+        experiment_str = cpp_template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output, output)
     else:
         raise config.LanguageOptionNotImplemented()
     

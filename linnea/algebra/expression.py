@@ -455,7 +455,7 @@ class Equal(Operator):
 
     def to_cpp_expression(self, lib, recommended=False):
         return {
-            CppLibrary.Blaze : "auto {0} = blaze::eval({1});",
+            CppLibrary.Blaze : "auto {0} = blaze::evaluate({1});",
             CppLibrary.Eigen : "auto {0} = ({1}).eval();",
             CppLibrary.Armadillo : "auto {0} = ({1}).eval();"
         }.get(lib).format(*map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
@@ -664,7 +664,7 @@ class Times(Operator):
             # doesn't matter if b is inverse or not
             if idx != len(self.operands) - 1:
                 return {
-                    CppLibrary.Eigen: "({0}.partialPivLU().solve({1}))",
+                    CppLibrary.Eigen: "({0}.partialPivLu().solve({1}))",
                     CppLibrary.Armadillo: "arma::solve({0}, {1}, arma::solve_opts::fast)"
                 }.get(lib).format(
                     op.to_cpp_expression(lib, recommended=True, strip_inverse=True),

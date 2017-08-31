@@ -36,8 +36,11 @@ experiment_template = textwrap.dedent(
                             """
                             )
 
-filename_extension = {config.Language.Julia : ".jl",
+filename_extension = {config.Language.Julia: ".jl",
                       config.Language.Cpp: ".hpp"}
+
+filename_extension_exec = {config.Language.Julia: ".jl",
+                      config.Language.Cpp: ".cpp"}
 
 operands_mapping_julia = {properties.SYMMETRIC: "Shape.Symmetric",
                           properties.DIAGONAL: "Shape.Diagonal",
@@ -66,9 +69,6 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     
                     include("operand_generator.jl")
                     have_algorithm = isfile("algorithms/algorithm0.jl")
-                    if have_algorithm
-                        include("algorithms/algorithm0.jl")
-                    end
                     {0}
                     include("algorithms/naive.jl")
                     include("algorithms/recommended.jl")
@@ -78,9 +78,11 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     result_naive = naive(matrices...)
                     result_recommended = recommended(matrices...)
                     @test result_recommended ≈ result_naive
+                    print("Norm: "*string(norm(result_naive - result_recommended))*"\\n")
+                    print("Naive(0, 0): "*string(result_naive[1, 1])*"\\n")
                     {1}
                     
-                    plotter = Benchmarker.Plotter.Plot{{Float64}}("julia_results.txt", ["algorithm"]);
+                    plotter = Benchmarker.Plotter.Plot{{Float64}}("julia_results_{3}.txt", ["algorithm"]);
                     {2}
                     Benchmarker.Plotter.add_data(plotter, ["naive"], Benchmarker.measure(10, naive, matrices...) );
                     Benchmarker.Plotter.add_data(plotter, ["recommended"], Benchmarker.measure(10, recommended, matrices...) );
@@ -89,6 +91,89 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                 ),
                 config.Language.Cpp: textwrap.dedent(
                     """
+                    #include <array>
+                    #include <string>
+                    #include <utility>
+                    #include <fstream>
+                    
+                    #include <benchmarker/benchmarker.hpp>
+                    #include <libraries.hpp>
+                    #include <generator/generator.hpp>
+                    
+                    #include "algorithms/naive_armadillo.hpp"
+                    #include "algorithms/recommended_armadillo.hpp"
+                    #include "algorithms/naive_eigen.hpp"
+                    #include "algorithms/recommended_eigen.hpp"
+                    #include "algorithms/naive_blaze.hpp"
+                    
+                    #include "operand_generator.hpp"
+                    
+                    typedef double float_type;
+                    
+                    template<typename Function, typename Tuple, std::size_t... I>
+                    decltype(auto) call(Function && f, Tuple && t, std::index_sequence<I...>)
+                    {{
+                        return f(std::get<I>(t)...);
+                    }}
+                    
+                    int main(int argc, char ** argv)
+                    {{
+                        std::cout << "Test runner for algorithm {0}\\n";
+                        linalg_tests::basic_benchmarker<std::chrono::duration<float>> benchmark;
+                        benchmark.set_cache_size(30 * 1024 * 1024);
+                        {{
+                        generator::generator<library::arma, float_type> arma_gen{{100}};
+                        auto matrices = operand_generator(arma_gen);
+                        constexpr std::size_t tuple_length = std::tuple_size<decltype(matrices)>::value;
+                        typedef std::make_index_sequence<tuple_length> Indices;
+                        auto res_naive = call(naive_armadillo{{}}, matrices, Indices{{}});
+                        auto res_recomm = call(recommended_armadillo{{}}, matrices, Indices{{}});
+                        std::cout << "Armadillo norm(naive-recom): " << arma::norm(res_naive - res_recomm) << std::endl;
+                        std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
+                    
+                        benchmark.run(20, [&]() {{
+                                call(naive_armadillo{{}}, matrices, Indices{{}});
+                                }});
+                        benchmark.run(20, [&]() {{
+                                call(recommended_armadillo{{}}, matrices, Indices{{}});
+                                }});
+                        }}
+                        {{ 
+                        generator::generator<library::eigen, float_type> eigen_gen{{100}};
+                        auto matrices = operand_generator(eigen_gen);
+                        constexpr std::size_t tuple_length = std::tuple_size<decltype(matrices)>::value;
+                        typedef std::make_index_sequence<tuple_length> Indices;
+                        auto res_naive = call(naive_eigen{{}}, matrices, Indices{{}});
+                        auto res_recomm = call(recommended_eigen{{}}, matrices, Indices{{}});
+                        std::cout << "Eigen norm(naive-recom): " << (res_naive - res_recomm).norm() << std::endl;
+                        std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
+                    
+                        benchmark.run(20, [&]() {{
+                                call(naive_eigen{{}}, matrices, Indices{{}});
+                                }});
+                        benchmark.run(20, [&]() {{
+                                call(recommended_eigen{{}}, matrices, Indices{{}});
+                                }});
+                        }}
+                        {{
+                        generator::generator<library::blaze, float_type> blaze_gen{{100}};
+                        auto matrices = operand_generator(blaze_gen);
+                        constexpr std::size_t tuple_length = std::tuple_size<decltype(matrices)>::value;
+                        typedef std::make_index_sequence<tuple_length> Indices;
+                        auto res_naive = call(naive_blaze{{}}, matrices, Indices{{}});
+                        std::cout << "Blaze naive(0, 0): " << res_naive(0, 0) << std::endl;
+                    
+                        benchmark.run(20, [&]() {{
+                                call(naive_blaze{{}}, matrices, Indices{{}});
+                                }});
+                        }}
+                    
+                        std::array<std::string, 5> labels{{ {{"naive_armadillo", "recommended_armadillo",
+                            "naive_eigen", "recommended_eigen", "naive blaze"}} }};
+                        std::ofstream file("cpp_results_{0}.txt");
+                        benchmark.output_results(file, labels);
+                        file.close();
+                    }}
                     """
                 )
                 }
@@ -136,9 +221,9 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     output_file.write(op_gen_file)
     output_file.close()
 
-def benchmarker_to_file(output_name, algorithms_count, language):
+def benchmarker_to_file(output_name, language, algorithms_count=0):
     file_name = os.path.join(config.output_path, config.language.name, output_name,
-                             "runner{}".format(filename_extension.get(language)))
+                             "runner{}".format(filename_extension_exec.get(language)))
     output_file = open(file_name, "wt")
     inclusions = []
     tests = []
@@ -150,11 +235,38 @@ def benchmarker_to_file(output_name, algorithms_count, language):
         inclusions.append(incl_format.format(i))
         tests.append(test_format.format(i))
         plots.append(plot_format.format(i))
-    op_gen_file = benchmarker_code.get(language).format(
-        "\n".join(inclusions),
-        "\n".join(tests),
-        "\n".join(plots)
-    )
+    if language == config.Language.Julia:
+        op_gen_file = benchmarker_code.get(language).format(
+            "\n".join(inclusions),
+            "\n".join(tests),
+            "\n".join(plots),
+            output_name
+        )
+    else:
+        op_gen_file = benchmarker_code.get(language).format(output_name)
     output_file.write(op_gen_file)
     output_file.close()
 
+cmake_script = """
+                cmake_minimum_required(VERSION 3.0)
+                project(cpp_runner)
+                
+                find_package(LibTests REQUIRED)
+                
+                set(sources {0})
+                
+                foreach(source ${{sources}})
+                    add_executable(${{source}} ${{source}}/runner.cpp)
+                    target_link_libraries(${{source}} PRIVATE libtests)
+                    set_target_properties(${{source}} PROPERTIES CXX_STANDARD 14)
+                endforeach()
+                """
+
+def generate_cmake_script(experiment_name, experiments_count):
+    file_name = os.path.join(config.output_path, config.language.name, "CMakeLists.txt")
+    output_file = open(file_name, "wt")
+    names = ""
+    for i in range(experiments_count):
+        names += experiment_name.format(i) + " "
+    output_file.write(cmake_script.format(names))
+    output_file.close()
