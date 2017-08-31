@@ -50,13 +50,13 @@ operands_mapping_cpp = {properties.SYMMETRIC: "generator::shape::self_adjoint{}"
                         properties.DIAGONAL: "generator::shape::diagonal{}",
                         properties.LOWER_TRIANGULAR: "generator::shape::lower_triangular{}",
                         properties.UPPER_TRIANGULAR: "generator::shape::upper_triangular{}",
-                        properties.SPD: "generator::properties::spd{}"
+                        properties.SPD: "generator::property::spd{}"
                         }
 operands_mapping = {config.Language.Julia: operands_mapping_julia,
                     config.Language.Cpp : operands_mapping_cpp}
 
 random_operand =  {config.Language.Julia: ["Properties.Random", "Shape.General"],
-                    config.Language.Cpp : ["generator::properties::random{}"]}
+                    config.Language.Cpp : ["generator::property::random{}"]}
 
 
 benchmarker_code = {config.Language.Julia: textwrap.dedent(

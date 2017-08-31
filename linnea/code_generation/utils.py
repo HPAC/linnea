@@ -536,7 +536,7 @@ cpp_template = textwrap.dedent(
                         decltype(auto) {}({})
                         {{
                         {}
-                            return ({});
+                            return std::move({});
                         }}
                         """)
 
