@@ -626,35 +626,33 @@ class Times(Operator):
             #  since op is inverse, it will be inv(a) * b -> a \ b
             # doesn't matter if b is inverse or not
             if idx != len(self.operands) - 1:
-                return "({0}\{1})".format(
+                idx, second_operand = self.recommended_julia_expression(idx + 1)
+                return (idx, "({0}\{1})".format(
                     op.to_julia_expression(recommended=True, strip_inverse=True),
-                    self.recommended_julia_expression(idx + 1)
-                )
+                    second_operand
+                ))
             else:
-                return ("{0}*" if idx != len(self.operands) - 1 else "{0}").format(op.to_julia_expression(recommended=True))
-        else:
-            # only two elements are left
-            if idx == len(self.operands) - 2:
-                op_next = self.operands[idx + 1]
-                # if next is an inverse, match a * inv(b) -> a / b
-                if self.is_inverse_type(type(op_next)):
-                    return "({0}/{1})".format(
-                        op.to_julia_expression(recommended=True),
-                        op_next.to_julia_expression(recommended=True, strip_inverse=True)
-                    )
-                # otherwise, simply finish
-                else:
-                    return "{0}*{1}".format(
-                        op.to_julia_expression(recommended=True),
-                        op_next.to_julia_expression(recommended=True)
-                    )
-            elif idx == len(self.operands) - 1:
-                return op.to_julia_expression(recommended=True)
-            else:
-                return "{0}*{1}".format(
+                return (idx + 1,
+                        "{0}".format(op.to_julia_expression(recommended=True))
+                        )
+        # only two elements are left, check if we should apply a * inv(b) -> a / b
+        elif idx == len(self.operands) - 2:
+            op_next = self.operands[idx + 1]
+            # if next is an inverse, match a * inv(b) -> a / b
+            if self.is_inverse_type(type(op_next)):
+                return (idx + 2, "({0}/{1})".format(
                     op.to_julia_expression(recommended=True),
-                    self.recommended_julia_expression(idx + 1)
-                )
+                    op_next.to_julia_expression(recommended=True, strip_inverse=True)
+                ))
+            else:
+                return (idx + 1,
+                        "{0}".format(op.to_julia_expression(recommended=True))
+                        )
+        #otherwise, simply return this element processed
+        else:
+            return (idx + 1,
+                    "{0}".format(op.to_julia_expression(recommended=True))
+                    )
 
     def recommended_cpp_expression(self, lib, idx):
         op = self.operands[idx]
@@ -695,7 +693,12 @@ class Times(Operator):
         # operand_str = '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
         # return "({0})".format(operand_str)
         if recommended:
-            return self.recommended_julia_expression(0)
+            str_ = ""
+            idx = 0
+            while idx < len(self.operands):
+                idx, str_new = self.recommended_julia_expression(idx)
+                str_ += str_new + ("*" if idx < len(self.operands) else "")
+            return str_
         else:
             return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
 

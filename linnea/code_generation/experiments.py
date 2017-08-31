@@ -68,7 +68,6 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     using MatrixGenerator
                     
                     include("operand_generator.jl")
-                    have_algorithm = isfile("algorithms/algorithm0.jl")
                     {0}
                     include("algorithms/naive.jl")
                     include("algorithms/recommended.jl")
