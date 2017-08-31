@@ -654,6 +654,18 @@ class Times(Operator):
                     "{0}".format(op.to_julia_expression(recommended=True))
                     )
 
+    def cast_cpp(self, lib, op, op_str):
+        # trimatu() and trimatl() for solvers
+        if lib == CppLibrary.Armadillo:
+            if op.has_property(properties.UPPER_TRIANGULAR):
+                return "arma::trimatu({0})".format(op_str)
+            elif op.has_property(properties.LOWER_TRIANGULAR):
+                return "trimatl({0})".format(op_str)
+            else:
+                return op_str
+        else:
+            return op_str
+
     def recommended_cpp_expression(self, lib, idx):
         op = self.operands[idx]
         if self.is_inverse_type(type(op)):
@@ -661,32 +673,24 @@ class Times(Operator):
             #  since op is inverse, it will be inv(a) * b -> a \ b
             # doesn't matter if b is inverse or not
             if idx != len(self.operands) - 1:
-                return {
-                    CppLibrary.Eigen: "({0}.partialPivLu().solve({1}))",
+                idx, second_operand = self.recommended_cpp_expression(lib, idx + 1)
+                first_operand = op.to_cpp_expression(lib, recommended=True, strip_inverse=True)
+                return (idx, {
+                    CppLibrary.Eigen: "( {0}.partialPivLu().solve({1}) )",
                     CppLibrary.Armadillo: "arma::solve({0}, {1}, arma::solve_opts::fast)"
                 }.get(lib).format(
-                    op.to_cpp_expression(lib, recommended=True, strip_inverse=True),
-                    self.recommended_cpp_expression(lib, idx + 1)
-                )
+                    self.cast_cpp(lib, op, first_operand),
+                    second_operand
+                ))
             else:
-                return ("{0}*" if idx != len(self.operands) - 1 else "{0}").format(
-                    op.to_cpp_expression(lib, recommended=True))
+                return (idx + 1,
+                        "{0}".format(op.to_cpp_expression(lib, recommended=True))
+                        )
+        #otherwise, simply return this element processed
         else:
-            # only two elements are left
-            # leave if we decide to perform a/b for cpp as well
-            if idx == len(self.operands) - 2:
-                op_next = self.operands[idx + 1]
-                return "{0}*{1}".format(
-                    op.to_cpp_expression(lib, recommended=True),
-                    op_next.to_cpp_expression(lib, recommended=True)
-                )
-            elif idx == len(self.operands) - 1:
-                return op.to_cpp_expression(lib, recommended=True)
-            else:
-                return "{0}*{1}".format(
-                    op.to_cpp_expression(lib, recommended=True),
-                    self.recommended_cpp_expression(lib, idx + 1)
-                )
+            return (idx + 1,
+                    "{0}".format(op.to_cpp_expression(lib, recommended=True))
+                    )
 
     def to_julia_expression(self, recommended=False):
         # TODO are parenthesis necessary?
@@ -704,7 +708,12 @@ class Times(Operator):
 
     def to_cpp_expression(self, lib, recommended=False):
         if recommended:
-            return self.recommended_cpp_expression(lib, 0)
+            str_ = ""
+            idx = 0
+            while idx < len(self.operands):
+                idx, str_new = self.recommended_cpp_expression(lib, idx)
+                str_ += str_new + ("*" if idx < len(self.operands) else "")
+            return str_
         else:
             return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
@@ -958,6 +967,12 @@ class Inverse(Operator):
         op = self.operands[0].to_cpp_expression(lib, recommended)
         if strip_inverse:
             return op
+        # perform casting only for input matrices, not expression results
+        if lib == CppLibrary.Armadillo and type(self.operands[0]) is Matrix:
+            if self.operands[0].has_property(properties.SPD):
+               return "arma::inv_sympd({0})".format(op)
+            elif self.operands[0].has_property(properties.DIAGONAL):
+                return "arma::inv( arma::diagmat({0}))".format(op)
         return {
             CppLibrary.Blaze : "blaze::inv({0})",
             CppLibrary.Eigen : "({0}).inverse()",
@@ -1012,6 +1027,11 @@ class InverseTranspose(Operator):
         op = self.operands[0].to_cpp_expression(lib, recommended)
         if strip_inverse:
             return op
+        if lib == CppLibrary.Armadillo and type(self.operands[0]) is Matrix:
+            if self.operands[0].has_property(properties.SPD):
+               return "arma::inv_sympd(({0}).t())".format(op)
+            elif self.operands[0].has_property(properties.DIAGONAL):
+                return "arma::inv( arma::diagmat(({0}).t()) )".format(op)
         return {
             CppLibrary.Blaze : "blaze::inv(blaze::trans({0}))",
             CppLibrary.Eigen : "({0}).transpose().inverse()",
