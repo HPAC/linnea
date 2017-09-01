@@ -654,7 +654,9 @@ class Times(Operator):
                     "{0}".format(op.to_julia_expression(recommended=True))
                     )
 
-    def cast_cpp(self, lib, op, op_str):
+    def solve_left_side_cpp(self, lib, op):
+        op_str = op.to_cpp_expression(lib, recommended=True, strip_inverse=True)
+        # here we assume that op can only be Inverse - an input matrix wrapped with inverse
         # trimatu() and trimatl() for solvers
         if lib == CppLibrary.Armadillo:
             if op.has_property(properties.UPPER_TRIANGULAR):
@@ -663,6 +665,17 @@ class Times(Operator):
                 return "trimatl({0})".format(op_str)
             else:
                 return op_str
+        # triangular view
+        elif lib == CppLibrary.Eigen:
+            if op.has_property(properties.UPPER_TRIANGULAR):
+                return "{0}.template triangularView<Eigen::Upper>()".format(op_str)
+            elif op.has_property(properties.LOWER_TRIANGULAR):
+                return "{0}.template triangularView<Eigen::Lower>()".format(op_str)
+            else:
+                if op.has_property(properties.SPD):
+                    pass
+                else:
+                    return "{0}.partialPivLu()".format(op_str)
         else:
             return op_str
 
@@ -674,12 +687,11 @@ class Times(Operator):
             # doesn't matter if b is inverse or not
             if idx != len(self.operands) - 1:
                 idx, second_operand = self.recommended_cpp_expression(lib, idx + 1)
-                first_operand = op.to_cpp_expression(lib, recommended=True, strip_inverse=True)
                 return (idx, {
-                    CppLibrary.Eigen: "( {0}.partialPivLu().solve({1}) )",
+                    CppLibrary.Eigen: "( {0}.solve({1}) )",
                     CppLibrary.Armadillo: "arma::solve({0}, {1}, arma::solve_opts::fast)"
                 }.get(lib).format(
-                    self.cast_cpp(lib, op, first_operand),
+                    self.solve_left_side_cpp(lib, op),
                     second_operand
                 ))
             else:
