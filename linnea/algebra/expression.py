@@ -673,7 +673,7 @@ class Times(Operator):
                 return "{0}.template triangularView<Eigen::Lower>()".format(op_str)
             else:
                 if op.has_property(properties.SPD):
-                    pass
+                    return "{0}.llt()".format(op_str)
                 else:
                     return "{0}.partialPivLu()".format(op_str)
         else:
