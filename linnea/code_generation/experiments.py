@@ -83,8 +83,8 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     
                     plotter = Benchmarker.Plotter.Plot{{Float64}}("julia_results_{3}.txt", ["algorithm"]);
                     {2}
-                    Benchmarker.Plotter.add_data(plotter, ["naive"], Benchmarker.measure(10, naive, matrices...) );
-                    Benchmarker.Plotter.add_data(plotter, ["recommended"], Benchmarker.measure(10, recommended, matrices...) );
+                    Benchmarker.Plotter.add_data(plotter, ["naive_julia"], Benchmarker.measure(10, naive, matrices...) );
+                    Benchmarker.Plotter.add_data(plotter, ["recommended_julia"], Benchmarker.measure(10, recommended, matrices...) );
                     Benchmarker.Plotter.finish(plotter);
                     """
                 ),
@@ -168,7 +168,7 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                         }}
                     
                         std::array<std::string, 5> labels{{ {{"naive_armadillo", "recommended_armadillo",
-                            "naive_eigen", "recommended_eigen", "naive blaze"}} }};
+                            "naive_eigen", "recommended_eigen", "naive_blaze"}} }};
                         std::ofstream file("cpp_results_{0}.txt");
                         benchmark.output_results(file, labels);
                         file.close();
@@ -183,7 +183,7 @@ algorithm_inclusion = {config.Language.Julia: "include(\"algorithms/algorithm{0}
 algorithm_test = {config.Language.Julia: "@test algorithm{0}(map(MatrixGenerator.unwrap, matrices)...) ≈ result_naive",
                     config.Language.Cpp: ""}
 
-algorithm_plot = {config.Language.Julia: "Benchmarker.Plotter.add_data(plotter, [\"algorithm{0}\"], Benchmarker.measure(20, algorithm{0}, map(MatrixGenerator.unwrap, matrices)...) );",
+algorithm_plot = {config.Language.Julia: "Benchmarker.Plotter.add_data(plotter, [\"generated{0}\"], Benchmarker.measure(20, algorithm{0}, map(MatrixGenerator.unwrap, matrices)...) );",
                     config.Language.Cpp: ""}
 
 def map_operand(language, property):
@@ -261,11 +261,9 @@ cmake_script = """
                 endforeach()
                 """
 
-def generate_cmake_script(experiment_name, experiments_count):
+def generate_cmake_script(paths):
     file_name = os.path.join(config.output_path, config.language.name, "CMakeLists.txt")
     output_file = open(file_name, "wt")
-    names = ""
-    for i in range(experiments_count):
-        names += experiment_name.format(i) + " "
+    names = " ".join(paths)
     output_file.write(cmake_script.format(names))
     output_file.close()

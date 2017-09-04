@@ -17,8 +17,9 @@ import os.path
 
 from ... import tricks
 from ... import CSEs
+#FIXME: change it to get a new solver
 from ... import matrix_chain_solver as mcs
-# from ... import matrix_chain_solver_new as mcs
+#from ... import matrix_chain_solver_new as mcs
 from ...matrix_sum import decompose_sum
 
 from ...utils import select_optimal_match
@@ -68,6 +69,10 @@ class DerivationGraphBase(base.GraphBase):
         self.print("Number of algorithms: {}".format(number_of_algorithms))
         if number_of_algorithms > max_algorithms:
             algorithm_paths = algorithm_paths[:max_algorithms]
+
+        if number_of_algorithms == 0:
+            print("No algorithm generated for this example")
+            return False
 
         if code or pseudocode or operand_generator:
             directory_name = os.path.join(config.output_path, config.language.name, output_name)
@@ -140,6 +145,7 @@ class DerivationGraphBase(base.GraphBase):
 
         # TODO missing
         # - change paths and use name
+        return True
 
     def optimal_algorithm_to_str(self):
         matched_kernels, cost, final_equations = self.optimal_algorithm()
