@@ -34,8 +34,10 @@ class MatrixChainSolver(object):
             self.tmps[i][i] = self.expr.operands[i]
 
         self._solve()
+        # TODO self.matched_kernels shouldn't be two entirely different things
         self.matched_kernels = list(itertools.chain.from_iterable(self._constuct_solution(0, n-1)))
         self.tmp = self.tmps[0][n-1]
+
 
     def _solve(self):
         """Solves the matrix chain problem.
@@ -83,6 +85,7 @@ class MatrixChainSolver(object):
                         mc_graph = matrix_chain.MatrixChainGraph(product)
                         mc_graph.derivation()
                         matched_kernels, _cost, tmp = mc_graph.optimal_algorithm()
+                        # mc_graph.to_dot_file(name="matrix_chain_graph.gv")
                         if not matched_kernels:
                             # mc_graph.to_dot_file(name="matrix_chain_graph.gv")
                             continue
@@ -90,9 +93,14 @@ class MatrixChainSolver(object):
                     cost = self.costs[i][k] + self.costs[k+1][j] + _cost
                     if (cost < self.costs[i][j]):
                         if DN_solution:
-                            DN_solution_kernel = kernel
-                            DN_solution_match = match
-                            DN_solution_found = True
+                            # DN_solution_kernel = kernel
+                            # DN_solution_match = match
+                            # DN_solution_found = True
+
+                            matched_kernel = kernel.set_match(match, False)
+
+                            self.tmps[i][j] = matched_kernel.replacement
+                            self.matched_kernels[i][j] = [matched_kernel]
                         else:
                             self.matched_kernels[i][j] = matched_kernels
                             self.tmps[i][j] = tmp
@@ -100,24 +108,24 @@ class MatrixChainSolver(object):
                         self.costs[i][j] = cost
                         self.sol[i][j] = k
 
-                if DN_solution_found:
-                    # Calling set_match here is a performance optimization. It
-                    # is a fairly expensive function, and before this point,
-                    # only the cost is needed, which can be obtained separately,
-                    # and much cheaper.
-                    # This way, it is only called if the results are really
-                    # needed. The number of calls is reduced from n^3 in the
-                    # worst case to at most n^2. However, it is possible that
-                    # this has absolutely no effect because n^3 is not reached
-                    # anyway.
-                    # This optimization is not possible when using the matrix
-                    # chain graph because in that case, it's not possible to
-                    # obtain the cost without doing all of the other
-                    # computations.
-                    matched_kernel = DN_solution_kernel.set_match(DN_solution_match, False)
+                # if DN_solution_found:
+                #     # Calling set_match here is a performance optimization. It
+                #     # is a fairly expensive function, and before this point,
+                #     # only the cost is needed, which can be obtained separately,
+                #     # and much cheaper.
+                #     # This way, it is only called if the results are really
+                #     # needed. The number of calls is reduced from n^3 in the
+                #     # worst case to at most n^2. However, it is possible that
+                #     # this has absolutely no effect because n^3 is not reached
+                #     # anyway.
+                #     # This optimization is not possible when using the matrix
+                #     # chain graph because in that case, it's not possible to
+                #     # obtain the cost without doing all of the other
+                #     # computations.
+                #     matched_kernel = DN_solution_kernel.set_match(DN_solution_match, False)
 
-                    self.tmps[i][j] = matched_kernel.replacement
-                    self.matched_kernels[i][j] = [matched_kernel]
+                #     self.tmps[i][j] = matched_kernel.replacement
+                #     self.matched_kernels[i][j] = [matched_kernel]
 
         if not self.tmps[0][n-1]:
             # If there is no temporary for the entire chain, then no solution was
