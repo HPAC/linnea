@@ -530,6 +530,13 @@ julia_template = textwrap.dedent(
                         end
                         """)
 
+matlab_template = textwrap.dedent(
+                        """
+                        function [X] = {}({})
+                        {};
+                        end
+                        """)
+
 cpp_template = textwrap.dedent(
                         """
                         struct {}
@@ -564,6 +571,8 @@ def algorithm_to_file(output_name, algorithm_name, algorithm, input, output,
 def algorithm_to_str(function_name, algorithm, input, output, language):
     if language == config.Language.Julia:
         experiment_str = julia_template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
+    elif language == config.Language.Matlab:
+        experiment_str = matlab_template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
     elif language == config.Language.Cpp:
         types_list = ", ".join("typename Type_{}".format(op) for op in str.split(input, ", "))
         args_list = ", ".join("Type_{0} && {0}".format(op) for op in str.split(input, ", "))
