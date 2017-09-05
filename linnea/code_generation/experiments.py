@@ -130,7 +130,7 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                         benchmarker = Benchmarker();
                         benchmarker.benchmark('naive_matlab', 20, naive_);
                         benchmarker.benchmark('recommended_matlab', 20, recommended_);
-                        benchmarker.save('results.txt');
+                        benchmarker.save('matlab_results_{0}.txt');
                     end
                     """
                     ),
