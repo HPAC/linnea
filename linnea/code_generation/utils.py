@@ -532,8 +532,8 @@ julia_template = textwrap.dedent(
 
 matlab_template = textwrap.dedent(
                         """
-                        function [X] = {}({})
-                        {};
+                        function [{3}] = {0}({1})
+                        {2}
                         end
                         """)
 
