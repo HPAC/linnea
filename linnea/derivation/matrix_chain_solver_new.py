@@ -108,6 +108,8 @@ class MatrixChainSolver(object):
                         self.costs[i][j] = cost
                         self.sol[i][j] = k
 
+                # TODO this optimization had to be removed becuase it was not
+                # working correctly. Investigate.
                 # if DN_solution_found:
                 #     # Calling set_match here is a performance optimization. It
                 #     # is a fairly expensive function, and before this point,

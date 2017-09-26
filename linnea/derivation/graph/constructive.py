@@ -43,7 +43,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         width = math.ceil(len(nodes)*_f(self.level_counter))
         return nodes[:width]
 
-    def derivation(self, max_algos=1, max_iterations=5, verbose=True):
+    def derivation(self, max_algos=1, max_iterations=5, verbose=True, merging=True):
         # TODO default values?
 
         self.verbose = verbose
@@ -92,17 +92,19 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             self.print_DS_numbered("Nodes added (tricks):", new_nodes, self.level_counter)
             trace.append(new_nodes)
 
-            merged_nodes = self.DS_collapse_nodes()
-            self.print_DS("Nodes merged:", merged_nodes)
-            trace.append(merged_nodes)
+            if merging:
+                merged_nodes = self.DS_collapse_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)
 
             new_nodes = self.DS_CSE_replacement()
             self.print_DS_numbered("Nodes added (CSE):", new_nodes, self.level_counter)
             trace.append(new_nodes)
 
-            merged_nodes = self.DS_collapse_nodes()
-            self.print_DS("Nodes merged:", merged_nodes)
-            trace.append(merged_nodes)
+            if merging:
+                merged_nodes = self.DS_collapse_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)
 
             new_nodes = self.DS_kernels()
             self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
@@ -124,10 +126,11 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                         # has_property automatically stores properties on the node
                     #    node.has_property(prop)
 
-            # TODO order of merge and prune?
-            merged_nodes = self.DS_collapse_nodes()
-            self.print_DS("Nodes merged:", merged_nodes)
-            trace.append(merged_nodes)
+            if merging:
+                # TODO order of merge and prune?
+                merged_nodes = self.DS_collapse_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)
 
             mins = self.metric_mins()
             #print(mins)
