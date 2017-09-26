@@ -530,22 +530,53 @@ julia_template = textwrap.dedent(
                         end
                         """)
 
+matlab_template = textwrap.dedent(
+                        """
+                        function [{3}] = {0}({1})
+                        {2}
+                        end
+                        """)
 
-def algorithm_to_file(output_name, algorithm_name, algorithm, input, output):
-    file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms", "{}{}".format(algorithm_name, config.filename_extension))
+cpp_template = textwrap.dedent(
+                        """
+                        struct {}
+                        {{
+                        template<{}>
+                        decltype(auto) operator()({})
+                        {{
+                        {}
+                            typedef std::remove_reference_t<decltype({})> return_t;
+                            return return_t({});
+                        }}
+                        }};
+                        """)
+
+def algorithm_to_file(output_name, algorithm_name, algorithm, input, output,
+                      language_type = config.Language.Julia,
+                      file_extension = config.filename_extension,
+                      filename_addition = ""):
+    file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms",
+                             "{}{}{}".format(algorithm_name, "_{0}".format(filename_addition) if filename_addition else "", file_extension))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
     output_file = open(file_name, "wt")
-    experiment_str = algorithm_to_str(algorithm_name, algorithm, input, output)
+    print("Generate algorithm file {}".format(file_name))
+    algorithm_name = algorithm_name + ("_" + filename_addition if filename_addition else "")
+    experiment_str = algorithm_to_str(algorithm_name, algorithm, input, output, language_type)
     # experiment_str = julia_template.format(algorithm_name, input, textwrap.indent(algorithm, "    "), output)
     output_file.write(experiment_str)
     output_file.close()
-    # print(file_name)
 
-def algorithm_to_str(function_name, algorithm, input, output):
-    if config.julia:
+def algorithm_to_str(function_name, algorithm, input, output, language):
+    if language == config.Language.Julia:
         experiment_str = julia_template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
+    elif language == config.Language.Matlab:
+        experiment_str = matlab_template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
+    elif language == config.Language.Cpp:
+        types_list = ", ".join("typename Type_{}".format(op) for op in str.split(input, ", "))
+        args_list = ", ".join("Type_{0} && {0}".format(op) for op in str.split(input, ", "))
+        experiment_str = cpp_template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output, output)
     else:
         raise config.LanguageOptionNotImplemented()
     

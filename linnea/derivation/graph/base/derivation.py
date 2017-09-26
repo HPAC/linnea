@@ -17,8 +17,9 @@ import os.path
 
 from ... import tricks
 from ... import CSEs
+#FIXME: change it to get a new solver
 from ... import matrix_chain_solver as mcs
-# from ... import matrix_chain_solver_new as mcs
+#from ... import matrix_chain_solver_new as mcs
 from ...matrix_sum import decompose_sum
 
 from ...utils import select_optimal_match
@@ -69,6 +70,10 @@ class DerivationGraphBase(base.GraphBase):
         if number_of_algorithms > max_algorithms:
             algorithm_paths = algorithm_paths[:max_algorithms]
 
+        if number_of_algorithms == 0:
+            print("No algorithm generated for this example")
+            return False
+
         if code or pseudocode or operand_generator:
             directory_name = os.path.join(config.output_path, config.language.name, output_name)
             if not os.path.exists(directory_name):
@@ -109,19 +114,44 @@ class DerivationGraphBase(base.GraphBase):
                 output_file.write(algorithm.pseudocode())
                 output_file.close()
 
-
         if operand_generator:
             input, output = self.root.equations.input_output()
             input_str = ", ".join([operand.name for operand in input])
             output_str = ", ".join([operand.name for operand in output])
-            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str)
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str, config.Language.Julia)
+            cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_julia_expression(recommended=True),
+                                  input_str, output_str, config.Language.Julia)
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Blaze),
+                                  input_str, output_str, config.Language.Cpp, ".hpp", "blaze")
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Eigen),
+                                  input_str, output_str, config.Language.Cpp, ".hpp", "eigen")
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo),
+                                  input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
+            cgu.algorithm_to_file(output_name, "recommended",
+                                  self.root.equations.to_cpp_expression(config.CppLibrary.Eigen, recommended=True),
+                                  input_str, output_str, config.Language.Cpp, ".hpp", "eigen")
+            cgu.algorithm_to_file(output_name, "recommended",
+                                  self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo, recommended=True),
+                                  input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str,
+                                  config.Language.Matlab, ".m")
+            cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_julia_expression(recommended=True),
+                                  input_str, output_str, config.Language.Matlab, ".m")
             cge.operand_generator_to_file(output_name, input, input_str)
+            cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
+            cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Matlab)
+            cge.benchmarker_to_file(output_name, algorithms_count=len(algorithm_paths), language=config.Language.Julia)
+            cge.benchmarker_to_file(output_name, language=config.Language.Matlab)
+            cge.benchmarker_to_file(output_name, language=config.Language.Cpp)
+
+            # create language runner
 
         if graph:
             self.write_graph(output_name)
 
         # TODO missing
         # - change paths and use name
+        return True
 
     def optimal_algorithm_to_str(self):
         matched_kernels, cost, final_equations = self.optimal_algorithm()

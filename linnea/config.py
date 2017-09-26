@@ -54,6 +54,12 @@ class Language(enum.Enum):
     C = 0
     Julia = 1
     Matlab = 2
+    Cpp = 3
+
+class CppLibrary(enum.Enum):
+    Blaze = 0
+    Eigen = 1
+    Armadillo = 2
 
 def set_language(_language):
     global language, filename_extension, comment

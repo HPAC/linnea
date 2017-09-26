@@ -9,6 +9,8 @@ from . import utils
 
 from .. import config
 
+from ..config import CppLibrary
+
 dot_table_node = """{0} [shape=record, label="{{{{ {1} | {2} }}| {3} | {4} }}"];\n"""
 
 class Expression(matchpy.Expression):
@@ -388,7 +390,10 @@ class Symbol(matchpy.Symbol, Expression):
         # output_file.write(out)
         return out
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
+        return self.name
+
+    def to_cpp_expression(self, lib, recommended=False):
         return self.name
 
 class Constant(object):
@@ -445,8 +450,15 @@ class Equal(Operator):
     def __str__(self):
         return "{0} = {1}".format(*self.operands)
 
-    def to_julia_expression(self):
-        return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
+    def to_julia_expression(self, recommended=False):
+        return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+
+    def to_cpp_expression(self, lib, recommended=False):
+        return {
+            CppLibrary.Blaze : "auto {0} = blaze::evaluate({1});",
+            CppLibrary.Eigen : "auto {0} = ({1}).eval();",
+            CppLibrary.Armadillo : "auto {0} = ({1}).eval();"
+        }.get(lib).format(*map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
 
 class Plus(Operator):
     """docstring for Plus"""
@@ -604,11 +616,118 @@ class Times(Operator):
         operand_str = ' '.join(map(str, self.operands))
         return "({0})".format(operand_str)
 
-    def to_julia_expression(self):
+    def is_inverse_type(self, type):
+        return type in [Inverse, InverseTranspose]
+
+    def recommended_julia_expression(self, idx):
+        op = self.operands[idx]
+        if self.is_inverse_type(type(op)):
+            # there are at least two elements to process
+            #  since op is inverse, it will be inv(a) * b -> a \ b
+            # doesn't matter if b is inverse or not
+            if idx != len(self.operands) - 1:
+                idx, second_operand = self.recommended_julia_expression(idx + 1)
+                return (idx, "({0}\{1})".format(
+                    op.to_julia_expression(recommended=True, strip_inverse=True),
+                    second_operand
+                ))
+            else:
+                return (idx + 1,
+                        "{0}".format(op.to_julia_expression(recommended=True))
+                        )
+        # only two elements are left, check if we should apply a * inv(b) -> a / b
+        elif idx == len(self.operands) - 2:
+            op_next = self.operands[idx + 1]
+            # if next is an inverse, match a * inv(b) -> a / b
+            if self.is_inverse_type(type(op_next)):
+                return (idx + 2, "({0}/{1})".format(
+                    op.to_julia_expression(recommended=True),
+                    op_next.to_julia_expression(recommended=True, strip_inverse=True)
+                ))
+            else:
+                return (idx + 1,
+                        "{0}".format(op.to_julia_expression(recommended=True))
+                        )
+        #otherwise, simply return this element processed
+        else:
+            return (idx + 1,
+                    "{0}".format(op.to_julia_expression(recommended=True))
+                    )
+
+    def solve_left_side_cpp(self, lib, op):
+        op_str = op.to_cpp_expression(lib, recommended=True, strip_inverse=True)
+        # here we assume that op can only be Inverse - an input matrix wrapped with inverse
+        # trimatu() and trimatl() for solvers
+        if lib == CppLibrary.Armadillo:
+            if op.has_property(properties.UPPER_TRIANGULAR):
+                return "arma::trimatu({0})".format(op_str)
+            elif op.has_property(properties.LOWER_TRIANGULAR):
+                return "trimatl({0})".format(op_str)
+            else:
+                return op_str
+        # triangular view
+        elif lib == CppLibrary.Eigen:
+            if op.has_property(properties.UPPER_TRIANGULAR):
+                return "{0}.template triangularView<Eigen::Upper>()".format(op_str)
+            elif op.has_property(properties.LOWER_TRIANGULAR):
+                return "{0}.template triangularView<Eigen::Lower>()".format(op_str)
+            else:
+                if op.has_property(properties.SPD):
+                    return "{0}.llt()".format(op_str)
+                else:
+                    return "{0}.partialPivLu()".format(op_str)
+        else:
+            return op_str
+
+    def recommended_cpp_expression(self, lib, idx):
+        op = self.operands[idx]
+        if self.is_inverse_type(type(op)):
+            # there are at least two elements to process
+            #  since op is inverse, it will be inv(a) * b -> a \ b
+            # doesn't matter if b is inverse or not
+            if idx != len(self.operands) - 1:
+                idx, second_operand = self.recommended_cpp_expression(lib, idx + 1)
+                return (idx, {
+                    CppLibrary.Eigen: "( {0}.solve({1}) )",
+                    CppLibrary.Armadillo: "arma::solve({0}, {1}, arma::solve_opts::fast)"
+                }.get(lib).format(
+                    self.solve_left_side_cpp(lib, op),
+                    second_operand
+                ))
+            else:
+                return (idx + 1,
+                        "{0}".format(op.to_cpp_expression(lib, recommended=True))
+                        )
+        #otherwise, simply return this element processed
+        else:
+            return (idx + 1,
+                    "{0}".format(op.to_cpp_expression(lib, recommended=True))
+                    )
+
+    def to_julia_expression(self, recommended=False):
         # TODO are parenthesis necessary?
         # operand_str = '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
         # return "({0})".format(operand_str)
-        return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
+        if recommended:
+            str_ = ""
+            idx = 0
+            while idx < len(self.operands):
+                idx, str_new = self.recommended_julia_expression(idx)
+                str_ += str_new + ("*" if idx < len(self.operands) else "")
+            return str_
+        else:
+            return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
+
+    def to_cpp_expression(self, lib, recommended=False):
+        if recommended:
+            str_ = ""
+            idx = 0
+            while idx < len(self.operands):
+                idx, str_new = self.recommended_cpp_expression(lib, idx)
+                str_ += str_new + ("*" if idx < len(self.operands) else "")
+            return str_
+        else:
+            return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
 
 class LinSolveL(Operator):
@@ -722,8 +841,16 @@ class Transpose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self):
-        return "{0}'".format(self.operands[0].to_julia_expression())
+    def to_julia_expression(self, recommended=False):
+        return "{0}'".format(self.operands[0].to_julia_expression(recommended))
+
+    def to_cpp_expression(self, lib, recommended=False):
+        op = self.operands[0].to_cpp_expression(lib, recommended)
+        return {
+            CppLibrary.Blaze: "blaze::trans({0})",
+            CppLibrary.Eigen: "({0}).transpose()",
+            CppLibrary.Armadillo: "({0}).t()"
+        }.get(lib).format(op)
 
 
 class Conjugate(Operator):
@@ -842,8 +969,27 @@ class Inverse(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self):
-        return "inv({0})".format(self.operands[0].to_julia_expression())
+    def to_julia_expression(self, recommended=False, strip_inverse=False):
+        if strip_inverse:
+            return self.operands[0].to_julia_expression(recommended)
+        else:
+            return "inv({0})".format(self.operands[0].to_julia_expression(recommended))
+
+    def to_cpp_expression(self, lib, recommended=False, strip_inverse=False):
+        op = self.operands[0].to_cpp_expression(lib, recommended)
+        if strip_inverse:
+            return op
+        # perform casting only for input matrices, not expression results
+        if lib == CppLibrary.Armadillo and type(self.operands[0]) is Matrix:
+            if self.operands[0].has_property(properties.SPD):
+               return "arma::inv_sympd({0})".format(op)
+            elif self.operands[0].has_property(properties.DIAGONAL):
+                return "arma::inv( arma::diagmat({0}))".format(op)
+        return {
+            CppLibrary.Blaze : "blaze::inv({0})",
+            CppLibrary.Eigen : "({0}).inverse()",
+            CppLibrary.Armadillo : "({0}).i()"
+        }.get(lib).format(op)
 
 class InverseTranspose(Operator):
     """docstring for InverseTranspose"""
@@ -883,8 +1029,26 @@ class InverseTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_julia_expression(self):
-        return "inv({0}')".format(self.operands[0].to_julia_expression())
+    def to_julia_expression(self, recommended=False, strip_inverse=False):
+        if strip_inverse:
+            return "{0}'".format(self.operands[0].to_julia_expression(recommended))
+        else:
+            return "inv({0}')".format(self.operands[0].to_julia_expression(recommended))
+
+    def to_cpp_expression(self, lib, recommended=False, strip_inverse=False):
+        op = self.operands[0].to_cpp_expression(lib, recommended)
+        if strip_inverse:
+            return op
+        if lib == CppLibrary.Armadillo and type(self.operands[0]) is Matrix:
+            if self.operands[0].has_property(properties.SPD):
+               return "arma::inv_sympd(({0}).t())".format(op)
+            elif self.operands[0].has_property(properties.DIAGONAL):
+                return "arma::inv( arma::diagmat(({0}).t()) )".format(op)
+        return {
+            CppLibrary.Blaze : "blaze::inv(blaze::trans({0}))",
+            CppLibrary.Eigen : "({0}).transpose().inverse()",
+            CppLibrary.Armadillo : "({0}).t().i()"
+        }.get(lib).format(op)
 
 class InverseConjugate(Operator):
     """docstring for InverseConjugate"""
