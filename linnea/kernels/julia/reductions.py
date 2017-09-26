@@ -771,6 +771,41 @@ posv = KernelDescription(
     )
 
 
+# POSV right
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+A.set_property(properties.SPD)
+B = Matrix("B", (n, m))
+cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+Base.LinAlg.LAPACK.potrf!('L', A)
+Base.LinAlg.LAPACK.potrs!('L', A, B)
+"""
+
+posvr = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(B, Inverse(A))}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.symmetric_triangular),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "Base.LinAlg.LAPACK.posv!('L', $A, $B')\n$B = $B'",
+    "",
+    [SizeArgument("M", B, "columns"),
+     SizeArgument("N", B, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
 # sysv
 
 A = Matrix("A", (m, m))
@@ -807,6 +842,41 @@ sysv = KernelDescription(
     )
 
 
+# sysv right
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+A.set_property(properties.SYMMETRIC)
+B = Matrix("B", (n, m))
+cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+(A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
+Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+TODO For whatever reason, sytrs is very slow. Investigate.
+"""
+
+sysvr = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(B, Inverse(A))}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.symmetric_triangular),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "Base.LinAlg.LAPACK.sysv!('L', $A, $B')\n$B = $B'",
+    "",
+    [SizeArgument("M", B, "columns"),
+     SizeArgument("N", B, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
 # gesv
 
 A = Matrix("A", (m, m))
@@ -841,6 +911,70 @@ gesv = KernelDescription(
     [KernelType.identity, KernelType.transpose]
     )
 
+
+# gesv right
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+B = Matrix("B", (n, m))
+cf = lambda d: 2*(d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+Base.LinAlg.LAPACK.gesv!($A, $B)
+"""
+
+gesvr = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(B, Inverse(A))}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$B = $B/lufact!($A)",
+    "",
+    [SizeArgument("M", B, "columns"),
+     SizeArgument("N", B, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+# gesv right transpose
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+B = Matrix("B", (n, m))
+cf = lambda d: 2*(d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+Base.LinAlg.LAPACK.gesv!($A, $B)
+"""
+
+gesvrt = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(B, Inverse(A))}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$B = $B/lufact!($A')",
+    "",
+    [SizeArgument("M", B, "columns"),
+     SizeArgument("N", B, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
 
 # diaginv (diagonal matrix inversion)
 
@@ -1022,6 +1156,7 @@ diagdiagsolve = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 
@@ -1055,6 +1190,7 @@ diagsmr = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 
@@ -1088,6 +1224,7 @@ diagsml = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 
@@ -1154,6 +1291,7 @@ diagmmr = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 
@@ -1189,6 +1327,7 @@ diagmml = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 
