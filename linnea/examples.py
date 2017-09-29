@@ -3505,24 +3505,24 @@ class Example125(object):
         H = Matrix("H", (msd, N))
         R = Matrix("R", (msd, m))
         Y = Matrix("Y", (msd, N))
-        Z = Matrix("Z", (nsd, N)) # originally X^b
+        Xb = Matrix("Xb", (nsd, N)) # originally X^b
         X = Matrix("X", (nsd, N))
 
         B.set_property(properties.INPUT)
         H.set_property(properties.INPUT)
         R.set_property(properties.INPUT)
         Y.set_property(properties.INPUT)
-        Z.set_property(properties.INPUT)
+        Xb.set_property(properties.INPUT)
         X.set_property(properties.OUTPUT)
 
         self.eqns = Equations(
                             Equal(
                                 X,
                                 Plus(
-                                    Z,
+                                    Xb,
                                     Times(
                                         Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-                                        Plus(Y, Times(minusone, H, Z))
+                                        Plus(Y, Times(minusone, H, Xb))
                                         )
                                     )
                                 )
@@ -3533,7 +3533,7 @@ class Example125(object):
         #                         X,
         #                         Times(
         #                                 Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-        #                                 Plus(Y, Times(H, Z))
+        #                                 Plus(Y, Times(H, Xb))
         #                                 )
         #                             )
         #                     )
