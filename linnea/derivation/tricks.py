@@ -153,6 +153,36 @@ def trick3_callback(substitution, equations, eqn_idx, position):
     return (equations_copy, equations_copy.metric(), edge_label)
 
 
+# A^T B + B^T A + A^T C A (C is symmetric)
+trick4 = matchpy.Pattern(
+            Plus(Times(Transpose(WD1), WD2), Times(Transpose(WD2), WD1), Times(Transpose(WD1), WD3, WD1), WS1),
+            matchpy.CustomConstraint(
+                lambda WD1, WD2, WD3, WS1: WD3.has_property(properties.SYMMETRIC)
+            )
+        )
+
+def trick4_callback(substitution, equations, eqn_idx, position):
+    # A^T B + B^T A + A^T C A (C is symmetric)
+    # A^T (B + 1/2 A C) + (B + 1/2 A C)^T A
+    # WD1 = A
+    # WD2 = B
+    # WD3 = C
+
+    equations_copy = copy.deepcopy(equations)
+
+    one_half = ConstantScalar(0.5)
+    sum_expr = Plus(Times(one_half, substitution["WD1"], substitution["WD3"]), substitution["WD2"])
+    tmp = temporaries.create_tmp(to_SOP(simplify(sum_expr)), True)
+    new_equation = Equal(tmp, sum_expr)
+
+    replacement = Plus(Times(Transpose(substitution["WD1"]), tmp), Times(Transpose(tmp), substitution["WD1"]), *substitution["WS1"])
+
+    equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], [1]+list(position), replacement)
+
+    equations_copy.insert(eqn_idx, new_equation)
+
+    return (equations_copy, equations_copy.metric(), base.EdgeLabel())
+
 # patterns = [eigen1, eigen2, symmetric_product, trick3]
 
 trick_MA = matchpy.ManyToOneMatcher()
@@ -160,6 +190,7 @@ trick_MA.add(eigen1, label=eigen1_callback)
 trick_MA.add(eigen2, label=eigen2_callback)
 trick_MA.add(symmetric_product, label=symmetric_product_callback)
 trick_MA.add(trick3, label=trick3_callback)
+trick_MA.add(trick4, label=trick4_callback)
 
 # automaton = PMA()
 # automaton.add_patterns(patterns)
