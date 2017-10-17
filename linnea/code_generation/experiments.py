@@ -280,7 +280,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
 def benchmarker_to_file(output_name, language, algorithms_count=0):
     file_name = os.path.join(config.output_path, config.language.name, output_name,
                              "runner{}".format(filename_extension_exec.get(language)))
-    output_file = open(file_name, "wt")
+    output_file = open(file_name, "wt", encoding='utf-8')
     inclusions = []
     tests = []
     plots = []

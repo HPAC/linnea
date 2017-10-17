@@ -3497,32 +3497,32 @@ class Example125(object):
         nsd = 1000
         msd = 1000
         N = 1000
-        m = 1000
+
         
         minusone = ConstantScalar(-1)
 
         B = Matrix("B", (N, N))
         H = Matrix("H", (msd, N))
-        R = Matrix("R", (msd, m))
+        R = Matrix("R", (msd, msd))
         Y = Matrix("Y", (msd, N))
-        Z = Matrix("Z", (nsd, N)) # originally X^b
+        Xb = Matrix("Xb", (nsd, N)) # originally X^b
         X = Matrix("X", (nsd, N))
 
         B.set_property(properties.INPUT)
         H.set_property(properties.INPUT)
         R.set_property(properties.INPUT)
         Y.set_property(properties.INPUT)
-        Z.set_property(properties.INPUT)
+        Xb.set_property(properties.INPUT)
         X.set_property(properties.OUTPUT)
 
         self.eqns = Equations(
                             Equal(
                                 X,
                                 Plus(
-                                    Z,
+                                    Xb,
                                     Times(
                                         Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-                                        Plus(Y, Times(minusone, H, Z))
+                                        Plus(Y, Times(minusone, H, Xb))
                                         )
                                     )
                                 )
@@ -3533,7 +3533,7 @@ class Example125(object):
         #                         X,
         #                         Times(
         #                                 Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-        #                                 Plus(Y, Times(H, Z))
+        #                                 Plus(Y, Times(H, Xb))
         #                                 )
         #                             )
         #                     )
@@ -3589,4 +3589,31 @@ class Example126(object):
                                         )
                                     )
                                 )
+                            )
+
+class Example127(object):
+    def __init__(self):
+
+        # TAGS
+        # trick, tricks
+
+        n1 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        D.set_property(properties.SYMMETRIC)
+
+        X = Matrix("X", (n1, n1))
+
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(Transpose(A), B), Times(Transpose(B), A), Times(Transpose(A), D, A), C)) 
                             )

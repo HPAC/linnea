@@ -347,6 +347,15 @@ class PropertyTuple(tuple):
     comparision functions which implement an extension of the ordering defined
     by le_property_sets(s1, s2) to tuples of sets of properties.
 
+    Note:
+        An example for the usecase of this kernel:
+        Take A*B as an example, where A is lower triangular. This can be
+        computed with both gemm and trmm. Pattern matching will find both
+        kernels. PropertyTuple is used to represent the property constraints of
+        those kernels. To quickly identify that gemm is unnecessarily general,
+        the partial ordering on properties is extended to PropertyTuple and used
+        to identify that trmm is strictly more specific than gemm.
+
     """
     def __new__(cls, elements):
         return super(PropertyTuple, cls).__new__(cls, tuple(elements))
