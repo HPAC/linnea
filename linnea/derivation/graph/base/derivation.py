@@ -70,9 +70,9 @@ class DerivationGraphBase(base.GraphBase):
         if number_of_algorithms > max_algorithms:
             algorithm_paths = algorithm_paths[:max_algorithms]
 
-        if number_of_algorithms == 0:
-            print("No algorithm generated for this example")
-            return False
+        #if number_of_algorithms == 0:
+        #    print("No algorithm generated for this example")
+        #    return False
 
         if code or pseudocode or operand_generator:
             directory_name = os.path.join(config.output_path, config.language.name, output_name)

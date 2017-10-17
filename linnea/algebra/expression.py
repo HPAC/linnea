@@ -490,8 +490,12 @@ class Plus(Operator):
         bands = list(zip(*[operand.bandwidth for operand in self.operands]))
         return (max(bands[0]), max(bands[1]))
 
-    def to_julia_expression(self):
-        operand_str = '+'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
+    def to_julia_expression(self, recommended=False):
+        operand_str = '+'.join(map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+        return "({0})".format(operand_str)
+
+    def to_cpp_expression(self, lib, recommended=False):
+        operand_str = '+'.join(map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
         return "({0})".format(operand_str)
 
 
@@ -1206,7 +1210,10 @@ class ConstantScalar(Scalar, Constant):
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
+        return "{0}".format(self.value)
+
+    def to_cpp_expression(self, lib, recommended=False):
         return "{0}".format(self.value)
 
 
