@@ -163,7 +163,7 @@ trick4 = matchpy.Pattern(
 
 def trick4_callback(substitution, equations, eqn_idx, position):
     # A^T B + B^T A + A^T C A (C is symmetric)
-    # A^T (B + 1/2 A C) + (B + 1/2 A C)^T A
+    # A^T (B + 1/2 C A) + (B + 1/2 C A)^T A
     # WD1 = A
     # WD2 = B
     # WD3 = C
@@ -171,7 +171,7 @@ def trick4_callback(substitution, equations, eqn_idx, position):
     equations_copy = copy.deepcopy(equations)
 
     one_half = ConstantScalar(0.5)
-    sum_expr = Plus(Times(one_half, substitution["WD1"], substitution["WD3"]), substitution["WD2"])
+    sum_expr = Plus(Times(one_half, substitution["WD3"], substitution["WD1"]), substitution["WD2"])
     tmp = temporaries.create_tmp(to_SOP(simplify(sum_expr)), True)
     new_equation = Equal(tmp, sum_expr)
 
