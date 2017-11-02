@@ -62,6 +62,9 @@ class DerivationGraphBase(base.GraphBase):
         if not config.output_path:
             raise config.OutputPathNotSet("Unable to write output: output_path not set.")
 
+        if graph:
+            self.write_graph(output_name)
+
         algorithm_paths = list(self.all_algorithms(self.root))
         algorithm_paths.sort(key=operator.itemgetter(1))
 
@@ -145,9 +148,6 @@ class DerivationGraphBase(base.GraphBase):
             cge.benchmarker_to_file(output_name, language=config.Language.Cpp)
 
             # create language runner
-
-        if graph:
-            self.write_graph(output_name)
 
         # TODO missing
         # - change paths and use name
