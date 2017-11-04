@@ -34,6 +34,9 @@ class GraphBase(object):
     def derivation(self):
         raise NotImplementedError()
 
+    def nodes_count(self):
+        return len(self.nodes)
+
     def create_nodes(self):
         raise NotImplementedError()
 

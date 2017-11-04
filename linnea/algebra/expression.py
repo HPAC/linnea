@@ -347,13 +347,15 @@ class Operator(matchpy.Operation, Expression):
 
 class Symbol(matchpy.Symbol, Expression):
     """docstring for Symbol"""
-    def __init__(self, name, size, indices):
+    def __init__(self, name, size, indices, properties = []):
         super(Symbol, self).__init__(name, variable_name=None)
         self.size = size
         self.indices = indices
         self.bandwidth = (size[0]-1, size[1]-1)
         self.properties = set()
         self.false_properties = set()
+        for prop in properties:
+            self.set_property(prop)
 
     def set_property(self, prop):
         # print("Setting property ", prop, " to ", self)
@@ -1143,8 +1145,8 @@ class Scalar(Symbol):
 
 class Vector(Symbol):
     """docstring for Vector"""
-    def __init__(self, name, size, indices=set()):
-        super(Vector, self).__init__(name, size, indices)
+    def __init__(self, name, size, indices=set(), properties = []):
+        super(Vector, self).__init__(name, size, indices, properties)
         if (size[0]==1 and size[1]==1) or (size[0]!=1 and size[1]!=1):
             raise ValueError("Symbol with size {} is not a vector.".format(size))
 
@@ -1157,8 +1159,8 @@ class Vector(Symbol):
 
 class Matrix(Symbol):
     """docstring for Matrix"""
-    def __init__(self, name, size, indices=set()):
-        super(Matrix, self).__init__(name, size, indices)
+    def __init__(self, name, size, indices=set(), properties = []):
+        super(Matrix, self).__init__(name, size, indices, properties)
 
     def __repr__(self):
         return 'Matrix({!r}, size={})'.format(self.name, self.size)
