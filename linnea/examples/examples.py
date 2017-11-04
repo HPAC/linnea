@@ -1,16 +1,16 @@
 
 
-from .algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar, \
+from ..algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar, \
                                 Equal, Plus, Times, Transpose, Inverse, \
                                 InverseTranspose, InverseConjugate, \
                                 InverseConjugateTranspose, \
                                 ConjugateTranspose, Index, IdentityMatrix
 
-from .algebra.properties import Property as properties
+from ..algebra.properties import Property as properties
 
-from .algebra.equations import Equations
+from ..algebra.equations import Equations
 
-from . import derivation
+from .. import derivation
 
 sONE = 1
 sZERO = 0
@@ -3522,7 +3522,7 @@ class Example125(object):
                                     Xb,
                                     Times(
                                         Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-                                        Plus(Y, Times(minusone, H, Xb))
+                                        Plus(Y, Times(H, Xb, minusone))
                                         )
                                     )
                                 )
