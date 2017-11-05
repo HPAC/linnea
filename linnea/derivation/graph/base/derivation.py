@@ -18,8 +18,8 @@ import os.path
 from ... import tricks
 from ... import CSEs
 #FIXME: change it to get a new solver
-from ... import matrix_chain_solver as mcs
-#from ... import matrix_chain_solver_new as mcs
+#from ... import matrix_chain_solver as mcs
+from ... import matrix_chain_solver_new as mcs
 from ...matrix_sum import decompose_sum
 
 from ...utils import select_optimal_match
@@ -274,7 +274,7 @@ class DerivationGraphBase(base.GraphBase):
         expr = equations_copy[eqn_idx][initial_pos]
 
         try:
-            # print("before")
+            #print("before")
             msc = mcs.MatrixChainSolver(expr)
         except mcs.MatrixChainNotComputable:
             return []
