@@ -146,14 +146,51 @@ class Optimization_Problem_7_1_4(object):
                             )
 
 class Signal_Processing_7_1_5(object):
-    def __init__(self, n = 1500, m = 1000):
+    def __init__(self, N = 1000):
         # TAGS
         # signal processing
         # ding2016
         # problem 7.1.5 in the paper
         # equation: x = (A^-T B^T BA^-1 + R^TDR)^-1 A^-T B^T BA^-1 y
-        # TODO: finish that from the paper
-        pass
+        # A, B - tridiagonal, full rank
+        # R - upper bidiagonal
+        # D - diagonal
+
+        A = Matrix("A", (N, N), properties = [properties.FULL_RANK, properties.INPUT])
+        B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (N - 1, N), properties = [properties.UPPER_TRIANGULAR, properties.INPUT])
+        L = Matrix("L", (N - 1, N - 1), properties = [properties.DIAGONAL, properties.INPUT])
+
+        y = Vector("y", (N, sONE), properties = [properties.INPUT])
+        x = Vector("x", (N, sONE), properties = [properties.OUTPUT])
+
+        self.eqns = Equations(
+                            Equal(
+                                x,
+                                Times(
+                                    Inverse(
+                                        Plus(
+                                            Times(
+                                                InverseTranspose(A),
+                                                Transpose(B),
+                                                B,
+                                                Inverse(A)
+                                            ),
+                                            Times(
+                                                Transpose(R),
+                                                L,
+                                                R
+                                            )
+                                        )
+                                    ),
+                                    InverseTranspose(A),
+                                    Transpose(B),
+                                    B,
+                                    Inverse(A),
+                                    y
+                                )
+                            )
+                    )
 
 class Lower_Triangular_Inversion_7_1_6(object):
     def __init__(self, n = 1000, m = 1000, k = 1000):
