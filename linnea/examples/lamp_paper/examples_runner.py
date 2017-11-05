@@ -9,7 +9,7 @@ from linnea.derivation.graph.constructive import DerivationGraph
 
 from linnea.examples.examples import Example126
 from linnea.examples.examples import Example127
-from linnea.examples import lamp_paper as paper
+from linnea.examples.lamp_paper import examples as paper
 
 def generate(eq, append, merging_):
     times = []
@@ -44,9 +44,10 @@ if __name__ == "__main__":
     dirs = []
     eqs = []
     #eqs.append(paper.LeastSquares_7_1_1())
+    eqs.append(paper.LMMSE_7_1_2())
     #eqs.append(paper.Generalized_LeastSquares_7_1_3())
     #eqs.append(paper.Optimization_Problem_7_1_4())
-    eqs.append(paper.Local_Assimilation_Kalmar_7_1_7())
+    #eqs.append(paper.Local_Assimilation_Kalmar_7_1_7())
     #eqs.append(paper.Common_Subexpr_7_2_1())
     #eqs.append(paper.Common_Subexpr_7_2_2())
     #eqs.append(paper.Common_Subexpr_7_2_3())
@@ -55,13 +56,13 @@ if __name__ == "__main__":
     #eqs.append(paper.Rewrite_Distributivity_7_2_5_2())
     #eqs.append(paper.Rewrite_Distributivity_7_2_5_3())
     #eqs.append(paper.Rewrite_Distributivity_7_2_5_4())
-    eqs.append(paper.Matrix_Chain_7_2_6())
-    eqs.append(paper.Matrix_Chain_7_2_7())
-    eqs.append(paper.Properties_7_2_8())
-    eqs.append(paper.Transposed_Kernel_7_2_9())
-    eqs.append(paper.Transposed_Kernel_7_2_10())
-    eqs.append(paper.Simplification_7_2_11())
-    eqs.append(paper.Simplification_7_2_12())
+    #eqs.append(paper.Matrix_Chain_7_2_6())
+    #eqs.append(paper.Matrix_Chain_7_2_7())
+    #eqs.append(paper.Properties_7_2_8())
+    #eqs.append(paper.Transposed_Kernel_7_2_9())
+    #eqs.append(paper.Transposed_Kernel_7_2_10())
+    #eqs.append(paper.Simplification_7_2_11())
+    #eqs.append(paper.Simplification_7_2_12())
     for equations in eqs:
         #print(i)
         #equations = next(gen) 

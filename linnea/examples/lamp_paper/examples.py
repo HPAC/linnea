@@ -1,14 +1,14 @@
-from ..algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar, \
+from ...algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar, \
                                 Equal, Plus, Times, Transpose, Inverse, \
                                 InverseTranspose, InverseConjugate, \
                                 InverseConjugateTranspose, \
                                 ConjugateTranspose, Index, IdentityMatrix
 
-from ..algebra.properties import Property as properties
+from ...algebra.properties import Property as properties
 
-from ..algebra.equations import Equations
+from ...algebra.equations import Equations
 
-from .. import derivation
+from ... import derivation
 
 sONE = 1
 sZERO = 0
@@ -35,6 +35,42 @@ class LeastSquares_7_1_1(object):
 
         # b = (X^T X)^-1 X^T y
         self.eqns = Equations(Equal(b, Times(Inverse(Times(Transpose(X), X)), Transpose(X), y)))
+
+class LMMSE_7_1_2(object):
+    def __init__(self, l = 1000, m = 500, n = 1000):
+
+        # TAGS
+        # mean square error
+        # chen2017
+
+
+        H = Matrix("H", (l + m, n), properties = [properties.INPUT])
+        I = IdentityMatrix(n, n)
+        y = Vector("y", (l + m, sONE), properties = [properties.INPUT])
+        x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
+        sigma = Scalar("sigma")
+
+        # x = (H^H*H + \sigma^2 * I)^-1 * H^H * y
+        self.eqns = Equations(
+                        Equal(x,
+                            Times(
+                                Inverse(
+                                    Plus(
+                                        Times(
+                                            ConjugateTranspose(H),
+                                            H
+                                        ),
+                                        Times(
+                                            sigma,
+                                            I
+                                        )
+                                    )
+                                ),
+                                ConjugateTranspose(H),
+                                y
+                            )
+                        )
+                    )
 
 class Generalized_LeastSquares_7_1_3(object):
     def __init__(self, n = 1500, m = 1000):
