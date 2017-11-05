@@ -191,9 +191,9 @@ class Equations(object):
     def input_output(self):
         input = []
         output = []
+        seen_before = set()
         for equation in self.equations:
             output.append(equation.lhs)
-            seen_before = set()
             for expr, _ in equation.rhs.preorder_iter():
                 if isinstance(expr, ae.Symbol) and not isinstance(expr, ae.Constant) and not expr in seen_before:
                     input.append(expr)
