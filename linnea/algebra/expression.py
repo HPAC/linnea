@@ -674,14 +674,14 @@ class Times(Operator):
         # triangular view
         elif lib == CppLibrary.Eigen:
             if op.has_property(properties.UPPER_TRIANGULAR):
-                return "{0}.template triangularView<Eigen::Upper>()".format(op_str)
+                return "({0}).template triangularView<Eigen::Upper>()".format(op_str)
             elif op.has_property(properties.LOWER_TRIANGULAR):
-                return "{0}.template triangularView<Eigen::Lower>()".format(op_str)
+                return "({0}).template triangularView<Eigen::Lower>()".format(op_str)
             else:
                 if op.has_property(properties.SPD):
-                    return "{0}.llt()".format(op_str)
+                    return "({0}).llt()".format(op_str)
                 else:
-                    return "{0}.partialPivLu()".format(op_str)
+                    return "({0}).partialPivLu()".format(op_str)
         else:
             return op_str
 
@@ -933,6 +933,16 @@ class ConjugateTranspose(Operator):
 
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
+
+    def to_julia_expression(self, recommended=False):
+        return "ctranspose({0})".format(self.operands[0].to_julia_expression(recommended))
+
+    def to_cpp_expression(self, lib, recommended=False):
+        return {
+            CppLibrary.Blaze: "blaze::ctrans({0})",
+            CppLibrary.Eigen: "({0}).adjoint()",
+            CppLibrary.Armadillo: "({0}).t()"
+        }.get(lib).format(self.operands[0].to_cpp_expression(lib, recommended))
 
 
 class Inverse(Operator):
@@ -1187,8 +1197,30 @@ class IdentityMatrix(ConstantMatrix):
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
         return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
+
+    def to_cpp_expression(self, lib, recommended=False):
+        # IdentityMatrix can only be symmetric in Blaze
+        if lib == CppLibrary.Blaze:
+            if self.size[0] != self.size[1]:
+                raise ExpressionError("Non-square identity matrix not supported for Blaze")
+            return "blaze::IdentityMatrix<{0}>({1})".format(
+                "double" if config.float64 else "float",
+                *self.size
+            )
+        elif lib == CppLibrary.Eigen:
+            return "Eigen::{0}::Identity({1}, {2})".format(
+                "MatrixXd" if config.float64 else "MatrixXf",
+                *self.size
+            )
+        elif lib == CppLibrary.Armadillo:
+            return "arma::eye< arma::Mat<{0}> >({1}, {2})".format(
+                "double" if config.float64 else "float",
+                *self.size
+            )
+        else:
+            raise NotImplementedError()
 
 
 class ZeroMatrix(ConstantMatrix):

@@ -252,6 +252,18 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
             replacement = {"name": operand.name}
         else:
             replacement = {"name": "out{{ {0} }}".format(counter)}
+
+        # Special case - scalar generation for C++
+        print(operand.properties)
+        print(language)
+        if language == config.Language.Cpp and properties.SCALAR in operand.properties:
+            op_gen_lines.append("{0} {1} = std::uniform_real_distribution<{0}>()(gen.rng());".format(
+                "double" if config.float64 else "float",
+                operand.name
+            ))
+            counter += 1
+            continue
+
         property_replacements = []
         for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR,
                      properties.UPPER_TRIANGULAR, properties.SPD]:
