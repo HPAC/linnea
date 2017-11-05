@@ -672,14 +672,14 @@ class Times(Operator):
         # triangular view
         elif lib == CppLibrary.Eigen:
             if op.has_property(properties.UPPER_TRIANGULAR):
-                return "{0}.template triangularView<Eigen::Upper>()".format(op_str)
+                return "({0}).template triangularView<Eigen::Upper>()".format(op_str)
             elif op.has_property(properties.LOWER_TRIANGULAR):
-                return "{0}.template triangularView<Eigen::Lower>()".format(op_str)
+                return "({0}).template triangularView<Eigen::Lower>()".format(op_str)
             else:
                 if op.has_property(properties.SPD):
-                    return "{0}.llt()".format(op_str)
+                    return "({0}).llt()".format(op_str)
                 else:
-                    return "{0}.partialPivLu()".format(op_str)
+                    return "({0}).partialPivLu()".format(op_str)
         else:
             return op_str
 
