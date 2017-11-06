@@ -198,13 +198,57 @@ class Lower_Triangular_Inversion_7_1_6(object):
         # signal processing
         # problem 7.1.6 in the paper
         # equation: x = (A^-T B^T BA^-1 + R^TDR)^-1 A^-T B^T BA^-1 y
-        # TODO: finish from some description
-        pass
+        # input-output variables are modeled as two seperate variables
 
-        #L00  = Matrix("L00", (n, n), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
-        #L11  = Matrix("L11", (m, m), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
-        #L22  = Matrix("L22", (k, k), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
-        #L22  = Matrix("L22", (k, k), properties = [properties.LOWER_TRIANGULAR, properties.OUTPUT])
+        L00  = Matrix("L00", (n, n), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
+        L11  = Matrix("L11", (m, m), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
+        L22  = Matrix("L22", (k, k), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
+        L21  = Matrix("L21", (k, m), properties = [properties.INPUT])
+        L10  = Matrix("L10", (m, n), properties = [properties.INPUT])
+
+        X21  = Matrix("X21", (k, m), properties = [properties.OUTPUT])
+        X11  = Matrix("X11", (m, m), properties = [properties.OUTPUT])
+        X10Input  = Matrix("X10Input", (m, n), properties = [properties.INPUT])
+        X10Output  = Matrix("X10Output", (m, n), properties = [properties.OUTPUT])
+        X20Input  = Matrix("X20Input", (k, n), properties = [properties.INPUT])
+        X20Output  = Matrix("X20Output", (k, n), properties = [properties.OUTPUT])
+        minusone = ConstantScalar(-1.0)
+
+        self.eqns = Equations(
+                            Equal(
+                                X10Output,
+                                Times(
+                                    X10Input,
+                                    Inverse(
+                                        L00
+                                    )
+                                )
+                            ),
+                            Equal(
+                                X20Output,
+                                Plus(
+                                    X20Input,
+                                    Times(
+                                        Inverse(L22),
+                                        L21,
+                                        Inverse(L11),
+                                        L10
+                                    )
+                                )
+                            ),
+                            Equal(
+                                X11,
+                                Inverse(L11)
+                            ),
+                            Equal(
+                                X21,
+                                Times(
+                                    minusone,
+                                    Inverse(L22),
+                                    L21
+                                )
+                            )
+                    )
 
 #FIXME: bug
 class Local_Assimilation_Kalmar_7_1_7(object):
