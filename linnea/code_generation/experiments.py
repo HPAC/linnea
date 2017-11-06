@@ -173,8 +173,8 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                             typedef std::make_index_sequence<tuple_length> Indices;
                             auto res_naive = call(naive_armadillo{{}}, matrices, Indices{{}});
                             auto res_recomm = call(recommended_armadillo{{}}, matrices, Indices{{}});
-                            std::cout << "Armadillo norm(naive-recom): " << arma::norm(res_naive - res_recomm) << std::endl;
-                            std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
+                            //std::cout << "Armadillo norm(naive-recom): " << arma::norm(res_naive - res_recomm) << std::endl;
+                            //std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
                         
                             benchmark.run(20, [&]() {{
                                     call(naive_armadillo{{}}, matrices, Indices{{}});
@@ -190,8 +190,8 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                             typedef std::make_index_sequence<tuple_length> Indices;
                             auto res_naive = call(naive_eigen{{}}, matrices, Indices{{}});
                             auto res_recomm = call(recommended_eigen{{}}, matrices, Indices{{}});
-                            std::cout << "Eigen norm(naive-recom): " << (res_naive - res_recomm).norm() << std::endl;
-                            std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
+                            //std::cout << "Eigen norm(naive-recom): " << (res_naive - res_recomm).norm() << std::endl;
+                            //std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
                         
                             benchmark.run(20, [&]() {{
                                     call(naive_eigen{{}}, matrices, Indices{{}});
@@ -206,7 +206,7 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                             constexpr std::size_t tuple_length = std::tuple_size<decltype(matrices)>::value;
                             typedef std::make_index_sequence<tuple_length> Indices;
                             auto res_naive = call(naive_blaze{{}}, matrices, Indices{{}});
-                            std::cout << "Blaze naive(0, 0): " << res_naive(0, 0) << std::endl;
+                            //std::cout << "Blaze naive(0, 0): " << res_naive(0, 0) << std::endl;
                         
                             benchmark.run(20, [&]() {{
                                     call(naive_blaze{{}}, matrices, Indices{{}});

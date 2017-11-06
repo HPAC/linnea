@@ -545,8 +545,7 @@ cpp_template = textwrap.dedent(
                         decltype(auto) operator()({})
                         {{
                         {}
-                            typedef std::remove_reference_t<decltype({})> return_t;
-                            return return_t({});
+                            {}
                         }}
                         }};
                         """)
@@ -576,7 +575,17 @@ def algorithm_to_str(function_name, algorithm, input, output, language):
     elif language == config.Language.Cpp:
         types_list = ", ".join("typename Type_{}".format(op) for op in str.split(input, ", "))
         args_list = ", ".join("Type_{0} && {0}".format(op) for op in str.split(input, ", "))
-        experiment_str = cpp_template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output, output)
+        output_len = len(str.split(output, ", "))
+        if output_len > 1:
+            output_string = "return std::make_tuple({});".format(output)
+        else:
+            ret_string = """
+                            typedef std::remove_reference_t<decltype({})> return_t;
+                            return return_t({});
+                         """
+            output_string = ret_string.format(output, output)
+        print(output, output_len)
+        experiment_str = cpp_template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output_string)
     else:
         raise config.LanguageOptionNotImplemented()
     
