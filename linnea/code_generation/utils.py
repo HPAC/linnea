@@ -584,7 +584,6 @@ def algorithm_to_str(function_name, algorithm, input, output, language):
                             return return_t({});
                          """
             output_string = ret_string.format(output, output)
-        print(output, output_len)
         experiment_str = cpp_template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output_string)
     else:
         raise config.LanguageOptionNotImplemented()

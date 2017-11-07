@@ -44,9 +44,14 @@ if __name__ == "__main__":
     dirs = []
     eqs = []
     #eqs.append(paper.LeastSquares_7_1_1())
-    eqs.append(paper.LMMSE_7_1_2())
+    #eqs.append(paper.LMMSE_7_1_2())
     #eqs.append(paper.Generalized_LeastSquares_7_1_3())
     #eqs.append(paper.Optimization_Problem_7_1_4())
+    #eqs.append(paper.ImageRestoration_7_1_13_2(single=False))
+    eqs.append(paper.SPA_7_1_12())
+    eqs.append(paper.SPA_7_1_12(q=2))
+    eqs.append(paper.Tikhonov_7_1_14())
+    eqs.append(paper.CDMA_7_1_15())
     #eqs.append(paper.Local_Assimilation_Kalmar_7_1_7())
     #eqs.append(paper.Common_Subexpr_7_2_1())
     #eqs.append(paper.Common_Subexpr_7_2_2())

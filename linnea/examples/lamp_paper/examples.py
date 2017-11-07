@@ -2,7 +2,7 @@ from ...algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar
                                 Equal, Plus, Times, Transpose, Inverse, \
                                 InverseTranspose, InverseConjugate, \
                                 InverseConjugateTranspose, \
-                                ConjugateTranspose, Index, IdentityMatrix
+                                ConjugateTranspose, Index, IdentityMatrix, Identity
 
 from ...algebra.properties import Property as properties
 
@@ -280,6 +280,431 @@ class Local_Assimilation_Kalmar_7_1_7(object):
                                     )
                                 )
                             )
+
+class Rank_1_Tensor_Update_7_1_8(object):
+    def __init__(self, N = 1000, msd = 1000, nsd = 1000):
+        pass
+
+class EnsembleKalmarFilter_7_1_9_1(object):
+    def __init__(self, n = 1000, m = 1000):
+        # rao2015
+        # the first variant
+        # Ki modeled as two input and output vars
+        # equation: Ki_O = P_b * H^T * (H * P_b * H^T + R)^-1
+        # x_a = x_b + Ki_I * (y - H_x_b)
+        # P_a = (I - K*H)*P_b
+        # TODO: R is symmetric positive semi-definite, which property?
+
+        minusone = ConstantScalar(-1)
+
+        Ki_O = Matrix("Ki_O", (n, m), properties = [properties.OUTPUT])
+        Ki_I = Matrix("Ki_I", (n, m), properties = [properties.INPUT])
+        P_b = Matrix("P_b", (n, n), properties = [properties.INPUT, properties.SPD])
+        P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
+        H = Matrix("H", (m, n), properties = [properties.INPUT])
+        R = Matrix("R", (m, m), properties = [properties.INPUT, properties.SYMMETRIC])
+        I = IdentityMatrix(n, n)
+
+        x_a = Vector("x_a", (n, sONE), properties = [properties.OUTPUT])
+        x_b = Vector("x_b", (n, sONE), properties = [properties.INPUT])
+        y = Vector("y", (m, sONE), properties = [properties.INPUT])
+        H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
+
+
+        self.eqns = Equations(
+                            Equal(
+                                Ki_O,
+                                Times(
+                                    P_b,
+                                    Transpose(H),
+                                    Inverse(
+                                        Plus(
+                                            Times(
+                                                H,
+                                                P_b,
+                                                Transpose(H)
+                                            ),
+                                            R
+                                        )
+                                    )
+                                )
+                            ),
+                            Equal(
+                                x_a,
+                                Plus(
+                                    x_b,
+                                    Times(
+                                        Ki_I,
+                                        Plus(
+                                            y,
+                                            Times(
+                                                minusone,
+                                                H_x_b
+                                            )
+                                        )
+                                    )
+                                )
+                            ),
+                            Equal(
+                                P_a,
+                                Times(
+                                    Plus(
+                                        I,
+                                        Times(
+                                            minusone,
+                                            Ki_I,
+                                            H
+                                        )
+                                    ),
+                                    P_b
+                                )
+                            )
+                    )
+
+
+class EnsembleKalmarFilter_7_1_9_2(object):
+    def __init__(self, n = 1000, m = 1000):
+        # rao2015
+        # the first variant
+        # Ki modeled as two input and output vars
+        # equation: Si_O = ((n-1)*I + Y^T * R^-1 * Y)^-1
+        # K = X*Si_I*Y^T * R^-1
+        # x_a = x_b + X*S*Y^T * R^-1 * (y - H_x_b)
+        # P_a = X * S * X^T
+        # TODO: R is symmetric positive semi-definite, which property?
+
+        minusone = ConstantScalar(-1)
+        n_scalar = ConstantScalar(n)
+
+        K = Matrix("K", (n, m), properties = [properties.OUTPUT])
+        Si_O = Matrix("Si_O", (n, m), properties = [properties.OUTPUT])
+        Si_I = Matrix("Si_I", (n, m), properties = [properties.INPUT])
+        X = Matrix("X", (m, n), properties = [properties.INPUT, properties.SPD])
+        Y = Matrix("Y", (n, n), properties = [properties.INPUT, properties.SPD])
+        R = Matrix("R", (m, m), properties = [properties.INPUT, properties.SYMMETRIC])
+        I = IdentityMatrix(n, n)
+        P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
+
+        x_a = Vector("x_a", (n, sONE), properties = [properties.OUTPUT])
+        x_b = Vector("x_b", (n, sONE), properties = [properties.INPUT])
+        y = Vector("y", (m, sONE), properties = [properties.INPUT])
+        H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
+
+
+        self.eqns = Equations(
+                            # Si_O = ((n-1)*I + Y^T * R^-1 * Y)^-1
+                            Equal(
+                                Si_O,
+                                Inverse( Plus(
+                                    Times(
+                                        Plus(
+                                            n_scalar,
+                                            minusone
+                                        ),
+                                        I
+                                    ),
+                                    Times(
+                                        Transpose(Y),
+                                        Inverse(R),
+                                        Y
+                                    )
+                                ))
+                            ),
+                            # K = X*Si_I*Y^T * R^-1
+                            Equal(
+                                K,
+                                Times(
+                                    X,
+                                    Si_I,
+                                    Transpose(Y),
+                                    Inverse(R)
+                                )
+                            ),
+                            # x_a = x_b + X*S*Y^T * R^-1 * (y - H_x_b)
+                            Equal(
+                                x_a,
+                                Plus(
+                                    x_b,
+                                    Times(
+                                        X,
+                                        Si_I,
+                                        Transpose(Y),
+                                        Inverse(R),
+                                        Plus(
+                                            y,
+                                            Times(
+                                                minusone,
+                                                H_x_b
+                                            )
+                                        )
+                                    )
+                                )
+                            ),
+                            # P_a = X * S * X^T
+                            Equal(
+                                P_a,
+                                Times(
+                                    X,
+                                    Si_I,
+                                    Transpose(X)
+                                )
+                            )
+                    )
+
+class SPA_7_1_12(object):
+    def __init__(self, d = 1000, m = 1000, k = 8000, q = 1):
+        # Trier2017
+        # m < n
+        # Algorithm nr 1 P^P
+        # Y = (AA^T)^q A_I
+        # B = QQ^T*A
+
+
+        A = Matrix("A", (d, m), properties = [properties.INPUT])
+        A_I = Matrix("A_I", (d, k), properties = [properties.INPUT])
+        Q = Matrix("Q", (d, k), properties = [properties.INPUT, properties.ORTHOGONAL])
+        B = Matrix("B", (d, m), properties = [properties.OUTPUT])
+        Y = Matrix("Y", (d, k), properties = [properties.OUTPUT])
+
+        power_arg = Times(A, Transpose(A))
+        if q == 0:
+            power_expr = Identity()
+        else:
+            power_expr = power_arg
+            for i in range(1, q):
+                power_expr = Times(power_expr, power_arg)
+
+        self.eqns = Equations(
+                            Equal(
+                                Y,
+                                Times(
+                                    power_expr,
+                                    A_I
+                                )
+                            ),
+                            Equal(
+                                B,
+                                Times(
+                                    Q,
+                                    Transpose(Q),
+                                    A
+                                )
+                            )
+                    )
+
+class ImageRestoration_7_1_13_1(object):
+    def __init__(self, n = 1500, m = 1000):
+        # Trier2017
+        # m < n
+        # Algorithm nr 1 P^P
+        # x = (H^t * H + lambda * sigma^2 * I_n)^-1 * (H^T * y + lambda * sigma^2 * (v - u))
+
+        minusone = ConstantScalar(-1)
+        lambda_ = Scalar("lambda")
+        sigma_ = Scalar("sigma_sq")
+
+        H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        I = IdentityMatrix(n, n)
+
+        v_k = Vector("v_k", (n, sONE), properties = [properties.INPUT])
+        u_k = Vector("u_k", (n, sONE), properties = [properties.INPUT])
+        y = Vector("y", (m, sONE), properties = [properties.INPUT])
+        x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
+
+
+        self.eqns = Equations(
+                            Equal(
+                                x,
+                                Times(
+                                    # (H^t * H + lambda * sigma^2 * I_n)^-1
+                                    Inverse( Plus(
+                                        Times(
+                                            Transpose(H),
+                                            H
+                                        ),
+                                        Times(
+                                            lambda_,
+                                            sigma_,
+                                            I
+                                        )
+                                    )),
+                                    # (H^T * y + lambda * sigma^2 * (v - u))
+                                    Plus(
+                                        Times(
+                                            Transpose(H),
+                                            y
+                                        ),
+                                        Times(
+                                            lambda_,
+                                            sigma_,
+                                            Plus(
+                                                v_k,
+                                                Times(
+                                                    minusone,
+                                                    u_k
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                    )
+
+class ImageRestoration_7_1_13_2(object):
+    def __init__(self, n = 1500, m = 1000, single = False):
+        # Trier2017
+        # m < n
+        # Algorithm nr 2
+        # H^dag = H^T (HH^T)^-1
+        # y_k = H^dag y + (I - H^dag H)x_k
+        # H_dag is modeled input/output
+
+        minusone = ConstantScalar(-1)
+        lambda_ = Scalar("lambda")
+        sigma_ = Scalar("sigma_sq")
+
+        H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.INPUT])
+        H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
+        I = IdentityMatrix(n, n)
+
+        y_k = Vector("y_k", (n, sONE), properties = [properties.OUTPUT])
+        y = Vector("y", (m, sONE), properties = [properties.INPUT])
+        x = Vector("x", (n, sONE), properties = [properties.INPUT])
+
+        h_dag = Times(
+                    Transpose(H),
+                    Inverse(
+                        Times(
+                            H,
+                            Transpose(H)
+                        )
+                    )
+                )
+        if single:
+            self.eqns = Equations(
+                            Equal(
+                                y_k,
+                                Plus(
+                                    Times(
+                                        h_dag,
+                                        y
+                                    ),
+                                    Times(
+                                        Plus(
+                                            I,
+                                            Times(
+                                                minusone,
+                                                h_dag,
+                                                H
+                                            )
+                                        ),
+                                        x
+                                    )
+                                )
+                            )
+                        )
+        else:
+            self.eqns = Equations(
+                            Equal(
+                                H_dag_O,
+                                h_dag
+                            ),
+                            Equal(
+                                y_k,
+                                Plus(
+                                    Times(
+                                        H_dag_I,
+                                        y
+                                    ),
+                                    Times(
+                                        Plus(
+                                            I,
+                                            Times(
+                                                minusone,
+                                                H_dag_I,
+                                                H
+                                            )
+                                        ),
+                                        x
+                                    )
+                                )
+                            )
+                        )
+
+class Tikhonov_7_1_14(object):
+    def __init__(self, n = 1500, m = 1000):
+
+        # TAGS
+        # noschese2016
+        # former Example123
+        # eq: x = (A^T A + \mu^2 I)^-1 A^T b
+        # eq. 1.5, 2.7
+
+        A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
+        I = IdentityMatrix(m, m)
+        b = Vector("b", (n, sONE), properties = [properties.INPUT])
+        x = Vector("x", (m, sONE), properties = [properties.OUTPUT])
+        mu = Scalar("mu_sq")
+
+        self.eqns = Equations(
+                            Equal(x,
+                                Times(Inverse(Plus(Times(Transpose(A), A), Times(mu, I))), Transpose(A), b)
+                                )
+                            )
+
+class CDMA_7_1_15(object):
+    def __init__(self, G=63, K=30, L=5):
+        pass
+
+        # albataineh2014
+
+        # L = 5
+        # K = 30 to 50
+        # G = 63 or 64
+        # d = {0, 1, 2, 3, 4}
+        # G1 >= G + L -1
+        # H: G1 x G, full rank
+
+        # S: G x K block diagonal
+
+        # b: K-d vector
+
+        # n: G1-d vector
+
+        # C: GxG diagonal, CC^H = I, digonal elements are +/-1+/-j
+
+        # missing: properties of Q
+        # "and n is the (G1) dimensional channel noise vector with covariance matrix, say, Q"
+        # covariances matrices are symmetric and positive semi-definite 
+
+        # b = S^H H^H (sigma^2 H H^H + Q)^-1 r
+        G1 = G + L -1
+
+        sigma_sq = Scalar("sigma_sq")
+        S = Matrix("S", (G, K), properties = [properties.INPUT])
+        H = Matrix("H", (G1, G), properties = [properties.INPUT, properties.FULL_RANK])
+        Q = Matrix("Q", (G1, G1), properties = [properties.INPUT, properties.SYMMETRIC])
+        r = Vector("r", (G1, sONE), properties = [properties.INPUT])
+        b = Vector("b", (K, sONE), properties = [properties.OUTPUT])
+
+        self.eqns = Equations(
+                            Equal(b,
+                                Times(
+                                    ConjugateTranspose(S),
+                                    ConjugateTranspose(H),
+                                    Inverse(Plus(
+                                        Times(
+                                            sigma_sq,
+                                            H,
+                                            ConjugateTranspose(H)
+                                        ),
+                                        Q
+                                    )),
+                                    r
+                                )
+                            ) 
+                    )
 
 class Common_Subexpr_7_2_1(object):
     def __init__(self, n=1000):
@@ -622,60 +1047,6 @@ class Example121(object):
                             )
 
 
-class Example122(object):
-    def __init__(self):
-        pass
-
-        # albataineh2014
-
-        # L = 5
-        # K = 30 to 50
-        # G = 63 or 64
-        # d = {0, 1, 2, 3, 4}
-
-        # H: (G+L-1) x G, full rank
-
-        # S: G x K block diagonal
-
-        # b: K-d vector
-
-        # n: (G+L-1)-d vector
-
-        # C: GxG diagonal, CC^H = I, digonal elements are +/-1+/-j
-
-        # missing: properties of Q
-
-        # b = S^H H^H (sigma^2 H H^H + Q)^-1 r
-
-
-class Example123(object):
-    def __init__(self):
-
-        # TAGS
-        # noschese2016
-
-        n = 1500 # 10
-        m = 1000 # 5
-
-        A = Matrix("A", (n, m))
-        A.set_property(properties.FULL_RANK)
-        A.set_property(properties.INPUT)
-
-        b = Vector("b", (n, sONE))
-        b.set_property(properties.INPUT)
-
-        mu = Scalar("mu")
-
-        I = IdentityMatrix(m, m)
-
-        x = Vector("x", (m, sONE))
-        x.set_property(properties.OUTPUT)
-
-        self.eqns = Equations(
-                            Equal(x, 
-                                Times(Inverse(Plus(Times(Transpose(A), A), Times(mu, I))), Transpose(A), b)
-                                ) 
-                            )
 
 
 
