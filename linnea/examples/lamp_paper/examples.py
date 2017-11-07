@@ -1021,32 +1021,6 @@ class Simplification_7_2_12(object):
                     )
 
 
-class Example121(object):
-    def __init__(self, n1 = 10):
-
-        # TAGS
-        # conjugate prior
-
-
-        S = Matrix("S", (n1, n1), properties = [properties.SPD])
-        P = Matrix("P", (n1, n1), properties = [properties.SPD])
-
-        x = Vector("x", (n1, 1))
-        m = Vector("m", (n1, 1))
-        y = Vector("y", (n1, 1))
-
-        alpha = Scalar("alpha")
-
-        self.eqns = Equations(
-                            Equal(y, 
-                                Times(
-                                    Inverse(Plus(Inverse(S), Times(alpha, Inverse(P)))),
-                                    Plus(Times(Inverse(S), m), Times(alpha, Inverse(P), x))
-                                    )
-                                ) 
-                            )
-
-
 
 
 
