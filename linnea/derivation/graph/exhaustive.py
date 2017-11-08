@@ -236,9 +236,9 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 new_metric = equations_copy.metric()
                 # print("metric", new_metric, metric)
                 # print(equations_copy)
-                if new_metric <= metric:
-                    edge_label = base.base.EdgeLabel(matched_kernel)
-                    transformed_expressions.append((equations_copy, new_metric, edge_label))
+                # if new_metric <= metric:
+                #     edge_label = base.base.EdgeLabel(matched_kernel)
+                #     transformed_expressions.append((equations_copy, new_metric, edge_label))
 
         return transformed_expressions
 
