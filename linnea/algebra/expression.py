@@ -453,7 +453,7 @@ class Equal(Operator):
         return "{0} = {1}".format(*self.operands)
 
     def to_julia_expression(self, recommended=False):
-        return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+        return "{0} = {1};".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
 
     def to_cpp_expression(self, lib, recommended=False):
         return {
