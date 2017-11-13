@@ -295,7 +295,7 @@ class EnsembleKalmarFilter_7_1_9_1(object):
         # P_a = (I - K*H)*P_b
         # TODO: R is symmetric positive semi-definite, which property?
 
-        minusone = ConstantScalar(-1)
+        minusone = ConstantScalar(-1.0)
 
         Ki_O = Matrix("Ki_O", (n, m), properties = [properties.OUTPUT])
         Ki_I = Matrix("Ki_I", (n, m), properties = [properties.INPUT])
@@ -373,7 +373,7 @@ class EnsembleKalmarFilter_7_1_9_2(object):
         # P_a = X * S * X^T
         # TODO: R is symmetric positive semi-definite, which property?
 
-        minusone = ConstantScalar(-1)
+        minusone = ConstantScalar(-1.0)
         n_scalar = ConstantScalar(n)
 
         K = Matrix("K", (n, m), properties = [properties.OUTPUT])

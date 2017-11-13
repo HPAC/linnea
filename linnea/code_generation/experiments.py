@@ -100,8 +100,8 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     result_naive = naive(matrices...)
                     result_recommended = recommended(matrices...)
                     #@test result_recommended ≈ result_naive
-                    print("Norm: "*string(norm(result_naive - result_recommended))*"\\n")
-                    print("Naive(0, 0): "*string(result_naive[1, 1])*"\\n")
+                    #print("Norm: "*string(norm(result_naive - result_recommended))*"\\n")
+                    #print("Naive(0, 0): "*string(result_naive[1, 1])*"\\n")
                     {1}
                     
                     plotter = Benchmarker.Plotter.Plot{{Float64}}("julia_results_{3}.txt", ["algorithm"]);
@@ -123,13 +123,13 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                         recommended_ = @() recommended(matrices{{:}});
                         naive_mat = naive_();
                         recomd_mat = recommended_();
-                        fprintf('Norm(naive - recomd) %f\\n', norm(naive_mat - recomd_mat));
-                        fprintf('Naive(0, 0): %f\\n', naive_mat(1, 1));
-                        fprintf('Naive(0, 0): %f\\n', recomd_mat(1, 1));
+                        %fprintf('Norm(naive - recomd) %f\\n', norm(naive_mat - recomd_mat));
+                        %fprintf('Naive(0, 0): %f\\n', naive_mat(1, 1));
+                        %fprintf('Naive(0, 0): %f\\n', recomd_mat(1, 1));
                     
                         benchmarker = Benchmarker();
-                        benchmarker.benchmark('naive_matlab', 20, naive_);
-                        benchmarker.benchmark('recommended_matlab', 20, recommended_);
+                        benchmarker.benchmark('naive_matlab', 10, naive_);
+                        benchmarker.benchmark('recommended_matlab', 10, recommended_);
                         benchmarker.save('matlab_results_{0}.txt');
                     end
                     """
