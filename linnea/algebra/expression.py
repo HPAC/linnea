@@ -1198,7 +1198,8 @@ class IdentityMatrix(ConstantMatrix):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
 
     def to_julia_expression(self, recommended=False):
-        if config.language == config.Language.Julia:
+        #FIXME: this requires proper matlab version
+        if not config.matlab:
             return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
         else:
             return "eye({0}, {1})".format(*self.size)

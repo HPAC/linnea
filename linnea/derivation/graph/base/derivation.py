@@ -136,10 +136,14 @@ class DerivationGraphBase(base.GraphBase):
             cgu.algorithm_to_file(output_name, "recommended",
                                   self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo, recommended=True),
                                   input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
+            # not sure how exactly this work, set it back later to avoid any problems 
+            old_val = config.matlab
+            config.matlab = True
             cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str,
                                   config.Language.Matlab, ".m")
             cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_julia_expression(recommended=True),
                                   input_str, output_str, config.Language.Matlab, ".m")
+            config.matlab = old_val
             cge.operand_generator_to_file(output_name, input, input_str)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Matlab)
