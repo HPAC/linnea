@@ -633,7 +633,7 @@ class Times(Operator):
             # doesn't matter if b is inverse or not
             if idx != len(self.operands) - 1:
                 idx, second_operand = self.recommended_julia_expression(idx + 1)
-                return (idx, "({0}\{1})".format(
+                return (idx, "(({0})\({1}))".format(
                     op.to_julia_expression(recommended=True, strip_inverse=True),
                     second_operand
                 ))
@@ -646,7 +646,7 @@ class Times(Operator):
             op_next = self.operands[idx + 1]
             # if next is an inverse, match a * inv(b) -> a / b
             if self.is_inverse_type(type(op_next)):
-                return (idx + 2, "({0}/{1})".format(
+                return (idx + 2, "({0}/({1}))".format(
                     op.to_julia_expression(recommended=True),
                     op_next.to_julia_expression(recommended=True, strip_inverse=True)
                 ))
@@ -1198,7 +1198,10 @@ class IdentityMatrix(ConstantMatrix):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
 
     def to_julia_expression(self, recommended=False):
-        return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
+        if config.language == config.Language.Julia:
+            return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
+        else:
+            return "eye({0}, {1})".format(*self.size)
 
     def to_cpp_expression(self, lib, recommended=False):
         # IdentityMatrix can only be symmetric in Blaze
