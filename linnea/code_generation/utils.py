@@ -561,7 +561,7 @@ def algorithm_to_file(output_name, algorithm_name, algorithm, input, output,
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
     output_file = open(file_name, "wt")
-    print("Generate algorithm file {}".format(file_name))
+    # print("Generate algorithm file {}".format(file_name))
     algorithm_name = algorithm_name + ("_" + filename_addition if filename_addition else "")
     experiment_str = algorithm_to_str(algorithm_name, algorithm, input, output, language_type)
     # experiment_str = julia_template.format(algorithm_name, input, textwrap.indent(algorithm, "    "), output)
