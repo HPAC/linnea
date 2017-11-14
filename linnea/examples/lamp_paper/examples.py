@@ -89,7 +89,7 @@ class Generalized_LeastSquares_7_1_3(object):
         M = Matrix("M", (n, n), properties = [properties.SPD, properties.INPUT])
 
         X = Matrix("X", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
-        y = Matrix("y", (n, sONE), properties = [properties.INPUT])
+        y = Vector("y", (n, sONE), properties = [properties.INPUT])
 
         b = Vector("b", (m, sONE), properties = [properties.OUTPUT])
 
@@ -559,7 +559,7 @@ class ImageRestoration_7_1_13_2(object):
         # y_k = H^dag y + (I - H^dag H)x_k
         # H_dag is modeled input/output
 
-        minusone = ConstantScalar(-1)
+        minusone = ConstantScalar(-1.0)
         lambda_ = Scalar("lambda")
         sigma_ = Scalar("sigma_sq")
 
