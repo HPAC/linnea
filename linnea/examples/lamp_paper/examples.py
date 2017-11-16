@@ -696,6 +696,8 @@ class CDMA_7_1_15(object):
         r = Vector("r", (G1, sONE), properties = [properties.INPUT])
         b = Vector("b", (K, sONE), properties = [properties.OUTPUT])
 
+        derivation.special_properties.add_expression(Plus(Times(sigma_sq, H, Transpose(H)), Q), {properties.SPD})
+
         self.eqns = Equations(
                             Equal(b,
                                 Times(
