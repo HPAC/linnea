@@ -1077,6 +1077,31 @@ matrix_sum = KernelDescription(
      SizeArgument("M", A, "rows")], # Argument objects
     )
 
+# scalar * diagonal
+
+X = Matrix("X", (m, n))
+X.set_property(properties.DIAGONAL)
+alpha = Scalar("alpha")
+cf = lambda d: min(d["M"], d["N"])
+
+diagscal = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(alpha, X)}
+    ),
+    [], # variants
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(X, StorageFormat.diagonal_vector),
+    ],
+    OutputOperand(X, StorageFormat.diagonal_vector), # return value
+    cf, # cost function
+    "",
+    "scal!(min($M, $N), $alpha, $X, 1)",
+    "",
+    [SizeArgument("M", X, "rows"),
+     SizeArgument("N", X, "columns")], # Argument objects
+    )
+
 # diagonal * diagonal
 
 """
