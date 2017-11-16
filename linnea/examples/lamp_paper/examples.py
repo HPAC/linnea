@@ -50,6 +50,8 @@ class LMMSE_7_1_2(object):
         x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
         sigma = Scalar("sigma")
 
+        derivation.special_properties.add_expression(Plus(Times(Transpose(H), H), Times(sigma, I)), {properties.SPD})
+
         # x = (H^H*H + \sigma^2 * I)^-1 * H^H * y
         self.eqns = Equations(
                         Equal(x,
