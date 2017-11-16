@@ -647,6 +647,8 @@ class Tikhonov_7_1_14(object):
         x = Vector("x", (m, sONE), properties = [properties.OUTPUT])
         mu = Scalar("mu_sq")
 
+        derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(mu, I)), {properties.SPD})
+
         self.eqns = Equations(
                             Equal(x,
                                 Times(Inverse(Plus(Times(Transpose(A), A), Times(mu, I))), Transpose(A), b)
