@@ -72,7 +72,7 @@ class InitializeConstant(MemoryOperation):
             if isinstance(operand, ConstantScalar):
                 initialization = str(operand.value)
             elif isinstance(operand, IdentityMatrix):
-                if self.storage_format == StorageFormat.full or self.storage_format == StorageFormat.symmetric_triangular:
+                if self.storage_format <= StorageFormat.full:
                     initialization = "eye({0}, {1}, {2})".format(config.data_type_string, *operand.size)
                 elif self.storage_format == StorageFormat.diagonal_vector:
                     initialization = "ones({0}, {1})".format(config.data_type_string, min(operand.size))
