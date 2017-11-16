@@ -310,6 +310,7 @@ class EnsembleKalmarFilter_7_1_9_1(object):
         y = Vector("y", (m, sONE), properties = [properties.INPUT])
         H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
 
+        derivation.special_properties.add_expression(Plus(Times(H, P_b, Transpose(H)), R), {properties.SPD})
 
         self.eqns = Equations(
                             Equal(
@@ -390,6 +391,7 @@ class EnsembleKalmarFilter_7_1_9_2(object):
         y = Vector("y", (m, sONE), properties = [properties.INPUT])
         H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
 
+        derivation.special_properties.add_expression(Plus(Times(Plus(n_scalar, minusone), I), Times(Transpose(Y), Inverse(R), Y)), {properties.SPD})
 
         self.eqns = Equations(
                             # Si_O = ((n-1)*I + Y^T * R^-1 * Y)^-1
