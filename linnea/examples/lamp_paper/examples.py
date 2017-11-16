@@ -702,7 +702,7 @@ class CDMA_7_1_15(object):
                             Equal(b,
                                 Times(
                                     Transpose(S),
-                                    Transpose(H),                                    
+                                    Transpose(H),
                                     # ConjugateTranspose(S),
                                     # ConjugateTranspose(H),
                                     Inverse(Plus(

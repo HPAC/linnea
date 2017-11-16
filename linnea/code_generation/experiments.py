@@ -297,7 +297,7 @@ def benchmarker_to_file(output_name, language, algorithms_count=0):
     incl_format = algorithm_inclusion.get(language)
     test_format = algorithm_test.get(language)
     plot_format = algorithm_plot.get(language)
-    for i in range(algorithms_count):
+    for i in range(min(1, algorithms_count)):
         inclusions.append(incl_format.format(i))
         tests.append(test_format.format(i))
         plots.append(plot_format.format(i))
