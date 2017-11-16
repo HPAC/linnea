@@ -57,7 +57,7 @@ class LMMSE_7_1_2(object):
                                 Inverse(
                                     Plus(
                                         Times(
-                                            ConjugateTranspose(H),
+                                            Transpose(H),
                                             H
                                         ),
                                         Times(
@@ -66,7 +66,7 @@ class LMMSE_7_1_2(object):
                                         )
                                     )
                                 ),
-                                ConjugateTranspose(H),
+                                Transpose(H),
                                 y
                             )
                         )
@@ -691,13 +691,13 @@ class CDMA_7_1_15(object):
         self.eqns = Equations(
                             Equal(b,
                                 Times(
-                                    ConjugateTranspose(S),
-                                    ConjugateTranspose(H),
+                                    Transpose(S),
+                                    Transpose(H),
                                     Inverse(Plus(
                                         Times(
                                             sigma_sq,
                                             H,
-                                            ConjugateTranspose(H)
+                                            Transpose(H)
                                         ),
                                         Q
                                     )),
