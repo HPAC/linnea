@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # bug 
     #eqs.append(paper.ImageRestoration_7_1_13_2(single=True))
     eqs.append(paper.Tikhonov_7_1_14())
-    eqs.append(paper.CDMA_7_1_15())
+    eqs.append(paper.CDMA_7_1_15(630, 300, 50))
     eqs.append(paper.Common_Subexpr_7_2_1())
     eqs.append(paper.Common_Subexpr_7_2_2())
     eqs.append(paper.Common_Subexpr_7_2_3())
