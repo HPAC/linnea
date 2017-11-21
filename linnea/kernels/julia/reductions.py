@@ -95,7 +95,7 @@ dot = KernelDescription(
     OutputOperand(out, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "$out = dot($N, $x, 1, $x, 1)",
+    "$out = BLAS.dot($N, $x, 1, $x, 1)",
     "",
     [SizeArgument("N", x, "rows")], # Argument objects
     )
