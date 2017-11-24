@@ -798,7 +798,7 @@ posvr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "Base.LinAlg.LAPACK.posv!('L', $A, $B')\n$B = $B'",
+    "$B = $B'\nBase.LinAlg.LAPACK.posv!('L', $A, $B)\n$B = $B'",
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
@@ -870,7 +870,7 @@ sysvr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "Base.LinAlg.LAPACK.sysv!('L', $A, $B')\n$B = $B'",
+    "$B = $B'\nBase.LinAlg.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
