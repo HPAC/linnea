@@ -1211,7 +1211,8 @@ diagsmr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "for i = 1:size($B, 2); $B[:,i] /= $A[i]; end;",
+    "x = 1./$A; for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= x[i]; end; end;", # faster with current Julia version
+    # "for i = 1:size($B, 2); $B[:,i] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1245,7 +1246,8 @@ diagsml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "for i = 1:size($B, 1); $B[i,:] /= $A[i]; end;",
+    "x = 1./$A; for i = 1:size($B, 1); for j=1:size($B, 2); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
+    # "for i = 1:size($B, 1); $B[i,:] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1312,7 +1314,8 @@ diagmmr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "for i = 1:size($B, 2); $B[:,i] *= $A[i]; end;",
+    "for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= $A[i]; end; end;", # faster with current Julia version
+    # "for i = 1:size($B, 2); $B[:,i] *= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1348,7 +1351,8 @@ diagmml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "for i = 1:size($B, 1); $B[i,:] *= $A[i]; end;",
+    "for i = 1:size($B, 1); for j=1:size($B, 2); $B[i,j] *= $A[i]; end; end;", # faster with current Julia version
+    # "for i = 1:size($B, 1); $B[i,:] *= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
