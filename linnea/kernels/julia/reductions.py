@@ -960,7 +960,7 @@ Base.LinAlg.LAPACK.gesv!($A, $B)
 gesvrt = KernelDescription(
     ExpressionKV(
         None,
-        {None: Times(B, Inverse(A))}
+        {None: Times(B, InverseTranspose(A))}
     ),
     [],  # variants
     [InputOperand(A, StorageFormat.full),
