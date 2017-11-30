@@ -52,6 +52,9 @@ sysvr = list(reductions.sysvr.generate_kernels())
 gesv = list(reductions.gesv.generate_kernels())
 gesvr = list(reductions.gesvr.generate_kernels())
 gesvrt = list(reductions.gesvrt.generate_kernels())
+posv_vec = list(reductions.posv_vec.generate_kernels())
+sysv_vec = list(reductions.sysv_vec.generate_kernels())
+gesv_vec = list(reductions.gesv_vec.generate_kernels())
 
 # MISSING: permuation kernels
 
@@ -92,6 +95,9 @@ reductions = list(itertools.chain(
                 gesv,
                 gesvr,
                 gesvrt,
+                posv_vec,
+                sysv_vec,
+                gesv_vec,
             ))
 
 unused = list(itertools.chain(

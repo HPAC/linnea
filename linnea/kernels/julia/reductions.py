@@ -12,7 +12,9 @@ from ...code_generation.memory.storage_format import StorageFormat
 
 from ...algebra.properties import Property as properties
 
-from ...algebra.expression import Times, Plus, Transpose, Inverse, Identity, \
+from ...algebra.expression import Times, Plus, \
+                                  Transpose, Inverse, InverseTranspose, \
+                                  Identity, \
                                   ConstantScalar, \
                                   Scalar, Vector, Matrix
 
@@ -975,6 +977,254 @@ gesvrt = KernelDescription(
      SizeArgument("N", B, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
+
+
+#################
+#################
+
+# POSV vector
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+A.set_property(properties.SPD)
+x = Vector("x", (m, 1))
+cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+Base.LinAlg.LAPACK.potrf!('L', A)
+Base.LinAlg.LAPACK.potrs!('L', A, B)
+"""
+
+posv_vec = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Inverse(A), x)}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.symmetric_triangular),
+     InputOperand(x, StorageFormat.full),
+    ],
+    OutputOperand(x, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "Base.LinAlg.LAPACK.posv!('L', $A, $x)",
+    "",
+    [SizeArgument("M", A, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# # POSV right vector
+# # probably not necessary
+
+# A = Matrix("A", (m, m))
+# A.set_property(properties.SQUARE)
+# A.set_property(properties.SPD)
+# x = Vector("x", (m, 1))
+# cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+
+# """
+# TODO problem: both A and B are overwritten, but it's not possible to express that here
+# alternative
+# Base.LinAlg.LAPACK.potrf!('L', A)
+# Base.LinAlg.LAPACK.potrs!('L', A, B)
+# """
+
+# posvr = KernelDescription(
+#     ExpressionKV(
+#         None,
+#         {None: Times(Transpose(x), Inverse(A))}
+#     ),
+#     [],  # variants
+#     [InputOperand(A, StorageFormat.symmetric_triangular),
+#      InputOperand(B, StorageFormat.full),
+#     ],
+#     OutputOperand(B, StorageFormat.full), # return value
+#     cf, # cost function
+#     "",
+#     "$B = $B'\nBase.LinAlg.LAPACK.posv!('L', $A, $B)\n$B = $B'",
+#     "",
+#     [SizeArgument("M", B, "columns"),
+#      SizeArgument("N", B, "rows")], # Argument objects
+#     [KernelType.identity, KernelType.transpose]
+#     )
+
+
+# sysv vector
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+A.set_property(properties.SYMMETRIC)
+x = Vector("x", (m, 1))
+cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+(A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
+Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+TODO For whatever reason, sytrs is very slow. Investigate.
+"""
+
+sysv_vec = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Inverse(A), x)}
+    ),
+    [],  # variants
+    [InputOperand(A, StorageFormat.symmetric_triangular),
+     InputOperand(x, StorageFormat.full),
+    ],
+    OutputOperand(x, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "Base.LinAlg.LAPACK.sysv!('L', $A, $x)",
+    "",
+    [SizeArgument("M", A, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# # sysv right vector
+# # probably not necessary
+
+# A = Matrix("A", (m, m))
+# A.set_property(properties.SQUARE)
+# A.set_property(properties.SYMMETRIC)
+# x = Vector("x", (m, 1))
+# cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+
+# """
+# TODO problem: both A and B are overwritten, but it's not possible to express that here
+# alternative
+# (A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
+# Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+# TODO For whatever reason, sytrs is very slow. Investigate.
+# """
+
+# sysvr = KernelDescription(
+#     ExpressionKV(
+#         None,
+#         {None: Times(Transpose(x), Inverse(A))}
+#     ),
+#     [],  # variants
+#     [InputOperand(A, StorageFormat.symmetric_triangular),
+#      InputOperand(B, StorageFormat.full),
+#     ],
+#     OutputOperand(B, StorageFormat.full), # return value
+#     cf, # cost function
+#     "",
+#     "$B = $B'\nBase.LinAlg.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
+#     "",
+#     [SizeArgument("M", B, "columns"),
+#      SizeArgument("N", B, "rows")], # Argument objects
+#     [KernelType.identity, KernelType.transpose]
+#     )
+
+# gesv vector
+
+A = Matrix("A", (m, m))
+A.set_property(properties.SQUARE)
+x = Vector("x", (m, 1))
+cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)
+
+"""
+TODO problem: both A and B are overwritten, but it's not possible to express that here
+alternative
+Base.LinAlg.LAPACK.gesv!($A, $B)
+"""
+
+gesv_vec = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Op1(Inverse(A)), x)}
+    ),
+    [
+        OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
+    ],  # variants
+    [InputOperand(A, StorageFormat.full),
+     InputOperand(x, StorageFormat.full),
+    ],
+    OutputOperand(x, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "($A, ipiv, info) = Base.LinAlg.LAPACK.getrf!($A)\nBase.LinAlg.LAPACK.getrs!($transA, $A, ipiv, $x)",
+    "",
+    [SizeArgument("M", A, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# # gesv right vector
+# # probably not necessary
+
+# A = Matrix("A", (m, m))
+# A.set_property(properties.SQUARE)
+# x = Vector("x", (m, 1))
+# cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+
+# """
+# TODO problem: both A and B are overwritten, but it's not possible to express that here
+# alternative
+# Base.LinAlg.LAPACK.gesv!($A, $B)
+# """
+
+# gesvr = KernelDescription(
+#     ExpressionKV(
+#         None,
+#         {None: Times(B, Inverse(A))}
+#     ),
+#     [],  # variants
+#     [InputOperand(A, StorageFormat.full),
+#      InputOperand(B, StorageFormat.full),
+#     ],
+#     OutputOperand(B, StorageFormat.full), # return value
+#     cf, # cost function
+#     "",
+#     "$B = $B/lufact!($A)",
+#     "",
+#     [SizeArgument("M", B, "columns"),
+#      SizeArgument("N", B, "rows")], # Argument objects
+#     [KernelType.identity, KernelType.transpose]
+#     )
+
+# # gesv right transpose vector
+# # probably not necessary
+
+# A = Matrix("A", (m, m))
+# A.set_property(properties.SQUARE)
+# x = Vector("x", (m, 1))
+# cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+
+# """
+# TODO problem: both A and B are overwritten, but it's not possible to express that here
+# alternative
+# Base.LinAlg.LAPACK.gesv!($A, $B)
+# """
+
+# gesvrt = KernelDescription(
+#     ExpressionKV(
+#         None,
+#         {None: Times(B, InverseTranspose(A))}
+#     ),
+#     [],  # variants
+#     [InputOperand(A, StorageFormat.full),
+#      InputOperand(B, StorageFormat.full),
+#     ],
+#     OutputOperand(B, StorageFormat.full), # return value
+#     cf, # cost function
+#     "",
+#     "$B = $B/lufact!($A')",
+#     "",
+#     [SizeArgument("M", B, "columns"),
+#      SizeArgument("N", B, "rows")], # Argument objects
+#     [KernelType.identity, KernelType.transpose]
+#     )
+
+#################
+#################
 
 # diaginv (diagonal matrix inversion)
 
