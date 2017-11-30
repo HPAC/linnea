@@ -742,7 +742,7 @@ A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 A.set_property(properties.SPD)
 B = Matrix("B", (m, n))
-cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -777,7 +777,7 @@ A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 A.set_property(properties.SPD)
 B = Matrix("B", (n, m))
-cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -812,7 +812,7 @@ A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 A.set_property(properties.SYMMETRIC)
 B = Matrix("B", (m, n))
-cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -848,7 +848,7 @@ A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 A.set_property(properties.SYMMETRIC)
 B = Matrix("B", (n, m))
-cf = lambda d: (d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -882,7 +882,7 @@ sysvr = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 B = Matrix("B", (m, n))
-cf = lambda d: 2*(d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -917,7 +917,7 @@ gesv = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 B = Matrix("B", (n, m))
-cf = lambda d: 2*(d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -949,7 +949,7 @@ gesvr = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(properties.SQUARE)
 B = Matrix("B", (n, m))
-cf = lambda d: 2*(d["N"]**3)/3 + 2*(d["N"]**2)*d["M"]
+cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
