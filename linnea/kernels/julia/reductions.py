@@ -1246,7 +1246,7 @@ diagsml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "x = 1./$A; for i = 1:size($B, 1); for j=1:size($B, 2); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
+    "x = 1./$A; for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
     # "for i = 1:size($B, 1); $B[i,:] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
@@ -1351,7 +1351,7 @@ diagmml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "for i = 1:size($B, 1); for j=1:size($B, 2); $B[i,j] *= $A[i]; end; end;", # faster with current Julia version
+    "for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= $A[i]; end; end;", # faster with current Julia version
     # "for i = 1:size($B, 1); $B[i,:] *= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
