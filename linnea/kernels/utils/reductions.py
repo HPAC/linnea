@@ -1,5 +1,6 @@
 from ...algebra.expression import Equal, Times, Plus, \
-                                  Operator, Symbol
+                                  Operator, Symbol, \
+                                  Inverse, Transpose, InverseTranspose
 
 from ...algebra.transformations import simplify, \
                                        transpose, conjugate_transpose
@@ -95,10 +96,18 @@ class ReductionKernel(Kernel):
         pattern_expr = self.pattern.expression
 
         # Modifying pattern and replacement to take type into account.
+        # TODO this doesn't work for some kernels (e.g. diagsv), because
+        # variables don't have properties that might be necessary to simplify
+        # expressions. Those properties are part of the constraints, not the
+        # expression itself.
         if type == KernelType.identity:
             pass
         elif type == KernelType.transpose:
             pattern_expr = transpose(pattern_expr)
+            # TODO ugly hack
+            for constraint in self.pattern.constraints:
+                if (properties.SQUARE in constraint.properties and properties.DIAGONAL in constraint.properties) or properties.SYMMETRIC in constraint.properties:
+                    pattern_expr = remove_transpose(pattern_expr, constraint.variable)
             self.replacement_template = transpose(self.replacement_template)
         elif type == KernelType.conjugate_transpose:
             pattern_expr = conjugate_transpose(pattern_expr)
@@ -277,6 +286,23 @@ class ReductionKernel(Kernel):
         else:
             return False
 
+def remove_transpose(expr, name):
+    """Removes transpose operator for a symbol.
+
+    This is an ugly hack to temporarily solve the problem that simply doesn't
+    work correctly for pattern because it can't consider properties.
+
+    expr = remove_transpose(expr)
+    """
+    if isinstance(expr, Transpose) and isinstance(expr.operand, matchpy.Wildcard) and expr.operand.variable_name == name:
+        return expr.operand
+    elif isinstance(expr, InverseTranspose) and isinstance(expr.operand, matchpy.Wildcard) and expr.operand.variable_name == name:
+        return Inverse(expr.operand)
+    elif isinstance(expr, matchpy.Wildcard):
+        return expr
+    else:
+        return type(expr)(*[remove_transpose(op, name) for op in expr.operands])
+    
 class OutputOperand(object):
     """docstring for OutputOperand"""
     def __init__(self, operand, storage_format):
