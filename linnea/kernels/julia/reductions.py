@@ -181,8 +181,8 @@ ger = KernelDescription(
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "@inbounds for i = 1:size($y, 1); @inbounds for j = 1:size($x, 1); $A[j, i] = $alpha*$x[j]*$y[i]; end; end;", # faster with current Julia version
-    # "ger!($alpha, $x, $y, $A)",
+    # "@inbounds for i = 1:size($y, 1); @inbounds for j = 1:size($x, 1); $A[j, i] = $alpha*$x[j]*$y[i]; end; end;", # faster with current Julia version
+    "ger!($alpha, $x, $y, $A)",
     "",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
@@ -209,9 +209,9 @@ ger_alt = KernelDescription(
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "@inbounds for i = 1:size($y, 1); @inbounds for j = 1:size($x, 1); $A[j, i] = $alpha*$x[j]*$y[i]; end; end;", # faster with current Julia version
+    # "@inbounds for i = 1:size($y, 1); @inbounds for j = 1:size($x, 1); $A[j, i] = $alpha*$x[j]*$y[i]; end; end;", # faster with current Julia version
     # # If A is not allocated, use "$A = zeros($type, ($M, $N))\n"
-    # "fill!($A, 0.0)\nger!($alpha, $x, $y, $A)",
+    "fill!($A, 0.0)\nger!($alpha, $x, $y, $A)",
     "",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
