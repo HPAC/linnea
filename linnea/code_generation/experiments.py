@@ -237,9 +237,9 @@ def map_operand(language, property):
 
 
 # FIXME: somehow refactor this. it's ugly
-def operand_generator_to_file(output_name, operands, output_str, language = config.Language.Julia, name_addition = ""):
+def operand_generator_to_file(output_name, operands, output_str, language = config.language, name_addition = ""):
     additional_name = "_{}".format(name_addition) if name_addition else ""
-    file_name = os.path.join(config.output_path, config.language.name, output_name,
+    file_name = os.path.join(config.output_path, output_name, language.name,
                              "operand_generator{}{}".format(additional_name, filename_extension.get(language)))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
@@ -288,7 +288,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
 
 
 def benchmarker_to_file(output_name, language, algorithms_count=0):
-    file_name = os.path.join(config.output_path, config.language.name, output_name,
+    file_name = os.path.join(config.output_path, output_name, language.name,
                              "runner{}".format(filename_extension_exec.get(language)))
     output_file = open(file_name, "wt", encoding='utf-8')
     inclusions = []
@@ -322,14 +322,14 @@ cmake_script = """
                 set(sources {0})
                 
                 foreach(source ${{sources}})
-                    add_executable(${{source}} ${{source}}/runner.cpp)
+                    add_executable(${{source}} ${{source}}/Cpp/runner.cpp)
                     target_link_libraries(${{source}} PRIVATE libtests)
                     set_target_properties(${{source}} PROPERTIES CXX_STANDARD 14)
                 endforeach()
                 """
 
 def generate_cmake_script(paths):
-    file_name = os.path.join(config.output_path, config.language.name, "CMakeLists.txt")
+    file_name = os.path.join(config.output_path, "CMakeLists.txt")
     output_file = open(file_name, "wt")
     names = " ".join(paths)
     output_file.write(cmake_script.format(names))

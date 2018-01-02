@@ -551,18 +551,19 @@ cpp_template = textwrap.dedent(
                         """)
 
 def algorithm_to_file(output_name, algorithm_name, algorithm, input, output,
-                      language_type = config.Language.Julia,
+                      language = config.language,
                       file_extension = config.filename_extension,
                       filename_addition = ""):
-    file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms",
+    file_name = os.path.join(config.output_path, output_name, language.name, "algorithms",
                              "{}{}{}".format(algorithm_name, "_{0}".format(filename_addition) if filename_addition else "", file_extension))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
     output_file = open(file_name, "wt")
-    print("Generate algorithm file {}".format(file_name))
+    if config.verbosity >= 2:
+        print("Generate algorithm file {}".format(file_name))
     algorithm_name = algorithm_name + ("_" + filename_addition if filename_addition else "")
-    experiment_str = algorithm_to_str(algorithm_name, algorithm, input, output, language_type)
+    experiment_str = algorithm_to_str(algorithm_name, algorithm, input, output, language)
     # experiment_str = julia_template.format(algorithm_name, input, textwrap.indent(algorithm, "    "), output)
     output_file.write(experiment_str)
     output_file.close()
@@ -579,10 +580,11 @@ def algorithm_to_str(function_name, algorithm, input, output, language):
         if output_len > 1:
             output_string = "return std::make_tuple({});".format(output)
         else:
-            ret_string = """
+            ret_string = textwrap.dedent(
+                         """
                             typedef std::remove_reference_t<decltype({})> return_t;
                             return return_t({});
-                         """
+                         """)
             output_string = ret_string.format(output, output)
         experiment_str = cpp_template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output_string)
     else:

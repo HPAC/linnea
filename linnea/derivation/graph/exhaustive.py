@@ -24,10 +24,8 @@ collections_module = config.import_collections()
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
-    def derivation(self, max_algos=1, max_iterations=5, verbose=True, merging=True):
+    def derivation(self, max_algos=1, max_iterations=5, merging=True):
         # TODO default values?
-
-        self.verbose = verbose
 
         # init_partitiong and delete_partitioning is only done for performance
         # reasons. The additional attribute "partitioning" makes copying a lot

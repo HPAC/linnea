@@ -19,12 +19,12 @@ def generate(eq, append, merging_, algos = 100, iters = 10,reps=10):
     for j in range(reps):
         start = timer()
         graph = DerivationGraph(eq)
-        trace = graph.derivation(algos, iters, verbose=False, merging=merging_)
+        trace = graph.derivation(algos, iters, merging=merging_)
         end = timer()
         times.append(end - start)
     time_measurements = [numpy.mean(times), numpy.std(times), numpy.min(times), numpy.max(times)]
     graph = DerivationGraph(eq)
-    trace = graph.derivation(algos, iters, verbose=False, merging=merging_)
+    trace = graph.derivation(algos, iters, merging=merging_)
     graph.write_output(code=True,
                        #pseudocode=True,
                        # output_name=args.input.split(".")[0],

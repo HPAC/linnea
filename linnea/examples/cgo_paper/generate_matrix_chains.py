@@ -170,7 +170,7 @@ if __name__ == "__main__":
                 titles.append("seed_{}_matrix_chain_{}".format(seed, i))
             else:
                 graph = DerivationGraph(equations)
-                trace = graph.derivation(10, 6, verbose=False)
+                trace = graph.derivation(10, 6)
                 generated = graph.write_output(code=True,
                                pseudocode=True,
                                # output_name=args.input.split(".")[0],

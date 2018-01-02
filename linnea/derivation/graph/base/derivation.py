@@ -65,11 +65,13 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name)
 
-        algorithm_paths = [tuple(self.optimal_algorithm_path())]#list(self.all_algorithms(self.root))
-        #algorithm_paths.sort(key=operator.itemgetter(1))
+        # algorithm_paths = [tuple(self.optimal_algorithm_path())]
+        algorithm_paths = list(self.all_algorithms(self.root))
+        algorithm_paths.sort(key=operator.itemgetter(1))
 
         number_of_algorithms = len(algorithm_paths)
-        self.print("Number of algorithms: {}".format(number_of_algorithms))
+        if config.verbosity >= 1:
+            self.print("Number of algorithms: {}".format(number_of_algorithms))
         #if number_of_algorithms > max_algorithms:
         #    algorithm_paths = algorithm_paths[:max_algorithms]
 
@@ -78,7 +80,7 @@ class DerivationGraphBase(base.GraphBase):
         #    return False
 
         if code or pseudocode or operand_generator:
-            directory_name = os.path.join(config.output_path, config.language.name, output_name)
+            directory_name = os.path.join(config.output_path, output_name)
             if not os.path.exists(directory_name):
                 os.makedirs(directory_name)
 
@@ -110,7 +112,7 @@ class DerivationGraphBase(base.GraphBase):
                     # output_file.close()
 
                 if pseudocode:
-                    file_name = os.path.join(config.output_path, config.language.name, output_name, "pseudocode", "algorithm{}.txt".format(n))
+                    file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
                     directory_name = os.path.dirname(file_name)
                     if not os.path.exists(directory_name):
                         os.makedirs(directory_name)
@@ -137,14 +139,10 @@ class DerivationGraphBase(base.GraphBase):
             cgu.algorithm_to_file(output_name, "recommended",
                                   self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo, recommended=True),
                                   input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
-            # not sure how exactly this work, set it back later to avoid any problems 
-            old_val = config.matlab
-            config.matlab = True
             cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str,
                                   config.Language.Matlab, ".m")
             cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_julia_expression(recommended=True),
                                   input_str, output_str, config.Language.Matlab, ".m")
-            config.matlab = old_val
             cge.operand_generator_to_file(output_name, input, input_str)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Matlab)

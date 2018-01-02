@@ -8,6 +8,8 @@ from ...algebra.consistency import check_consistency
 from ...algebra.validity import check_validity
 from ...algebra.properties import Property as properties
 
+from ... import config
+
 from . import base
 from .utils import generate_variants, \
                    process_next, process_next_simple, \
@@ -43,10 +45,8 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         width = math.ceil(len(nodes)*_f(self.level_counter))
         return nodes[:width]
 
-    def derivation(self, max_algos=1, max_iterations=5, verbose=True, merging=True):
+    def derivation(self, max_algos=1, max_iterations=5, merging=True):
         # TODO default values?
-
-        self.verbose = verbose
 
         # init_partitiong and delete_partitioning is only done for performance
         # reasons. The additional attribute "partitioning" makes copying a lot
@@ -141,10 +141,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
 
             if len(terminal_nodes) >= max_algos:
-                self.print("Specified number of algorithms found.")
+                if config.verbosity >= 1:
+                    self.print("Specified number of algorithms found.")
                 break
             elif not self.active_nodes:
-                self.print("No further derivations possible.")
+                if config.verbosity >= 1:
+                    self.print("No further derivations possible.")
                 break
 
             # self.to_dot_file("counter")
@@ -152,11 +154,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             # print("Nodes", [node.id for node in self.nodes])
 
 
-        self.print("{:-<30}".format(""))
+        if config.verbosity >= 1:
+            self.print("{:-<30}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
         self.print_DS("Number of nodes:", len(self.nodes))
 
-        if terminal_nodes:
+        if terminal_nodes and config.verbosity >= 1:
             self.print("Best solution: {:.3g}".format(min(map(operator.attrgetter("accumulated_cost"), terminal_nodes))))
 
         # if self.verbose:

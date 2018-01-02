@@ -14,21 +14,17 @@ output_msg_plain = "   {0:.<22}{1:.>5n}"
 
 # TODO rename to GenericGraph or something?
 class GraphBase(object):
-    pass
-
-    def __init__(self):
-        self.verbose = True
 
     def print(self, str):
-        if self.verbose:
+        if config.verbosity >= 1:
             print(str)
 
     def print_DS(self, str, val):
-        if self.verbose:
+        if config.verbosity >= 1:
             print(output_msg_plain.format(str, val))
 
     def print_DS_numbered(self, str, val, number):
-        if self.verbose:
+        if config.verbosity >= 1:
             print(output_msg_add.format(str, val, number))
 
     def derivation(self):
@@ -117,7 +113,7 @@ class GraphBase(object):
 
 
     def write_graph(self, output_name, file_name="graph"):
-        file_path = os.path.join(config.output_path, config.language.name, output_name, "{}.gv".format(file_name))
+        file_path = os.path.join(config.output_path, output_name, config.language.name, "{}.gv".format(file_name))
         directory_name = os.path.dirname(file_path)
         if not os.path.exists(directory_name):
             os.makedirs(directory_name)
