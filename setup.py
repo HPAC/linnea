@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name="linnea",
     version="0.1",
@@ -7,7 +7,7 @@ setup(name="linnea",
     author="Henrik Barthels",
     author_email="barthels@aices.rwth-aachen.de",
     # license="MIT",
-    packages=["linnea"],
+    packages=find_packages(exclude=('tests', )),
     zip_safe=True,
     python_requires=">=3.5.3",
     install_requires=[
