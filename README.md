@@ -24,7 +24,7 @@ Options can be set with a number of `linnea.config.set_X()` functions.
 
 ### Commandline Tool
 
-When installing Linnea via `pip`, the commandline tool `linnea` is installed. As input, it takes a description of the input problem in a simple custom language. Some examples are provided in `examples/inputX.la`. Notice that the primary purpose of this input format is make it slightly easier to try out Linnea. There are no plans to establish this as an actual language. New features will probably not be immeadately available in this language, and the language may change in the future without being backward compatible.
+When installing Linnea via `pip`, the commandline tool `linnea` is installed. As input, it takes a description of the input problem in a simple custom language. Some examples are provided in `examples/inputX.la`. Notice that the primary purpose of this input format is make it slightly easier to try out Linnea. There are no plans to establish this as an actual language. New features will probably not be immediately available in this language, and the language may change in the future without being backward compatible.
 
 The list of commandline options is available via `linnea -h`.
 
