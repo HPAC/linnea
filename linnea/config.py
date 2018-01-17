@@ -2,6 +2,7 @@ import enum
 import importlib
 import os.path
 import json
+import math
 
 _CONFIG_FILE = 'config.json'
 
@@ -67,13 +68,15 @@ language = None
 output_path = None
 output_name = None
 merging_branches = False
-max_algorithms = -1
+algorithms_limit = -1
 generate_graph = False
 generate_pseudocode = False
 generate_code = False
 generate_experiments = False
 strategy = None
 verbosity = -1
+solution_nodes_limit = -1
+iteration_limit = -1
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -135,9 +138,9 @@ def set_merging_branches(merging):
     global merging_branches
     merging_branches = merging
 
-def set_max_algorithms(n):
-    global max_algorithms
-    max_algorithms = n
+def set_algorithms_limit(n):
+    global algorithms_limit
+    algorithms_limit = n
 
 def set_generate_graph(generate):
     global generate_graph
@@ -169,6 +172,26 @@ def set_verbosity(level):
     global verbosity
     verbosity = level
 
+def set_solution_nodes_limit(limit):
+    global solution_nodes_limit
+    if isinstance(limit, str):
+        if limit == "inf":
+            solution_nodes_limit = math.inf
+        else:
+            solution_nodes_limit = int(limit)
+    else:    
+        solution_nodes_limit = limit
+
+def set_iteration_limit(limit):
+    global iteration_limit
+    if isinstance(limit, str):
+        if limit == "inf":
+            iteration_limit = math.inf
+        else:
+            iteration_limit = int(limit)
+    else:    
+        iteration_limit = limit
+
 def init():
     from .algebra import property_DNs
     property_DNs._init()
@@ -177,8 +200,9 @@ def init():
 # setting default values
 
 set_language(Language.Julia)
+set_data_type(JuliaDataType.Float64)
 set_merging_branches(True)
-set_max_algorithms(100)
+set_algorithms_limit(100)
 set_generate_graph(False)
 set_generate_pseudocode(False)
 set_generate_code(True)
@@ -188,13 +212,18 @@ set_output_path(".")
 # the default for output_name is the name of the input file, which is not know here
 # output_name = None
 set_verbosity(1)
+set_solution_nodes_limit(math.inf)
+set_iteration_limit(100)
 
 
 def load_config():
     if os.path.exists(_CONFIG_FILE):
+        # print(os.getcwd())
+        # print(os.path.dirname(os.path.abspath(_CONFIG_FILE)))
         with open(_CONFIG_FILE) as jsonfile:
             settings = globals()
             # print(json.load(jsonfile))
+            # print(json.load(jsonfile).items())
             for key, value in json.load(jsonfile).items():
                 if key == 'language':
                     set_language(Language[value])
@@ -204,6 +233,12 @@ def load_config():
                     set_data_type(JuliaDataType[value])
                 elif key == 'strategy':
                     set_strategy(Strategy[value])
+                elif key == "output_path":
+                    set_output_path(value)
+                elif key == "solution_nodes_limit":
+                    set_solution_nodes_limit(value)
+                elif key == "iteration_limit":
+                    set_iteration_limit(value)
                 elif key in settings and not key.startswith('_'):
                     settings[key] = value
                 else:

@@ -19,6 +19,7 @@ from .. import special_properties
 
 import operator
 import matchpy
+import math
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
@@ -45,7 +46,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         width = math.ceil(len(nodes)*_f(self.level_counter))
         return nodes[:width]
 
-    def derivation(self, max_algos=1, max_iterations=5, merging=True):
+    def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True):
         # TODO default values?
 
         # init_partitiong and delete_partitioning is only done for performance
@@ -85,7 +86,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # for testing and debugging
         trace = []
 
-        for i in range(max_iterations):
+        for i in range(iteration_limit):
 
             new_nodes = self.DS_tricks()
             # TODO could this be done better with logging?
@@ -140,13 +141,11 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
             terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
 
-            if len(terminal_nodes) >= max_algos:
-                if config.verbosity >= 1:
-                    self.print("Specified number of algorithms found.")
+            if len(terminal_nodes) >= solution_nodes_limit:
+                self.print("Specified number of algorithms found.")
                 break
             elif not self.active_nodes:
-                if config.verbosity >= 1:
-                    self.print("No further derivations possible.")
+                self.print("No further derivations possible.")
                 break
 
             # self.to_dot_file("counter")
@@ -154,12 +153,11 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             # print("Nodes", [node.id for node in self.nodes])
 
 
-        if config.verbosity >= 1:
-            self.print("{:-<30}".format(""))
+        self.print("{:-<30}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
         self.print_DS("Number of nodes:", len(self.nodes))
 
-        if terminal_nodes and config.verbosity >= 1:
+        if terminal_nodes:
             self.print("Best solution: {:.3g}".format(min(map(operator.attrgetter("accumulated_cost"), terminal_nodes))))
 
         # if self.verbose:

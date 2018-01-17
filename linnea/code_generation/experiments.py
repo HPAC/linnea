@@ -285,6 +285,8 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     op_gen_file = op_gen_file_template.get(language).format(textwrap.indent(op_gen_lines, "    "), output_str)
     output_file.write(op_gen_file)
     output_file.close()
+    if config.verbosity >= 2:
+        print("Generate operand generator file {}".format(file_name))
 
 
 def benchmarker_to_file(output_name, language, algorithms_count=0):

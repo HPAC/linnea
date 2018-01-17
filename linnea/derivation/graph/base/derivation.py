@@ -57,7 +57,7 @@ class DerivationGraphBase(base.GraphBase):
         return new_nodes
 
 
-    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, max_algorithms=1, graph=False):
+    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, algorithms_limit=1, graph=False):
 
         if not config.output_path:
             raise config.OutputPathNotSet("Unable to write output: output_path not set.")
@@ -72,8 +72,8 @@ class DerivationGraphBase(base.GraphBase):
         number_of_algorithms = len(algorithm_paths)
         if config.verbosity >= 1:
             self.print("Number of algorithms: {}".format(number_of_algorithms))
-        #if number_of_algorithms > max_algorithms:
-        #    algorithm_paths = algorithm_paths[:max_algorithms]
+        if number_of_algorithms > algorithms_limit:
+           algorithm_paths = algorithm_paths[:algorithms_limit]
 
         #if number_of_algorithms == 0:
         #    print("No algorithm generated for this example")
@@ -84,41 +84,42 @@ class DerivationGraphBase(base.GraphBase):
             if not os.path.exists(directory_name):
                 os.makedirs(directory_name)
 
-        if len(algorithm_paths[0][0]) > 0:
-            for n, (algorithm_path, cost) in enumerate(algorithm_paths):
-            
-                matched_kernels = []
-                current_node = self.root
-                for idx in algorithm_path:
-                    edge_label = current_node.edge_labels[idx]
-                    matched_kernels.extend(edge_label.matched_kernels)
-                    current_node = current_node.successors[idx]
+        # TODO what is the purpose of "len(algorithm_paths[0][0]) > 0"?
+        # if number_of_algorithms > 0 and len(algorithm_paths[0][0]) > 0:
+        for n, (algorithm_path, cost) in enumerate(algorithm_paths):
+        
+            matched_kernels = []
+            current_node = self.root
+            for idx in algorithm_path:
+                edge_label = current_node.edge_labels[idx]
+                matched_kernels.extend(edge_label.matched_kernels)
+                current_node = current_node.successors[idx]
 
-                algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
+            algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
 
-                if code:
-                    # TODO change
-                    # here, I need to generat functions
-                    cgu.algorithm_to_file(output_name, "algorithm{}".format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
-                    # code_gen.algorithm_to_file(output_name, algorithm_name, algorithm, input, output)
-                    # file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms", "algorithm{}{}".format(str(n), config.filename_extension))
-                    # output_file = open(file_name, "wt")
-                    # # try:
-                    # #     output_file.write(algorithm.code())
-                    # # except KeyError:
-                    # #     pass
-                    # _code = algorithm.code()
-                    # output_file.write(_code)
-                    # output_file.close()
+            if code:
+                # TODO change
+                # here, I need to generat functions
+                cgu.algorithm_to_file(output_name, "algorithm{}".format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
+                # code_gen.algorithm_to_file(output_name, algorithm_name, algorithm, input, output)
+                # file_name = os.path.join(config.output_path, config.language.name, output_name, "algorithms", "algorithm{}{}".format(str(n), config.filename_extension))
+                # output_file = open(file_name, "wt")
+                # # try:
+                # #     output_file.write(algorithm.code())
+                # # except KeyError:
+                # #     pass
+                # _code = algorithm.code()
+                # output_file.write(_code)
+                # output_file.close()
 
-                if pseudocode:
-                    file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
-                    directory_name = os.path.dirname(file_name)
-                    if not os.path.exists(directory_name):
-                        os.makedirs(directory_name)
-                    output_file = open(file_name, "wt")
-                    output_file.write(algorithm.pseudocode())
-                    output_file.close()
+            if pseudocode:
+                file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
+                directory_name = os.path.dirname(file_name)
+                if not os.path.exists(directory_name):
+                    os.makedirs(directory_name)
+                output_file = open(file_name, "wt")
+                output_file.write(algorithm.pseudocode())
+                output_file.close()
 
         if operand_generator:
             input, output = self.root.equations.input_output()

@@ -120,6 +120,8 @@ class GraphBase(object):
         output_file = open(file_path, "wt")
         output_file.write(self.to_dot())
         output_file.close()
+        if config.verbosity >= 2:
+            print("Generate graph file {}".format(file_path))
 
     def __str__(self):
         out = "".join(["Number of nodes: ", str(len(self.nodes)), "\n"])
