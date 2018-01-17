@@ -1,0 +1,14 @@
+{
+    "output_path": "~/path/to/output",
+    "language": "Julia",
+    "julia_data_type": "Float64",  
+    "merging_branches": true,
+    "algorithms_limit": 100,
+    "strategy": "constructive",
+    "output_name": "tmp",
+    "generate_graph": false,
+    "generate_pseudocode": false,
+    "generate_code": true,
+    "generate_experiments": false,
+    "verbosity": 1
+}

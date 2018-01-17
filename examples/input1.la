@@ -1,0 +1,9 @@
+n = 1500
+m = 1000
+
+Matrix X(n, m) <Input, FullRank>
+ColumnVector y(n) <Input>
+ColumnVector b(m) <Output>
+
+b = inv(trans(X)*X)*trans(X)*y
+
