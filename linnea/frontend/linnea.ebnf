@@ -49,3 +49,14 @@ inverted_expr::Inverse =  "inv(" arg:expression ")" ;
 literal_expr::Number = value:constant ;
 symbol::Symbol = name:identifier ;
 
+# TODO regarding A': what about for that only allowing subexpression, inverted, literal, symbol? 
+# then it should not be left recursive
+# -> doesn't work
+
+# factor = subexpression | transposed_expr | inverted_expr | literal_expr | symbol ;
+# tfactor = subexpression | inverted_expr | literal_expr | symbol ;
+# subexpression = "(" ~ @:expression ")" ;
+# transposed_expr::Transpose =  "trans(" arg:expression ")" | arg:tfactor "'" ;
+# inverted_expr::Inverse =  "inv(" arg:expression ")" ;
+# literal_expr::Number = value:constant ;
+# symbol::Symbol = name:identifier ;

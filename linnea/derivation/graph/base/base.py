@@ -14,25 +14,24 @@ output_msg_plain = "   {0:.<22}{1:.>5n}"
 
 # TODO rename to GenericGraph or something?
 class GraphBase(object):
-    pass
-
-    def __init__(self):
-        self.verbose = True
 
     def print(self, str):
-        if self.verbose:
+        if config.verbosity >= 1:
             print(str)
 
     def print_DS(self, str, val):
-        if self.verbose:
+        if config.verbosity >= 1:
             print(output_msg_plain.format(str, val))
 
     def print_DS_numbered(self, str, val, number):
-        if self.verbose:
+        if config.verbosity >= 1:
             print(output_msg_add.format(str, val, number))
 
     def derivation(self):
         raise NotImplementedError()
+
+    def nodes_count(self):
+        return len(self.nodes)
 
     def create_nodes(self):
         raise NotImplementedError()
@@ -114,13 +113,15 @@ class GraphBase(object):
 
 
     def write_graph(self, output_name, file_name="graph"):
-        file_path = os.path.join(config.output_path, config.language.name, output_name, "{}.gv".format(file_name))
+        file_path = os.path.join(config.output_path, output_name, config.language.name, "{}.gv".format(file_name))
         directory_name = os.path.dirname(file_path)
         if not os.path.exists(directory_name):
             os.makedirs(directory_name)
         output_file = open(file_path, "wt")
         output_file.write(self.to_dot())
         output_file.close()
+        if config.verbosity >= 2:
+            print("Generate graph file {}".format(file_path))
 
     def __str__(self):
         out = "".join(["Number of nodes: ", str(len(self.nodes)), "\n"])

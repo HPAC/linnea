@@ -8,6 +8,8 @@ from ...algebra.consistency import check_consistency
 from ...algebra.validity import check_validity
 from ...algebra.properties import Property as properties
 
+from ... import config
+
 from . import base
 from .utils import generate_variants, \
                    process_next, process_next_simple, \
@@ -17,6 +19,7 @@ from .. import special_properties
 
 import operator
 import matchpy
+import math
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
@@ -43,10 +46,8 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         width = math.ceil(len(nodes)*_f(self.level_counter))
         return nodes[:width]
 
-    def derivation(self, max_algos=1, max_iterations=5, verbose=True, merging=True):
+    def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True):
         # TODO default values?
-
-        self.verbose = verbose
 
         # init_partitiong and delete_partitioning is only done for performance
         # reasons. The additional attribute "partitioning" makes copying a lot
@@ -85,7 +86,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # for testing and debugging
         trace = []
 
-        for i in range(max_iterations):
+        for i in range(iteration_limit):
 
             new_nodes = self.DS_tricks()
             # TODO could this be done better with logging?
@@ -140,7 +141,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
             terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
 
-            if len(terminal_nodes) >= max_algos:
+            if len(terminal_nodes) >= solution_nodes_limit:
                 self.print("Specified number of algorithms found.")
                 break
             elif not self.active_nodes:

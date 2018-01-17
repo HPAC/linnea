@@ -99,9 +99,9 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     #test run
                     result_naive = naive(matrices...)
                     result_recommended = recommended(matrices...)
-                    @test result_recommended ≈ result_naive
-                    print("Norm: "*string(norm(result_naive - result_recommended))*"\\n")
-                    print("Naive(0, 0): "*string(result_naive[1, 1])*"\\n")
+                    #@test result_recommended ≈ result_naive
+                    #print("Norm: "*string(norm(result_naive - result_recommended))*"\\n")
+                    #print("Naive(0, 0): "*string(result_naive[1, 1])*"\\n")
                     {1}
                     
                     plotter = Benchmarker.Plotter.Plot{{Float64}}("julia_results_{3}.txt", ["algorithm"]);
@@ -123,13 +123,13 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                         recommended_ = @() recommended(matrices{{:}});
                         naive_mat = naive_();
                         recomd_mat = recommended_();
-                        fprintf('Norm(naive - recomd) %f\\n', norm(naive_mat - recomd_mat));
-                        fprintf('Naive(0, 0): %f\\n', naive_mat(1, 1));
-                        fprintf('Naive(0, 0): %f\\n', recomd_mat(1, 1));
+                        %fprintf('Norm(naive - recomd) %f\\n', norm(naive_mat - recomd_mat));
+                        %fprintf('Naive(0, 0): %f\\n', naive_mat(1, 1));
+                        %fprintf('Naive(0, 0): %f\\n', recomd_mat(1, 1));
                     
                         benchmarker = Benchmarker();
-                        benchmarker.benchmark('naive_matlab', 20, naive_);
-                        benchmarker.benchmark('recommended_matlab', 20, recommended_);
+                        benchmarker.benchmark('naive_matlab', 10, naive_);
+                        benchmarker.benchmark('recommended_matlab', 10, recommended_);
                         benchmarker.save('matlab_results_{0}.txt');
                     end
                     """
@@ -173,8 +173,8 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                             typedef std::make_index_sequence<tuple_length> Indices;
                             auto res_naive = call(naive_armadillo{{}}, matrices, Indices{{}});
                             auto res_recomm = call(recommended_armadillo{{}}, matrices, Indices{{}});
-                            std::cout << "Armadillo norm(naive-recom): " << arma::norm(res_naive - res_recomm) << std::endl;
-                            std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
+                            //std::cout << "Armadillo norm(naive-recom): " << arma::norm(res_naive - res_recomm) << std::endl;
+                            //std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
                         
                             benchmark.run(20, [&]() {{
                                     call(naive_armadillo{{}}, matrices, Indices{{}});
@@ -190,8 +190,8 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                             typedef std::make_index_sequence<tuple_length> Indices;
                             auto res_naive = call(naive_eigen{{}}, matrices, Indices{{}});
                             auto res_recomm = call(recommended_eigen{{}}, matrices, Indices{{}});
-                            std::cout << "Eigen norm(naive-recom): " << (res_naive - res_recomm).norm() << std::endl;
-                            std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
+                            //std::cout << "Eigen norm(naive-recom): " << (res_naive - res_recomm).norm() << std::endl;
+                            //std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
                         
                             benchmark.run(20, [&]() {{
                                     call(naive_eigen{{}}, matrices, Indices{{}});
@@ -206,7 +206,7 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                             constexpr std::size_t tuple_length = std::tuple_size<decltype(matrices)>::value;
                             typedef std::make_index_sequence<tuple_length> Indices;
                             auto res_naive = call(naive_blaze{{}}, matrices, Indices{{}});
-                            std::cout << "Blaze naive(0, 0): " << res_naive(0, 0) << std::endl;
+                            //std::cout << "Blaze naive(0, 0): " << res_naive(0, 0) << std::endl;
                         
                             benchmark.run(20, [&]() {{
                                     call(naive_blaze{{}}, matrices, Indices{{}});
@@ -226,7 +226,7 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
 algorithm_inclusion = {config.Language.Julia: "include(\"algorithms/algorithm{0}.jl\")",
                     config.Language.Cpp: ""}
 
-algorithm_test = {config.Language.Julia: "@test algorithm{0}(map(MatrixGenerator.unwrap, matrices)...) ≈ result_naive",
+algorithm_test = {config.Language.Julia: "#@test algorithm{0}(map(MatrixGenerator.unwrap, matrices)...) ≈ result_naive",
                     config.Language.Cpp: ""}
 
 algorithm_plot = {config.Language.Julia: "Benchmarker.Plotter.add_data(plotter, [\"generated{0}\"], Benchmarker.measure(20, algorithm{0}, map(MatrixGenerator.unwrap, matrices)...) );",
@@ -237,9 +237,9 @@ def map_operand(language, property):
 
 
 # FIXME: somehow refactor this. it's ugly
-def operand_generator_to_file(output_name, operands, output_str, language = config.Language.Julia, name_addition = ""):
+def operand_generator_to_file(output_name, operands, output_str, language = config.language, name_addition = ""):
     additional_name = "_{}".format(name_addition) if name_addition else ""
-    file_name = os.path.join(config.output_path, config.language.name, output_name,
+    file_name = os.path.join(config.output_path, output_name, language.name,
                              "operand_generator{}{}".format(additional_name, filename_extension.get(language)))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
@@ -252,6 +252,16 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
             replacement = {"name": operand.name}
         else:
             replacement = {"name": "out{{ {0} }}".format(counter)}
+
+        # Special case - scalar generation for C++
+        if language == config.Language.Cpp and properties.SCALAR in operand.properties:
+            op_gen_lines.append("{0} {1} = std::uniform_real_distribution<{0}>()(gen.rng());".format(
+                "double" if config.float64 else "float",
+                operand.name
+            ))
+            counter += 1
+            continue
+
         property_replacements = []
         for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR,
                      properties.UPPER_TRIANGULAR, properties.SPD]:
@@ -275,10 +285,12 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     op_gen_file = op_gen_file_template.get(language).format(textwrap.indent(op_gen_lines, "    "), output_str)
     output_file.write(op_gen_file)
     output_file.close()
+    if config.verbosity >= 2:
+        print("Generate operand generator file {}".format(file_name))
 
 
 def benchmarker_to_file(output_name, language, algorithms_count=0):
-    file_name = os.path.join(config.output_path, config.language.name, output_name,
+    file_name = os.path.join(config.output_path, output_name, language.name,
                              "runner{}".format(filename_extension_exec.get(language)))
     output_file = open(file_name, "wt", encoding='utf-8')
     inclusions = []
@@ -287,7 +299,7 @@ def benchmarker_to_file(output_name, language, algorithms_count=0):
     incl_format = algorithm_inclusion.get(language)
     test_format = algorithm_test.get(language)
     plot_format = algorithm_plot.get(language)
-    for i in range(algorithms_count):
+    for i in range(min(1, algorithms_count)):
         inclusions.append(incl_format.format(i))
         tests.append(test_format.format(i))
         plots.append(plot_format.format(i))
@@ -312,14 +324,14 @@ cmake_script = """
                 set(sources {0})
                 
                 foreach(source ${{sources}})
-                    add_executable(${{source}} ${{source}}/runner.cpp)
+                    add_executable(${{source}} ${{source}}/Cpp/runner.cpp)
                     target_link_libraries(${{source}} PRIVATE libtests)
                     set_target_properties(${{source}} PROPERTIES CXX_STANDARD 14)
                 endforeach()
                 """
 
 def generate_cmake_script(paths):
-    file_name = os.path.join(config.output_path, config.language.name, "CMakeLists.txt")
+    file_name = os.path.join(config.output_path, "CMakeLists.txt")
     output_file = open(file_name, "wt")
     names = " ".join(paths)
     output_file.write(cmake_script.format(names))

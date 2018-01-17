@@ -15,6 +15,7 @@ from .. import special_properties
 import operator
 import matchpy
 import copy
+import math
 
 from ... import temporaries
 from ... import config
@@ -24,10 +25,8 @@ collections_module = config.import_collections()
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
-    def derivation(self, max_algos=1, max_iterations=5, verbose=True, merging=True):
+    def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True):
         # TODO default values?
-
-        self.verbose = verbose
 
         # init_partitiong and delete_partitioning is only done for performance
         # reasons. The additional attribute "partitioning" makes copying a lot
@@ -66,7 +65,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # for testing and debugging
         trace = []
 
-        for i in range(max_iterations):
+        for i in range(iteration_limit):
 
             new_nodes = self.DS_tricks()
             # TODO could this be done better with logging?
@@ -96,7 +95,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
             terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
 
-            if len(terminal_nodes) >= max_algos:
+            if len(terminal_nodes) >= solution_nodes_limit:
                 self.print("Specified number of algorithms found.")
                 break
             elif not self.active_nodes:
@@ -237,8 +236,8 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 # print("metric", new_metric, metric)
                 # print(equations_copy)
                 # if new_metric <= metric:
-                #     edge_label = base.base.EdgeLabel(matched_kernel)
-                #     transformed_expressions.append((equations_copy, new_metric, edge_label))
+                edge_label = base.base.EdgeLabel(matched_kernel)
+                transformed_expressions.append((equations_copy, new_metric, edge_label))
 
         return transformed_expressions
 

@@ -67,12 +67,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
         trace.append(new_nodes)
 
+        terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
 
-        # TODO order of merge and prune?
-        merged_nodes = self.DS_collapse_nodes()
-        self.print_DS("Nodes merged:", merged_nodes)
-        trace.append(merged_nodes)
-
+        if len(terminal_nodes) >= 0:
+            new_nodes = self.DS_transposition()
+            self.print_DS_numbered("Nodes added (transposition):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
 
         terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
 
@@ -142,5 +142,46 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         transformed_expressions = []
 
         transformed_expressions.extend(self.TR_matrix_chain(equations, 0, [1], metric))
+
+        return transformed_expressions
+
+
+    def DS_transposition(self):
+        """applies all kernels to all active nodes and creates new nodes
+
+        Returns the number of new nodes.
+        """
+
+        ###############
+        # Apply kernels.
+
+        new_nodes = []
+        inactive_nodes = []
+
+        for node in self.active_nodes:
+
+            transformed = self.TR_transposition(node.equations, node.metric)
+
+            for equations, metric, edge_label in transformed:
+
+                new_nodes.extend(self.create_nodes(node, (equations, metric, edge_label)))
+
+            # Active node stops being active.
+            # If no transformations were applied, it's a dead end.
+            inactive_nodes.append(node)
+  
+        for node in inactive_nodes:
+            self.active_nodes.remove(node)
+
+        self.add_active_nodes(new_nodes)
+
+        return len(new_nodes)
+
+
+    def TR_transposition(self, equations, metric):
+
+        transformed_expressions = []
+
+        transformed_expressions.extend(self.TR_unary_kernels(equations, 0, [1], metric))
 
         return transformed_expressions

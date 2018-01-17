@@ -18,8 +18,8 @@ import os.path
 from ... import tricks
 from ... import CSEs
 #FIXME: change it to get a new solver
-from ... import matrix_chain_solver as mcs
-#from ... import matrix_chain_solver_new as mcs
+#from ... import matrix_chain_solver as mcs
+from ... import matrix_chain_solver_new as mcs
 from ...matrix_sum import decompose_sum
 
 from ...utils import select_optimal_match
@@ -57,7 +57,7 @@ class DerivationGraphBase(base.GraphBase):
         return new_nodes
 
 
-    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, max_algorithms=1, graph=False):
+    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, algorithms_limit=1, graph=False):
 
         if not config.output_path:
             raise config.OutputPathNotSet("Unable to write output: output_path not set.")
@@ -65,25 +65,29 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name)
 
+        # algorithm_paths = [tuple(self.optimal_algorithm_path())]
         algorithm_paths = list(self.all_algorithms(self.root))
         algorithm_paths.sort(key=operator.itemgetter(1))
 
         number_of_algorithms = len(algorithm_paths)
-        self.print("Number of algorithms: {}".format(number_of_algorithms))
-        if number_of_algorithms > max_algorithms:
-            algorithm_paths = algorithm_paths[:max_algorithms]
+        if config.verbosity >= 1:
+            self.print("Number of algorithms: {}".format(number_of_algorithms))
+        if number_of_algorithms > algorithms_limit:
+           algorithm_paths = algorithm_paths[:algorithms_limit]
 
-        if number_of_algorithms == 0:
-            print("No algorithm generated for this example")
-            return False
+        #if number_of_algorithms == 0:
+        #    print("No algorithm generated for this example")
+        #    return False
 
         if code or pseudocode or operand_generator:
-            directory_name = os.path.join(config.output_path, config.language.name, output_name)
+            directory_name = os.path.join(config.output_path, output_name)
             if not os.path.exists(directory_name):
                 os.makedirs(directory_name)
 
+        # TODO what is the purpose of "len(algorithm_paths[0][0]) > 0"?
+        # if number_of_algorithms > 0 and len(algorithm_paths[0][0]) > 0:
         for n, (algorithm_path, cost) in enumerate(algorithm_paths):
-            
+        
             matched_kernels = []
             current_node = self.root
             for idx in algorithm_path:
@@ -109,7 +113,7 @@ class DerivationGraphBase(base.GraphBase):
                 # output_file.close()
 
             if pseudocode:
-                file_name = os.path.join(config.output_path, config.language.name, output_name, "pseudocode", "algorithm{}.txt".format(n))
+                file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
                 directory_name = os.path.dirname(file_name)
                 if not os.path.exists(directory_name):
                     os.makedirs(directory_name)
@@ -274,7 +278,7 @@ class DerivationGraphBase(base.GraphBase):
         expr = equations_copy[eqn_idx][initial_pos]
 
         try:
-            # print("before")
+            #print("before")
             msc = mcs.MatrixChainSolver(expr)
         except mcs.MatrixChainNotComputable:
             return []

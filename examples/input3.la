@@ -1,0 +1,8 @@
+n = 2000
+
+Matrix A(n, n) <Input>
+Matrix B(n, n) <Input, SPD>
+ColumnVector c(n) <Input>
+ColumnVector x(n) <Output>
+
+x = A*inv(B)*c

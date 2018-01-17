@@ -347,13 +347,15 @@ class Operator(matchpy.Operation, Expression):
 
 class Symbol(matchpy.Symbol, Expression):
     """docstring for Symbol"""
-    def __init__(self, name, size, indices):
+    def __init__(self, name, size, indices, properties = []):
         super(Symbol, self).__init__(name, variable_name=None)
         self.size = size
         self.indices = indices
         self.bandwidth = (size[0]-1, size[1]-1)
         self.properties = set()
         self.false_properties = set()
+        for prop in properties:
+            self.set_property(prop)
 
     def set_property(self, prop):
         # print("Setting property ", prop, " to ", self)
@@ -451,7 +453,7 @@ class Equal(Operator):
         return "{0} = {1}".format(*self.operands)
 
     def to_julia_expression(self, recommended=False):
-        return "{0} = {1}".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+        return "{0} = {1};".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
 
     def to_cpp_expression(self, lib, recommended=False):
         return {
@@ -490,8 +492,12 @@ class Plus(Operator):
         bands = list(zip(*[operand.bandwidth for operand in self.operands]))
         return (max(bands[0]), max(bands[1]))
 
-    def to_julia_expression(self):
-        operand_str = '+'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
+    def to_julia_expression(self, recommended=False):
+        operand_str = '+'.join(map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+        return "({0})".format(operand_str)
+
+    def to_cpp_expression(self, lib, recommended=False):
+        operand_str = '+'.join(map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
         return "({0})".format(operand_str)
 
 
@@ -627,7 +633,7 @@ class Times(Operator):
             # doesn't matter if b is inverse or not
             if idx != len(self.operands) - 1:
                 idx, second_operand = self.recommended_julia_expression(idx + 1)
-                return (idx, "({0}\{1})".format(
+                return (idx, "(({0})\({1}))".format(
                     op.to_julia_expression(recommended=True, strip_inverse=True),
                     second_operand
                 ))
@@ -640,7 +646,7 @@ class Times(Operator):
             op_next = self.operands[idx + 1]
             # if next is an inverse, match a * inv(b) -> a / b
             if self.is_inverse_type(type(op_next)):
-                return (idx + 2, "({0}/{1})".format(
+                return (idx + 2, "({0}/({1}))".format(
                     op.to_julia_expression(recommended=True),
                     op_next.to_julia_expression(recommended=True, strip_inverse=True)
                 ))
@@ -668,14 +674,14 @@ class Times(Operator):
         # triangular view
         elif lib == CppLibrary.Eigen:
             if op.has_property(properties.UPPER_TRIANGULAR):
-                return "{0}.template triangularView<Eigen::Upper>()".format(op_str)
+                return "({0}).template triangularView<Eigen::Upper>()".format(op_str)
             elif op.has_property(properties.LOWER_TRIANGULAR):
-                return "{0}.template triangularView<Eigen::Lower>()".format(op_str)
+                return "({0}).template triangularView<Eigen::Lower>()".format(op_str)
             else:
                 if op.has_property(properties.SPD):
-                    return "{0}.llt()".format(op_str)
+                    return "({0}).llt()".format(op_str)
                 else:
-                    return "{0}.partialPivLu()".format(op_str)
+                    return "({0}).partialPivLu()".format(op_str)
         else:
             return op_str
 
@@ -928,6 +934,16 @@ class ConjugateTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
+    def to_julia_expression(self, recommended=False):
+        return "ctranspose({0})".format(self.operands[0].to_julia_expression(recommended))
+
+    def to_cpp_expression(self, lib, recommended=False):
+        return {
+            CppLibrary.Blaze: "blaze::ctrans({0})",
+            CppLibrary.Eigen: "({0}).adjoint()",
+            CppLibrary.Armadillo: "({0}).t()"
+        }.get(lib).format(self.operands[0].to_cpp_expression(lib, recommended))
+
 
 class Inverse(Operator):
     """docstring for Inverse"""
@@ -1139,8 +1155,8 @@ class Scalar(Symbol):
 
 class Vector(Symbol):
     """docstring for Vector"""
-    def __init__(self, name, size, indices=set()):
-        super(Vector, self).__init__(name, size, indices)
+    def __init__(self, name, size, indices=set(), properties = []):
+        super(Vector, self).__init__(name, size, indices, properties)
         if (size[0]==1 and size[1]==1) or (size[0]!=1 and size[1]!=1):
             raise ValueError("Symbol with size {} is not a vector.".format(size))
 
@@ -1153,8 +1169,8 @@ class Vector(Symbol):
 
 class Matrix(Symbol):
     """docstring for Matrix"""
-    def __init__(self, name, size, indices=set()):
-        super(Matrix, self).__init__(name, size, indices)
+    def __init__(self, name, size, indices=set(), properties = []):
+        super(Matrix, self).__init__(name, size, indices, properties)
 
     def __repr__(self):
         return 'Matrix({!r}, size={})'.format(self.name, self.size)
@@ -1181,8 +1197,34 @@ class IdentityMatrix(ConstantMatrix):
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
 
-    def to_julia_expression(self):
-        return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
+    def to_julia_expression(self, recommended=False):
+        #FIXME: this requires proper matlab version
+        if not config.matlab:
+            return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
+        else:
+            return "eye({0}, {1})".format(*self.size)
+
+    def to_cpp_expression(self, lib, recommended=False):
+        # IdentityMatrix can only be symmetric in Blaze
+        if lib == CppLibrary.Blaze:
+            if self.size[0] != self.size[1]:
+                raise ExpressionError("Non-square identity matrix not supported for Blaze")
+            return "blaze::IdentityMatrix<{0}>({1})".format(
+                "double" if config.float64 else "float",
+                *self.size
+            )
+        elif lib == CppLibrary.Eigen:
+            return "Eigen::{0}::Identity({1}, {2})".format(
+                "MatrixXd" if config.float64 else "MatrixXf",
+                *self.size
+            )
+        elif lib == CppLibrary.Armadillo:
+            return "arma::eye< arma::Mat<{0}> >({1}, {2})".format(
+                "double" if config.float64 else "float",
+                *self.size
+            )
+        else:
+            raise NotImplementedError()
 
 
 class ZeroMatrix(ConstantMatrix):
@@ -1206,7 +1248,10 @@ class ConstantScalar(Scalar, Constant):
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)
 
-    def to_julia_expression(self):
+    def to_julia_expression(self, recommended=False):
+        return "{0}".format(self.value)
+
+    def to_cpp_expression(self, lib, recommended=False):
         return "{0}".format(self.value)
 
 
