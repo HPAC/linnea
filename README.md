@@ -4,7 +4,7 @@ Linnea is an experimental tool for the automatic generation of optimized code fo
 
 ## Installation
 
-Linnea requires Python 3.6 and can be installed with `pip install git+git://github.com/henrik227/linnea.git`.
+Linnea requires Python 3.6 and can be installed with `pip install git+git://github.com/henrik227/linnea.git`. (Depending on your setup, you may have to use `pip3` instead of `pip`.) To uninstall Linnea, use `pip uninstall linnea`. This also removes the commandline tool.
 
 ## Overview
 
