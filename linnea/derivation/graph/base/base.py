@@ -4,6 +4,7 @@ import operator
 import copy
 import math
 import os
+import collections
 
 from .... import config
 
@@ -130,16 +131,17 @@ class GraphBase(object):
         out = "".join([out, nodes, "]"])
         return out
 
-    def all_algorithms(self, graph_node, path=[], cost=0):
-        if graph_node.successors == [] and graph_node.is_terminal():
-            yield path, cost
-        else:
-            # TODO use zip?
-            for n, successor in enumerate(graph_node.successors):
-                cost_copy = cost + graph_node.edge_labels[n].cost
-                path_copy = copy.copy(path)
-                path_copy.append(n)
-                yield from self.all_algorithms(successor, path_copy, cost_copy)
+    def all_algorithms(self):
+        stack = collections.deque([(self.root, [], 0)])
+        while stack:
+            node, path, cost = stack.popleft()
+            if node.successors == [] and node.is_terminal():
+                yield path, cost
+            else:
+                for idx, successor in enumerate(node.successors):
+                    path_copy = copy.copy(path)
+                    path_copy.append(idx)
+                    stack.appendleft((successor, path_copy, cost + node.edge_labels[idx].cost))
 
 
     def optimal_algorithm_path(self):

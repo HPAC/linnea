@@ -65,8 +65,7 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name)
 
-        # algorithm_paths = [tuple(self.optimal_algorithm_path())]
-        algorithm_paths = list(self.all_algorithms(self.root))
+        algorithm_paths = list(self.all_algorithms())
         algorithm_paths.sort(key=operator.itemgetter(1))
 
         number_of_algorithms = len(algorithm_paths)
