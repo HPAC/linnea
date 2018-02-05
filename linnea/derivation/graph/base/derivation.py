@@ -452,7 +452,7 @@ class DerivationGraphBase(base.GraphBase):
                         # print(tmp)
                         # temporaries._table_of_temporaries[str(temporaries._get_equivalent(expr_after))] = tmp
 
-                        temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
+                        equations_copy.set_equivalent(equations)
 
                         new_metric = equations_copy.metric()
                         # print("metric", new_metric, metric)

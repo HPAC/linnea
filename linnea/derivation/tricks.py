@@ -126,6 +126,7 @@ def symmetric_product_callback(substitution, equations, eqn_idx, position):
     # common_subexp_rules = matched_kernel.CSE_rules
 
     equations_copy.replace_all(matched_kernel.CSE_rules)
+    equations_copy.set_equivalent(equations)
     edge_label = base.EdgeLabel(matched_kernel)
 
     return (equations_copy, equations_copy.metric(), edge_label)

@@ -6,6 +6,8 @@ from . import representations as ar
 
 from ..derivation.partitioning import _propagate_partitioning, apply_partitioning
 
+from .. import temporaries
+
 import copy
 
 import matchpy
@@ -66,6 +68,16 @@ class Equations(object):
             equation = ar.to_SOP(at.simplify(equation))
             equations.append(equation)
         self.equations = equations
+
+    def set_equivalent(self, equations_before):
+        """Applies temporaries.set_equivalent() to all equations.
+ 
+        Args:
+            equations_before (Equations)       
+        """
+        for n, equation in enumerate(self.equations):
+            if equation.rhs != equations_before[n].rhs:
+                temporaries.set_equivalent(equations_before[n].rhs, equation.rhs)
 
     def metric(self):
         # TODO how to compute the metric of multiple equations?
