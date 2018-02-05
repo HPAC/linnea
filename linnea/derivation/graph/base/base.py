@@ -62,7 +62,7 @@ class GraphBase(object):
 
         if any(map(operator.methodcaller("is_terminal"), self.nodes)):
 
-            algorithm_paths = list(self.all_algorithms(self.root))
+            algorithm_paths = list(self.all_algorithms())
             algorithm_paths.sort(key=operator.itemgetter(1))
 
             minimal_cost = algorithm_paths[0][1]
