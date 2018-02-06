@@ -18,6 +18,13 @@ from .. import special_properties
 import operator
 import matchpy
 
+"""Matrix Chain Derivation Graph
+
+This module was used for the CGO 2018 paper to do experitments only with the
+matrix chain algirithm.
+
+"""
+
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def derivation(self, max_algos=1, max_iterations=5, verbose=True):
