@@ -19,7 +19,7 @@ import math
 
 from ... import temporaries
 from ... import config
-from ..utils import select_optimal_match
+from ..utils import select_optimal_match, is_blocked
 
 collections_module = config.import_collections()
 
@@ -216,6 +216,9 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 equations_copy = copy.deepcopy(equations)
                 
                 matched_kernel = kernel.set_match(substitution, True, CSE_rules=True)
+                if is_blocked(matched_kernel.operation.rhs):
+                    continue
+
                 evaled_repl = matched_kernel.replacement
 
                 # replace node with modified expression

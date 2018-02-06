@@ -89,6 +89,8 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
 
         tmp.indices = expr.indices
         tmp.bandwidth = expr.bandwidth
+        if not isinstance(expr, ae.Symbol) and len(expr.operands) == 1:
+            tmp.factorization_labels = expr.factorization_labels
 
         if set_equivalent:
             # This is effectively a two-way dictionary (or bijective mapping)

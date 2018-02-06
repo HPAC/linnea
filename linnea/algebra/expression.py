@@ -330,6 +330,10 @@ class Operator(matchpy.Operation, Expression):
         # this doesn't make sense for Equal
         return set.union(*[op.indices for op in self.operands])
 
+    @property
+    def factorization_labels(self):
+        return set.union(*[op.factorization_labels for op in self.operands])
+
     def to_dot(self, out):
         node_name = "".join(["node", str(Expression.counter)])
         properties = ""#"\n".join([str(p) for p in self.properties])
@@ -356,6 +360,7 @@ class Symbol(matchpy.Symbol, Expression):
         self.false_properties = set()
         for prop in properties:
             self.set_property(prop)
+        self._factorization_labels = set()
 
     def set_property(self, prop):
         # print("Setting property ", prop, " to ", self)
@@ -397,6 +402,14 @@ class Symbol(matchpy.Symbol, Expression):
 
     def to_cpp_expression(self, lib, recommended=False):
         return self.name
+
+    @property
+    def factorization_labels(self):
+        return self._factorization_labels
+
+    @factorization_labels.setter
+    def factorization_labels(self, value):
+        self._factorization_labels = value
 
 class Constant(object):
     """docstring for Constant"""

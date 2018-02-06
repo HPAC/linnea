@@ -116,3 +116,33 @@ def select_optimal_match(matches):
                 min_cost = cost
 
     return optimal_match
+
+def is_blocked(operation):
+    """Test if the operation is blocked.
+
+    An operation is blocked if all operands are factors resulting from a
+    factorization applied to the same operands.
+
+    Example:
+        When the LU factorization is applied to A in inv(A)*x, this results in
+        inv(U)*inv(L)*x. In this case, computing inv(U)*inv(L) is not allowed
+        because both factors come from factoring A. Computing inv(L)*x is
+        allowed because x is not a factor. Similarly, L*U would be allowed if
+        L and U came from factoring different operands.
+
+    Args:
+        operation (Expression): Operation to test.
+
+    Returns:
+        bool: False if this operation is not allowed, True otherwise.
+
+    """
+    if all(operand.factorization_labels for operand in operation.operands):
+        iterator = iter(operation.operands)
+        try:
+            first = next(iterator)
+        except StopIteration:
+            return False
+        return all(first.factorization_labels == rest.factorization_labels for rest in iterator)
+    else:
+        return False

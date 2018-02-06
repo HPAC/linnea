@@ -1,6 +1,5 @@
 from ..algebra.expression import Times
 
-from . import blocked_operations
 from .. import config
 collections_module = config.import_collections()
 
@@ -70,8 +69,7 @@ class MatrixChainSolver(object):
 
                     product = Times(self.tmps[i][k], self.tmps[k+1][j])
 
-                    if blocked_operations.is_blocked(product):
-                        # print("blocked", product)
+                    if dgu.is_blocked(product):
                         continue
 
                     DN_solution = False

@@ -13,7 +13,6 @@ from ..utils.general import substitute_symbols_with_wildcards, \
 
 from ...code_generation.utils import MatchedKernel, KernelIO
 
-from ...derivation import blocked_operations
 from ... import config
 
 import copy
@@ -39,7 +38,7 @@ class FactorizationKernel(Kernel):
 
         # TODO for something like generalized schur decomposition, I potentially also need context
 
-    def set_match(self, match_dict, context, CSE_rules=False, blocked_products=False, set_equivalent=True, equiv_expr=None):
+    def set_match(self, match_dict, context, CSE_rules=False, set_equivalent=True, equiv_expr=None):
 
         matched_kernel = super(FactorizationKernel, self).set_match(match_dict, CSE_rules)
 
@@ -53,7 +52,7 @@ class FactorizationKernel(Kernel):
         try:
             op_dict = temporaries._table_of_factors[self.id]
         except KeyError:
-            # if there is no dict for current buildingblock, create
+            # if there is no dict for current factorization, create
             # everything and store them in new dict
             ops = self._set_match(match_dict, _input_expr)
             temporaries._table_of_factors[self.id] = {_input_expr: ops}
@@ -120,18 +119,6 @@ class FactorizationKernel(Kernel):
             ]
             matched_kernel.CSE_rules = _rules
 
-        #############
-        # Blocked products
-
-        if blocked_products:
-            _blocked = []
-            for ch1, ch2 in window(_output_expr.operands):
-                _blocked.append( Times(ch1, ch2) )
-                _blocked.append( transpose(Times(ch1, ch2)) )
-                _blocked.append( invert(Times(ch1, ch2)) )
-            # matched_kernel.blocked_products = _blocked
-            blocked_operations.set_blocked(_blocked)
-
         return matched_kernel
 
     def _set_match(self, match_dict, input_expr):
@@ -163,6 +150,7 @@ class FactorizationKernel(Kernel):
 
             operand = Matrix(name, size, input_expr.indices)
             operand.set_property(properties.FACTOR)
+            operand.factorization_labels = set(operand[0].name for operand in kernel_io.input_operands)
             for property in output_operand.properties:
                 operand.set_property(property)
 
