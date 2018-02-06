@@ -72,7 +72,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             self.print_DS_numbered("Nodes added (tricks):", new_nodes, self.level_counter)
             trace.append(new_nodes)
 
-            if merging:
+            if merging and new_nodes:
                 merged_nodes = self.DS_collapse_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
@@ -81,7 +81,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
             trace.append(new_nodes)
 
-            if merging:
+            if merging and new_nodes:
                 # TODO order of merge and prune?
                 merged_nodes = self.DS_collapse_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
