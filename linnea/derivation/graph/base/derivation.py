@@ -426,7 +426,7 @@ class DerivationGraphBase(base.GraphBase):
                         # replacement
                         equations_copy = copy.deepcopy(equations)
 
-                        matched_kernel = kernel.set_match(match_dict, False, CSE_rules=True, blocked_products=True)
+                        matched_kernel = kernel.set_match(match_dict, False, CSE_rules=True)
                         evaled_repl = matched_kernel.replacement
 
                         # replace node with modified expression

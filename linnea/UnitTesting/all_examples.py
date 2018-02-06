@@ -6,7 +6,7 @@ from collections import namedtuple
 
 import os.path
 import time
-from .. import examples
+from ..examples import examples
 
 from .. import config
 
