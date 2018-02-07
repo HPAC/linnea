@@ -3658,3 +3658,32 @@ class Example128(object):
         self.eqns = Equations(
                             Equal(X, Times(A, B, C, D, E)),
                             )
+
+class Example129(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE, explicit inversion
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        B = Matrix("B", (n, n))
+        C = Matrix("C", (n, n))
+
+        A.set_property(properties.INPUT)
+        A.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n, n))
+        Y.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Inverse(A), B)),
+                            Equal(Y, Plus(Inverse(A), C)),
+                            )
+
