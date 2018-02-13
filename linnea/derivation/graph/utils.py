@@ -320,9 +320,11 @@ def is_simple_summand(expr):
         return False
 
 def _is_simple_summand(expr):
-    if isinstance(expr, Symbol) \
-    or (isinstance(expr, Transpose) and isinstance(expr.operand, Symbol)) \
-    or (isinstance(expr, ConjugateTranspose) and isinstance(expr.operand, Symbol)):
+    if isinstance(expr, Symbol):
+        return True
+    elif isinstance(expr, Transpose) and isinstance(expr.operand, Symbol):
+        return True
+    elif isinstance(expr, ConjugateTranspose) and isinstance(expr.operand, Symbol):
         return True
     else:
         return False
@@ -333,11 +335,15 @@ def is_simple_times(expr):
 
 def _is_simple_times(expr):
     # TODO what is missing?
-    if isinstance(expr, Symbol) \
-    or (isinstance(expr, Transpose) and isinstance(expr.operand, Symbol)) \
-    or (isinstance(expr, ConjugateTranspose) and isinstance(expr.operand, Symbol)) \
-    or (isinstance(expr, Inverse) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION)) \
-    or (isinstance(expr, InverseTranspose) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION)):
+    if isinstance(expr, Symbol):
+        return True
+    elif isinstance(expr, Transpose) and isinstance(expr.operand, Symbol):
+        return True
+    elif isinstance(expr, ConjugateTranspose) and isinstance(expr.operand, Symbol):
+        return True
+    elif isinstance(expr, Inverse) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION):
+        return True
+    elif isinstance(expr, InverseTranspose) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION):
         return True
     else:
         return False
