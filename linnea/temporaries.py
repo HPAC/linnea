@@ -6,6 +6,8 @@ from .algebra import representations as ar
 import copy
 import itertools
 
+import matchpy
+
 _counter = 0
 
 def get_identifier():
@@ -89,7 +91,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
 
         tmp.indices = expr.indices
         tmp.bandwidth = expr.bandwidth
-        if not isinstance(expr, ae.Symbol) and len(expr.operands) == 1:
+        if isinstance(expr, ae.Operator) and expr.arity == matchpy.Arity.unary:
             tmp.factorization_labels = expr.factorization_labels
 
         if set_equivalent:
