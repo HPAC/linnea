@@ -226,7 +226,6 @@ class GraphBase(object):
     #     print({node.id: node.optimal_path_predecessor.id for node in self.nodes if node.optimal_path_predecessor})
 
 
-    # @profile
     def DS_merge_nodes(self):
         """Merges redundant nodes in the derivation graph.
 
@@ -236,40 +235,20 @@ class GraphBase(object):
             This function does not work properly if there are entire redundant
             paths where multiple nodes along the path have to be merged.
         """
+        keyfunc = operator.attrgetter("equations")
 
-        # This dictionary contains entries of the following structure:
-        # 10: [11, 12, 13]
-        # This entry means that nodes 10 to 13 are the same.
-        duplicates = dict()
-
-        # known_duplicates is needed to avoid {11: [13, 15], 13: [15]}
-        known_duplicates = set()
-
-        for p1, p2 in itertools.combinations(enumerate(self.nodes), 2):
-            n1, node1 = p1
-            n2, node2 = p2
-            # The metric is compared first to avoid comparing the actual
-            # equations if possible.
-            if n2 not in known_duplicates and node1.metric == node2.metric and node1.get_payload() == node2.get_payload():
-                duplicates.setdefault(n1, []).append(n2)
-                known_duplicates.add(n2)
-
-        # print(duplicates)
-
+        self.nodes.sort(key=keyfunc)
         remove = []
-
-        for n in duplicates.keys():
-            node = self.nodes[n]
-            for i in duplicates[n]:
-                redundant_node = self.nodes[i]
-                remove.append(redundant_node)
-                node.merge(redundant_node)
+        for key, group in itertools.groupby(self.nodes, keyfunc):
+            group = list(group)
+            remaining_node = group.pop()
+            for node in group:
+                remaining_node.merge(node)
+            remove.extend(group)
 
         self.remove_nodes(remove)
 
         return len(remove)
-
-
 
 class GraphNodeBase(object):
 
