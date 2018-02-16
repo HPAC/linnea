@@ -5,6 +5,7 @@ from ..algebra.expression import Symbol, Transpose, Times, Equal, \
 
 from ..algebra.transformations import transpose, invert, invert_transpose, simplify
 from ..algebra.representations import to_SOP
+from ..algebra.equations import Equations
 
 from .gst import GST
 from .utils import is_blocked
@@ -61,8 +62,8 @@ def CSE_replacement_general(equations, expressions, expr_positions):
         # print(tmp)
         # print(eqn)
 
-        equations_copy = copy.deepcopy(equations)
-        # print(equations_copy)
+        equations_list = list(equations.equations)
+        # print(equations_list)
 
         # Replacing all occurrences of this CSE
         for CSE_type, full_pos in CSE:
@@ -80,16 +81,17 @@ def CSE_replacement_general(equations, expressions, expr_positions):
             elif type == 3:
                 tmp_expr = InverseTranspose(tmp)
 
-            equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], pos, tmp_expr)
+            equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], pos, tmp_expr)
 
-            equations_copy[eqn_idx] = to_SOP(simplify(equations_copy[eqn_idx]))
+            equations_list[eqn_idx] = to_SOP(simplify(equations_list[eqn_idx]))
 
         # Inserting new equation for extracted CSE.
         # It is inserted right before the first occurrence of the CSE.
-        equations_copy.insert(min_eqn_idx, eqn)
-        # equations_copy._cleanup()
-        # print(equations_copy)
-        transformed_expressions.append((equations_copy, equations_copy.metric(), EdgeLabel()))
+        equations_list.insert(min_eqn_idx, eqn)
+        new_equations = Equation(*equations_list)
+        # new_equations._cleanup()
+        # print(new_equations)
+        transformed_expressions.append((new_equations, new_equations.metric(), EdgeLabel()))
 
     return transformed_expressions
 
@@ -143,15 +145,15 @@ def CSE_replacement_times(equations, products, product_positions):
         eqn = Equal(tmp, CSE_expr)
 
         replacements = dict()
-        equations_copy = copy.deepcopy(equations)
+        equations_list = list(equations.equations)
         for seq_idx, occurrences in positions.items():
             CSE_eqn_idx, CSE_path = product_positions[seq_idx]
             # print(product_positions[seq_idx])
-            operands = equations_copy[CSE_eqn_idx][CSE_path].operands.copy()
+            operands = equations_list[CSE_eqn_idx][CSE_path].operands.copy()
 
             # print("occurrences", occurrences)
             # Remember: occurrences are sorted by pos.
-            # print(equations_copy)
+            # print(equations_list)
             for CSE_pos in reversed(occurrences):
                 min_seq_idx = min(seq_idx, min_seq_idx)
                 
@@ -179,16 +181,14 @@ def CSE_replacement_times(equations, products, product_positions):
         
         # print(replacements)
         for CSE_eqn_idx, replacement in replacements.items():
-            equations_copy[CSE_eqn_idx] = matchpy.replace_many(equations_copy[CSE_eqn_idx], replacement.items())
+            equations_list[CSE_eqn_idx] = matchpy.replace_many(equations_list[CSE_eqn_idx], replacement.items())
         # Inserting new equation for extracted CSE.
         # It is inserted right before the first occurrence of the CSE.
-        equations_copy.insert(product_positions[min_seq_idx][0], eqn)
+        equations_list.insert(product_positions[min_seq_idx][0], eqn)
+        new_equations = Equations(*equations_list)
+        new_equations = new_equations.to_normalform()
 
-        equations_copy.equations = [to_SOP(simplify(equation)) for equation in equations_copy]
-        # for equation in equations_copy:
-        #     equation = to_SOP(simplify(equation))
-
-        transformed_expressions.append((equations_copy, equations_copy.metric(), EdgeLabel()))
+        transformed_expressions.append((new_equations, new_equations.metric(), EdgeLabel()))
     return transformed_expressions
 
 def CSE_replacement_plus(equations, sums, sum_positions):
@@ -204,11 +204,9 @@ def CSE_replacement_plus(equations, sums, sum_positions):
 
     for tmp_description, remove, tmp_type in CSEs:
         min_seq_idx = math.inf
-        # print("replacing CSE")
-        # equations_copy, sums_copy = copy.deepcopy((equations, sums))
 
         operand_lists = [sum.operands.copy() for sum in sums]
-        equations_copy = copy.deepcopy(equations)
+        equations_list = list(equations.equations)
 
         seq_idx, positions = tmp_description
         tmp_operands = [operand_lists[seq_idx][pos] for pos in positions]
@@ -241,18 +239,17 @@ def CSE_replacement_plus(equations, sums, sum_positions):
 
         for seq_idx, operands in enumerate(operand_lists):
             CSE_eqn_idx, CSE_path = sum_positions[seq_idx]
-            equations_copy[CSE_eqn_idx] = matchpy.replace(equations_copy[CSE_eqn_idx], CSE_path, Plus(*operands))
+            equations_list[CSE_eqn_idx] = matchpy.replace(equations_list[CSE_eqn_idx], CSE_path, Plus(*operands))
 
         # for sum in sums_copy:
         #     print(sum.operands)
-        # print(repr(equations_copy[1]))
-        equations_copy.insert(sum_positions[min_seq_idx][0], eqn)
+        # print(repr(equations_list[1]))
+        equations_list.insert(sum_positions[min_seq_idx][0], eqn)
 
-        equations_copy.equations = [to_SOP(simplify(equation)) for equation in equations_copy]
-        # for equation in equations_copy:
-        #     equation = to_SOP(simplify(equation))
+        new_equations = Equations(*equations_list)
+        new_equations = new_equations.to_normalform()
 
-        transformed_expressions.append((equations_copy, equations_copy.metric(), EdgeLabel()))
+        transformed_expressions.append((new_equations, new_equations.metric(), EdgeLabel()))
     return transformed_expressions
 
 

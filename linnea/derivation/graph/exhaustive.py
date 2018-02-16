@@ -34,21 +34,21 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # more expensive.
         # TODO this should by unnecessary by now
 
-        for equation in self.root.equations:
-            equation.init_partitioning()
+        # for equation in self.root.equations:
+        #     equation.init_partitioning()
 
-        self.root.equations.apply_partitioning()
+        # self.root.equations.apply_partitioning()
 
-        for equation in self.root.equations:
-            equation.delete_partitioning()
+        # for equation in self.root.equations:
+        #     equation.delete_partitioning()
 
         # change order with partitioning?
         # self.root.equations.resolve_dependencies()
-        self.root.equations.replace_auxiliaries()
+        # self.root.equations.replace_auxiliaries()
 
         check_validity(self.root.equations)
+        self.root.equations.to_normalform()
         for eqn_idx, equation in enumerate(self.root.equations):
-            self.root.equations[eqn_idx] = to_SOP(simplify(equation))
             for node, pos in equation.rhs.preorder_iter():
                 # I think it's not necessary to store properties both for
                 # expr and Inverse(expr) if expr is SPD. Think about that. 
@@ -170,11 +170,11 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             transformed = self.TR_kernels(node.equations, node.metric)
 
             for equations, metric, edge_label in transformed:
-                if equations.remove_identities():
-                    # If equations were removed, we have to recompute the metric.
-                    # TODO move that into TR_kernels (in an elegant way)?
-                    # TODO in the best case, identity equations do not contribute to the metric
-                    metric = equations.metric()
+                equations = equations.remove_identities()
+                # If equations were removed, we have to recompute the metric.
+                # TODO move that into TR_kernels (in an elegant way)?
+                # TODO in the best case, identity equations do not contribute to the metric
+                metric = equations.metric()
 
                 new_nodes.extend(self.create_nodes(node, (equations, metric, edge_label)))
 
@@ -263,7 +263,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 kernel, substitution = select_optimal_match(grouped_kernels)
                 # print(kernel.signature, substitution)
                 # replacement
-                equations_copy = copy.deepcopy(equations)
                 
                 matched_kernel = kernel.set_match(substitution, True, CSE_rules=True)
                 if is_blocked(matched_kernel.operation.rhs):
@@ -273,15 +272,13 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                 # replace node with modified expression
 
-                equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], pos, evaled_repl)
+                new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
                 
                 # deal with additional occurrences of the replaced subexpression
                 common_subexp_rules = matched_kernel.CSE_rules
 
-                # print(common_subexp_rules)
-                # print("before", equations_copy[eqn_idx])
-                equations_copy.replace_all(common_subexp_rules)
-                # print("after", equations_copy[eqn_idx])
+                equations_copy = equations.set(eqn_idx, new_equation)
+                equations_copy = equations_copy.replace_all(common_subexp_rules)
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 
@@ -293,6 +290,3 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 transformed_expressions.append((equations_copy, new_metric, edge_label))
 
         return transformed_expressions
-
-    def TR_inv_reductions(self, equations, eqn_idx, initial_pos, metric):
-        pass

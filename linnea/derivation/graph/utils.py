@@ -174,7 +174,7 @@ def generate_variants(equations, eqn_idx=None):
             break
 
     # if undist_inv:
-        
+
 
     # print(undistribute_inverse(equations[0]))
 
@@ -195,10 +195,8 @@ def generate_variants(equations, eqn_idx=None):
         POSL_equations = aeq.Equations(*[to_POS(equation, "l") for equation in equations])
         POSR_equations = aeq.Equations(*[to_POS(equation, "r") for equation in equations])
     else:
-        POSL_equations = copy.deepcopy(equations)
-        POSR_equations = copy.deepcopy(equations)
-        POSL_equations[eqn_idx] = to_POS(POSL_equations[eqn_idx], "l")
-        POSR_equations[eqn_idx] = to_POS(POSR_equations[eqn_idx], "r")  
+        POSL_equations = equations.set(eqn_idx, to_POS(equations[eqn_idx], "l"))
+        POSR_equations = equations.set(eqn_idx, to_POS(equations[eqn_idx], "r"))
 
     use_POSL = True
     use_POSR = True

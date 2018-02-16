@@ -55,21 +55,21 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # more expensive.
         # TODO this should by unnecessary by now
 
-        for equation in self.root.equations:
-            equation.init_partitioning()
+        # for equation in self.root.equations:
+        #     equation.init_partitioning()
 
-        self.root.equations.apply_partitioning()
+        # self.root.equations.apply_partitioning()
 
-        for equation in self.root.equations:
-            equation.delete_partitioning()
+        # for equation in self.root.equations:
+        #     equation.delete_partitioning()
 
         # change order with partitioning?
         # self.root.equations.resolve_dependencies()
-        self.root.equations.replace_auxiliaries()
+        # self.root.equations.replace_auxiliaries()
 
         check_validity(self.root.equations)
+        self.root.equations.to_normalform()
         for eqn_idx, equation in enumerate(self.root.equations):
-            self.root.equations[eqn_idx] = to_SOP(at.simplify(equation))
             for node, pos in equation.rhs.preorder_iter():
                 # I think it's not necessary to store properties both for
                 # expr and Inverse(expr) if expr is SPD. Think about that. 

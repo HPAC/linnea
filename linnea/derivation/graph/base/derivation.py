@@ -9,6 +9,7 @@ from ....algebra.expression import Symbol, ConstantScalar, \
 from ....algebra.transformations import simplify
 from ....algebra.representations import to_SOP
 from ....algebra.properties import Property as properties
+from ....algebra.equations import Equations
 
 import matchpy
 import itertools
@@ -277,42 +278,22 @@ class DerivationGraphBase(base.GraphBase):
 
 
     def TR_matrix_chain(self, equations, eqn_idx, initial_pos, metric, explicit_inversion=False):
-        equations_copy = copy.deepcopy(equations)
-        expr = equations_copy[eqn_idx][initial_pos]
 
         try:
             #print("before")
-            msc = mcs.MatrixChainSolver(expr, explicit_inversion)
+            msc = mcs.MatrixChainSolver(equations[eqn_idx][initial_pos], explicit_inversion)
         except mcs.MatrixChainNotComputable:
             return []
 
         replacement = msc.tmp
         matched_kernels = msc.matched_kernels
-
-        # print("#####")
-        # print(equations_copy[eqn_idx].get_successor(initial_pos[:-1]))
-        # print(equations)
-        # print(expr)
-        # print(matched_kernels)
-        # print(replacement)
-        # print(eqn_idx, initial_pos)
         
-        equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], initial_pos, replacement)
+        new_equation = matchpy.replace(equations[eqn_idx], initial_pos, replacement)
+        new_equation = to_SOP(simplify(new_equation))
 
-        equations_copy[eqn_idx] = to_SOP(simplify(equations_copy[eqn_idx]))
+        temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, new_equation.rhs)
 
-        # # equivalent expression experiment
-        # path_before, path_after = temporaries.expr_diff(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-        # # print(path_before, path_after)
-        # expr_before = equations[eqn_idx].rhs[path_before]
-        # expr_after = equations_copy[eqn_idx].rhs[path_after]
-        # tmp = temporaries.create_tmp(expr_before, True)
-        # # print(tmp)
-        # print("added in MC: ", expr_before, temporaries._get_equivalent(expr_after), tmp)
-        # temporaries._table_of_temporaries[str(temporaries._get_equivalent(expr_after))] = tmp
-
-        temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-
+        equations_copy = equations.set(eqn_idx, new_equation)
         new_metric = equations_copy.metric()
         if new_metric <= metric:
             # print(equations_copy)
@@ -322,17 +303,17 @@ class DerivationGraphBase(base.GraphBase):
 
 
     def TR_addition(self, equations, eqn_idx, initial_pos, metric):
-        equations_copy = copy.deepcopy(equations)
-        expr = equations_copy[eqn_idx][initial_pos]
 
         # Note: For addition, we decided to only use a binary kernel, no
         #       variadic addition.
 
-        expr, matched_kernels = decompose_sum(expr)
+        new_expr, matched_kernels = decompose_sum(equations[eqn_idx][initial_pos])
 
-        equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], initial_pos, expr)
+        new_equation = matchpy.replace(equations[eqn_idx], initial_pos, new_expr)
 
-        equations_copy[eqn_idx] = to_SOP(simplify(equations_copy[eqn_idx]))
+        new_equation = to_SOP(simplify(new_equation))
+
+        equations_copy = equations.set(eqn_idx, new_equation)
 
         new_metric = equations_copy.metric()
         if new_metric <= metric:
@@ -401,14 +382,13 @@ class DerivationGraphBase(base.GraphBase):
 
             if kernel:
                 # replacement
-                equations_copy = copy.deepcopy(equations)
                 
                 matched_kernel = kernel.set_match(substitution, False)
                 evaled_repl = matched_kernel.replacement
 
                 # replace node with modified expression
 
-                equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], pos, evaled_repl)
+                equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))
                 
                 new_metric = equations_copy.metric()
                 # print("metric", m, metric)
@@ -602,13 +582,14 @@ class DerivationGraphBase(base.GraphBase):
                         replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
 
                     # replace
-                    equations_copy = copy.deepcopy(equations)
+                    equations_list = list(equations.equations)
 
                     for eqn_idx, replacements in replacements_per_equation.items():
                         if replacements:
-                            equations_copy[eqn_idx] = matchpy.replace_many(equations_copy[eqn_idx], replacements)
+                            equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
                     
-                    equations_copy.to_normalform()
+                    equations_copy = Equations(*equations_list)
+                    equations_copy = equations_copy.to_normalform()
                     equations_copy.set_equivalent(equations)
 
                     # print(equations_copy)

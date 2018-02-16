@@ -47,7 +47,7 @@ def eigen1_callback(substitution, equations, eqn_idx, position):
     # The sum can not be computed directly with decompose_sum
     # because it is not necessarily a sufficiently simple
     # sum.
-    equations_copy = copy.deepcopy(equations)
+    equations_list = list(equations.equations)
 
     diagonal_sum = Plus(substitution["SYM2"], Times(substitution["WD1"], substitution["SYM3"]))
     tmp = temporaries.create_tmp(to_SOP(simplify(diagonal_sum)), True)
@@ -56,13 +56,14 @@ def eigen1_callback(substitution, equations, eqn_idx, position):
         replacement = Plus(Times(Transpose(substitution["SYM1"]), tmp, substitution["SYM1"]), *substitution["WS1"])
     else:
         replacement = Times(Transpose(substitution["SYM1"]), tmp, substitution["SYM1"])
-    equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], (1,)+tuple(position), replacement)
-    equations_copy[eqn_idx] = simplify(equations_copy[eqn_idx])
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+tuple(position), replacement)
+    equations_list[eqn_idx] = simplify(equations_list[eqn_idx])
 
     new_equation = Equal(tmp, diagonal_sum)
-    equations_copy.insert(eqn_idx, new_equation)
+    equations_list.insert(eqn_idx, new_equation)
+    new_equations = Equations(*equations_list)
 
-    return (equations_copy, equations_copy.metric(), base.EdgeLabel())
+    return (new_equations, new_equations.metric(), base.EdgeLabel())
 
 eigen2 = matchpy.Pattern(
             Plus(Times(SYM1, SYM2, Transpose(SYM1)), Times(WD1, SYM3), WS1),
@@ -83,7 +84,7 @@ def eigen2_callback(substitution, equations, eqn_idx, position):
     # The sum can not be computed directly with decompose_sum
     # because it is not necessarily a sufficiently simple
     # sum.
-    equations_copy = copy.deepcopy(equations)
+    equations_list = list(equations.equations)
 
     diagonal_sum = Plus(substitution["SYM2"], Times(substitution["WD1"], substitution["SYM3"]))
     tmp = temporaries.create_tmp(to_SOP(simplify(diagonal_sum)), True)
@@ -92,13 +93,14 @@ def eigen2_callback(substitution, equations, eqn_idx, position):
         replacement = Plus(Times(substitution["SYM1"], tmp, Transpose(substitution["SYM1"])), *substitution["WS1"])
     else:
         replacement = Times(substitution["SYM1"], tmp, Transpose(substitution["SYM1"]))
-    equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], (1,)+tuple(position), replacement)
-    equations_copy[eqn_idx] = simplify(equations_copy[eqn_idx])
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+tuple(position), replacement)
+    equations_list[eqn_idx] = simplify(equations_list[eqn_idx])
 
     new_equation = Equal(tmp, diagonal_sum)
-    equations_copy.insert(eqn_idx, new_equation)
+    equations_list.insert(eqn_idx, new_equation)
+    new_equations = Equations(*equations_list)
 
-    return (equations_copy, equations_copy.metric(), base.EdgeLabel())
+    return (new_equations, new_equations.metric(), base.EdgeLabel())
 
 def symmetric_product_constraint(WP1, WP2, _A):
     p1 = Times(*WP1)
@@ -112,24 +114,25 @@ symmetric_product = matchpy.Pattern(
 
 def symmetric_product_callback(substitution, equations, eqn_idx, position):
     # symmetric product
-    equations_copy = copy.deepcopy(equations)
+    equations_list = list(equations.equations)
 
     matched_kernel = collections_module.cholesky.set_match({"_A": substitution["_A"]}, False, CSE_rules=True)
 
     replacement = Times(*substitution["WP1"], matched_kernel.replacement, *substitution["WP2"])
 
-    equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], (1,)+tuple(position), replacement)
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+tuple(position), replacement)
 
     # deal with additional occurrences of the replaced subexpression
     # common_subexp_rules = cholesky.get_rules(substitution)
     # common_subexp_rules = cholesky.get_CSE_rules()
     # common_subexp_rules = matched_kernel.CSE_rules
 
-    equations_copy.replace_all(matched_kernel.CSE_rules)
-    equations_copy.set_equivalent(equations)
+    new_equations = Equations(*equations_list)
+    new_equations = new_equations.replace_all(matched_kernel.CSE_rules)
+    new_equations.set_equivalent(equations)
+    
     edge_label = base.EdgeLabel(matched_kernel)
-
-    return (equations_copy, equations_copy.metric(), edge_label)
+    return (new_equations, new_equations.metric(), edge_label)
 
 
 # A^T B + B^T A + A^T A
@@ -142,16 +145,19 @@ def trick3_callback(substitution, equations, eqn_idx, position):
     # WD1 = A
     # WD2 = B
 
-    equations_copy = copy.deepcopy(equations)
+    equations_list = list(equations.equations)
     one_half = ConstantScalar(0.5)
     sum_expr = Plus(Times(one_half, substitution["WD1"]), substitution["WD2"])
     tmp, matched_kernels = decompose_sum(sum_expr)
 
     replacement = Plus(Times(Transpose(substitution["WD1"]), tmp), Times(Transpose(tmp), substitution["WD1"]), *substitution["WS1"])
 
-    equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], [1]+list(position), replacement)
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], [1]+list(position), replacement)
+    
+    new_equations = Equations(*equations_list)
+
     edge_label = base.EdgeLabel(*matched_kernels)
-    return (equations_copy, equations_copy.metric(), edge_label)
+    return (new_equations, new_equations.metric(), edge_label)
 
 
 # A^T B + B^T A + A^T C A (C is symmetric)
@@ -169,7 +175,7 @@ def trick4_callback(substitution, equations, eqn_idx, position):
     # WD2 = B
     # WD3 = C
 
-    equations_copy = copy.deepcopy(equations)
+    equations_list = list(equations.equations)
 
     one_half = ConstantScalar(0.5)
     sum_expr = Plus(Times(one_half, substitution["WD3"], substitution["WD1"]), substitution["WD2"])
@@ -178,11 +184,12 @@ def trick4_callback(substitution, equations, eqn_idx, position):
 
     replacement = Plus(Times(Transpose(substitution["WD1"]), tmp), Times(Transpose(tmp), substitution["WD1"]), *substitution["WS1"])
 
-    equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], [1]+list(position), replacement)
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], [1]+list(position), replacement)
 
-    equations_copy.insert(eqn_idx, new_equation)
+    equations_list = equations_list.insert(eqn_idx, new_equation)
+    new_equations = Equations(*equations_list)
 
-    return (equations_copy, equations_copy.metric(), base.EdgeLabel())
+    return (new_equations, new_equations.metric(), base.EdgeLabel())
 
 # patterns = [eigen1, eigen2, symmetric_product, trick3]
 
