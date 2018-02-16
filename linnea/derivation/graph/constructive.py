@@ -13,7 +13,8 @@ from ... import config
 from . import base
 from .utils import generate_variants, \
                    process_next, process_next_simple, \
-                   OperationType, ExpressionType
+                   OperationType, ExpressionType, \
+                   is_explicit_inversion
 
 from .. import special_properties
 
@@ -94,7 +95,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             trace.append(new_nodes)
 
             if merging and new_nodes:
-                merged_nodes = self.DS_collapse_nodes()
+                merged_nodes = self.DS_merge_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
 
@@ -103,7 +104,25 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             trace.append(new_nodes)
 
             if merging and new_nodes:
-                merged_nodes = self.DS_collapse_nodes()
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)
+
+            new_nodes = self.DS_factorizations()
+            self.print_DS_numbered("Nodes added (fact):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+
+            if merging and new_nodes:
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)            
+
+            new_nodes = self.DS_CSE_replacement()
+            self.print_DS_numbered("Nodes added (CSE):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+            
+            if merging and new_nodes:
+                merged_nodes = self.DS_merge_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
 
@@ -129,7 +148,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
             if merging and new_nodes:
                 # TODO order of merge and prune?
-                merged_nodes = self.DS_collapse_nodes()
+                merged_nodes = self.DS_merge_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
 
@@ -151,7 +170,8 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             # self.to_dot_file("counter")
             # print("Leaves", [node.id for node in self.active_nodes])
             # print("Nodes", [node.id for node in self.nodes])
-
+        else:
+            self.print("Iteration limit reached.")
 
         self.print("{:-<30}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
@@ -214,52 +234,16 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         for eqn_idx, equation in enumerate(equations):
             if not isinstance(equation.rhs, ae.Symbol):
                 for eqns_variant in generate_variants(equations, eqn_idx):
-                    pos, expr_type, op_type = process_next(eqns_variant[eqn_idx])
+                    pos, op_type = process_next_simple(eqns_variant[eqn_idx])
 
-                    # print(pos, expr_type, op_type)
-                    # print(eqn_idx, pos, type)
-                    # print(equations[eqn_idx][pos])
-                    if expr_type == ExpressionType.simple_inverse:
-                        transformed_expressions.extend(self.TR_factorizations(eqns_variant, eqn_idx, pos, metric))
-                    elif expr_type == ExpressionType.compound_inverse:
-                        transformed_expressions.extend(self.TR_factorizations(eqns_variant, eqn_idx, pos, metric))
+                    if op_type == OperationType.times:
                         expr = eqns_variant[eqn_idx][pos]
-                        pos_, op_type_ = process_next_simple(expr, pos)
-                        # print(expr, pos_, op_type_)
-                        if op_type_ == OperationType.times:
-                            transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos_, metric))
-                        elif op_type_ == OperationType.plus:
-                            transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos_, metric))
-                        elif op_type_ == OperationType.none:
-                            # pos + [0] because pos refers to Inverse, but
-                            # here, we have to deal with the child of inverse
-                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos + [0], metric))
-                    elif expr_type == ExpressionType.compound_inverse_no_factor:
-                        expr = eqns_variant[eqn_idx][pos]
-                        pos_, op_type_ = process_next_simple(expr, pos)
-                        # print(expr, pos_, op_type_)
-                        if op_type_ == OperationType.times:
-                            transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos_, metric))
-                        elif op_type_ == OperationType.plus:
-                            transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos_, metric))
-                        elif op_type_ == OperationType.none:
-                            # pos + [0] because pos refers to Inverse, but
-                            # here, we have to deal with the child of inverse
-                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos + [0], metric))
-                    elif expr_type == ExpressionType.simple:
-                        if op_type == OperationType.times:
-                            transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, metric))
-                        elif op_type == OperationType.plus:
-                            transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos, metric))
-                    elif expr_type == ExpressionType.none:
-                        transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, [1], metric))
+                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, metric, is_explicit_inversion(expr)))
+                    elif op_type == OperationType.plus:
+                        transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos, metric))
+                    elif op_type == OperationType.none:
+                        transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos, metric))
+
                 break
-
-        # # (equations, metric, edge_label)
-        # for transformed_expression in transformed_expressions:
-        #     equations = transformed_expression[0]
-        #     if equations.remove_identities():
-        #         # If equations were removed, we have to recompute the metric.
-        #         transformed_expression[1] = equations.metric()
 
         return transformed_expressions

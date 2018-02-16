@@ -4,7 +4,7 @@ from ...algebra.expression import Symbol, Matrix, Scalar, Inverse, \
                                   InverseTranspose, InverseConjugate, \
                                   InverseConjugateTranspose
 
-from ...algebra.transformations import transpose, invert
+from ...algebra.transformations import transpose, invert, undistribute_inverse
 from ...algebra.representations import to_POS
 
 from ...algebra import equations as aeq
@@ -53,6 +53,101 @@ class OperationType(Enum):
     times = 2
     none = 3
 
+@unique
+class InverseType(Enum):
+    linear_system = 1
+    explicit_inversion = 2
+    none = 3
+
+Occurrence = namedtuple('Occurrence', ['eqn_idx', 'position', 'operand', 'type', 'group', 'symbol'])
+
+def find_operands_to_factor(equations):
+    """Finds all operands to factor.
+
+    Finds all operands that may require factorizations. Those are operands that
+    have the property ADMITS_FACTORIZATION and appear within an inverse.
+
+    Args:
+        equations (Equations): The equations that are searched.
+
+    Returns:
+        set: A set of operands.
+    """
+    # this is independent of variants (most likely)
+
+    for equation in equations:
+        operands_to_factor = set()
+        for inv_pos in inverse_positions(equation.rhs, [1]):
+            inv_expr = equation[inv_pos]
+            for expr, pos in inv_expr.preorder_iter():
+                if isinstance(expr, Symbol) and expr.has_property(properties.ADMITS_FACTORIZATION):
+                    operands_to_factor.add(expr)
+
+    return operands_to_factor
+
+def find_occurrences(equations, operands_to_factor):
+    """Finds all occurrences of operands that have to be factored.
+
+    Finds all occurrences of operands that have to be factored. This includes
+    occurrences which are not in inverses.
+
+    Args:
+        equations (Equations): The equations that are searched.
+        operands_to_factor (set): Set of operands to search for.
+
+    Yields:
+        Occurrence: All occurrences of the operands.
+    """
+
+    for eqn_idx, equation in enumerate(equations):
+        for res in _find_occurrences(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=[1]):
+            # for grouping, we also need the eqn_idx
+            yield Occurrence(eqn_idx, *res)
+
+def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, position=[], group=None, symbol=False, predecessor=None):
+    # finds positions of operands_to_factor, returns:
+    # path, expr, type (linear system, explicit inversion, none), and group (which is the position of the outermost inverse)
+
+    if isinstance(expr, Symbol):
+        if expr in operands_to_factor:
+            yield (position, expr, inv_type, group, symbol)
+        return
+
+    if isinstance(expr, Inverse) or isinstance(expr, InverseTranspose) or isinstance(expr, InverseConjugate) or isinstance(expr, InverseConjugateTranspose):
+        if not group: # this avoids nested groups
+            group = position
+        if isinstance(predecessor, Times):
+            inv_type = InverseType.linear_system
+        else:
+            inv_type = InverseType.explicit_inversion
+        symbol = isinstance(expr.operand, Symbol)
+
+    for n, operand in enumerate(expr.operands):
+        position_copy = copy.deepcopy(position)
+        position_copy.append(n)
+        yield from _find_occurrences(operand, operands_to_factor, inv_type, position_copy, group, symbol, expr)
+
+def group_occurrences(occurrences):
+    # group symbol inverses by eqn_idx, inverse group, operand
+    occurrences = sorted(occurrences, key=grouping_keyfunc)
+    occurrences_grouped = []
+    # grouping by eqn_idx, inverse group, operand
+    for key, group in itertools.groupby(occurrences, grouping_keyfunc):
+        occurrences_grouped.append(list(group))
+    return occurrences_grouped
+
+def grouping_keyfunc(oc):
+    # eqn_idx, operand, group
+    if oc.group is None:
+        return (oc.eqn_idx, oc.operand, [])
+    else:
+        return (oc.eqn_idx, oc.operand, oc.group)
+
+def powerset(iterable):
+    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+    s = list(iterable)
+    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
+
 # @profile
 def generate_variants(equations, eqn_idx=None):
     """Generates "product of sums" variants of equations.
@@ -64,6 +159,25 @@ def generate_variants(equations, eqn_idx=None):
     The optional argument eqn_idx can be used to specify that variants are
     generated for only one single equation.
     """
+
+
+    undist_inv = False
+    for equation in equations:
+        number_of_inverses = 0
+        for node, pos in equation.preorder_iter():
+            if is_inverse(node):
+                number_of_inverses += 1
+                if number_of_inverses > 1:
+                    undist_inv = True
+                    break
+        if undist_inv:
+            break
+
+    # if undist_inv:
+        
+
+    # print(undistribute_inverse(equations[0]))
+
     # If there is no Plus in any equation, there will be no POS variant.
     plus_found = False
     for equation in equations:
@@ -73,8 +187,8 @@ def generate_variants(equations, eqn_idx=None):
                 break
         if plus_found:
             break
-    else:
-        return [equations]
+
+
 
 
     if eqn_idx is None:
@@ -296,6 +410,30 @@ def identify_plus(equations):
 
     return (None, None)    
 
+def is_explicit_inversion(matrix_chain):
+    """Tests if matrix_chain is an explicit inversion.
+
+    A matrix chain is an explicit inversion if all operands come from the same
+    factorization and at least one operand is inverted. We do not require all
+    operands to be inverted because of orthogonal matrices.
+
+    Args:
+        matrix_chain (Times): The matrix chain to test.
+
+    Returns:
+        bool: True if the chain is an explicit inversion, False otherwise.
+    """
+    if any(is_inverse(operand) for operand in matrix_chain):
+        iterator = iter(matrix_chain.operands)
+        try:
+            first = next(iterator)
+        except StopIteration:
+            return False
+        return all(first.factorization_labels == rest.factorization_labels for rest in iterator)
+    else:
+        return False
+
+
 def is_scalar(expr):
     """Tests if expr only consists of scalars.
 
@@ -362,5 +500,8 @@ def inverse_positions(expr, position=[]):
         position_copy.append(n)
         yield from inverse_positions(operand, position_copy)
 
-    if isinstance(expr, Inverse) or isinstance(expr, InverseTranspose) or isinstance(expr, InverseConjugate) or isinstance(expr, InverseConjugateTranspose):
+    if is_inverse(expr):
         yield position
+
+def is_inverse(expr):
+    return isinstance(expr, (Inverse, InverseTranspose, InverseConjugate, InverseConjugateTranspose))

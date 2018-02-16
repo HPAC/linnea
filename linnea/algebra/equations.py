@@ -69,6 +69,13 @@ class Equations(object):
             equations.append(equation)
         self.equations = equations
 
+    def to_normalform(self):
+        equations = []
+        for equation in self.equations:
+            equation = ar.to_SOP(at.simplify(equation))
+            equations.append(equation)
+        self.equations = equations
+
     def set_equivalent(self, equations_before):
         """Applies temporaries.set_equivalent() to all equations.
  

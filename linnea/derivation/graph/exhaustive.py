@@ -8,7 +8,8 @@ from ...algebra.properties import Property as properties
 from . import base
 from .utils import generate_variants, \
                    process_next, process_next_simple, \
-                   OperationType, ExpressionType
+                   OperationType, ExpressionType, \
+                   is_explicit_inversion
 
 from .. import special_properties
 
@@ -73,9 +74,36 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             trace.append(new_nodes)
 
             if merging and new_nodes:
-                merged_nodes = self.DS_collapse_nodes()
+                merged_nodes = self.DS_merge_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
+
+            new_nodes = self.DS_CSE_replacement()
+            self.print_DS_numbered("Nodes added (CSE):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+
+            if merging and new_nodes:
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)
+
+            new_nodes = self.DS_factorizations()
+            self.print_DS_numbered("Nodes added (fact):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+
+            if merging and new_nodes:
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)            
+
+            new_nodes = self.DS_CSE_replacement()
+            self.print_DS_numbered("Nodes added (CSE):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+
+            if merging and new_nodes:
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)            
 
             new_nodes = self.DS_kernels()
             self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
@@ -83,7 +111,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
             if merging and new_nodes:
                 # TODO order of merge and prune?
-                merged_nodes = self.DS_collapse_nodes()
+                merged_nodes = self.DS_merge_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
 
@@ -105,7 +133,8 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             # self.to_dot_file("counter")
             # print("Leaves", [node.id for node in self.active_nodes])
             # print("Nodes", [node.id for node in self.nodes])
-
+        else:
+            self.print("Iteration limit reached.")
 
         self.print("{:-<30}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
@@ -194,6 +223,27 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                         if not te_reductions:
                             transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, [1], metric))
                         # transformed_expressions.extend(self.TR_reductions(eqns_variant, eqn_idx, [1], metric))
+                break
+
+        return transformed_expressions
+
+    def TR_kernels(self, equations, metric):
+
+        transformed_expressions = []
+
+        for eqn_idx, equation in enumerate(equations):
+            if not isinstance(equation.rhs, Symbol):
+                for eqns_variant in generate_variants(equations, eqn_idx):
+                    pos, op_type = process_next_simple(eqns_variant[eqn_idx])
+
+                    if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
+                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, metric, True))
+                    else:
+                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, [1], metric)
+                        transformed_expressions.extend(te_reductions)
+                        if not te_reductions:
+                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, [1], metric))
+
                 break
 
         return transformed_expressions

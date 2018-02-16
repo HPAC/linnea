@@ -227,10 +227,14 @@ class GraphBase(object):
 
 
     # @profile
-    def DS_collapse_nodes(self):
+    def DS_merge_nodes(self):
         """Merges redundant nodes in the derivation graph.
 
         Returns the number of removed nodes.
+
+        Note:
+            This function does not work properly if there are entire redundant
+            paths where multiple nodes along the path have to be merged.
         """
 
         # This dictionary contains entries of the following structure:
@@ -250,7 +254,7 @@ class GraphBase(object):
                 duplicates.setdefault(n1, []).append(n2)
                 known_duplicates.add(n2)
 
-        #print(duplicates)
+        # print(duplicates)
 
         remove = []
 
@@ -352,7 +356,7 @@ class GraphNodeBase(object):
         eqns_str = eqns_str.replace('\n', '\\n')
         eqns_str = eqns_str.replace("{", "&#123;")
         eqns_str = eqns_str.replace("}", "&#125;")
-        out = """{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost)
+        out = """{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]))
         # out = "".join([self.name, " [shape=record, label=\"<f0>", str(self.id), "|<f1>", eqns_str, "|<f2>", str(self.metric), "\"];\n" ])
         for successor, label in zip(self.successors, self.edge_labels):
             if (self.id, successor.id) in optimal_edges:

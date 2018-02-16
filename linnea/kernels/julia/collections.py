@@ -116,7 +116,7 @@ transposition_kernels = list(itertools.chain(
             ))
 
 unary_kernels = list(itertools.chain(
-                getri,
+                # getri,
                 trtri,
                 diaginv,
                 transpose,

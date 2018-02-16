@@ -1,6 +1,7 @@
 from . import base
 
-from ..utils import generate_variants
+from ..utils import generate_variants, find_operands_to_factor, \
+                    find_occurrences, InverseType, powerset, group_occurrences
 
 from ....algebra.expression import Symbol, ConstantScalar, \
                                    Operator, Plus, Times, Equal, Transpose
@@ -43,12 +44,17 @@ class DerivationGraphBase(base.GraphBase):
         self.level_counter = -1
 
 
-    def create_nodes(self, predecessor, *description):
+    def create_nodes(self, predecessor, *description, factored_operands=None):
         new_nodes = []
         # print(description)
         # if description:
+
+        _factored_operands = predecessor.factored_operands
+        if factored_operands:
+            _factored_operands = _factored_operands.union(factored_operands)
+            
         for equations, metric, edge_label in description:
-            new_node = DerivationGraphNode(equations, metric, predecessor)
+            new_node = DerivationGraphNode(equations, metric, predecessor, _factored_operands)
             self.nodes.append(new_node)
             new_nodes.append(new_node)
             predecessor.set_labeled_edge(new_node, edge_label)
@@ -62,7 +68,7 @@ class DerivationGraphBase(base.GraphBase):
 
         if graph:
             self.write_graph(output_name)
-
+        
         algorithm_paths = list(self.all_algorithms())
         algorithm_paths.sort(key=operator.itemgetter(1))
 
@@ -270,13 +276,13 @@ class DerivationGraphBase(base.GraphBase):
         return transformed_expressions
 
 
-    def TR_matrix_chain(self, equations, eqn_idx, initial_pos, metric):
+    def TR_matrix_chain(self, equations, eqn_idx, initial_pos, metric, explicit_inversion=False):
         equations_copy = copy.deepcopy(equations)
         expr = equations_copy[eqn_idx][initial_pos]
 
         try:
             #print("before")
-            msc = mcs.MatrixChainSolver(expr)
+            msc = mcs.MatrixChainSolver(expr, explicit_inversion)
         except mcs.MatrixChainNotComputable:
             return []
 
@@ -380,89 +386,6 @@ class DerivationGraphBase(base.GraphBase):
         return transformed_expressions
 
 
-    # @profile
-    def TR_factorizations(self, equations, eqn_idx, initial_pos, metric):
-        """
-
-        This function takes priorities into
-        account. That is, for a given matrix, from each 1, 2 and 3, the best
-        factorization is chosen (the best one is the first one that is
-        applicable).
-        1. Cholesky, LDL, PLU
-        2. QR
-        3. Eigen, SVD
-        """
-        transformed_expressions = []        
-
-        initial_node = equations[eqn_idx][initial_pos]
-
-        known_node = []
-        for node, _pos in initial_node.preorder_iter():
-            full_pos = copy.copy(initial_pos)
-            full_pos.extend(_pos)
-            if node not in known_node:
-                known_node.append(node)
-            else:
-                continue
-
-            if not node.has_property(properties.ADMITS_FACTORIZATION):
-                continue
-
-            for type in collections_module.factorizations_by_type:
-                for kernel in type:
-                    # for each match, generate copy and apply kernel
-                    matches = list(matchpy.match(node, kernel.pattern))
-
-                    # This is important. Otherwise, the "break" at the end of
-                    # the loop is reached. In that case, only the first
-                    # factorization of each type is applied.
-                    if not matches:
-                        continue
-
-                    for match_dict in matches:
-                        # print(kernel.signature, match_dict)
-                        # replacement
-                        equations_copy = copy.deepcopy(equations)
-
-                        matched_kernel = kernel.set_match(match_dict, False, CSE_rules=True)
-                        evaled_repl = matched_kernel.replacement
-
-                        # replace node with modified expression
-                        # print(initial_node[_pos[:-1]], evaled_repl)
-                        equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], full_pos, evaled_repl)
-
-                        # deal with additional occurrences of the replaced subexpression
-                        common_subexp_rules = matched_kernel.CSE_rules
-
-                        equations_copy.replace_all(common_subexp_rules)
-                        
-                        # # equivalent expression experiment
-                        # # print("###")
-                        # # print(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-                        # path_before, path_after = expr_diff(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-                        # # print(path_before, path_after)
-                        # expr_before = equations[eqn_idx].rhs[path_before]
-                        # expr_after = equations_copy[eqn_idx].rhs[path_after]
-                        # print(temporaries._get_equivalent(expr_before), str(temporaries._get_equivalent(expr_before)) in temporaries._table_of_temporaries, temporaries._get_equivalent(expr_after))
-                        # if str(temporaries._get_equivalent(expr_before)) in temporaries._table_of_temporaries:
-                        #     print("stored: ", temporaries._table_of_temporaries[str(temporaries._get_equivalent(expr_before))])
-                        # tmp = temporaries.create_tmp(expr_before, True)
-                        # print(tmp)
-                        # temporaries._table_of_temporaries[str(temporaries._get_equivalent(expr_after))] = tmp
-
-                        equations_copy.set_equivalent(equations)
-
-                        new_metric = equations_copy.metric()
-                        # print("metric", new_metric, metric)
-                        # print(equations_copy)
-                        if new_metric <= metric:
-                            edge_label = base.EdgeLabel(matched_kernel)
-                            transformed_expressions.append((equations_copy, new_metric, edge_label))
-
-                    break
-        return transformed_expressions
-
-
     def TR_unary_kernels(self, equations, eqn_idx, initial_pos, metric):
 
         transformed_expressions = []
@@ -497,11 +420,211 @@ class DerivationGraphBase(base.GraphBase):
         return transformed_expressions
 
 
+    def DS_factorizations(self):
+
+        new_nodes = []
+        inactive_nodes = []
+
+        # store list of matrices that have been factored already
+
+        # just_factored_operands = set()
+
+        for node in self.active_nodes:
+
+
+            # find all matrices that need to factored
+            operands_to_factor = find_operands_to_factor(node.equations)
+            # print(operands_to_factor)
+
+            # just_factored_operands.update(operands_to_factor)
+            operands_to_factor -= node.factored_operands
+            # print(operands_to_factor)
+            if operands_to_factor:
+                # construct dict {operand name: list of matched kernels for all valid factorizations}
+                factorization_dict = dict()
+                for operand in operands_to_factor:
+                    for type in collections_module.factorizations_by_type:
+                        for kernel in type:
+                            # print()
+                            matches = list(matchpy.match(operand, kernel.pattern))
+
+                            # This is important. Otherwise, the "break" at the end of
+                            # the loop is reached. In that case, only the first
+                            # factorization of each type is applied.
+                            if not matches:
+                                continue
+
+                            # this is kind of stupid, there is only one match
+                            for match_dict in matches:
+                                matched_kernel = kernel.set_match(match_dict, False, CSE_rules=True)
+                                factorization_dict.setdefault(operand.name, []).append(matched_kernel)
+                            break
+                # print(factorization_dict)
+
+                transformed = []
+
+                found_symbol_inv_occurrence = False
+                for equations in generate_variants(node.equations):
+                    _transformed, _found_symbol_inv_occurrence = self.TR_factorizations(equations, operands_to_factor, factorization_dict)
+                    found_symbol_inv_occurrence = found_symbol_inv_occurrence or _found_symbol_inv_occurrence
+                    transformed.extend(_transformed)
+
+                new_nodes.extend(self.create_nodes(node, *transformed, factored_operands=node.factored_operands.union(operands_to_factor)))
+
+                # if there are no symbol inverses, the current node stays active
+                # because it's possible to make progress without factorizations
+                if found_symbol_inv_occurrence:
+                    inactive_nodes.append(node)
+        
+        for node in inactive_nodes:
+            self.active_nodes.remove(node)
+
+        self.add_active_nodes(new_nodes)
+
+        return len(new_nodes)
+
+
+
+    def TR_factorizations(self, equations, operands_to_factor, factorization_dict):
+
+        transformed_expressions = []
+
+        # find all occurrences
+        all_occurrences = list(find_occurrences(equations, operands_to_factor))
+
+        # print(all_occurrences)
+
+        # filter out occurrences that have InverseType.none
+        # filter our occurrences with symbol=True
+        non_inv_occurrences = []
+        inv_occurrences = []
+        symbol_inv_occurrences = []
+        found_symbol_occurrence = False
+        for occurrence in all_occurrences:
+            if occurrence.symbol:
+                symbol_inv_occurrences.append(occurrence)
+                found_symbol_occurrence = True
+            elif occurrence.type is InverseType.none:
+                non_inv_occurrences.append(occurrence)
+            else:
+                inv_occurrences.append(occurrence)
+
+        # print(non_inv_occurrences)
+
+        # group InverseType.none occurrences by operands
+        non_inv_occurrences_dict = dict()
+        for occurrence in non_inv_occurrences:
+            non_inv_occurrences_dict.setdefault(occurrence.operand.name, []).append(occurrence)
+
+        # print(non_inv_occurrences_dict)
+
+        inv_occurrences_grouped = group_occurrences(inv_occurrences)
+        symbol_inv_occurrences_grouped = group_occurrences(symbol_inv_occurrences)
+
+        # collect all operands that show up
+        ops = set()
+
+        for ocs in symbol_inv_occurrences_grouped:
+            ops.update([oc.operand.name for oc in ocs])
+
+        # print(inv_occurrences_grouped)
+        # all subsets of grouped occurrences
+        for subset_inv_occurrences_grouped in powerset(inv_occurrences_grouped):
+
+            # print(subset_inv_occurrences_grouped)
+
+            ops_copy = ops.copy()
+            for ocs in subset_inv_occurrences_grouped:
+                ops_copy.update([oc.operand.name for oc in ocs])
+
+            ops_copy = list(ops_copy)
+            # print("OPS", ops_copy)
+            
+            # collect all non inverse occurences for those operands
+            non_inv_occurrences = []
+            factorizations_candidates = []
+            for op in ops_copy:
+                try:
+                    ocs = non_inv_occurrences_dict[op]
+                except KeyError:
+                    pass
+                else:
+                    non_inv_occurrences.extend(ocs)
+                
+                factorizations_candidates.append(factorization_dict[op])
+
+            # print(factorizations_candidates)
+            # print(non_inv_occurrences)
+            if not factorizations_candidates:
+                continue
+
+            # generated all subsets
+            for subset_non_inv_occurrences in powerset(non_inv_occurrences):
+                # ocs = subset_inv_occurrences_grouped + subset_non_inv_occurrences
+
+                # TODO do we allow different factorizations_candidates for the same operand?
+                # factorizations_candidates = []
+                # for oc in subset_inv_occurrences_grouped:
+                #     factorizations_candidates.append(factorization_dict[oc[0][2].name])
+
+                # for oc in subset_non_inv_occurrences:
+                #     factorizations_candidates.append(factorization_dict[oc[2].name])
+
+
+                # apply all factorizations
+                for factorizations in itertools.product(*factorizations_candidates):
+                    facts_dict = dict(zip(ops_copy, factorizations))
+
+                    # print(facts_dict)
+
+                    # TODO missing: label explicit inversions as such
+
+                    # collect matched kernels (avoiding duplicates)
+                    matched_kernels = []
+                    _already_seen = set()
+                    for matched_kernel in factorizations:
+                        if matched_kernel.id not in _already_seen:
+                            matched_kernels.append(matched_kernel)
+                            _already_seen.add(matched_kernel.id)
+
+                    # collect replacements 
+                    replacements_per_equation = dict()
+
+                    for ocs in symbol_inv_occurrences_grouped:
+                        for oc in ocs:
+                            replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
+
+                    for ocs in subset_inv_occurrences_grouped:
+                        for oc in ocs:
+                            replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
+
+                    for oc in subset_non_inv_occurrences:
+                        replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
+
+                    # replace
+                    equations_copy = copy.deepcopy(equations)
+
+                    for eqn_idx, replacements in replacements_per_equation.items():
+                        if replacements:
+                            equations_copy[eqn_idx] = matchpy.replace_many(equations_copy[eqn_idx], replacements)
+                    
+                    equations_copy.to_normalform()
+                    equations_copy.set_equivalent(equations)
+
+                    # print(equations_copy)
+                    # print(matched_kernels)                   
+
+                    edge_label = base.EdgeLabel(*matched_kernels)
+                    transformed_expressions.append((equations_copy, equations_copy.metric(), edge_label))
+                        
+        return transformed_expressions, found_symbol_occurrence
+
+
 class DerivationGraphNode(base.GraphNodeBase):
 
     _counter = 0
 
-    def __init__(self, equations=None, metric=None, predecessor=None):
+    def __init__(self, equations=None, metric=None, predecessor=None, factored_operands=None):
         super(DerivationGraphNode, self).__init__(metric, predecessor)
 
         # IDs for dot output
@@ -510,6 +633,10 @@ class DerivationGraphNode(base.GraphNodeBase):
         DerivationGraphNode._counter +=1
 
         self.equations = equations
+        if factored_operands is None:
+            self.factored_operands = set()
+        else:
+            self.factored_operands = factored_operands
         
     def get_payload(self):
         return self.equations

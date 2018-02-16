@@ -17,9 +17,10 @@ class MatrixChainNotComputable(Exception):
 
 class MatrixChainSolver(object):
     """docstring for MatrixChainSolver"""
-    def __init__(self, expr):
+    def __init__(self, expr, explicit_inversion=False):
         self.expr = expr
         self.n = len(self.expr.operands) # TODO remove?
+        self.explicit_inversion = explicit_inversion
 
         n = len(self.expr.operands)
 
@@ -68,7 +69,7 @@ class MatrixChainSolver(object):
 
                     product = Times(self.tmps[i][k], self.tmps[k+1][j])
 
-                    if dgu.is_blocked(product):
+                    if dgu.is_blocked(product) and not self.explicit_inversion:
                         continue
 
                     DN_solution = False

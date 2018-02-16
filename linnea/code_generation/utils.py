@@ -398,7 +398,13 @@ class KernelIO(object):
 
 class MatchedKernel(object):
     """docstring for MatchedKernel"""
+
+    _counter = 0
+
     def __init__(self, CSE_rules=False):
+        self.id = MatchedKernel._counter
+        MatchedKernel._counter += 1
+        
         self.operand_dict = None
 
         self.replacement = None

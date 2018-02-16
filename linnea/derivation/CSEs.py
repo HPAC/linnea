@@ -7,6 +7,7 @@ from ..algebra.transformations import transpose, invert, invert_transpose, simpl
 from ..algebra.representations import to_SOP
 
 from .gst import GST
+from .utils import is_blocked
 
 from collections import namedtuple, deque
 
@@ -128,6 +129,8 @@ def CSE_replacement_times(equations, products, product_positions):
         # print(CSE_pos)
         operands = products[seq_idx].operands[CSE_pos.pos:CSE_pos.pos+length]    
         CSE_expr = Times(*operands)
+        if is_blocked(CSE_expr):
+            continue
         tmp_type = CSE_pos.type
         if tmp_type == 1:
             CSE_expr = transpose(CSE_expr)
