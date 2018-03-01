@@ -2857,8 +2857,14 @@ class Example097(object):
         n4 = 800
         n5 = 1000
 
+        # n1 = 1500
+        # n2 = 1200
+        # n3 = 1300
+        # n4 = 800
+        # n5 = 1000
+
         A = Matrix("A", (n1, n1))
-        A.set_property(properties.LOWER_TRIANGULAR)
+        A.set_property(properties.SPD)
         A.set_property(properties.INPUT)
 
         B = Matrix("B", (n1, n2))
@@ -3687,3 +3693,108 @@ class Example129(object):
                             Equal(Y, Plus(Inverse(A), C)),
                             )
 
+class Example130(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE, explicit inversion
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        B = Matrix("B", (n, n))
+        C = Matrix("C", (n, n))
+
+        A.set_property(properties.INPUT)
+        A.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(Inverse(A), B), A, Inverse(A))),
+                            )
+
+
+class Example131(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE, explicit inversion
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        B = Matrix("B", (n, n))
+        C = Matrix("C", (n, n))
+        D = Matrix("D", (n, n))
+
+        A.set_property(properties.INPUT)
+        A.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(Inverse(A), B), A, Times(A, C), Inverse(A))),
+                            )
+
+
+class Example132(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE, explicit inversion
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        B = Matrix("B", (n, n))
+        C = Matrix("C", (n, n))
+        D = Matrix("D", (n, n))
+
+        A.set_property(properties.INPUT)
+        A.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(D, Inverse(A), B), A, Times(A, C), Inverse(A))),
+                            )
+
+
+class Example133(object):
+    def __init__(self):
+
+        # TAGS
+        # undistribute inverse
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        B = Matrix("B", (n, n))
+        C = Matrix("C", (n, n))
+        D = Matrix("D", (n, n))
+
+        A.set_property(properties.INPUT)
+        A.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+        B.set_property(properties.NON_SINGULAR)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(Inverse(A), InverseTranspose(B), C)),
+                            )

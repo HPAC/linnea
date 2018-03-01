@@ -17,6 +17,9 @@ from .. import special_properties
 
 import operator
 import matchpy
+import math
+
+from ...import config
 
 """Matrix Chain Derivation Graph
 
@@ -27,10 +30,8 @@ matrix chain algirithm.
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
-    def derivation(self, max_algos=1, max_iterations=5, verbose=True):
+    def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True, dead_ends=True):
         # TODO default values?
-
-        self.verbose = verbose
 
         # init_partitiong and delete_partitioning is only done for performance
         # reasons. The additional attribute "partitioning" makes copying a lot
@@ -50,8 +51,8 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         self.root.equations.replace_auxiliaries()
 
         check_validity(self.root.equations)
+        self.root.equations = self.root.equations.to_normalform()
         for eqn_idx, equation in enumerate(self.root.equations):
-            self.root.equations[eqn_idx] = to_SOP(at.simplify(equation))
             for node, pos in equation.rhs.preorder_iter():
                 # I think it's not necessary to store properties both for
                 # expr and Inverse(expr) if expr is SPD. Think about that. 

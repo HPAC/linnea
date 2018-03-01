@@ -46,7 +46,7 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
 
             self.add_active_nodes(new_nodes)
 
-            self.DS_collapse_nodes()
+            self.DS_merge_nodes()
 
     # TODO remove?
     def DS_matrix_chain(self):

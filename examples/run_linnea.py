@@ -17,7 +17,8 @@ if __name__ == "__main__":
     graph = DerivationGraph(equations)
     graph.derivation(solution_nodes_limit=100,
                      iteration_limit=100,
-                     merging=True)
+                     merging=True,
+                     dead_ends=True)
 
     graph.write_output(code=True,
                        pseudocode=False,

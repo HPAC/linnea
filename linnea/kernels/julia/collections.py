@@ -88,16 +88,16 @@ reductions = list(itertools.chain(
                 diagmmr,
                 diagmml,
                 diagmv,
-                posv,
-                posvr,
-                sysv,
-                sysvr,
-                gesv,
-                gesvr,
-                gesvrt,
-                posv_vec,
-                sysv_vec,
-                gesv_vec,
+                # posv,
+                # posvr,
+                # sysv,
+                # sysvr,
+                # gesv,
+                # gesvr,
+                # gesvrt,
+                # posv_vec,
+                # sysv_vec,
+                # gesv_vec,
             ))
 
 unused = list(itertools.chain(
@@ -116,7 +116,7 @@ transposition_kernels = list(itertools.chain(
             ))
 
 unary_kernels = list(itertools.chain(
-                getri,
+                # getri,
                 trtri,
                 diaginv,
                 transpose,

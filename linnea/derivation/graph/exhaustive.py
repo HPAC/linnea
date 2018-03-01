@@ -8,7 +8,9 @@ from ...algebra.properties import Property as properties
 from . import base
 from .utils import generate_variants, \
                    process_next, process_next_simple, \
-                   OperationType, ExpressionType
+                   OperationType, ExpressionType, \
+                   is_explicit_inversion, \
+                   DS_step
 
 from .. import special_properties
 
@@ -25,7 +27,7 @@ collections_module = config.import_collections()
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
-    def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True):
+    def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True, dead_ends=True):
         # TODO default values?
 
         # init_partitiong and delete_partitioning is only done for performance
@@ -33,21 +35,21 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # more expensive.
         # TODO this should by unnecessary by now
 
-        for equation in self.root.equations:
-            equation.init_partitioning()
+        # for equation in self.root.equations:
+        #     equation.init_partitioning()
 
-        self.root.equations.apply_partitioning()
+        # self.root.equations.apply_partitioning()
 
-        for equation in self.root.equations:
-            equation.delete_partitioning()
+        # for equation in self.root.equations:
+        #     equation.delete_partitioning()
 
         # change order with partitioning?
         # self.root.equations.resolve_dependencies()
-        self.root.equations.replace_auxiliaries()
+        # self.root.equations.replace_auxiliaries()
 
         check_validity(self.root.equations)
+        self.root.equations.to_normalform()
         for eqn_idx, equation in enumerate(self.root.equations):
-            self.root.equations[eqn_idx] = to_SOP(simplify(equation))
             for node, pos in equation.rhs.preorder_iter():
                 # I think it's not necessary to store properties both for
                 # expr and Inverse(expr) if expr is SPD. Think about that. 
@@ -60,30 +62,70 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
         self.root.metric = self.root.equations.metric()
 
-        suc_deriv = 0
-
         # for testing and debugging
         trace = []
 
+        new_nodes_per_iteration = 0
+
         for i in range(iteration_limit):
+
+            new_nodes_per_iteration = 0
 
             new_nodes = self.DS_tricks()
             # TODO could this be done better with logging?
             self.print_DS_numbered("Nodes added (tricks):", new_nodes, self.level_counter)
             trace.append(new_nodes)
+            new_nodes_per_iteration += new_nodes
 
             if merging and new_nodes:
-                merged_nodes = self.DS_collapse_nodes()
+                merged_nodes = self.DS_merge_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
+
+            new_nodes = self.DS_CSE_replacement()
+            self.print_DS_numbered("Nodes added (CSE):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+            new_nodes_per_iteration += new_nodes
+
+            if merging and new_nodes:
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)
+
+            new_nodes = self.DS_factorizations()
+            self.print_DS_numbered("Nodes added (fact):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+            new_nodes_per_iteration += new_nodes
+
+            if new_nodes:
+                if dead_ends:
+                    dead_nodes = self.DS_dead_ends()
+                    self.print_DS("Dead nodes:", dead_nodes)
+                    trace.append(dead_nodes)
+
+                if merging:
+                    merged_nodes = self.DS_merge_nodes()
+                    self.print_DS("Nodes merged:", merged_nodes)
+                    trace.append(merged_nodes)           
+
+            new_nodes = self.DS_CSE_replacement()
+            self.print_DS_numbered("Nodes added (CSE):", new_nodes, self.level_counter)
+            trace.append(new_nodes)
+            new_nodes_per_iteration += new_nodes
+
+            if merging and new_nodes:
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes)            
 
             new_nodes = self.DS_kernels()
             self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
             trace.append(new_nodes)
+            new_nodes_per_iteration += new_nodes
 
             if merging and new_nodes:
                 # TODO order of merge and prune?
-                merged_nodes = self.DS_collapse_nodes()
+                merged_nodes = self.DS_merge_nodes()
                 self.print_DS("Nodes merged:", merged_nodes)
                 trace.append(merged_nodes)
 
@@ -98,14 +140,15 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             if len(terminal_nodes) >= solution_nodes_limit:
                 self.print("Specified number of algorithms found.")
                 break
-            elif not self.active_nodes:
+            elif not self.active_nodes or new_nodes_per_iteration == 0:
                 self.print("No further derivations possible.")
                 break
 
             # self.to_dot_file("counter")
             # print("Leaves", [node.id for node in self.active_nodes])
             # print("Nodes", [node.id for node in self.nodes])
-
+        else:
+            self.print("Iteration limit reached.")
 
         self.print("{:-<30}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
@@ -137,15 +180,19 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         inactive_nodes = []
 
         for node in self.active_nodes:
+            if DS_step.kernels in node.applied_DS_steps:
+                continue
+            else:
+                node.add_applied_step(DS_step.kernels)
 
             transformed = self.TR_kernels(node.equations, node.metric)
 
             for equations, metric, edge_label in transformed:
-                if equations.remove_identities():
-                    # If equations were removed, we have to recompute the metric.
-                    # TODO move that into TR_kernels (in an elegant way)?
-                    # TODO in the best case, identity equations do not contribute to the metric
-                    metric = equations.metric()
+                equations = equations.remove_identities()
+                # If equations were removed, we have to recompute the metric.
+                # TODO move that into TR_kernels (in an elegant way)?
+                # TODO in the best case, identity equations do not contribute to the metric
+                metric = equations.metric()
 
                 new_nodes.extend(self.create_nodes(node, (equations, metric, edge_label)))
 
@@ -160,7 +207,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
         return len(new_nodes)
 
-
     def TR_kernels(self, equations, metric):
 
         transformed_expressions = []
@@ -168,32 +214,16 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         for eqn_idx, equation in enumerate(equations):
             if not isinstance(equation.rhs, Symbol):
                 for eqns_variant in generate_variants(equations, eqn_idx):
-                    pos, expr_type, op_type = process_next(eqns_variant[eqn_idx])
+                    pos, op_type = process_next_simple(eqns_variant[eqn_idx])
 
-                    # print(pos, expr_type, op_type)
-                    # print(eqn_idx, pos, type)
-                    # print(equations[eqn_idx][pos])
-                    if expr_type == ExpressionType.simple_inverse:
-                        transformed_expressions.extend(self.TR_factorizations(eqns_variant, eqn_idx, pos, metric))
-                        # TR_inv_reductions
-                    elif expr_type == ExpressionType.compound_inverse:
-                        transformed_expressions.extend(self.TR_factorizations(eqns_variant, eqn_idx, pos, metric))
-                        # TR_inv_reductions
-                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, pos, metric)
-                        transformed_expressions.extend(te_reductions)
-                        if not te_reductions:
-                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos, metric))
-                    elif expr_type == ExpressionType.compound_inverse_no_factor:
-                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, pos, metric)
-                        transformed_expressions.extend(te_reductions)
-                        if not te_reductions:
-                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos, metric))
+                    if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
+                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, metric, True))
                     else:
                         te_reductions = self.TR_reductions(eqns_variant, eqn_idx, [1], metric)
                         transformed_expressions.extend(te_reductions)
                         if not te_reductions:
                             transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, [1], metric))
-                        # transformed_expressions.extend(self.TR_reductions(eqns_variant, eqn_idx, [1], metric))
+
                 break
 
         return transformed_expressions
@@ -213,7 +243,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 kernel, substitution = select_optimal_match(grouped_kernels)
                 # print(kernel.signature, substitution)
                 # replacement
-                equations_copy = copy.deepcopy(equations)
                 
                 matched_kernel = kernel.set_match(substitution, True, CSE_rules=True)
                 if is_blocked(matched_kernel.operation.rhs):
@@ -223,15 +252,13 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                 # replace node with modified expression
 
-                equations_copy[eqn_idx] = matchpy.replace(equations_copy[eqn_idx], pos, evaled_repl)
+                new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
                 
                 # deal with additional occurrences of the replaced subexpression
                 common_subexp_rules = matched_kernel.CSE_rules
 
-                # print(common_subexp_rules)
-                # print("before", equations_copy[eqn_idx])
-                equations_copy.replace_all(common_subexp_rules)
-                # print("after", equations_copy[eqn_idx])
+                equations_copy = equations.set(eqn_idx, new_equation)
+                equations_copy = equations_copy.replace_all(common_subexp_rules)
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 
@@ -243,6 +270,3 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 transformed_expressions.append((equations_copy, new_metric, edge_label))
 
         return transformed_expressions
-
-    def TR_inv_reductions(self, equations, eqn_idx, initial_pos, metric):
-        pass

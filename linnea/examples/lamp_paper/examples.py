@@ -44,7 +44,7 @@ class LMMSE_7_1_2(object):
         # chen2017
 
 
-        H = Matrix("H", (l + m, n), properties = [properties.INPUT])
+        H = Matrix("H", (l + m, n), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(n, n)
         y = Vector("y", (l + m, sONE), properties = [properties.INPUT])
         x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
@@ -162,8 +162,8 @@ class Signal_Processing_7_1_5(object):
 
         A = Matrix("A", (N, N), properties = [properties.FULL_RANK, properties.INPUT])
         B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (N - 1, N), properties = [properties.UPPER_TRIANGULAR, properties.INPUT])
-        L = Matrix("L", (N - 1, N - 1), properties = [properties.DIAGONAL, properties.INPUT])
+        R = Matrix("R", (N - 1, N), properties = [properties.FULL_RANK, properties.UPPER_TRIANGULAR, properties.INPUT])
+        L = Matrix("L", (N - 1, N - 1), properties = [properties.FULL_RANK, properties.DIAGONAL, properties.INPUT])
 
         y = Vector("y", (N, sONE), properties = [properties.INPUT])
         x = Vector("x", (N, sONE), properties = [properties.OUTPUT])
@@ -204,11 +204,11 @@ class Lower_Triangular_Inversion_7_1_6(object):
         # equation: x = (A^-T B^T BA^-1 + R^TDR)^-1 A^-T B^T BA^-1 y
         # input-output variables are modeled as two seperate variables
 
-        L00  = Matrix("L00", (n, n), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
-        L11  = Matrix("L11", (m, m), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
-        L22  = Matrix("L22", (k, k), properties = [properties.LOWER_TRIANGULAR, properties.INPUT])
-        L21  = Matrix("L21", (k, m), properties = [properties.INPUT])
-        L10  = Matrix("L10", (m, n), properties = [properties.INPUT])
+        L00  = Matrix("L00", (n, n), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
+        L11  = Matrix("L11", (m, m), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
+        L22  = Matrix("L22", (k, k), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
+        L21  = Matrix("L21", (k, m), properties = [properties.FULL_RANK, properties.INPUT])
+        L10  = Matrix("L10", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
 
         X21  = Matrix("X21", (k, m), properties = [properties.OUTPUT])
         X11  = Matrix("X11", (m, m), properties = [properties.OUTPUT])
@@ -264,12 +264,12 @@ class Local_Assimilation_Kalmar_7_1_7(object):
 
         minusone = ConstantScalar(-1)
 
-        B = Matrix("B", (N, N), properties = [properties.INPUT])
-        H = Matrix("H", (msd, N), properties = [properties.INPUT])
-        R = Matrix("R", (msd, msd), properties = [properties.INPUT])
-        Y = Matrix("Y", (msd, N), properties = [properties.INPUT])
-        Xb = Matrix("Xb", (nsd, N), properties = [properties.INPUT])
-        Xa = Matrix("X", (nsd, N), properties = [properties.OUTPUT])
+        B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.INPUT])
+        H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.INPUT])
+        Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        Xa = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
 
         self.eqns = Equations(
                             Equal(
@@ -301,12 +301,12 @@ class EnsembleKalmarFilter_7_1_9_1(object):
 
         minusone = ConstantScalar(-1.0)
 
-        Ki_O = Matrix("Ki_O", (n, m), properties = [properties.OUTPUT])
-        Ki_I = Matrix("Ki_I", (n, m), properties = [properties.INPUT])
+        Ki_O = Matrix("Ki_O", (n, m), properties = [properties.FULL_RANK, properties.OUTPUT])
+        Ki_I = Matrix("Ki_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
         P_b = Matrix("P_b", (n, n), properties = [properties.INPUT, properties.SPD])
         P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
-        H = Matrix("H", (m, n), properties = [properties.INPUT])
-        R = Matrix("R", (m, m), properties = [properties.INPUT, properties.SYMMETRIC])
+        H = Matrix("H", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (m, m), properties = [properties.FULL_RANK, properties.INPUT, properties.SYMMETRIC])
         I = IdentityMatrix(n, n)
 
         x_a = Vector("x_a", (n, sONE), properties = [properties.OUTPUT])
@@ -381,12 +381,12 @@ class EnsembleKalmarFilter_7_1_9_2(object):
         minusone = ConstantScalar(-1.0)
         n_scalar = ConstantScalar(n)
 
-        K = Matrix("K", (n, m), properties = [properties.OUTPUT])
+        K = Matrix("K", (n, m), properties = [properties.FULL_RANK, properties.OUTPUT])
         Si_O = Matrix("Si_O", (n, m), properties = [properties.OUTPUT])
-        Si_I = Matrix("Si_I", (n, m), properties = [properties.INPUT])
+        Si_I = Matrix("Si_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
         X = Matrix("X", (m, n), properties = [properties.INPUT, properties.SPD])
         Y = Matrix("Y", (n, n), properties = [properties.INPUT, properties.SPD])
-        R = Matrix("R", (m, m), properties = [properties.INPUT, properties.SYMMETRIC])
+        R = Matrix("R", (m, m), properties = [properties.FULL_RANK, properties.INPUT, properties.SYMMETRIC])
         I = IdentityMatrix(n, n)
         P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
 
@@ -466,8 +466,8 @@ class SPA_7_1_12(object):
         # B = QQ^T*A
 
 
-        A = Matrix("A", (d, m), properties = [properties.INPUT])
-        A_I = Matrix("A_I", (d, k), properties = [properties.INPUT])
+        A = Matrix("A", (d, m), properties = [properties.FULL_RANK, properties.INPUT])
+        A_I = Matrix("A_I", (d, k), properties = [properties.FULL_RANK, properties.INPUT])
         Q = Matrix("Q", (d, k), properties = [properties.INPUT, properties.ORTHOGONAL])
         B = Matrix("B", (d, m), properties = [properties.OUTPUT])
         Y = Matrix("Y", (d, k), properties = [properties.OUTPUT])
@@ -570,7 +570,7 @@ class ImageRestoration_7_1_13_2(object):
         sigma_ = Scalar("sigma_sq")
 
         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-        H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.INPUT])
+        H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
         H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
         I = IdentityMatrix(n, n)
 
@@ -690,9 +690,9 @@ class CDMA_7_1_15(object):
         G1 = G + L -1
 
         sigma_sq = Scalar("sigma_sq")
-        S = Matrix("S", (G, K), properties = [properties.INPUT])
+        S = Matrix("S", (G, K), properties = [properties.FULL_RANK, properties.INPUT])
         H = Matrix("H", (G1, G), properties = [properties.INPUT, properties.FULL_RANK])
-        Q = Matrix("Q", (G1, G1), properties = [properties.INPUT, properties.SYMMETRIC])
+        Q = Matrix("Q", (G1, G1), properties = [properties.FULL_RANK, properties.INPUT, properties.SYMMETRIC])
         r = Vector("r", (G1, sONE), properties = [properties.INPUT])
         b = Vector("b", (K, sONE), properties = [properties.OUTPUT])
 
@@ -725,12 +725,12 @@ class Common_Subexpr_7_2_1(object):
         # equation: X = ABCD, Y = BCDE, Z = BCDEF
 
 
-        A = Matrix("A", (n, n), properties = [properties.INPUT])
-        B = Matrix("B", (n, n), properties = [properties.INPUT])
-        C = Matrix("C", (n, n), properties = [properties.INPUT])
-        D = Matrix("D", (n, n), properties = [properties.INPUT])
-        E = Matrix("E", (n, n), properties = [properties.INPUT])
-        F = Matrix("F", (n, n), properties = [properties.INPUT])
+        A = Matrix("A", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        B = Matrix("B", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        C = Matrix("C", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        D = Matrix("D", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        E = Matrix("E", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        F = Matrix("F", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
 
         X = Matrix("X", (n, n), properties = [properties.OUTPUT])
         Y = Matrix("Y", (n, n), properties = [properties.OUTPUT])
@@ -748,8 +748,8 @@ class Common_Subexpr_7_2_2(object):
         # optimal solution A((BA)B when n >> m
 
 
-        A = Matrix("A", (n, m), properties = [properties.INPUT])
-        B = Matrix("B", (m, n), properties = [properties.INPUT])
+        A = Matrix("A", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
+        B = Matrix("B", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
 
         X = Matrix("X", (n, n), properties = [properties.OUTPUT])
 
@@ -763,8 +763,8 @@ class Common_Subexpr_7_2_3(object):
         # optimal solution uses AS = (SA^T)^T
 
 
-        A = Matrix("A", (n, n), properties = [properties.INPUT])
-        S = Matrix("S", (n, n), properties = [properties.INPUT, properties.SYMMETRIC])
+        A = Matrix("A", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        S = Matrix("S", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC])
 
         X = Matrix("X", (n, n), properties = [properties.OUTPUT])
         Y = Matrix("Y", (n, n), properties = [properties.OUTPUT])
@@ -781,9 +781,9 @@ class Overlap_Common_Subexpr_7_2_4(object):
         # optimal solution reuses BC
 
 
-        A = Matrix("A", (n, n), properties = [properties.INPUT])
-        B = Matrix("B", (n, n), properties = [properties.INPUT])
-        C = Matrix("C", (n, m), properties = [properties.INPUT])
+        A = Matrix("A", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        B = Matrix("B", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        C = Matrix("C", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
 
         X = Matrix("X", (n, n), properties = [properties.OUTPUT])
         Y = Matrix("Y", (n, m), properties = [properties.OUTPUT])
@@ -797,12 +797,12 @@ class Overlap_Common_Subexpr_7_2_4(object):
 
 class Rewrite_Distributivity_Base(object):
     def create_matrices(self, n):
-        A = Matrix("A", (n, n), properties = [properties.INPUT])
-        B = Matrix("B", (n, n), properties = [properties.INPUT])
-        C = Matrix("C", (n, n), properties = [properties.INPUT])
-        D = Matrix("D", (n, n), properties = [properties.INPUT])
-        E = Matrix("E", (n, n), properties = [properties.INPUT])
-        F = Matrix("F", (n, n), properties = [properties.INPUT])
+        A = Matrix("A", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        B = Matrix("B", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        C = Matrix("C", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        D = Matrix("D", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        E = Matrix("E", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
+        F = Matrix("F", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
 
         X = Matrix("X", (n, n), properties = [properties.OUTPUT])
         return [A, B, C, D, E, F, X]
@@ -883,12 +883,12 @@ class Matrix_Chain_7_2_6(object):
         # A is lower triangular, 
         # D, E are upper triangular
 
-        A = Matrix("A", (n1, n1), properties = [properties.INPUT, properties.LOWER_TRIANGULAR])
-        B = Matrix("B", (n1, n2), properties = [properties.INPUT])
-        C = Matrix("C", (n2, n3), properties = [properties.INPUT])
-        D = Matrix("D", (n3, n3), properties = [properties.INPUT, properties.UPPER_TRIANGULAR])
-        E = Matrix("E", (n3, n4), properties = [properties.INPUT, properties.UPPER_TRIANGULAR])
-        F = Matrix("F", (n4, n5), properties = [properties.INPUT])
+        A = Matrix("A", (n1, n1), properties = [properties.INPUT, properties.FULL_RANK, properties.LOWER_TRIANGULAR])
+        B = Matrix("B", (n1, n2), properties = [properties.INPUT, properties.FULL_RANK])
+        C = Matrix("C", (n2, n3), properties = [properties.INPUT, properties.FULL_RANK])
+        D = Matrix("D", (n3, n3), properties = [properties.INPUT, properties.FULL_RANK, properties.UPPER_TRIANGULAR])
+        E = Matrix("E", (n3, n4), properties = [properties.INPUT, properties.FULL_RANK, properties.UPPER_TRIANGULAR])
+        F = Matrix("F", (n4, n5), properties = [properties.INPUT, properties.FULL_RANK])
 
         W = Matrix("W", (n1, n5), properties = [properties.OUTPUT])
 
@@ -902,12 +902,12 @@ class Matrix_Chain_7_2_7(object):
         # A is lower triangular, 
         # D, E are upper triangular
 
-        A = Matrix("A", (n1, n1), properties = [properties.INPUT, properties.LOWER_TRIANGULAR])
-        B = Matrix("B", (n1, n2), properties = [properties.INPUT])
-        C = Matrix("C", (n2, n3), properties = [properties.INPUT])
-        D = Matrix("D", (n3, n3), properties = [properties.INPUT, properties.UPPER_TRIANGULAR])
-        E = Matrix("E", (n3, n4), properties = [properties.INPUT, properties.UPPER_TRIANGULAR])
-        F = Matrix("F", (n4, n5), properties = [properties.INPUT])
+        A = Matrix("A", (n1, n1), properties = [properties.INPUT, properties.FULL_RANK, properties.LOWER_TRIANGULAR])
+        B = Matrix("B", (n1, n2), properties = [properties.INPUT, properties.FULL_RANK])
+        C = Matrix("C", (n2, n3), properties = [properties.INPUT, properties.FULL_RANK])
+        D = Matrix("D", (n3, n3), properties = [properties.INPUT, properties.FULL_RANK, properties.UPPER_TRIANGULAR])
+        E = Matrix("E", (n3, n4), properties = [properties.INPUT, properties.FULL_RANK, properties.UPPER_TRIANGULAR])
+        F = Matrix("F", (n4, n5), properties = [properties.INPUT, properties.FULL_RANK])
 
         W = Matrix("W", (n1, n5), properties = [properties.OUTPUT])
 
@@ -925,11 +925,11 @@ class Properties_7_2_8(object):
         # equation: X = (L1^-1 L2 U1^T + L3)^-1 U2^T
         # LX is lower triangular, UX is upper triangular
 
-        L1 = Matrix("L1", (n, n), properties = [properties.INPUT, properties.LOWER_TRIANGULAR])
-        L2 = Matrix("L2", (n, n), properties = [properties.INPUT, properties.LOWER_TRIANGULAR])
-        L3 = Matrix("L3", (n, n), properties = [properties.INPUT, properties.LOWER_TRIANGULAR])
-        U1 = Matrix("U1", (n, n), properties = [properties.INPUT, properties.UPPER_TRIANGULAR])
-        U2 = Matrix("U2", (n, n), properties = [properties.INPUT, properties.UPPER_TRIANGULAR])
+        L1 = Matrix("L1", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.LOWER_TRIANGULAR])
+        L2 = Matrix("L2", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.LOWER_TRIANGULAR])
+        L3 = Matrix("L3", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.LOWER_TRIANGULAR])
+        U1 = Matrix("U1", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.UPPER_TRIANGULAR])
+        U2 = Matrix("U2", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.UPPER_TRIANGULAR])
         X = Matrix("X", (n, n), properties = [properties.OUTPUT])
 
         self.eqns = Equations(
@@ -955,7 +955,7 @@ class Transposed_Kernel_7_2_9(object):
         # equation: X = x^T A
         # LX is lower triangular, UX is upper triangular
 
-        A = Matrix("A", (m, n), properties = [properties.INPUT])
+        A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         x = Vector("x", (m, sONE), properties = [properties.INPUT])
         y = Vector("y", (sONE, n), properties = [properties.OUTPUT])
 
@@ -976,8 +976,8 @@ class Transposed_Kernel_7_2_10(object):
         # S is nxn, symmetric
         # B is mxn
 
-        A = Matrix("A", (n, n), properties = [properties.INPUT])
-        S = Matrix("S", (n, n), properties = [properties.INPUT, properties.SYMMETRIC])
+        A = Matrix("A", (n, n), properties = [properties.INPUT, properties.FULL_RANK])
+        S = Matrix("S", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC])
         B = Matrix("B", (m, n), properties = [properties.INPUT])
         X = Matrix("X", (n, m), properties = [properties.OUTPUT])
 
@@ -998,8 +998,8 @@ class Simplification_7_2_11(object):
         # B is mxn
         # X is mxn
 
-        A = Matrix("A", (m, n), properties = [properties.INPUT])
-        B = Matrix("B", (m, n), properties = [properties.INPUT])
+        A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        B = Matrix("B", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         X = Matrix("X", (m, n), properties = [properties.OUTPUT])
 
         self.eqns = Equations(
@@ -1019,8 +1019,8 @@ class Simplification_7_2_12(object):
         # B is mxn
         # X is mxn
 
-        A = Matrix("A", (m, n), properties = [properties.INPUT])
-        B = Matrix("B", (m, n), properties = [properties.INPUT])
+        A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        B = Matrix("B", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         X = Matrix("X", (m, n), properties = [properties.OUTPUT])
 
         self.eqns = Equations(

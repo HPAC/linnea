@@ -16,6 +16,7 @@ def main():
     parser.add_argument("output_path", nargs="?", help="relative path to the output directory; defaults to the current directory")
     parser.add_argument("--algorithms-limit", type=int, help="maximum number of generated algorithms")
     parser.add_argument("-d", "--data-type", choices=["Float32", "Float64"], help="data type used in the generated code")
+    parser.add_argument("-d", "--no-dead-ends", dest="dead_ends", action="store_const", const=True, help="disable dead end detection")
     parser.add_argument("-e", "--experiments", action="store_const", const=True, help="generate code for experiments")
     parser.add_argument("-g", "--graph", action="store_const", const=True, help="write graph to file")
     parser.add_argument("--iteration-limit", help="iteration limit")
@@ -41,6 +42,8 @@ def main():
         config.set_data_type(config.JuliaDataType[args.data_type])
     if args.experiments is not None:
         config.set_generate_experiments(args.experiments)
+    if args.dead_ends is not None:
+        config.set_dead_ends(args.dead_ends)
     if args.graph is not None:
         config.set_generate_graph(args.graph)
     if args.iteration_limit is not None:

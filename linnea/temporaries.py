@@ -6,6 +6,8 @@ from .algebra import representations as ar
 import copy
 import itertools
 
+import matchpy
+
 _counter = 0
 
 def get_identifier():
@@ -89,7 +91,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
 
         tmp.indices = expr.indices
         tmp.bandwidth = expr.bandwidth
-        if not isinstance(expr, ae.Symbol) and len(expr.operands) == 1:
+        if isinstance(expr, ae.Operator) and expr.arity == matchpy.Arity.unary:
             tmp.factorization_labels = expr.factorization_labels
 
         if set_equivalent:
@@ -109,7 +111,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
 def _get_equivalent(expr):
     # TODO: This is horrible. Is there any way to fix it?
     new_expr = _flatten_equivalent(expr)
-    return ar.to_SOP(at.simplify(ar.to_SOP(new_expr))) if new_expr is not expr else expr
+    return ar.to_SOP(at.simplify(ar.to_SOP(new_expr)))
 
 def _flatten_equivalent(expr):
     if isinstance(expr, ae.Symbol):

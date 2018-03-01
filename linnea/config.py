@@ -68,6 +68,7 @@ language = None
 output_path = None
 output_name = None
 merging_branches = False
+dead_ends = False
 algorithms_limit = -1
 generate_graph = False
 generate_pseudocode = False
@@ -138,6 +139,10 @@ def set_merging_branches(merging):
     global merging_branches
     merging_branches = merging
 
+def set_dead_ends(de):
+    global dead_ends
+    dead_ends = de
+
 def set_algorithms_limit(n):
     global algorithms_limit
     algorithms_limit = n
@@ -202,6 +207,7 @@ def init():
 set_language(Language.Julia)
 set_data_type(JuliaDataType.Float64)
 set_merging_branches(True)
+set_dead_ends(True)
 set_algorithms_limit(100)
 set_generate_graph(False)
 set_generate_pseudocode(False)

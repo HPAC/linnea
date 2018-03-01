@@ -20,7 +20,7 @@ class Equations(object):
     _counter = 0
 
     def __init__(self, *equations):
-        self.equations = list(equations)
+        self.equations = tuple(equations)
 
     def __iter__(self):
         return self.equations.__iter__()
@@ -32,13 +32,13 @@ class Equations(object):
         return "\n".join([str(equation) for equation in self.equations])
 
     def __eq__(self, other):
-        return all(x == y for x, y in zip(self.equations, other.equations))
+        return hash(self) == hash(other)
+
+    def __lt__(self, other):
+        return self.equations < other.equations
 
     def __getitem__(self, key):
         return self.equations[key]
-
-    def __setitem__(self, key, value):
-        self.equations[key] = value
 
     def __len__(self):
         return len(self.equations)
@@ -58,16 +58,29 @@ class Equations(object):
     def __hash__(self):
         return hash(tuple(self.equations))
 
+    # def __eq__(self, other):
+    #     return self.equations == other.equations
+
+    def set(self, position, value):
+        equations = list(self.equations)
+        equations[position] = value
+        return Equations(*equations)
+
     def insert(self, position, value):
-        self.equations.insert(position, value)
+        equations = list(self.equations)
+        equations.insert(position, value)
+        return Equations(*equations)
 
     def replace_all(self, rules):
         equations = []
         for equation in self.equations:
             equation = matchpy.replace_all(equation, rules)
-            equation = ar.to_SOP(at.simplify(equation))
+            equation = ar.to_SOP(at.simplify(ar.to_SOP(equation)))
             equations.append(equation)
-        self.equations = equations
+        return Equations(*equations)
+
+    def to_normalform(self):
+        return Equations(*[ar.to_SOP(at.simplify(ar.to_SOP(equation))) for equation in self.equations])
 
     def set_equivalent(self, equations_before):
         """Applies temporaries.set_equivalent() to all equations.
@@ -94,14 +107,15 @@ class Equations(object):
         Returns true if an equation was removed, false if not.
         """
         remove = []
+        equations = list(self.equations)
         for n, equation in enumerate(self.equations):
             if equation.rhs == equation.lhs:
                 remove.append(n)
 
         for idx in remove:
-            del self.equations[idx]
+            del equations[idx]
 
-        return bool(remove)
+        return Equations(*equations)
 
     def apply_partitioning(self):
         change = True
