@@ -111,7 +111,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
 def _get_equivalent(expr):
     # TODO: This is horrible. Is there any way to fix it?
     new_expr = _flatten_equivalent(expr)
-    return ar.to_SOP(at.simplify(ar.to_SOP(new_expr))) if new_expr is not expr else expr
+    return ar.to_SOP(at.simplify(ar.to_SOP(new_expr)))
 
 def _flatten_equivalent(expr):
     if isinstance(expr, ae.Symbol):

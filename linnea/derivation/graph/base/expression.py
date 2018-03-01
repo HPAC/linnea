@@ -13,7 +13,6 @@ class ExpressionGraphBase(base.GraphBase):
         self.root = ExpressionGraphNode(root_expr)
         self.active_nodes = [self.root]
         self.nodes = [self.root]
-        self.level_counter = -1
 
 
     def create_nodes(self, predecessor, *description):
@@ -32,8 +31,8 @@ class ExpressionGraphNode(base.GraphNodeBase):
 
     _counter = 0
 
-    def __init__(self, expression=None, metric=None, predecessor=None):
-        super(ExpressionGraphNode, self).__init__(metric, predecessor)
+    def __init__(self, expression=None, metric=None, predecessor=None, factored_operands=None):
+        super(ExpressionGraphNode, self).__init__(metric, predecessor, factored_operands)
         # IDs for dot output
         self.id = ExpressionGraphNode._counter
         self.name = "".join(["node", str(self.id)])

@@ -5,6 +5,7 @@ from ..algebra.expression import Scalar, Matrix, \
 from ..algebra.properties import Property as properties
 from ..algebra.transformations import simplify
 from ..algebra.representations import to_SOP
+from ..algebra.equations import Equations
 
 from .graph.base import base
 

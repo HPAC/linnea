@@ -44,6 +44,8 @@ There are the following options (those are the names used in Python, the command
 
 * `merging_branches` Whether or not to merge branches in the derivation graph. The default is `true`.
 
+* `dead_ends` Whether or not to eliminate dead ends in the derivation graph early. The default is `true`.
+
 * `algorithms_limit` The upper limit for the number of algorithms that are written to files. The default is `100`.
 
 * `strategy` The strategy used to find algorithms. Either `constructive` or `exhaustive`. The default is `constructive`.

@@ -75,12 +75,12 @@ class Equations(object):
         equations = []
         for equation in self.equations:
             equation = matchpy.replace_all(equation, rules)
-            equation = ar.to_SOP(at.simplify(equation))
+            equation = ar.to_SOP(at.simplify(ar.to_SOP(equation)))
             equations.append(equation)
         return Equations(*equations)
 
     def to_normalform(self):
-        return Equations(*[ar.to_SOP(at.simplify(equation)) for equation in self.equations])
+        return Equations(*[ar.to_SOP(at.simplify(ar.to_SOP(equation))) for equation in self.equations])
 
     def set_equivalent(self, equations_before):
         """Applies temporaries.set_equivalent() to all equations.

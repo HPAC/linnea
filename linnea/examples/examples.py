@@ -2857,8 +2857,14 @@ class Example097(object):
         n4 = 800
         n5 = 1000
 
+        # n1 = 1500
+        # n2 = 1200
+        # n3 = 1300
+        # n4 = 800
+        # n5 = 1000
+
         A = Matrix("A", (n1, n1))
-        A.set_property(properties.LOWER_TRIANGULAR)
+        A.set_property(properties.SPD)
         A.set_property(properties.INPUT)
 
         B = Matrix("B", (n1, n2))

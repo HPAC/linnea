@@ -8,6 +8,9 @@ import collections
 
 from .... import config
 
+from .. import utils as dgbu
+
+
 output_msg_add = "{2:>2n} {0:.<22}{1:.>5n}"
 # output_msg_add = "{2:>2n} {0}:{1:.>27n}"
 output_msg_plain = "   {0:.<22}{1:.>5n}"
@@ -15,6 +18,10 @@ output_msg_plain = "   {0:.<22}{1:.>5n}"
 
 # TODO rename to GenericGraph or something?
 class GraphBase(object):
+
+    def __init__(self):
+        super(GraphBase, self).__init__()
+        self.level_counter = -1
 
     def print(self, str):
         if config.verbosity >= 1:
@@ -235,7 +242,7 @@ class GraphBase(object):
             This function does not work properly if there are entire redundant
             paths where multiple nodes along the path have to be merged.
         """
-        keyfunc = operator.attrgetter("equations")
+        keyfunc = operator.methodcaller("get_payload")
 
         self.nodes.sort(key=keyfunc)
         remove = []
@@ -250,9 +257,38 @@ class GraphBase(object):
 
         return len(remove)
 
+
+    def DS_dead_ends(self):
+        """Removes dead ends from the active nodes.
+
+        Identifies and remove nodes that can not lead to any solutions. This is
+        the case if
+        - for all variants, there is a product that is blocked, but
+        not an explicit inversion.
+        - there is a symbol inverse, that is, Inverse(A), where A has the
+          property ADMITS_FACTORIZATION, and A was already factored. This can
+          happen due to variants.
+
+        Returns:
+            int: Number of removed nodes.
+        """
+        remove = []
+        for node in self.active_nodes:
+            dead_end = []
+            for equations in dgbu.generate_variants(node.equations):
+                dead_end.append(dgbu.is_dead_end(equations, node.factored_operands))
+            if all(dead_end):
+                remove.append(node)
+
+        for node in remove:
+            self.active_nodes.remove(node)
+
+        return len(remove)
+
+
 class GraphNodeBase(object):
 
-    def __init__(self, metric=None, predecessor=None):
+    def __init__(self, metric=None, predecessor=None, factored_operands=None):
 
         self.successors = []
         self.edge_labels = []
@@ -261,6 +297,28 @@ class GraphNodeBase(object):
         self.accumulated_cost = 0
         self.level = None
         self.optimal_path_predecessor = predecessor
+
+        if factored_operands is None:
+            self.factored_operands = set()
+        else:
+            self.factored_operands = factored_operands
+
+        self.applied_DS_steps = set()
+
+    def add_factored_operands(self, factored_operands):
+        self.factored_operands.update(factored_operands)
+
+    def add_applied_step(self, applied_step):
+        """Add an applied derivation step.
+
+        For some derivation steps, the current node stays active. This can cause
+        the same derivation step to be applied multiple times to the same node.
+        To avoid this, nodes are labelled if those steps are applied.
+
+        Args:
+            applied_steps (DS_step): The derivation step that was applied.
+        """
+        self.applied_DS_steps.add(applied_step)
 
     def get_payload(self):
         raise NotImplementedError()
@@ -289,14 +347,13 @@ class GraphNodeBase(object):
         for predecessor in other.predecessors:
             predecessor.change_successor(other, self)
             self.predecessors.append(predecessor)
-        self.successors.extend(other.successors)
+        for successor in other.successors:
+            successor.change_predecessor(other, self)
+            self.successors.append(successor)
         self.edge_labels.extend(other.edge_labels)
-        # print("merge", self.id, other.id, self.accumulated_cost, other.accumulated_cost)
-        # self.update_cost(min(self.accumulated_cost, other.accumulated_cost))
+        self.applied_DS_steps.update(other.applied_DS_steps)
+        self.factored_operands.update(other.factored_operands)
         self.update_cost(other.accumulated_cost, other.optimal_path_predecessor)
-        # self.accumulated_cost = min(self.accumulated_cost, other.accumulated_cost)
-        # for successor, edge_label in zip(self.successors, self.edge_labels):
-        #     successor.update_cost(sum(edge_label.cost) + self.accumulated_cost)
 
     def update_cost(self, new_cost, predecessor):
         """Updates self.accumulated_cost of all successors.
@@ -318,6 +375,10 @@ class GraphNodeBase(object):
     def change_successor(self, old_target, new_target):
         idx = self.successors.index(old_target)
         self.successors[idx] = new_target
+
+    def change_predecessor(self, old_target, new_target):
+        idx = self.predecessors.index(old_target)
+        self.predecessors[idx] = new_target
 
     def __str__(self):
         out = "".join(["NODE ", str(self.id), "\n    ", str(self.get_payload()), " ", str(self.metric)])

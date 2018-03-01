@@ -797,7 +797,7 @@ def admits_undistribution(expr):
     Returns:
         True if expression admits undistribution, False otherwise.
     """
-    return not expr.has_property(properties.FACTOR) and isinstance(expr, (ae.Inverse, ae.InverseTranspose, ae.InverseConjugate, ae.InverseConjugateTranspose))
+    return not expr.factorization_labels and isinstance(expr, (ae.Inverse, ae.InverseTranspose, ae.InverseConjugate, ae.InverseConjugateTranspose))
 
 def undistribute_inverse(expr):
     """Undistributes the inverse operator.

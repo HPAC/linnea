@@ -4,7 +4,8 @@ from ...algebra.expression import Symbol, Matrix, Scalar, Inverse, \
                                   InverseTranspose, InverseConjugate, \
                                   InverseConjugateTranspose
 
-from ...algebra.transformations import transpose, invert, undistribute_inverse
+from ...algebra.transformations import transpose, invert, undistribute_inverse, \
+                                       admits_undistribution
 from ...algebra.representations import to_POS
 
 from ...algebra import equations as aeq
@@ -14,6 +15,8 @@ from ...algebra.properties import Property as properties
 from collections import namedtuple, deque
 
 from enum import Enum, unique
+
+from ..utils import is_blocked
 
 import copy
 import itertools
@@ -59,6 +62,16 @@ class InverseType(Enum):
     explicit_inversion = 2
     none = 3
 
+@unique
+class DS_step(Enum):
+    factorizations = 1
+    kernels = 2
+    tricks = 3
+    CSE = 4
+    prune = 5
+    merge = 6
+
+# TODO currently, type is not used, so it could be removed
 Occurrence = namedtuple('Occurrence', ['eqn_idx', 'position', 'operand', 'type', 'group', 'symbol'])
 
 def find_operands_to_factor(equations):
@@ -75,10 +88,9 @@ def find_operands_to_factor(equations):
     """
     # this is independent of variants (most likely)
 
+    operands_to_factor = set()
     for equation in equations:
-        operands_to_factor = set()
-        for inv_pos in inverse_positions(equation.rhs, [1]):
-            inv_expr = equation[inv_pos]
+        for inv_expr, inv_pos in inverse_positions(equation.rhs, [1]):
             for expr, pos in inv_expr.preorder_iter():
                 if isinstance(expr, Symbol) and expr.has_property(properties.ADMITS_FACTORIZATION):
                     operands_to_factor.add(expr)
@@ -91,12 +103,24 @@ def find_occurrences(equations, operands_to_factor):
     Finds all occurrences of operands that have to be factored. This includes
     occurrences which are not in inverses.
 
+    This function returns and Occurrences object, which has the following
+    attributes:
+    * eqn_idx: The index of the equation of the occurrence.
+    * position: The position of the occurrence in equation.
+    * operand: The Operand.
+    * type: The type of this occurrence. This is an InverseType object.
+    * group: An identifier for the group, the position of the outermost inverse
+      is used.
+    * symbol: True if this occurrence is a symbol inverse, that is Inverse(A).
+
+
     Args:
         equations (Equations): The equations that are searched.
         operands_to_factor (set): Set of operands to search for.
 
     Yields:
         Occurrence: All occurrences of the operands.
+
     """
 
     for eqn_idx, equation in enumerate(equations):
@@ -105,15 +129,13 @@ def find_occurrences(equations, operands_to_factor):
             yield Occurrence(eqn_idx, *res)
 
 def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, position=[], group=None, symbol=False, predecessor=None):
-    # finds positions of operands_to_factor, returns:
-    # path, expr, type (linear system, explicit inversion, none), and group (which is the position of the outermost inverse)
 
     if isinstance(expr, Symbol):
         if expr in operands_to_factor:
             yield (position, expr, inv_type, group, symbol)
         return
 
-    if isinstance(expr, Inverse) or isinstance(expr, InverseTranspose) or isinstance(expr, InverseConjugate) or isinstance(expr, InverseConjugateTranspose):
+    if is_inverse(expr):
         if not group: # this avoids nested groups
             group = position
         if isinstance(predecessor, Times):
@@ -126,6 +148,17 @@ def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, posit
         position_copy = copy.deepcopy(position)
         position_copy.append(n)
         yield from _find_occurrences(operand, operands_to_factor, inv_type, position_copy, group, symbol, expr)
+
+def find_explicit_symbol_inverse(expr, position=[], predecessor=None):
+
+    if is_inverse(expr) and isinstance(expr.operand, Symbol) and not isinstance(predecessor, Times):
+        yield (expr, position)
+
+    if isinstance(expr, Operator):
+        for n, operand in enumerate(expr.operands):
+            position_copy = copy.deepcopy(position)
+            position_copy.append(n)
+            yield from find_explicit_symbol_inverse(operand, position_copy, expr)
 
 def group_occurrences(occurrences):
     # group symbol inverses by eqn_idx, inverse group, operand
@@ -160,63 +193,79 @@ def generate_variants(equations, eqn_idx=None):
     generated for only one single equation.
     """
 
+    """
+    Ideas:
+    - for each type of variant, first find list of eqn_idx where it (potentially)
+      can be applied.
+      (if eqn_idx is given as argument, only work with that equation. This is
+       probably what we want most of the time, except for CSE, because they
+       operate on all equations)
+    - if it's not empty, generate variants.
+    for eqn_idx in indices:
+        do something
+    - put results into set to avoid duplicates
+    """
 
-    undist_inv = False
-    for equation in equations:
-        number_of_inverses = 0
+    # TODO what about combinations of POS and undistribute inverse?
+    # try all combinations? yes, but only if the same equations are concerned
+
+    variants = set([equations])
+
+    eqn_indices = None
+    if eqn_idx is not None:
+        eqn_indices = [eqn_idx]
+    else:
+        eqn_indices = range(len(equations))
+
+    undist_inv_candidates = set()
+    for _eqn_idx in eqn_indices:
+        equation = equations[_eqn_idx]
         for node, pos in equation.preorder_iter():
-            if is_inverse(node):
-                number_of_inverses += 1
-                if number_of_inverses > 1:
-                    undist_inv = True
-                    break
-        if undist_inv:
-            break
+            if isinstance(node, Times):
+                number_of_inverses = 0
+                for operand in node.operands:
+                    if admits_undistribution(operand):
+                        number_of_inverses += 1
+                    if number_of_inverses > 1:
+                        undist_inv_candidates.add(_eqn_idx)
+                        break
 
-    # if undist_inv:
+    if undist_inv_candidates:
+        new_equations = []
+        for _eqn_idx, equation in enumerate(equations):
+            new_equation = equation
+            if _eqn_idx in undist_inv_candidates:
+                new_equation = undistribute_inverse(new_equation)
+            new_equations.append(new_equation)
 
+        variants.add(aeq.Equations(*new_equations))
 
-    # print(undistribute_inverse(equations[0]))
-
-    # If there is no Plus in any equation, there will be no POS variant.
-    plus_found = False
-    for equation in equations:
+    # TODO combine this with the other loop
+    POS_candidates = set()
+    for _eqn_idx in eqn_indices:
+        equation = equations[_eqn_idx]
         for node, pos in equation.preorder_iter():
             if isinstance(node, Plus):
-                plus_found = True
-                break
-        if plus_found:
-            break
+                for operand in node.operands:
+                    if isinstance(operand, Times):
+                        POS_candidates.add(_eqn_idx)
+                        break
 
+    if POS_candidates:
+        new_equations_left = []
+        new_equations_right = []
+        for _eqn_idx, equation in enumerate(equations):
+            new_equation_left = equation
+            new_equation_right = equation
+            if _eqn_idx in POS_candidates:
+                new_equation_left = to_POS(new_equation_left, "l")
+                new_equation_right = to_POS(new_equation_right, "r")
+            new_equations_left.append(new_equation_left)
+            new_equations_right.append(new_equation_right)
 
+        variants.add(aeq.Equations(*new_equations_left))
+        variants.add(aeq.Equations(*new_equations_right))
 
-
-    if eqn_idx is None:
-        POSL_equations = aeq.Equations(*[to_POS(equation, "l") for equation in equations])
-        POSR_equations = aeq.Equations(*[to_POS(equation, "r") for equation in equations])
-    else:
-        POSL_equations = equations.set(eqn_idx, to_POS(equations[eqn_idx], "l"))
-        POSR_equations = equations.set(eqn_idx, to_POS(equations[eqn_idx], "r"))
-
-    use_POSL = True
-    use_POSR = True
-
-    if POSL_equations == equations:
-        use_POSL = False
-    if POSR_equations == equations:
-        use_POSR = False
-    if use_POSR and use_POSL and POSR_equations == POSL_equations:
-        # If POSR and POSL equations are the same, only one is used.
-        use_POSR = False
-
-    variants = [equations]
-    if use_POSR:
-        variants.append(POSR_equations)
-    if use_POSL:
-        variants.append(POSL_equations)
-
-    # print(variants)
-    # return [equations]
     return variants
 
 
@@ -241,25 +290,24 @@ def process_next(equation):
     # It is necessary to search for inverses first because it's possible that
     # simple plus or times is inside an inverse, so factorizations have to be
     # used.
-    for pos in inverse_positions(equation.rhs, [1]):
-        node = equation[pos]
-        expr_type, op_type = inverse_type(node)
+    for expr, pos in inverse_positions(equation.rhs, [1]):
+        expr_type, op_type = inverse_type(expr)
         if expr_type == ExpressionType.simple_inverse_no_factor:
             continue
         else:
             return (pos, expr_type, op_type)
 
 
-    # for node, pos in equation.rhs.iterate_postorder_with_positions([1]):
-    for node, pos in process_next_generator(equation.rhs, [1]):
-        # node = equation[pos]
-        # print("here", node, node.size)
-        # print(list((n, n.size) for n in node.iterate_preorder()))
-        # if is_scalar(node):
+    # for expr, pos in equation.rhs.iterate_postorder_with_positions([1]):
+    for expr, pos in process_next_generator(equation.rhs, [1]):
+        # expr = equation[pos]
+        # print("here", expr, expr.size)
+        # print(list((n, n.size) for n in expr.iterate_preorder()))
+        # if is_scalar(expr):
             # print("here")
-        if isinstance(node, Plus) and is_simple_plus(node):
+        if isinstance(expr, Plus) and is_simple_plus(expr):
             return (pos, ExpressionType.simple, OperationType.plus)
-        elif isinstance(node, Times) and is_simple_times(node):
+        elif isinstance(expr, Times) and is_simple_times(expr):
             return (pos, ExpressionType.simple, OperationType.times)
 
     # [1] = position of right-hand side
@@ -366,9 +414,8 @@ def identify_inverses_eqns(equations):
     for eqn_idx, equation in enumerate(equations):
         # always starting at right-hand side
         # inverse_positions uses postorder, so we look at deeper inverses first
-        for inv_pos in inverse_positions(equation.rhs, [1]):
-            node = equation[inv_pos]
-            type = inverse_type(node)
+        for inv_expr, inv_pos in inverse_positions(equation.rhs, [1]):
+            type = inverse_type(inv_expr)
             if type == ExpressionType.simple_inverse_no_factor:
                 continue
             elif type == ExpressionType.simple_inverse:
@@ -384,29 +431,6 @@ def identify_inverses_eqns(equations):
 
     return (None, None, False, False)
 
-
-def identify_times(equations):
-    for n, equation in enumerate(equations):
-
-        eqn_idx = n
-        for pos in type_positions(Times, equation.rhs, [1]):
-            node = equation[pos]
-            if is_simple_times(node):
-                return (eqn_idx, pos)
-
-    return (None, None)
-
-def identify_plus(equations):
-    for n, equation in enumerate(equations):
-
-        eqn_idx = n
-        for pos in type_positions(Plus, equation.rhs, [1]):
-            node = equation[pos]
-            if is_simple_plus(node):
-                return (eqn_idx, pos)
-                print(equation)
-
-    return (None, None)    
 
 def is_explicit_inversion(matrix_chain):
     """Tests if matrix_chain is an explicit inversion.
@@ -431,6 +455,14 @@ def is_explicit_inversion(matrix_chain):
     else:
         return False
 
+def is_dead_end(equations, factored_operands):
+    for equation in equations:
+        for expr, _ in equation.rhs.preorder_iter():
+            if is_inverse(expr) and expr.operand.has_property(properties.ADMITS_FACTORIZATION) and expr.operand in factored_operands:
+                return True
+            if isinstance(expr, Times) and is_blocked(expr) and not is_explicit_inversion(expr):
+                return True
+    return False
 
 def is_scalar(expr):
     """Tests if expr only consists of scalars.
@@ -499,7 +531,7 @@ def inverse_positions(expr, position=[]):
         yield from inverse_positions(operand, position_copy)
 
     if is_inverse(expr):
-        yield position
+        yield expr, position
 
 def is_inverse(expr):
     return isinstance(expr, (Inverse, InverseTranspose, InverseConjugate, InverseConjugateTranspose))
