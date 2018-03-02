@@ -238,16 +238,13 @@ class GraphBase(object):
 
         Returns the number of removed nodes.
 
-        Note:
-            This function does not work properly if there are entire redundant
-            paths where multiple nodes along the path have to be merged.
         """
-        keyfunc = operator.methodcaller("get_payload")
+        hashtable = dict()
+        for node in self.nodes:
+            hashtable.setdefault(node.get_payload(), []).append(node)
 
-        self.nodes.sort(key=keyfunc)
         remove = []
-        for key, group in itertools.groupby(self.nodes, keyfunc):
-            group = list(group)
+        for group in hashtable.values():
             remaining_node = group.pop()
             for node in group:
                 remaining_node.merge(node)
@@ -256,6 +253,7 @@ class GraphBase(object):
         self.remove_nodes(remove)
 
         return len(remove)
+
 
 
     def DS_dead_ends(self):
