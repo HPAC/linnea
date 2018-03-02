@@ -112,7 +112,6 @@ def CSE_replacement_times(equations, products, product_positions):
     # print(product_positions)
 
     transformed_expressions = []
-    min_seq_idx = math.inf
 
     # This dictionary represents all possible combinations of different types.
     # Example: type_mapping[2][3] inverting (2) a transpose(inverse) (3) operator results
@@ -149,6 +148,7 @@ def CSE_replacement_times(equations, products, product_positions):
 
         replacements_per_equation = dict()
         equations_list = list(equations.equations)
+        min_seq_idx = math.inf
         for seq_idx, occurrences in positions.items():
             CSE_eqn_idx, CSE_path = product_positions[seq_idx]
             # print(product_positions[seq_idx])
