@@ -95,6 +95,14 @@ def find_operands_to_factor(equations):
                 if isinstance(expr, Symbol) and expr.has_property(properties.ADMITS_FACTORIZATION):
                     operands_to_factor.add(expr)
 
+    """Operands that have not been computed yet can not be factored. An operand
+    tmp is not computed yet if there is an equation tmp = expr where expr is not
+    a Symbol.
+    """
+    for equation in equations:
+        if equation.lhs in operands_to_factor and not isinstance(equation.rhs, Symbol):
+            operands_to_factor.remove(equation.lhs)
+
     return operands_to_factor
 
 def find_occurrences(equations, operands_to_factor):
