@@ -249,10 +249,10 @@ class DerivationGraphBase(base.GraphBase):
             min = mins[node.metric[0]]
             if node.metric[1] > (min + 4) and not node.successors:
                 pruned_nodes.append(node)
-                for predecessor in node.predecessors:
-                    predecessor.remove_edge(node)
 
-        self.remove_nodes(pruned_nodes)
+        for node in pruned_nodes:
+            node.labels.append("pruned")
+            self.active_nodes.remove(node)
 
         return len(pruned_nodes)
 

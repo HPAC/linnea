@@ -279,6 +279,7 @@ class GraphBase(object):
                 remove.append(node)
 
         for node in remove:
+            node.labels.append("dead")
             self.active_nodes.remove(node)
 
         return len(remove)
@@ -295,6 +296,7 @@ class GraphNodeBase(object):
         self.accumulated_cost = 0
         self.level = None
         self.optimal_path_predecessor = predecessor
+        self.labels = []
 
         if factored_operands is None:
             self.factored_operands = set()
@@ -394,7 +396,7 @@ class GraphNodeBase(object):
         eqns_str = eqns_str.replace('\n', '\\n')
         eqns_str = eqns_str.replace("{", "&#123;")
         eqns_str = eqns_str.replace("}", "&#125;")
-        out = """{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]))
+        out = """{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} | {7} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))
         # out = "".join([self.name, " [shape=record, label=\"<f0>", str(self.id), "|<f1>", eqns_str, "|<f2>", str(self.metric), "\"];\n" ])
         for successor, label in zip(self.successors, self.edge_labels):
             if (self.id, successor.id) in optimal_edges:
