@@ -6,6 +6,9 @@ Linnea is an experimental tool for the automatic generation of optimized code fo
 
 Linnea requires Python 3.6 and can be installed with `pip install git+git://github.com/HPAC/linnea.git`. (Depending on your setup, you may have to use `pip3` instead of `pip`.) To uninstall Linnea, use `pip uninstall linnea`. This also removes the commandline tool.
 
+### Development installation
+If you intend to contribute to linnea, you can install linnea from local sources by running `pip install -e .` in your local development directory.
+
 ## Overview
 
 Linnea is a prototype of a compiler/program synthesis tool that automates the translation of the mathematical description of a linear algebra problem to an efficient sequence of calls to BLAS and LAPACK kernels. The main idea of Linnea is to construct a search graph that represents a large number of programs, taking into account knowledge about linear algebra, numerical linear algebra and high-performance computing. The algebraic nature of the domain is used to reduce the size of the search graph, without reducing the size of the search space that is explored.
