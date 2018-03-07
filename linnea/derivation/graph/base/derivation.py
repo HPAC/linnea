@@ -70,14 +70,11 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name)
         
-        algorithm_paths = list(self.all_algorithms())
-        algorithm_paths.sort(key=operator.itemgetter(1))
+        paths = list(self.k_shortest_paths(algorithms_limit))
 
-        number_of_algorithms = len(algorithm_paths)
+        number_of_algorithms = len(paths)
         if config.verbosity >= 1:
             self.print("Number of algorithms: {}".format(number_of_algorithms))
-        if number_of_algorithms > algorithms_limit:
-           algorithm_paths = algorithm_paths[:algorithms_limit]
 
         #if number_of_algorithms == 0:
         #    print("No algorithm generated for this example")
@@ -95,28 +92,29 @@ class DerivationGraphBase(base.GraphBase):
                     if os.path.isfile(path_to_file):
                         os.remove(path_to_file)
 
-        for n, (algorithm_path, cost) in enumerate(algorithm_paths):
-        
-            matched_kernels = []
-            current_node = self.root
-            for idx in algorithm_path:
-                edge_label = current_node.edge_labels[idx]
-                matched_kernels.extend(edge_label.matched_kernels)
-                current_node = current_node.successors[idx]
+        if code or pseudocode:
+            for n, (path, cost) in enumerate(paths):
+            
+                matched_kernels = []
+                current_node = self.root
+                for idx in path:
+                    edge_label = current_node.edge_labels[idx]
+                    matched_kernels.extend(edge_label.matched_kernels)
+                    current_node = current_node.successors[idx]
 
-            algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
+                algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
 
-            if code:
-                cgu.algorithm_to_file(output_name, "algorithm{}".format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
+                if code:
+                    cgu.algorithm_to_file(output_name, "algorithm{}".format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
 
-            if pseudocode:
-                file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
-                directory_name = os.path.dirname(file_name)
-                if not os.path.exists(directory_name):
-                    os.makedirs(directory_name)
-                output_file = open(file_name, "wt")
-                output_file.write(algorithm.pseudocode())
-                output_file.close()
+                if pseudocode:
+                    file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
+                    directory_name = os.path.dirname(file_name)
+                    if not os.path.exists(directory_name):
+                        os.makedirs(directory_name)
+                    output_file = open(file_name, "wt")
+                    output_file.write(algorithm.pseudocode())
+                    output_file.close()
 
         if operand_generator:
             input, output = self.root.equations.input_output()
@@ -144,7 +142,7 @@ class DerivationGraphBase(base.GraphBase):
             cge.operand_generator_to_file(output_name, input, input_str)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Matlab)
-            cge.benchmarker_to_file(output_name, algorithms_count=len(algorithm_paths), language=config.Language.Julia)
+            cge.benchmarker_to_file(output_name, algorithms_count=len(paths), language=config.Language.Julia)
             cge.benchmarker_to_file(output_name, language=config.Language.Matlab)
             cge.benchmarker_to_file(output_name, language=config.Language.Cpp)
 

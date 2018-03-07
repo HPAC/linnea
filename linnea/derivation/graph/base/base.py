@@ -64,37 +64,21 @@ class GraphBase(object):
     def to_dot(self):
         # TODO use source and sink ranks
 
-        # optimal_nodes = set()
         optimal_edges = set()
 
         if any(map(operator.methodcaller("is_terminal"), self.nodes)):
 
-            algorithm_paths = list(self.all_algorithms())
-            algorithm_paths.sort(key=operator.itemgetter(1))
+            optimal_path = next(self.k_shortest_paths(1))
 
-            minimal_cost = algorithm_paths[0][1]
+            optimal_paths = list(itertools.takewhile(lambda path: path[1]==optimal_path[1], self.k_shortest_paths(100)))
 
             # print(minimal_cost)
-            for path, cost in algorithm_paths:
-                if cost == minimal_cost:
-                    current_node = self.root
-                    for path_idx in path:
-                        previous_node_id = current_node.id
-                        current_node = current_node.successors[path_idx]
-                        # optimal_nodes.add(current_node.id)
-                        optimal_edges.add((previous_node_id, current_node.id))
-                else:
-                    break
-
-        # optimal_path = self.optimal_algorithm_path()[0]
-        # if optimal_path:
-        #     # optimal_nodes.add(self.root.id)
-        #     current_node = self.root
-        #     for path_idx in optimal_path:
-        #         previous_node_id = current_node.id
-        #         current_node = current_node.successors[path_idx]
-        #         # optimal_nodes.add(current_node.id)
-        #         optimal_edges.add((previous_node_id, current_node.id))
+            for path, cost in optimal_paths:
+                current_node = self.root
+                for path_idx in path:
+                    previous_node_id = current_node.id
+                    current_node = current_node.successors[path_idx]
+                    optimal_edges.add((previous_node_id, current_node.id))
 
         out = "".join([node.to_dot(optimal_edges) for node in self.nodes])
         out = "\n".join(["digraph G {", "ranksep=2.5;", "rankdir=TB;", out, "}"])
@@ -139,6 +123,15 @@ class GraphBase(object):
         return out
 
     def all_algorithms(self):
+        """Generates all paths in the graph.
+
+        Careful: For large graphs, this is very slow. If not all paths are
+            needed, use k_shortest_paths() instead.
+
+        Yields:
+            list: A path, in the form of indices of successors.
+            float: The cost of the path.
+        """
         stack = collections.deque([(self.root, [], 0)])
         while stack:
             node, path, cost = stack.popleft()
@@ -188,49 +181,114 @@ class GraphBase(object):
             return [], math.inf, None
 
 
-    # def _topological_sort_visit(self, node, temp, perm, stack):
-    #     if node.id not in temp and node.id not in perm:
-    #         node_id = node.id
-    #         temp.add(node_id)
-    #         for successor in node.successors:
-    #             self._topological_sort_visit(successor, temp, perm, stack)
-    #         perm.add(node_id)
-    #         temp.remove(node_id)
-    #         stack.appendleft(node)
+    def _topological_sort_visit(self, node, temp, perm, stack):
+        if node.id not in temp and node.id not in perm:
+            node_id = node.id
+            temp.add(node_id)
+            for successor in node.successors:
+                self._topological_sort_visit(successor, temp, perm, stack)
+            perm.add(node_id)
+            temp.remove(node_id)
+            stack.appendleft(node)
 
-    # def topological_sort(self):
-    #     stack = collections.deque()
-    #     temp = set()
-    #     perm = set()
-    #     for node in self.nodes:
-    #         self._topological_sort_visit(node, temp, perm, stack)
+    def topological_sort(self):
+        stack = collections.deque()
+        temp = set()
+        perm = set()
+        for node in self.nodes:
+            self._topological_sort_visit(node, temp, perm, stack)
 
-    #     return list(stack)
+        return list(stack)
 
-    # def shortest_path(self):
+    def set_shortest_path_successor(self):
+        sorted_nodes = self.topological_sort()
 
-    #     sorted_nodes = self.topological_sort()
+        cost_from_sink = dict()
+        shortest_path_successor = dict() # TODO remove?
+        for node in reversed(sorted_nodes):
+            if not node.successors:
+                if node.is_terminal():
+                    cost_from_sink[node.id] = 0
+                else:
+                    cost_from_sink[node.id] = math.inf
+            for predecessor in node.predecessors:
+                idx = predecessor.successors.index(node)
+                cost = predecessor.edge_labels[idx].cost
+
+                if cost_from_sink.get(predecessor.id, math.inf) > cost_from_sink[node.id] + cost:
+                    cost_from_sink[predecessor.id] = cost_from_sink[node.id] + cost
+                    shortest_path_successor[predecessor.id] = node.id
+                    predecessor.shortest_path_successor = node
 
 
-    #     _d = dict()
-    #     _d[self.root.id] = 0
-    #     # _d = [math.inf]*len(self.nodes)
-    #     # _d[0] = 0
-    #     _p = dict()
-    #     for node in sorted_nodes:
-    #         for successor, edge_label in zip(node.successors, node.edge_labels):
-    #             cost = edge_label.cost
-    #             if _d.get(successor.id, math.inf) > _d[node.id]  + cost:
-    #                 _d[successor.id] = _d[node.id] + cost
-    #                 _p[successor.id] = node.id
+    def k_shortest_paths(self, k):
+        """Generates the k shortest paths from the root to any terminal node.
+        
+        Generates up to k shortest paths from the root to any terminal node in
+        order of increasing length/cost. If less then k paths exist, this
+        function returns all paths and stops early.
 
-    #     print(_d)
-    #     print(_p)
-    #     # turns out that _p can easily be obtained by constructing the graph
-    #     # in a reasonable way, using gn.GraphNode.optimal_path_predecessor
-    #     terminal_nodes = list(filter(is_terminal, self.nodes))
+        Args:
+            k (int): The maximum number of paths.
 
-    #     print({node.id: node.optimal_path_predecessor.id for node in self.nodes if node.optimal_path_predecessor})
+        Yields:
+            list: A path, in the form of indices of successors.
+            float: The cost of the path.
+        """
+
+        # to make sure that initialization happens only once
+        if not self.nodes[0].k_shortest_paths: 
+            for node in self.nodes:
+                path = REAPath(node.optimal_path_predecessor, 0, node.accumulated_cost)
+                node.k_shortest_paths.append(path)
+
+        terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
+        terminal_nodes.sort(key=operator.attrgetter("accumulated_cost"))
+
+        """
+        A graph can have more than one terminal node. It is possible that the
+        1st shortest path goes to terminal node 1, the 2nd shortest goes to
+        terminal node 2, and the 3rd shortest again goes to terminal node 1.
+
+        The code below ensures that this function generates the shortest paths
+        to any terminal node in this graph in order of increasing length,
+        irrespective of which terminal node it goes to.
+
+        The idea is to take paths from one terminal node until there is another
+        terminal node with a cheaper path. In that case, we continue taking
+        paths from that node.
+        """
+
+        # contains pairs of [path, generator]
+        # this list is sorted by the cost of path because terminal_nodes was sorted
+        gens = []
+        for node in terminal_nodes:
+            gen = node.shortest_paths_iter()
+            first_path = next(gen) # The shortest (first) path always exists.
+            gens.append([first_path, gen])
+
+        count = 0
+        while count < k:
+            current_path, gen = gens[0]
+
+            count += 1
+            yield current_path
+
+            try:
+                next_path = next(gen)
+            except StopIteration:
+                del gens[0]
+                if not gens:
+                    raise StopIteration()
+            else:
+                gens[0][0] = next_path
+
+            # if the next path of the current generator is not the cheapest one
+            # sort generators
+            if len(gens) > 1 and gens[0][0][1] > gens[1][0][1]:
+                gens.sort(key=lambda x: x[0][1])
+
+        raise StopIteration()
 
 
     def DS_merge_nodes(self):
@@ -284,6 +342,11 @@ class GraphBase(object):
 
         return len(remove)
 
+REAPath = collections.namedtuple("REAPath", ["predecessor", "k_prime", "cost"])
+
+class PathDoesNotExist(Exception):
+    pass
+
 
 class GraphNodeBase(object):
 
@@ -296,6 +359,7 @@ class GraphNodeBase(object):
         self.accumulated_cost = 0
         self.level = None
         self.optimal_path_predecessor = predecessor
+        self.optimal_path_successor = None
         self.labels = []
 
         if factored_operands is None:
@@ -304,6 +368,13 @@ class GraphNodeBase(object):
             self.factored_operands = factored_operands
 
         self.applied_DS_steps = set()
+
+        # contains REAPath objects
+        self.k_shortest_paths = []
+        
+        # contains REAPath objects
+        self.k_shortest_paths_candidates = []
+
 
     def add_factored_operands(self, factored_operands):
         self.factored_operands.update(factored_operands)
@@ -350,6 +421,8 @@ class GraphNodeBase(object):
         for successor in other.successors:
             successor.change_predecessor(other, self)
             self.successors.append(successor)
+            if successor.optimal_path_predecessor is other:
+                successor.optimal_path_predecessor = self
         self.edge_labels.extend(other.edge_labels)
         self.applied_DS_steps.update(other.applied_DS_steps)
         self.factored_operands.update(other.factored_operands)
@@ -364,7 +437,7 @@ class GraphNodeBase(object):
         recursively to all successors. This is what this function does.
 
         """
-        if new_cost < self.accumulated_cost:
+        if new_cost <= self.accumulated_cost:
             self.accumulated_cost = new_cost
             self.optimal_path_predecessor = predecessor
         else:
@@ -408,6 +481,141 @@ class GraphNodeBase(object):
 
     def is_terminal(self):
         raise NotImplementedError()
+
+
+    def shortest_paths_iter(self):
+        """Yields all path from root to self in order of increasing length.
+
+        Yields:
+            list: A path, in the form of indices of successors.
+            float: The cost of the path.
+        """
+        # All path that have already been computed can be returned right away.
+        # This way, paths are not computed more than once, even if this function
+        # is called multiple times.
+        for path in self.k_shortest_paths:
+            yield self.retrieve_path(path)
+        # All further path are computed.
+        k = len(self.k_shortest_paths)
+        while True:
+            try:
+                path = self.REA_next_path(k)
+            except PathDoesNotExist:
+                raise StopIteration()
+            else:
+                k += 1
+                yield self.retrieve_path(path)
+
+    def retrieve_path(self, path):
+        """Converts REAPath to an actual path.
+
+        Args:
+            path (REAPath): The path to convert. It is assumed that it is in
+                self.k_shortest_paths.
+
+        Returns:
+            list: The converted path, in the form of indices of successors.
+            float: The cost of the path.
+        """
+
+        _path = []
+        current_node = self
+        current_path = path
+        while current_path.predecessor:
+            idx = current_path.predecessor.successors.index(current_node)
+            _path.append(idx)
+            current_node = current_path.predecessor
+            current_path = current_node.k_shortest_paths[current_path.k_prime]
+
+        return list(reversed(_path)), path.cost
+
+    def REA_next_path(self, k):
+        """NextPath(v, k) function of the Recursive Enumeration Algorithm
+
+        This is an implementation of the NextPath(v, k) function of the
+        Recursive Enumeration Algorithm for the k shortest paths problem as
+        described in the following paper:
+
+        Jiménez, V. M., & Marzal, A. (1999).
+        Computing the K Shortest Paths - A New Algorithm and an Experimental
+        Comparison. Algorithm Engineering, 1668(Chapter 4), 15–29.
+        http://doi.org/10.1007/3-540-48318-7_4
+
+        Quite likely, this implementation has a worse asymptotic complexity than
+        the algorithm described in the paper because of the datastructures used
+        here and function calls such as index(self) and pop(0). However, so far
+        it is sufficiently fast for practical purposes.
+
+        Args:
+            self (GraphNodeBase): This is v in the paper.
+            k (int): This is k in the paper.
+
+        Returns:
+            REAPath: An object that represents the k shortest path.
+        """
+
+        # This is not in the paper. It is just for consistency.
+        if k == 0:
+            return self.k_shortest_paths[0]
+
+        # B.1 initialize candidates
+        if k == 1:
+            for predecessor in self.predecessors:
+                """The way this works at the moment, if there is more than one edge
+                between a node and its optimal_path_predecessor, none of those
+                edges is added. Technically, all except for one of the edges
+                should be added to generate all paths. At the moment, this is
+                not a problem because if there are multiple edges between two
+                nodes, they are the same, so it is sufficient to only consider
+                one (which happens because of the initialization in
+                k_shortest_paths()).
+                """
+                if predecessor != self.optimal_path_predecessor:
+                    idx = predecessor.successors.index(self)
+                    cost = predecessor.edge_labels[idx].cost
+                    path = REAPath(predecessor, 0, predecessor.accumulated_cost + cost)
+                    self.k_shortest_paths_candidates.append(path)
+
+        # B.2
+        if not (k == 1 and not self.predecessors):
+            # B.3
+            # get u and k'
+            path = self.k_shortest_paths[k-1]
+            node_u = path.predecessor
+            k_prime = path.k_prime
+
+            # B.4
+            if len(node_u.k_shortest_paths) <= k_prime+1:
+                try:
+                    node_u.REA_next_path(k_prime+1)
+                except PathDoesNotExist:
+                    pass
+
+            # This can not be the else of the try/except before
+            if len(node_u.k_shortest_paths) > k_prime+1:
+
+                # B.5
+                # path (k_prime+1, node_u) does exsist
+
+                # get cost
+                idx = node_u.successors.index(self)
+                cost_uv = node_u.edge_labels[idx].cost
+                new_cost = node_u.k_shortest_paths[k_prime+1].cost + cost_uv
+
+                new_path = REAPath(node_u, k_prime+1, new_cost)
+                self.k_shortest_paths_candidates.append(new_path)
+
+        # B.6
+        if self.k_shortest_paths_candidates:
+            self.k_shortest_paths_candidates.sort(key=operator.attrgetter("cost"))
+            path = self.k_shortest_paths_candidates.pop(0)
+            if len(self.k_shortest_paths) != k:
+                # If this happens, something is completely wrong.
+                raise Exception()
+            self.k_shortest_paths.append(path)
+            return path
+        else:
+            raise PathDoesNotExist()
 
 
 class EdgeLabel(object):
