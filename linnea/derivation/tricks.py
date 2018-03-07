@@ -117,19 +117,13 @@ def symmetric_product_callback(substitution, equations, eqn_idx, position):
     # symmetric product
     equations_list = list(equations.equations)
 
-    matched_kernel = collections_module.cholesky.set_match({"_A": substitution["_A"]}, False, CSE_rules=True)
+    matched_kernel = collections_module.cholesky.set_match({"_A": substitution["_A"]}, False)
 
     replacement = Times(*substitution["WP1"], matched_kernel.replacement, *substitution["WP2"])
 
     equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+tuple(position), replacement)
 
-    # deal with additional occurrences of the replaced subexpression
-    # common_subexp_rules = cholesky.get_rules(substitution)
-    # common_subexp_rules = cholesky.get_CSE_rules()
-    # common_subexp_rules = matched_kernel.CSE_rules
-
     new_equations = Equations(*equations_list)
-    new_equations = new_equations.replace_all(matched_kernel.CSE_rules)
     new_equations.set_equivalent(equations)
     
     edge_label = base.EdgeLabel(matched_kernel)

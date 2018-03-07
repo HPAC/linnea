@@ -244,7 +244,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 # print(kernel.signature, substitution)
                 # replacement
                 
-                matched_kernel = kernel.set_match(substitution, True, CSE_rules=True)
+                matched_kernel = kernel.set_match(substitution, True, CSE_rules=False)
                 if is_blocked(matched_kernel.operation.rhs):
                     continue
 
@@ -255,10 +255,10 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
                 
                 # deal with additional occurrences of the replaced subexpression
-                common_subexp_rules = matched_kernel.CSE_rules
+                # common_subexp_rules = matched_kernel.CSE_rules
 
                 equations_copy = equations.set(eqn_idx, new_equation)
-                equations_copy = equations_copy.replace_all(common_subexp_rules)
+                # equations_copy = equations_copy.replace_all(common_subexp_rules)
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 
