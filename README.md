@@ -32,6 +32,10 @@ When installing Linnea via `pip`, the commandline tool `linnea` is installed. As
 
 The list of commandline options is available via `linnea -h`.
 
+### Output
+
+As output, Linnea generates a directory structure that may contain code and pseudocode files, as well a file containing a description of the derivation graph, the primary datastructure used by Linnea. Which files are generated can be set as options. Likewise, the location of the output can be specified. By default, it is the current directory.
+
 ### Options
 
 Linnea offers a number of options which can be set through `linnea.config` in Python or as commandline options for the commandline tool. Alternatively, all options can also be specified in a `config.json` file (see `examples`) which has to be located in the same directory where Linnea is run. Both commandline options and `linnea.config` options override what is specified in `config.json`. As a fallback, reasonable default values are used.
@@ -73,4 +77,5 @@ A number of publications that discuss different aspects of Linnea can be found [
 * Henrik Barthels
 * Marcin Copik
 * Diego Fabregat Traver
+* Julius Hohnerlein
 * Manuel Krebber
