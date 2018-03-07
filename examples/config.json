@@ -1,5 +1,5 @@
 {
-    "output_path": "~/path/to/output",
+    "output_path": ".",
     "language": "Julia",
     "julia_data_type": "Float64",  
     "merging_branches": true,
