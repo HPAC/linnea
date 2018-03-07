@@ -9,7 +9,7 @@ setup(name="linnea",
     license="GPLv3",
     packages=find_packages(exclude=('tests', )),
     zip_safe=True,
-    python_requires=">=3.5.3",
+    python_requires=">=3.6",
     install_requires=[
         "matchpy >= 0.3",
     ],
