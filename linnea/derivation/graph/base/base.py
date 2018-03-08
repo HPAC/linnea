@@ -243,6 +243,8 @@ class GraphBase(object):
                 node.k_shortest_paths.append(path)
 
         terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
+        if not terminal_nodes:
+            raise StopIteration()
         terminal_nodes.sort(key=operator.attrgetter("accumulated_cost"))
 
         """
