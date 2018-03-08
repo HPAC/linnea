@@ -123,11 +123,16 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             trace.append(new_nodes)
             new_nodes_per_iteration += new_nodes
 
-            if merging and new_nodes:
-                # TODO order of merge and prune?
-                merged_nodes = self.DS_merge_nodes()
-                self.print_DS("Nodes merged:", merged_nodes)
-                trace.append(merged_nodes)
+            if new_nodes:
+                if dead_ends:
+                    dead_nodes = self.DS_dead_ends()
+                    self.print_DS("Dead nodes:", dead_nodes)
+                    trace.append(dead_nodes)
+
+                if merging:
+                    merged_nodes = self.DS_merge_nodes()
+                    self.print_DS("Nodes merged:", merged_nodes)
+                    trace.append(merged_nodes) 
 
             mins = self.metric_mins()
             #print(mins)
