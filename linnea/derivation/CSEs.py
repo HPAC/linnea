@@ -409,20 +409,21 @@ def find_CSEs_times(products):
     # Times(A, B) basically moves into the outer times and messes up all
     # indices.
     _products = []
+    dummies = dict()
     for _product in products:
         new_operands = None
         for _n, _operand in enumerate(_product.operands):
             if not _is_simple_times_CSE(_operand):
                 if not new_operands:
                     new_operands = _product.operands.copy()
-                # TODO if this ever causes problems, give this matrix a random
-                # name (or maybe just str(_operand.size)). It could cause
-                # problems because multiple matrices with the same name are
-                # created.
-                # I'm not sure if using the actual size is necessary.
-                name = "".join(["dummy", str(counter)])
-                counter += 1
-                new_operands[_n] = Matrix(name, _operand.size)
+                try:
+                    dummy = dummies[_operand]
+                except KeyError:
+                    name = "".join(["dummy", str(counter)])
+                    counter += 1
+                    dummy = Matrix(name, _operand.size)
+                    dummies[_operand] = dummy
+                new_operands[_n] = dummy
                 # _product.operands[_n] = Matrix(name, _operand.size)
         if new_operands:
             _products.append(Times(*new_operands))
@@ -431,7 +432,7 @@ def find_CSEs_times(products):
 
     products = _products
 
-    # print(products)
+    # print([str(prod) for prod in products])
     products_T = [transpose(product) for product in products]
     # print(products_T)
 
