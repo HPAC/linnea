@@ -162,7 +162,8 @@ def set_equivalent(expr_before, expr_after):
     tmp = create_tmp(expr_before[path_before], True)
     _table_of_temporaries[_get_equivalent(expr_after[path_after])] = tmp
 
-    set_equivalent_upwards(expr_before, expr_after)
+    # Looks like this is very expensive but rarely ever enables more merging.
+    # set_equivalent_upwards(expr_before, expr_after)
 
 def set_equivalent_upwards(expr_before, expr_after):
     """Solves a problem too complicated to be described in one line.
