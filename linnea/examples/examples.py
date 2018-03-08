@@ -3798,3 +3798,42 @@ class Example133(object):
         self.eqns = Equations(
                             Equal(X, Times(Inverse(A), InverseTranspose(B), C)),
                             )
+
+
+class Example134(object):
+    def __init__(self):
+
+        # TAGS
+        # least squares, CSE
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (m, m))
+        A.set_property(properties.INPUT)
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (m, m))
+        B.set_property(properties.INPUT)
+        B.set_property(properties.FULL_RANK)
+
+        X = Matrix("X", (n, m))
+        X.set_property(properties.INPUT)
+        X.set_property(properties.FULL_RANK)
+
+        y = Vector("y", (n, sONE))
+        y.set_property(properties.INPUT)
+
+        z = Vector("z", (n, sONE))
+        z.set_property(properties.INPUT)
+
+        b = Vector("b", (m, sONE))
+        b.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(Equal(b, 
+                        Plus(
+                            Times(A, Inverse(Times(Transpose(X), X)), Transpose(X), y),
+                            Times(B, Inverse(Times(Transpose(X), X)), Transpose(X), z),
+                            )
+                        ))
+
