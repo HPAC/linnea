@@ -3269,7 +3269,7 @@ class Example116(object):
     def __init__(self):
 
         # TAGS
-        # CSE plus
+        # CSE times
 
         n1 = 10
         n2 = 10
@@ -3629,7 +3629,6 @@ class Example128(object):
     def __init__(self):
 
         # TAGS
-        # CSE plus
 
         # n1 = 55
         # n2 = 58
@@ -3837,3 +3836,330 @@ class Example134(object):
                             )
                         ))
 
+
+class Example135(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+        F = Matrix("F", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        E.set_property(properties.INPUT)
+        F.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(A, B, C, D)),
+                            Equal(Y, Times(A, B, C, E)),
+                            Equal(Z, Times(F, B, C, D)),
+                            )
+
+
+class Example136(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+        F = Matrix("F", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        E.set_property(properties.INPUT)
+        F.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        W = Matrix("W", (n1, n1))
+        W.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(A, B, C, D)),
+                            Equal(Y, Times(A, B, C, E)),
+                            Equal(Z, Times(F, B, C, D)),
+                            Equal(W, Times(A, B, C, D)),
+                            )
+
+class Example137(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+        F = Matrix("F", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        E.set_property(properties.INPUT)
+        F.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        W = Matrix("W", (n1, n1))
+        W.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(A, B, C)),
+                            Equal(Y, Times(A, B, C)),
+                            Equal(Z, Times(B, C, F)),
+                            Equal(W, Times(A, B, C)),
+                            )
+
+class Example138(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        W = Matrix("W", (n1, n1))
+        W.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(A, B, C)),
+                            Equal(Y, Times(A, B, C)),
+                            Equal(Z, Times(A, B)),
+                            Equal(W, Times(A, B)),
+                            )
+
+class Example139(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        W = Matrix("W", (n1, n1))
+        W.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(A, B, C, D)),
+                            Equal(Y, Times(A, B, C, D)),
+                            Equal(Z, Times(A, B)),
+                            Equal(W, Times(A, B)),
+                            )
+
+class Example140(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        E.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        W = Matrix("W", (n1, n1))
+        W.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(B, C, D)),
+                            Equal(Y, Times(A, B, C, D)),
+                            Equal(Z, Times(A, B)),
+                            )
+
+class Example141(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        E.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        W = Matrix("W", (n1, n1))
+        W.set_property(properties.OUTPUT)
+
+        U = Matrix("U", (n1, n1))
+        U.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(A, B, C, D, E)),
+                            Equal(Y, Times(A, B, C)),
+                            Equal(Z, Times(A, B)),
+                            Equal(W, Times(C, D, E)),
+                            Equal(U, Times(C, D)),
+                            )
+
+class Example142(object):
+    def __init__(self):
+
+        # TAGS
+        # CSE times
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+        S = Matrix("S", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        E.set_property(properties.INPUT)
+        S.set_property(properties.INPUT)
+        S.set_property(properties.SYMMETRIC)
+
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        Y = Matrix("Y", (n1, n1))
+        Y.set_property(properties.OUTPUT)
+
+        Z = Matrix("Z", (n1, n1))
+        Z.set_property(properties.OUTPUT)
+
+        W = Matrix("W", (n1, n1))
+        W.set_property(properties.OUTPUT)
+
+        U = Matrix("U", (n1, n1))
+        U.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(A, S, Transpose(A))),
+                            Equal(Y, Times(A, S)),
+                            Equal(Z, Times(A, B)),
+                            Equal(W, Times(A, B, C)),
+                            )
