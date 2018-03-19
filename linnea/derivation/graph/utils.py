@@ -543,3 +543,6 @@ def inverse_positions(expr, position=[]):
 
 def is_inverse(expr):
     return isinstance(expr, (Inverse, InverseTranspose, InverseConjugate, InverseConjugateTranspose))
+
+def is_transpose(expr):
+    return isinstance(expr, (Transpose, InverseTranspose, ConjugateTranspose, InverseConjugateTranspose))
