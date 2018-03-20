@@ -1,7 +1,7 @@
 from . import base
 
 from ..utils import generate_variants, find_operands_to_factor, \
-                    find_occurrences, InverseType, powerset, group_occurrences, \
+                    find_occurrences, InverseType, group_occurrences, \
                     DS_step, find_explicit_symbol_inverse, is_inverse
 
 from ....algebra.expression import Symbol, ConstantScalar, \

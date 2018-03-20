@@ -541,3 +541,15 @@ def is_inverse(expr):
 
 def is_transpose(expr):
     return isinstance(expr, (Transpose, InverseTranspose, ConjugateTranspose, InverseConjugateTranspose))
+
+def contains_inverse(expr):
+    if is_inverse(expr):
+        return True
+    if isinstance(expr, Operator):
+        return any(contains_inverse(operand) for operand in expr.operands)
+
+def contains_transpose(expr):
+    if is_transpose(expr):
+        return True
+    if isinstance(expr, Operator):
+        return any(contains_transpose(operand) for operand in expr.operands)

@@ -5,18 +5,17 @@ import itertools
 from ..algebra.expression import Times, Plus, Symbol, Operator, \
                                       Transpose, Inverse, InverseTranspose, \
                                       Equal
-
 from ..algebra.equations import Equations
-
 from ..algebra.transformations import invert, invert_transpose, transpose
-
-from ..derivation.graph.utils import is_inverse, is_transpose, is_blocked
-
 from ..algebra.properties import Property as properties
 
 from .. import temporaries
 
 from ..utils import window, powerset
+
+from .graph.utils import is_inverse, is_transpose, is_blocked, \
+                                     contains_inverse, contains_transpose
+
 
 from enum import Enum, unique
 from collections import Counter
@@ -192,7 +191,6 @@ class CSEDetector(object):
                     print(str(subexpr.expr), subexpr.eqn_idx, subexpr.positions)
 
     def construct_CSEs(self):
-
         for subexprs in self.all_CSE_lists:
             if len(subexprs) > 1:
                 cse = CSE(subexprs)
@@ -200,7 +198,7 @@ class CSEDetector(object):
                 for subexpr in subexprs:
                     self.subexpr_to_CSE[subexpr.id] = cse.id
 
-        print("construct CSEs", [(str(cse.expr), len(cse.subexprs)) for cse in self.all_CSEs.values()])
+        # print("construct CSEs", [(str(cse.expr), len(cse.subexprs)) for cse in self.all_CSEs.values()])
 
 
     def transitive_reduction(self):
@@ -224,7 +222,11 @@ class CSEDetector(object):
 
 
     def remove_not_maximal_CSEs(self, nodes):
-        # TODO do we want to consider compatible_count?
+        
+        """
+        This might be the most important part. Here it is decided which CSEs
+        are considered.
+        """
 
         while True:
             remove = []
@@ -253,7 +255,6 @@ class CSEDetector(object):
 
         remove = []
         for cse in nodes:
-            # if len(cse.subexprs) == 2 and not cse.subexprs[0].is_compatible(cse.subexprs[1]):
             if cse.max_clique_size < 2:
                 remove.append(cse)
 
@@ -268,26 +269,16 @@ class CSEDetector(object):
     def maximal_CSEs(self):
         current_nodes = [node for node in self.all_CSEs.values()]
 
-        # print("all nodes", [str(node.expr) for node in current_nodes])
-        # remove not maximal CSEs
-
         self.remove_invalid_CSEs(current_nodes)
-
         self.remove_not_maximal_CSEs(current_nodes)
-
-        # print("all nodes", [str(node.expr) for node in current_nodes])
 
         CSEs = []
         while current_nodes:
-            # print("lattice", [str(node.expr) for node in lattice])
             new_CSEs = []
             for node in current_nodes:
-                # print("node", str(node.expr))
-                # print("successors", [str(node.expr) for node in node.successors])
                 if not node.successors:
                     new_CSEs.append(node)
 
-            # print("new_CSEs", [str(node.expr) for node in new_CSEs])
             for node in new_CSEs:
                 current_nodes.remove(node)
                 for predeccessor in node.predeccessors:
@@ -321,14 +312,12 @@ class CSEDetector(object):
             cliques = []
             for clique in find_max_cliques(adj):
 
-                _counter = Counter(self.subexpr_to_CSE[id] for id in clique)
-                # print(clique)
-                # print(_counter)
+                counter = Counter(self.subexpr_to_CSE[id] for id in clique)
 
                 # if for a CSE there is only one subexpression, this subexpression is removed
                 remove = set()
                 for id in clique:
-                    if _counter[self.subexpr_to_CSE[id]] == 1:
+                    if counter[self.subexpr_to_CSE[id]] == 1:
                         remove.add(id)
                 clique_no_singles = set(clique) - remove
                 cliques.append(clique_no_singles)
@@ -347,8 +336,6 @@ class CSEDetector(object):
                     cliques.remove(clique)
                 except ValueError:
                     pass
-                
-            # print(cliques)
 
             for clique in cliques:
                 yield [self.all_subexpressions[id] for id in clique]
@@ -362,8 +349,6 @@ class CSEDetector(object):
                 # print(str(cse1.expr), str(cse2.expr))
 
     def count_compatible(self):
-        
-        # print("counting other")
         for cse1, cse2 in itertools.combinations(self.all_CSEs.values(), 2):
             # print("CSE", str(cse1.expr), str(cse2.expr), len(cse2.subexprs))
             for subexpr1, subexpr2 in itertools.product(cse1.subexprs, cse2.subexprs):
@@ -372,7 +357,6 @@ class CSEDetector(object):
                     subexpr1.compatible_count += 1
                     subexpr2.compatible_count += 1
 
-        # print("counting self")
         for cse in self.all_CSEs.values():
             for subexpr1, subexpr2 in itertools.combinations(cse.subexprs, 2):
                 if subexpr1.is_compatible(subexpr2):
@@ -380,20 +364,17 @@ class CSEDetector(object):
                     subexpr1.compatible_count += 1
                     subexpr2.compatible_count += 1
 
-
         for CSE in self.all_CSEs.values():
             CSE.compatible_count = sum(subexpr.compatible_count for subexpr in CSE.subexprs)
 
-        print("compatible count", [(str(cse.expr), cse.compatible_count) for cse in self.all_CSEs.values()])
+        # print("compatible count", [(str(cse.expr), cse.compatible_count) for cse in self.all_CSEs.values()])
 
 
     def CSEs(self):
+
         self.construct_CSEs()
-
         self.construct_lattice()
-
         # self.count_compatible()
-
         self.transitive_reduction()
         maximal_CSEs = self.maximal_CSEs()
 
@@ -415,7 +396,7 @@ class CSEDetector(object):
             grouped_CSEs.append((cse,))      
 
         for group in grouped_CSEs:
-            print("group", [str(cse.expr) for cse in group])
+            # print("group", [str(cse.expr) for cse in group])
             yield from self.replaceable_CSEs(group)
 
 def find_max_cliques(G):
@@ -532,19 +513,6 @@ def find_max_cliques(G):
     except IndexError:
         pass
 
-# TODO move to utils
-def contains_inverse(expr):
-    if is_inverse(expr):
-        return True
-    if isinstance(expr, Operator):
-        return any(contains_inverse(operand) for operand in expr.operands)
-
-def contains_transpose(expr):
-    if is_transpose(expr):
-        return True
-    if isinstance(expr, Operator):
-        return any(contains_transpose(operand) for operand in expr.operands)
-
 def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
     """
     Canoical positions: If a subexpression is a single node in the expression
@@ -565,6 +533,7 @@ def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
         elif expr.commutative:
             if not is_blocked(expr):
                 yield expr, {position}, level
+            # TODO this could indented. If expr is blocke, all subexpr are blocked.
             if len(expr.operands) > 2:
                 ops = [(op, position + (n,)) for n, op in enumerate(expr.operands)]
                 for subset in powerset(ops, 2, len(ops)):
@@ -578,6 +547,7 @@ def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
         elif expr.associative:
             if not is_blocked(expr):
                 yield expr, {position}, level
+            # TODO this could indented. If expr is blocke, all subexpr are blocked.
             for i in range(2, len(expr.operands)):
                 for offset, seq in enumerate(window(expr.operands, i)):
                     positions = set(position + (offset+j,) for j in range(i))
@@ -588,15 +558,6 @@ def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
             yield from all_subexpressions(operand, new_position, level+1, expr)
 
 def indentify_subexpression_types(subexprs):
-    # subexprs_dict = dict()
-    # for subexpr in subexprs:
-    #     subexprs_dict.setdefault(subexpr.expr, []).append(subexpr)
-
-    # # print(subexprs_dict)
-
-    # if len(subexprs_dict.keys()) == 1:
-    #     return [CSEType.none for _ in subexprs]
-    # else:
 
     ref_subexpr = subexprs[0]
     return_types = [CSEType.none]
@@ -610,11 +571,9 @@ def indentify_subexpression_types(subexprs):
         elif subexpr.is_inverse_transpose(ref_subexpr):
             return_types.append(CSEType.invert_transpose)
     
-    # print(return_types)
     return return_types
 
 def find_CSEs(equations):
-
 
     CSE_detector = CSEDetector()
     for eqn_idx, equation in enumerate(equations):
@@ -632,25 +591,20 @@ def find_CSEs(equations):
                 trans = False
             if inv and trans:
                 subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.inverse_transpose)
-                # print("inv trans", expr)
                 CSE_detector.add_subexpression(subexpr)
             elif inv:
                 subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.inverse)
-                # print("inv", expr, subexpr.expr_var)
                 CSE_detector.add_subexpression(subexpr)
             elif trans:
                 subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.transpose)
-                # print("trans", expr, subexpr.expr_var)
                 CSE_detector.add_subexpression(subexpr)
             else:
                 subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.none)
                 CSE_detector.add_subexpression(subexpr)
 
-
     # CSE_detector.print_self()
     for CSE in CSE_detector.CSEs():
-        # pass
-        print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in CSE])
+        # print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in CSE])
 
         CSE_as_dict = dict()
         for subexpr in CSE:
@@ -683,13 +637,10 @@ def find_CSEs(equations):
 
                 replacements_per_equation.setdefault(subexpr.eqn_idx, []).append(((1,) + positions[0], tmp_expr))
 
-
-        # print(replacements_per_equation)
         equations_list = list(equations.equations)
         for eqn_idx, replacements in replacements_per_equation.items():
             equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
             
-
         # Inserting new equation for extracted CSE.
         # It is inserted right before the first occurrence of the CSE.
         insert_equations.sort(reverse=True)
@@ -698,10 +649,7 @@ def find_CSEs(equations):
         new_equations = Equations(*equations_list)
         new_equations = new_equations.to_normalform()
 
-        print(new_equations)
-
         yield new_equations
-
 
 
 if __name__ == "__main__":
