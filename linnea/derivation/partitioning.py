@@ -7,7 +7,7 @@ from ..algebra.expression import Plus, Times, Symbol, Matrix, \
 
 from ..algebra.properties import Property as properties
 
-from ..utils import clamp
+from ..utils import clamp, window
 
 import itertools
 import functools
@@ -21,16 +21,6 @@ block_name = "{0}[{1}{2}]"
 def clear():
     TOP.clear()
 
-def window(seq, n=2):
-    "Returns a sliding window (of width n) over data from the iterable"
-    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
-    it = iter(seq)
-    result = tuple(itertools.islice(it, n))
-    if len(result) == n:
-        yield result    
-    for elem in it:
-        result = result[1:] + (elem,)
-        yield result
 
 def apply_partitioning(expr):
     # This has to be checked here because apply_partitioning can and should not

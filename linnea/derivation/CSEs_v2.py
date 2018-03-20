@@ -16,6 +16,8 @@ from ..algebra.properties import Property as properties
 
 from .. import temporaries
 
+from ..utils import window, powerset
+
 from enum import Enum, unique
 from collections import Counter
 
@@ -229,101 +231,45 @@ class Subexpression(object):
     def is_inverse_transpose(self, other):
         return self.expr == other.expr_invtrans or self.expr_invtrans == other.expr
 
+class CSE(object):
+    """docstring for CSE"""
 
-def window(seq, n=2):
-    "Returns a sliding window (of width n) over data from the iterable"
-    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
-    it = iter(seq)
-    result = tuple(itertools.islice(it, n))
-    if len(result) == n:
-        yield result    
-    for elem in it:
-        result = result[1:] + (elem,)
-        yield result
+    _counter = 0
+    def __init__(self, subexprs):
+        super(CSE, self).__init__()
+        self.subexprs = subexprs
+        self.subexprs_ids = {subexpr.id for subexpr in self.subexprs}
+        self.expr = subexprs[0].expr # for DEBUG only
 
+        self.id = CSE._counter
+        CSE._counter +=1
 
-def powerset(iterable, min=0, max=None):
-    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
-    s = list(iterable)
-    if max is None:
-        max = len(s)+1
-    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(min, max))
+        self.compatible_count = 0
 
+        self.predeccessors = []
+        self.successors = []
 
-# def to_dot_file(relation):
-#     out = ""
-#     for element in relation:
-#         element_str = "{0} [shape=box];\n".format(element.name)
-#         out = "".join([out, element_str])
+        adj = dict()
+        for subexpr1, subexpr2 in itertools.combinations(self.subexprs, 2):
+            if subexpr1.is_compatible(subexpr2):
+                # print(subexpr1.expr, subexpr2.expr)
+                adj.setdefault(subexpr1.id, set()).add(subexpr2.id)
+                adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
 
-#     for e1, e2 in relation:
-#         edge_str = "{0} -> {1};\n".format(self(e2).name, self(e1).name)
-#         out = "".join([out, edge_str])        
+        self.all_cliques = list(find_max_cliques(adj))
+        self.max_clique_size = max((len(clique) for clique in self.all_cliques), default=0)
 
-#     # out = "".join([node.to_dot(optimal_edges) for node in self.nodes])
-#     out = "\n".join(["digraph G {", "ranksep=1;", "rankdir=TB;", out, "}"])
-    
-#     file_name = "partial_ordering.gv"
-#     output_file = open(file_name, "wt")
-#     output_file.write(out) 
-#     print("Output was saved in %s" % file_name)
-#     output_file.close()
+    def is_subexpression(self, other):
+        for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
+            if self_subexpr.is_subexpression(other_subexpr):
+                return True
+        return False
 
-def contains_inverse(expr):
-    if is_inverse(expr):
+    def is_compatible(self, other):
+        for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
+            if not self_subexpr.is_compatible(other_subexpr):
+                return False
         return True
-    if isinstance(expr, Operator):
-        return any(contains_inverse(operand) for operand in expr.operands)
-
-def contains_transpose(expr):
-    if is_transpose(expr):
-        return True
-    if isinstance(expr, Operator):
-        return any(contains_transpose(operand) for operand in expr.operands)
-
-def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
-    """
-    Canoical positions: If a subexpression is a single node in the expression
-    tree, its position is only one sequence.
-
-    Example: For ABC+D
-    ABC+D   {()}                not {(0,), (1,)}
-    ABC     {(0,)}              not {(0, 0), (0, 1), (0, 2)}
-    D       {(1,)}
-    AB      {(0, 0), (0, 1)}
-
-    This way, positions are unique.
-    """
-    if isinstance(expr, Operator):
-        if expr.arity == matchpy.Arity.unary:
-            if not (is_inverse(expr) and isinstance(predeccessor, Times)) and not (is_transpose(expr) and isinstance(expr.operand, Symbol)):
-                yield expr, {position}, level
-        elif expr.commutative:
-            if not is_blocked(expr):
-                yield expr, {position}, level
-            if len(expr.operands) > 2:
-                ops = [(op, position + (n,)) for n, op in enumerate(expr.operands)]
-                for subset in powerset(ops, 2, len(ops)):
-                    positions = set()
-                    _ops = []
-                    for op, pos in subset:
-                        positions.add(pos)
-                        _ops.append(op)
-                    if not is_blocked(expr):
-                        yield Plus(*_ops), positions, level+1
-        elif expr.associative:
-            if not is_blocked(expr):
-                yield expr, {position}, level
-            for i in range(2, len(expr.operands)):
-                for offset, seq in enumerate(window(expr.operands, i)):
-                    positions = set(position + (offset+j,) for j in range(i))
-                    if not is_blocked(expr):
-                        yield Times(*seq), positions, level+1
-        for n, operand in enumerate(expr.operands):
-            new_position = position + (n,)
-            yield from all_subexpressions(operand, new_position, level+1, expr)
-
-
 
 class CSEDetector(object):
     """docstring for CSEDetector"""
@@ -587,47 +533,59 @@ class CSEDetector(object):
             print("group", [str(cse.expr) for cse in group])
             yield from self.replaceable_CSEs(group)
 
-
-
-class CSE(object):
-    """docstring for CSE"""
-
-    _counter = 0
-    def __init__(self, subexprs):
-        super(CSE, self).__init__()
-        self.subexprs = subexprs
-        self.subexprs_ids = {subexpr.id for subexpr in self.subexprs}
-        self.expr = subexprs[0].expr # for DEBUG only
-
-        self.id = CSE._counter
-        CSE._counter +=1
-
-        self.compatible_count = 0
-
-        self.predeccessors = []
-        self.successors = []
-
-        adj = dict()
-        for subexpr1, subexpr2 in itertools.combinations(self.subexprs, 2):
-            if subexpr1.is_compatible(subexpr2):
-                # print(subexpr1.expr, subexpr2.expr)
-                adj.setdefault(subexpr1.id, set()).add(subexpr2.id)
-                adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
-
-        self.all_cliques = list(find_max_cliques(adj))
-        self.max_clique_size = max((len(clique) for clique in self.all_cliques), default=0)
-
-    def is_subexpression(self, other):
-        for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
-            if self_subexpr.is_subexpression(other_subexpr):
-                return True
-        return False
-
-    def is_compatible(self, other):
-        for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
-            if not self_subexpr.is_compatible(other_subexpr):
-                return False
+def contains_inverse(expr):
+    if is_inverse(expr):
         return True
+    if isinstance(expr, Operator):
+        return any(contains_inverse(operand) for operand in expr.operands)
+
+def contains_transpose(expr):
+    if is_transpose(expr):
+        return True
+    if isinstance(expr, Operator):
+        return any(contains_transpose(operand) for operand in expr.operands)
+
+def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
+    """
+    Canoical positions: If a subexpression is a single node in the expression
+    tree, its position is only one sequence.
+
+    Example: For ABC+D
+    ABC+D   {()}                not {(0,), (1,)}
+    ABC     {(0,)}              not {(0, 0), (0, 1), (0, 2)}
+    D       {(1,)}
+    AB      {(0, 0), (0, 1)}
+
+    This way, positions are unique.
+    """
+    if isinstance(expr, Operator):
+        if expr.arity == matchpy.Arity.unary:
+            if not (is_inverse(expr) and isinstance(predeccessor, Times)) and not (is_transpose(expr) and isinstance(expr.operand, Symbol)):
+                yield expr, {position}, level
+        elif expr.commutative:
+            if not is_blocked(expr):
+                yield expr, {position}, level
+            if len(expr.operands) > 2:
+                ops = [(op, position + (n,)) for n, op in enumerate(expr.operands)]
+                for subset in powerset(ops, 2, len(ops)):
+                    positions = set()
+                    _ops = []
+                    for op, pos in subset:
+                        positions.add(pos)
+                        _ops.append(op)
+                    if not is_blocked(expr):
+                        yield Plus(*_ops), positions, level+1
+        elif expr.associative:
+            if not is_blocked(expr):
+                yield expr, {position}, level
+            for i in range(2, len(expr.operands)):
+                for offset, seq in enumerate(window(expr.operands, i)):
+                    positions = set(position + (offset+j,) for j in range(i))
+                    if not is_blocked(expr):
+                        yield Times(*seq), positions, level+1
+        for n, operand in enumerate(expr.operands):
+            new_position = position + (n,)
+            yield from all_subexpressions(operand, new_position, level+1, expr)
 
 
 def indentify_subexpression_types(subexprs):

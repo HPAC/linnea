@@ -184,11 +184,6 @@ def grouping_keyfunc(oc):
     else:
         return (oc.eqn_idx, oc.operand, oc.group)
 
-def powerset(iterable):
-    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
-    s = list(iterable)
-    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
-
 # @profile
 def generate_variants(equations, eqn_idx=None):
     """Generates "product of sums" variants of equations.
