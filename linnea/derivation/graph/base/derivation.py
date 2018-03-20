@@ -20,6 +20,7 @@ import os.path
 
 from ... import tricks
 from ... import CSEs
+from ... import CSEs_v2
 from ... import matrix_chain_solver as mcs
 from ...matrix_sum import decompose_sum
 
@@ -362,6 +363,14 @@ class DerivationGraphBase(base.GraphBase):
 
         return transformed_expressions
 
+    def TR_CSE_replacement(self, equations):
+
+        transformed_expressions = []
+
+        for new_equations in CSEs_v2.find_CSEs(equations):
+            transformed_expressions.append((new_equations, new_equations.metric(), base.EdgeLabel()))
+
+        return transformed_expressions
 
     def TR_unary_kernels(self, equations, eqn_idx, initial_pos, metric):
 
