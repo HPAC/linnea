@@ -1,7 +1,7 @@
 from . import base
 
 from ..utils import generate_variants, find_operands_to_factor, \
-                    find_occurrences, InverseType, group_occurrences, \
+                    find_occurrences, InverseType, powerset, group_occurrences, \
                     DS_step, find_explicit_symbol_inverse, is_inverse
 
 from ....algebra.expression import Symbol, ConstantScalar, \
@@ -21,7 +21,6 @@ import os.path
 
 from ... import tricks
 from ... import CSEs
-from ... import CSEs_v2
 from ... import matrix_chain_solver as mcs
 from ...matrix_sum import decompose_sum
 
@@ -318,60 +317,13 @@ class DerivationGraphBase(base.GraphBase):
 
     def TR_CSE_replacement(self, equations):
 
-        # for plus
-        sums = []
-        eqn_indices_plus = []
-        sum_positions = []
-
-        # for times
-        products = []
-        eqn_indices_times = []
-        product_positions = []
-
-        # for general
-        expressions = []
-        expr_positions = []
-
-        for eqn_idx, equation in enumerate(equations):
-            for expr, pos in equation.preorder_iter():
-                # Plus
-                if isinstance(expr, Plus):
-                    sums.append(expr)
-                    eqn_indices_plus.append(eqn_idx)
-                    sum_positions.append((eqn_idx, pos))
-                # Times
-                elif isinstance(expr, Times):# and CSEs._is_simple_times_CSE(expr):
-                    products.append(expr)
-                    eqn_indices_times.append(eqn_idx)
-                    product_positions.append((eqn_idx, pos))
-                # General
-                elif not isinstance(expr, Symbol) and not isinstance(expr, Equal) and not is_inverse(expr) and not (isinstance(expr, Operator) and expr.arity is matchpy.Arity.unary and isinstance(expr.operand, Symbol)):
-                    # Products, symbols and Unary(Symbol) are not considered.
-                    expressions.append(expr)
-                    expr_positions.append((eqn_idx, pos))
-            # explicit inversion of symbols
-            for expr, pos in find_explicit_symbol_inverse(equation.rhs, position=[1]):
-                expressions.append(expr)
-                expr_positions.append((eqn_idx, pos))
-
-        transformed_expressions = []
-        if sums:
-            transformed_expressions.extend(CSEs.CSE_replacement_plus(equations, sums, sum_positions))
-        if products:
-            transformed_expressions.extend(CSEs.CSE_replacement_times(equations, products, product_positions))
-        if expressions:
-            transformed_expressions.extend(CSEs.CSE_replacement_general(equations, expressions, expr_positions))
-
-        return transformed_expressions
-
-    def TR_CSE_replacement(self, equations):
-
         transformed_expressions = []
 
-        for new_equations in CSEs_v2.find_CSEs(equations):
+        for new_equations in CSEs.find_CSEs(equations):
             transformed_expressions.append((new_equations, new_equations.metric(), base.EdgeLabel()))
 
         return transformed_expressions
+
 
     def TR_unary_kernels(self, equations, eqn_idx, initial_pos, metric):
 

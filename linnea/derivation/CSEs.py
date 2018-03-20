@@ -1,1019 +1,809 @@
 
-from ..algebra.expression import Symbol, Transpose, Times, Equal, \
-                                ConjugateTranspose, Inverse, \
-                                InverseTranspose, Matrix, Plus
+import matchpy
+import itertools
 
-from ..algebra.transformations import transpose, invert, invert_transpose, simplify
-from ..algebra.representations import to_SOP
+from ..algebra.expression import Times, Plus, Symbol, Operator, \
+                                      Transpose, Inverse, InverseTranspose, \
+                                      Equal
+
 from ..algebra.equations import Equations
 
-from .gst import GST
-from .utils import is_blocked
+from ..algebra.transformations import invert, invert_transpose, transpose
 
-from collections import namedtuple, deque
+from ..derivation.graph.utils import is_inverse, is_transpose, is_blocked
 
-from .graph.base.base import EdgeLabel
+from ..algebra.properties import Property as properties
 
 from .. import temporaries
 
-import operator
-import itertools
-import copy
-import math
+from ..utils import window, powerset
 
-import matchpy
+from enum import Enum, unique
+from collections import Counter
 
-def CSE_replacement_general(equations, expressions, expr_positions):
+@unique
+class CSEType(Enum):
+    none = 0
+    inverse = 1
+    transpose = 2
+    inverse_transpose = 3
 
-    if expressions:
-        CSEs = find_CSEs_general(expressions, expr_positions)
-    else:
-        return []
+class Subexpression(object):
+    """docstring for Subexpression"""
 
-    transformed_expressions = []
+    _counter = 0
+    def __init__(self, expr, eqn_idx, positions, level, type):
+        super(Subexpression, self).__init__()
+        self.expr = expr
+        self.expr_trans = None
+        self.expr_inv = None
+        self.expr_invtrans = None
+        if type == CSEType.none:
+            self.expr_var = [expr]
+        elif type == CSEType.inverse:
+            self.expr_inv = invert(expr)
+            self.expr_var = [self.expr_inv]
+        elif type == CSEType.transpose:
+            self.expr_trans = transpose(expr)
+            self.expr_var = [self.expr_trans]
+        elif type == CSEType.inverse_transpose:
+            self.expr_inv = invert(expr)
+            self.expr_trans = transpose(expr)
+            self.expr_invtrans = invert_transpose(expr)
+            self.expr_var = [self.expr_inv, self.expr_trans, self.expr_invtrans]
 
-    # This is used to determine where to insert the equation for the
-    # extracted CSE. It's placed directly before the first occurrence.
-    min_eqn_idx = math.inf
+        # print([str(expr) for expr in self.expr_var])
+        self.eqn_idx = eqn_idx
+        self.positions = positions
+        self.type = type
+        self.level = level
 
-    # This dictionary represents all possible combinations of different types.
-    # Example: type_mapping[2][3] inverting (2) a transpose(inverse) (3) operator results
-    # in a transposed operator (1).
-    type_mapping = [[0, 1, 2, 3],
-                    [1, 0, 3, 2],
-                    [2, 3, 0, 1],
-                    [3, 2, 1, 0]]
+        self.compatible_count = 0
 
-    # print(CSEs)
+        self.id = Subexpression._counter
+        Subexpression._counter +=1
 
-    tmp_type = None
-    for CSE in CSEs:
-        tmp = None
-        eqn = None
-
-        tmp_type, full_pos = CSE[0]
-        eqn_idx, pos = full_pos
-
-        # Creating temporary
-        CSE_expr = equations[eqn_idx][pos]
-        tmp = temporaries.create_tmp(CSE_expr, True)
-        eqn = Equal(tmp, CSE_expr)
-
-        # print(tmp)
-        # print(eqn)
-
-        equations_list = list(equations.equations)
-        # print(equations_list)
-
-        # Replacing all occurrences of this CSE
-        replacements_per_equation = dict()
-        for CSE_type, full_pos in CSE:
-            eqn_idx, pos = full_pos
-
-            min_eqn_idx = min(eqn_idx, min_eqn_idx)
-            type = type_mapping[tmp_type][CSE_type]
-
-            if type == 0:
-                tmp_expr = tmp
-            elif type == 1:
-                tmp_expr = Transpose(tmp)
-            elif type == 2:
-                tmp_expr = Inverse(tmp)
-            elif type == 3:
-                tmp_expr = InverseTranspose(tmp)
-
-            replacements_per_equation.setdefault(eqn_idx, []).append((pos, tmp_expr))
-
-        for eqn_idx, replacements in replacements_per_equation.items():
-            equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
-
-        # Inserting new equation for extracted CSE.
-        # It is inserted right before the first occurrence of the CSE.
-        equations_list.insert(min_eqn_idx, eqn)
-        new_equations = Equations(*equations_list)
-        new_equations = new_equations.to_normalform()
-        # new_equations._cleanup()
-        # print(new_equations)
-        transformed_expressions.append((new_equations, new_equations.metric(), EdgeLabel()))
-
-    return transformed_expressions
-
-
-def CSE_replacement_times(equations, products, product_positions):
-
-    # print("#####")
-    # print(products)
-    # print(eqn_indices)
-    if products:
-        CSEs = find_CSEs_times(products)
-    else:
-        return []
-    # print("CSEs", CSEs)
-    # print(product_positions)
-
-    transformed_expressions = []
-
-    # This dictionary represents all possible combinations of different types.
-    # Example: type_mapping[2][3] inverting (2) a transpose(inverse) (3) operator results
-    # in a transposed operator (1).
-    type_mapping = [[0, 1, 2, 3],
-                    [1, 0, 3, 2],
-                    [2, 3, 0, 1],
-                    [3, 2, 1, 0]]
-    
-    # Stores the type of the operands of tmp.
-    tmp_type = None
-
-    for positions, length in CSEs:
-        # print("##")
-        # print(positions)
-        # Create tmp
-        seq_idx, occurrences = next(iter(positions.items()))
-        CSE_pos = occurrences[0]
-        # print(CSE_pos)
-        operands = products[seq_idx].operands[CSE_pos.pos:CSE_pos.pos+length]    
-        CSE_expr = Times(*operands)
-        if is_blocked(CSE_expr):
-            continue
-        tmp_type = CSE_pos.type
-        if tmp_type == 1:
-            CSE_expr = transpose(CSE_expr)
-        elif tmp_type == 2:
-            CSE_expr = invert(CSE_expr)
-        elif tmp_type == 3:
-            CSE_expr = invert_transpose(CSE_expr)
-
-        tmp = temporaries.create_tmp(CSE_expr, True)
-        eqn = Equal(tmp, CSE_expr)
-
-        replacements_per_equation = dict()
-        equations_list = list(equations.equations)
-        min_seq_idx = math.inf
-        for seq_idx, occurrences in positions.items():
-            CSE_eqn_idx, CSE_path = product_positions[seq_idx]
-            # print(product_positions[seq_idx])
-            operands = equations_list[CSE_eqn_idx][CSE_path].operands.copy()
-
-            # print("occurrences", occurrences)
-            # Remember: occurrences are sorted by pos.
-            # print(equations_list)
-            for CSE_pos in reversed(occurrences):
-                min_seq_idx = min(seq_idx, min_seq_idx)
-                
-                # "Empty" replacements are added to remove operands.
-                for i in range(CSE_pos.pos+1, CSE_pos.pos+length):
-                    # print(CSE_path+(i,))
-                    replacements_per_equation.setdefault(CSE_eqn_idx, []).append((CSE_path+(i,), []))
-
-                del operands[CSE_pos.pos:CSE_pos.pos+length]
-                type = CSE_pos.type
-                if type == 0:
-                    tmp_expr = tmp
-                elif type == 1:
-                    tmp_expr = Transpose(tmp)
-                elif type == 2:
-                    tmp_expr = Inverse(tmp)
-                elif type == 3:
-                    tmp_expr = InverseTranspose(tmp)
-
-                replacements_per_equation.setdefault(CSE_eqn_idx, []).append((CSE_path + (CSE_pos.pos,), tmp_expr))
-                operands.insert(CSE_pos.pos, tmp_expr)
-        
-        # print(replacements_per_equation)
-        for eqn_idx, _replacements in replacements_per_equation.items():
-            equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], _replacements)
-
-        # Inserting new equation for extracted CSE.
-        # It is inserted right before the first occurrence of the CSE.
-        equations_list.insert(product_positions[min_seq_idx][0], eqn)
-        new_equations = Equations(*equations_list)
-        new_equations = new_equations.to_normalform()
-
-        transformed_expressions.append((new_equations, new_equations.metric(), EdgeLabel()))
-    return transformed_expressions
-
-def CSE_replacement_plus(equations, sums, sum_positions):
-
-    if sums:
-        CSEs = find_CSEs_plus(sums)
-    else:
-        return []
-
-    # print("CSEs", CSEs)
-
-    transformed_expressions = []
-
-    # print(equations)
-    for tmp_description, remove, tmp_type in CSEs:
-        # print(tmp_description, remove, tmp_type)
-        min_seq_idx = math.inf
-
-        operand_lists = [sum.operands.copy() for sum in sums]
-        equations_list = list(equations.equations)
-
-        seq_idx, positions = tmp_description
-        tmp_operands = [operand_lists[seq_idx][pos] for pos in positions]
-        CSE_expr = Plus(*tmp_operands)
-        # print(CSE_expr)
-        tmp = temporaries.create_tmp(CSE_expr, True)
-        eqn = Equal(tmp, CSE_expr)
-        # print(tmp.name)
-        # print(tmp.get_equivalent())
-        # print(eqn)
-
-        for seq_idx, positions in remove.items():
-            min_seq_idx = min(seq_idx, min_seq_idx)
-            positions.sort(reverse=True)
-            # print(seq_idx, positions)
-            for pos in positions:
-                # print(sums_copy[seq_idx])
-                # print(sums_copy[seq_idx].operands, pos)
-                operand_lists[seq_idx].pop(pos)
-
-        for seq_idx, types in tmp_type.items():
-            # tmp_expr = None
-            for type in types:
-                tmp_expr = None
-                if type == 0:
-                    tmp_expr = tmp
-                elif type == 1:
-                    tmp_expr = Transpose(tmp)
-
-                operand_lists[seq_idx].append(tmp_expr)
-
-        for seq_idx, operands in enumerate(operand_lists):
-            CSE_eqn_idx, CSE_path = sum_positions[seq_idx]
-            # TODO use replace_many
-            equations_list[CSE_eqn_idx] = matchpy.replace(equations_list[CSE_eqn_idx], CSE_path, Plus(*operands))
-
-        # for sum in sums_copy:
-        #     print(sum.operands)
-        # print(repr(equations_list[1]))
-        equations_list.insert(sum_positions[min_seq_idx][0], eqn)
-
-        new_equations = Equations(*equations_list)
-        new_equations = new_equations.to_normalform()
-
-        transformed_expressions.append((new_equations, new_equations.metric(), EdgeLabel()))
-    return transformed_expressions
-
-
-def _is_prefix(p1, p2):
-    """Tests if one position is a prefix of another.
-
-    Those positions are expected two be tuples of two values:
-    - An integer, the equation index.
-    - A list of integers, the position of a subexpression in an expression.
-    """
-    if p1[0] != p2[0]:
-        return False
-    else:
-        return all(x == y for x, y in zip(p1[1], p2[1]))
-
-def find_CSEs_general(expressions, expr_positions):
-    """Finds general common subexpressions.
-
-    As input, this function requires:
-    - A list of expressions.
-    - A list containing the positions of those expressions. It is assumed that
-      the expressions and their corresponding positions are in the same postions
-      in those lists.
-
-    This function returns a list of lists. Each list represents one CSE. Those 
-    lists contain tuples. Each tuple represents one occurrence of this CSE:
-    - The first entry is an integer, specifying the type of this occurrence of
-      the CSE.
-
-      0 unmodified
-      1 transposed
-      2 inverted
-      3 inverted and transposed
-    - The second entry is the position of this occurrence of the CSE. It is
-      taken, unmodified, from the input argument expr_positions.
-
-    The idea for this function is the following: In principle, the generalized
-    suffix tree could be used. However, here, we are not dealing with sequences
-    of expressions, but with single expressions, so the GST adds a lot of
-    unnecessary overhead. Thus, the following is done, inspired by what the
-    GST does if all sequences have length one.
-    An initially empty list of expressions is created (expr_list), together with
-    a second list for the positions (pos_list). For each new expression, it is
-    first checked if an equal expression is already in the list. If this is not
-    the case, the new expression is appended to the list of expressions, and its
-    position is appended to the list of positions (inside a list of length one).
-
-    If the expression is already in the list, the new position is appended to
-    the list of positions for that expression. This results in something like
-    this:
-    expr_list = [expr1, expr2]
-    pos_list = [[p1], [p2, p3]]
-    Here, expr2 is a common supexpression because it appears two times (in
-    positions p2 and p3).
-    """
-
-    # expressions_T = [transpose(copy.deepcopy(expr)) for expr in expressions]
-    # expressions_INV = [invert(copy.deepcopy(expr)) for expr in expressions]
-
-    expressions_T = [transpose(expr) for expr in expressions]
-    expressions_INV = [invert(expr) for expr in expressions]
-
-    expr_list = []
-    pos_list = []
-
-
-    # print(expressions)
-    for type, exprs in enumerate([expressions, expressions_T, expressions_INV]):
-        for n1, expr1 in enumerate(exprs):
-            for n2, expr2 in enumerate(expr_list):
-                if expr1 == expr2:
-                    expr_pos = expr_positions[n1]
-                    # With is_prefix, two things are checked:
-                    # First, it is tested whether this positions is already
-                    # in the list of positions. This can happen if an
-                    # expression is symmetric (because then, expr = expr^T).
-                    # Second, it is tested whether one positions is a prefix of
-                    # another expression. This can happen for an expression like
-                    # Inverse(Plus(A, B)), where
-                    # invert(Inverse(Plus(A, B))) == Plus(A, B)
-                    if not any(_is_prefix(pos, expr_pos) for _, pos in pos_list[n2]):
-                        pos_list[n2].append((type, expr_pos))
-                        break
-            else:
-                expr_list.append(expr1)
-                pos_list.append([(type, expr_positions[n1])])
-
-    remove = []
-    for n, potential_CSE in enumerate(pos_list):
-        if len(potential_CSE) > 1:
-            type0 = potential_CSE[0][0]
-            # If all positions of a potential CSE have the same type!=0, then
-            # this is also a CSE where all postions have type == 0. To avoid
-            # duplicates, all potential CSEs where all positions have the same
-            # type!=0 are removed.
-            if type0 == 0:
-                continue
-            for type, positions in potential_CSE[1:]:
-                if type != type0:
-                    break
-            else:
-                remove.append(n)
+    def is_compatible(self, other):
+        if self.eqn_idx != other.eqn_idx:
+            return True
+        elif not self.positions.isdisjoint(other.positions):
+            return False
         else:
-            # Expressions that only show up once can not be common subexpressions.
-            remove.append(n)
+            # check if one position is a prefix of another position
+            # if there is more than one position, they all have the same
+            # length and only differ in the last position, so it is sufficient
+            # to just use one arbitrary position.
+            self_pos = next(iter(self.positions))
+            other_pos = next(iter(other.positions))
+
+            if len(self_pos) == len(other_pos):
+                # We know already that the sets are disjoint. If elements
+                # have the same lengths, none is a prefix of the other.
+                return True
+            else:
+                # If one position is prefix of the other, they are not compatible
+                # print(self_pos, other_pos)
+                for _self_pos, _other_pos in itertools.product(self.positions, other.positions):
+                    if all(e1==e2 for e1, e2 in zip(_self_pos, _other_pos)):
+                        return False
+                return True
 
 
-    for n in reversed(remove):
-        # del expr_list[n]
-        del pos_list[n]
+    def is_subexpression(self, other):
+        """
+        This function is transitive.
+        """
+        if self.eqn_idx != other.eqn_idx:
+            return False
 
-    # for p, e in zip(pos_list, expr_list):
-    #     print(p, e)
-    # print("\n")
+        level_diff = self.level - other.level
+        if level_diff == 0:
+            return self.positions < other.positions
+        else:
+            # It is sufficient to take an arbitrary positions because they all
+            # have the same prefix.
+            self_pos = next(iter(self.positions))
+            self_prefix = self_pos[0:other.level]
+            # print(self_pos, self_prefix, other.positions)
+            return self_prefix in other.positions
 
-    return pos_list
+    def is_transpose(self, other):
+        return self.expr == other.expr_trans or self.expr_trans == other.expr
+        
+    def is_inverse(self, other):
+        return self.expr == other.expr_inv or self.expr_inv == other.expr
 
-CSEPosition = namedtuple("CSEPosition", ["pos", "type"])
+    def is_inverse_transpose(self, other):
+        return self.expr == other.expr_invtrans or self.expr_invtrans == other.expr
 
-# @profile
-def find_CSEs_times(products):
-    """Finds all replaceable CSEs in the input (products).
+class CSE(object):
+    """docstring for CSE"""
 
-    The input has to be a list of products, i.e. Times objects.
+    _counter = 0
+    def __init__(self, subexprs):
+        super(CSE, self).__init__()
+        self.subexprs = subexprs
+        self.subexprs_ids = {subexpr.id for subexpr in self.subexprs}
+        self.expr = subexprs[0].expr # for DEBUG only
 
-    This function returns a list of tuples. Each tuple contains
-    - a dictionary
-    - the length of this CSE.
+        self.id = CSE._counter
+        CSE._counter +=1
 
-    The dictionary maps integers to lists of named tuples CSEPosition.
-    Example:
-    {0: [CSEPosition(pos=0, type=0), CSEPosition(pos=2, type=1)]}
-    The keys of the dictionary represent positions in the input list (products).
-    Thus, this means that the following occurrences of this CSE were found in
-    the first item of the input (the first product).
+        self.compatible_count = 0
 
-    Each CSEPosition object describes one occurrence. pos is the position in the
-    list of operands of that product (the list of operands, starting at 0). type
-    specifies if this occurrence is
-    0 unmodified
-    1 transposed
-    2 inverted
+        self.predeccessors = []
+        self.successors = []
 
-    The list in the dictionary are sorted by pos.
-    """
-    n = len(products)
-    counter = 0
+        adj = dict()
+        for subexpr1, subexpr2 in itertools.combinations(self.subexprs, 2):
+            if subexpr1.is_compatible(subexpr2):
+                # print(subexpr1.expr, subexpr2.expr)
+                adj.setdefault(subexpr1.id, set()).add(subexpr2.id)
+                adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
 
-    # Here, all operands that are not simple are replaced with a placeholder.
-    # This is necessary because otherwise, non-simple expression can cause
-    # problems. Example: Times(A, B, Inv(Times(A, B))). If this is inverted,
-    # Times(A, B) basically moves into the outer times and messes up all
-    # indices.
-    _products = []
-    dummies = dict()
-    for _product in products:
-        new_operands = None
-        for _n, _operand in enumerate(_product.operands):
-            if not _is_simple_times_CSE(_operand):
-                if not new_operands:
-                    new_operands = _product.operands.copy()
-                try:
-                    dummy = dummies[_operand]
-                except KeyError:
-                    name = "".join(["dummy", str(counter)])
-                    counter += 1
-                    dummy = Matrix(name, _operand.size)
-                    dummies[_operand] = dummy
-                new_operands[_n] = dummy
-                # _product.operands[_n] = Matrix(name, _operand.size)
-        if new_operands:
-            _products.append(Times(*new_operands))
-        else:    
-            _products.append(_product)
+        self.all_cliques = list(find_max_cliques(adj))
+        self.max_clique_size = max((len(clique) for clique in self.all_cliques), default=0)
 
-    products = _products
+    def is_subexpression(self, other):
+        for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
+            if self_subexpr.is_subexpression(other_subexpr):
+                return True
+        return False
 
-    # print([str(prod) for prod in products])
-    products_T = [transpose(product) for product in products]
-    # print(products_T)
+    def is_compatible(self, other):
+        for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
+            if not self_subexpr.is_compatible(other_subexpr):
+                return False
+        return True
 
-    # Mathematically, this is not the correct way to compute the inverse of a
-    # general product. However, for the detection of common subexpression to
-    # work correctly, the order of the factors has to be reversed, and the
-    # inverse has to be applied to each factor individually.
-    # (The mathematically correct way to do this would be to only move those
-    # factors out of the inverse that are invertible.)
-    products_INV = [Times(*(invert(factor) for factor in reversed(product.operands))) for product in products]
+class CSEDetector(object):
+    """docstring for CSEDetector"""
+    def __init__(self):
+        super(CSEDetector, self).__init__()
+        self.CSE_detection_dict = dict()
+        self.all_subexpressions = dict()
+        self.all_CSEs = dict()
+        self.subexpr_to_CSE = dict()
+        self.all_CSE_lists = []
 
-    gst = GST()
-    for product in products + products_T + products_INV:
-        if isinstance(product, Symbol):
-            gst.add_sequence([product])
-        else:    
-            gst.add_sequence(product.operands)
+    def add_subexpression(self, subexpr):
 
-    # print(products)
-    # print(products_T)
-    # print(products_INV)
-    CSEs = gst.find_all_CSEs()
-    # gst.to_dot_file()
-    # quit()
-    # print(CSEs)
-    actual_CSEs = []
-
-    # First, we transform the CSEs in different versions (i.e. transposed,
-    # inverted) of the sequence into CSEs in the original, unmodified sequence,
-    # with additional information about their type (i.e. unmodified, transposed,
-    # …).
-    for positions, length in CSEs:
-        # Computing type based on seq_idx.
-        # type = floor(seq_idx/n)
-        # type = 0 : unmodified occurrence of CSE
-        # type = 1 : transposed occurrence of CSE
-        # type = 2 : inverted occurrence of CSE
-        types = [seq_idx//n for seq_idx in positions.keys()]
-        if all(type == 0 for type in types):
-            # If all occurences appear in unmodified sequences, there is not much
-            # to do.
-            actual_positions = dict()
-            for seq_idx in positions:
-                for pos in positions[seq_idx]:
-                    actual_positions.setdefault(seq_idx, []).append(CSEPosition(pos, 0))
-            actual_CSEs.append((actual_positions, length))
-
-        # Remark: If all occurences appear in the same modified sequence, we
-        # ignore that CSE because it's also a CSE in the unmodified sequence.
-        # This is the case if all entries in types are the same, but unequal 0.
-        # Example: A B C A B           CSE: A B
-        #          B^T A^T C^T B^T A^T CSE: B^T A^T
-
-        for type in types[1:]:
-            if types[0] != type:
-                # Here, we look at CSEs that appear in different version of the
-                # sequence. In this case, we actually have to map the
-                # information to the unmodified sequence, recalculating the 
-                # actual position.
-                actual_positions = dict()
-                for seq_idx in positions:
-                    for pos in positions[seq_idx]:
-                        _type = seq_idx // n
-                        actual_seq_idx = seq_idx % n
-                        if _type > 0:
-                            actual_pos = len(products[actual_seq_idx].operands) - length - pos
-                            if actual_pos < 0:
-                                print(positions, length)
-                        else:
-                            actual_pos = pos
-                        actual_positions.setdefault(actual_seq_idx, []).append(CSEPosition(actual_pos, _type))
-                actual_CSEs.append((actual_positions, length))
+        for expr in subexpr.expr_var:
+            try:
+                subexprs = self.CSE_detection_dict[expr]
+            except KeyError:
+                subexprs = []
+                self.all_CSE_lists.append(subexprs)
+            else:
                 break
 
-    # for CSE in actual_CSEs:
-    #     print(CSE, is_replaceable_CSE(CSE))
-    # print("actual_CSEs", actual_CSEs)
+        subexprs.append(subexpr)
+        for expr in subexpr.expr_var:
+            self.CSE_detection_dict[expr] = subexprs
 
-    # Returns only those CSEs that are replaceable.
-    # Careful: is_replaceable_CSE intentionally sorts the lists of occurrences.
-    actual_CSEs = list(filter(is_replaceable_CSE, actual_CSEs))
-
-    # print("actual_CSEs 1", actual_CSEs)
-
-    # Removing duplicates
-    # Here, duplicates means that all positions are the same. Types might be
-    # different (as far as I know, the algorithm never generates true
-    # duplicates).
-    # remove = []
-    # for cse1, cse2 in itertools.combinations(actual_CSEs, 2):
-    #     if equal_CSE_times(cse1, cse2):
-    #         remove.append(cse1)
-
-    # for cse in remove:
-    #     actual_CSEs.remove(cse)
-
-    # print("actual_CSEs", actual_CSEs)
-
-    # Removing CSEs that are not maximal, i.e. they can be extended, and the
-    # extended expression is still a CSE with the same number of occurences.
-    remove = []
-    for cse1, cse2 in itertools.product(actual_CSEs, repeat=2):
-        if cse1 == cse2:
-            continue
-        elif not_max_CSE_times(cse1, cse2) or sub_CSE_times(cse1, cse2):
-            remove.append(cse1)
-
-    for cse in remove:
-        # In some cases, certain CSEs are detected as "not maximal" multiple
-        # times (this relation is transitive).
-        try:
-            actual_CSEs.remove(cse)
-        except ValueError:
-            pass
-
-    # print("actual_CSEs", actual_CSEs)
-
-    return actual_CSEs
-
-def equal_CSE_times(cse1, cse2):
-    """Test if two CSEs are equal.
-
-    This function can NOT be replaced by the == operator. This function does
-    not consider the type for equality. CSEs that just differ in the type
-    can lead to exactly the same replacement at the moment (this has
-    something to do with what type is chosen as the "reference type" for
-    the extracted CSE. Just one type is used, not all possible types.)
-    """
-    positions1, length1 = cse1
-    positions2, length2 = cse2
-    if length1 != length2:
-        return False
-    elif len(positions1) != len(positions2):
-        return False
-    else:
-        for seq_idx, occurrences1 in positions1.items():
-            try:
-                occurrences2 = positions2[seq_idx]
-            except KeyError:
-                return False
-            else:
-                if len(occurrences1) != len(occurrences2):
-                    return False
-                elif any(CSE_pos1.pos != CSE_pos2.pos for CSE_pos1, CSE_pos2 in zip(occurrences1, occurrences2)):
-                    return False
-        return True
-
-def sub_CSE_times(cse1, cse2):
-    """Tests if cse1 is a true "sub-CSE" of cse2.
-
-    cse1 is a "sub-CSE" if all occurrences of cse1 are also occurrences in
-    cse2 (not considering type). This function returns False if both CSEs
-    are equal.
-
-    Intuitively, both CSEs are the same expression, but cse1 is missing some
-    occurrences.
-    """
-    positions1, length1 = cse1
-    positions2, length2 = cse2
-    if length1 != length2:
-        return False
-    else:
-        # There has to be at least one s1 that is a subset of s2,
-        # otherwise, both CSEs might be equal.
-        subset_exists = False
-        for seq_idx, occurrences2 in positions2.items():
-            try:
-                occurrences1 = positions1[seq_idx]
-            except KeyError:
-                # If there are no occurrences for that seq_idx, this
-                # means that the set of occurrences is empty. The empty set
-                # is subset of every other set.
-                subset_exists = True
-            else:
-                if len(occurrences1) > len(occurrences2):
-                    return False
-                else:
-                    s1 = set(CSE_pos1.pos for CSE_pos1 in occurrences1)
-                    s2 = set(CSE_pos2.pos for CSE_pos2 in occurrences2)
-                    # print("s1", s1)
-                    # print("s2", s2)
-                    # If s1 is not a subset of s2, cse1 can certainly not be a
-                    # subset of cse2.
-                    # Keep in mind that this is not the same as s1 > s2
-                    if not s1 <= s2:
-                        return False
-                    if s1 < s2:
-                        subset_exists = True
-        return subset_exists
-
-# def sub_CSE_times(cse1, cse2):
-#     """Tests if cse1 is a "sub-CSE" of cse2.
-
-#     cse1 is a "sub-CSE" if all occurrences of cse1 are also occurrences in
-#     cse2 (not considering type).
-
-#     Intuitively, both CSEs are the same expression, but cse1 is missing some
-#     occurrences.
-#     """
-#     positions1, length1 = cse1
-#     positions2, length2 = cse2
-#     if length1 != length2:
-#         return False
-#     else:
-#         for seq_idx, occurrences1 in positions1.items():
-#             try:
-#                 occurrences2 = positions2[seq_idx]
-#             except KeyError:
-#                 return False
-#             else:
-#                 if len(occurrences1) > len(occurrences2):
-#                     return False
-#                 else:
-#                     s1 = set(CSE_pos1.pos for CSE_pos1 in occurrences1)
-#                     s2 = set(CSE_pos2.pos for CSE_pos2 in occurrences2)
-#                     if s1 > s2:
-#                         return False
-#         return True
+        self.all_subexpressions[subexpr.id] = subexpr
 
 
+    def print_self(self):
+        for key, value in self.CSE_detection_dict.items():
+            if len(value) > 1:
+                print("# ", key)
+                for subexpr in value:
+                    print(str(subexpr.expr), subexpr.eqn_idx, subexpr.positions)
 
-def not_max_CSE_times(cse1, cse2):
-    """Tests if cse1 is a not maximal with respect to cse2.
+    def construct_CSEs(self):
 
-    Maximal means that if a CSE is extended, then one or more occurrences
-    are lost. See "Structural Analysis of Gapped Motifs of a String" by Esko
-    Ukkonen, section "Representation by Maximal Non–gapped Motifs"
+        for subexprs in self.all_CSE_lists:
+            if len(subexprs) > 1:
+                cse = CSE(subexprs)
+                self.all_CSEs[cse.id] = cse
+                for subexpr in subexprs:
+                    self.subexpr_to_CSE[subexpr.id] = cse.id
 
-    Here, we simply test this by pairwise comparison. If cse2 is "larger"
-    than cse1, than cse1 can not be maximal.
+        print("construct CSEs", [(str(cse.expr), len(cse.subexprs)) for cse in self.all_CSEs.values()])
 
-    The idea is to test if two CSEs which have different length have the
-    same positions modulo a small offset (the offset can not be larger than
-    the difference between the length).
-    """
-    
-    positions1, length1 = cse1
-    positions2, length2 = cse2
-    
-    if length1 < length2 and len(positions1) == len(positions2):
-        length_difference = length2 - length1
-        for offset in range(length_difference + 1):
-            match = True
-            for key1 in positions1.keys():
+
+    def transitive_reduction(self):
+        while True:
+            remove_edge = []
+            for node in self.all_CSEs.values():
+                for pre in node.predeccessors:
+                    for prepre in pre.predeccessors:
+                        if prepre in node.predeccessors:
+                            edge = (node, prepre)
+                            if edge not in remove_edge:
+                                remove_edge.append((node, prepre))
+                                # print("tr", str(node.expr), str(prepre.expr))
+
+            if not remove_edge:
+                break
+
+            for node1, node2 in remove_edge:
+                node1.predeccessors.remove(node2)
+                node2.successors.remove(node1)
+
+
+    def remove_not_maximal_CSEs(self, nodes):
+        # TODO do we want to consider compatible_count?
+
+        while True:
+            remove = []
+            for node in nodes:
+                if node.predeccessors and not node.successors:
+                    # if not any(len(predeccessor.subexprs) < len(node.subexprs) for predeccessor in node.predeccessors):
+                    if not any(predeccessor.max_clique_size < node.max_clique_size for predeccessor in node.predeccessors):
+                        # print("not maximal", node.expr)
+                        # if not any(predeccessor.compatible_count < node.compatible_count for predeccessor in node.predeccessors):
+                        remove.append(node)
+
+            if not remove:
+                break
+
+            for node in remove:
+                nodes.remove(node)
+                for predeccessor in node.predeccessors:
+                    predeccessor.successors.remove(node)
+
+    def remove_invalid_CSEs(self, nodes):
+        """
+
+        A common subexpression is invalid if it has only two occurrences, and
+        those occurrences are not compatible.
+        """
+
+        remove = []
+        for cse in nodes:
+            # if len(cse.subexprs) == 2 and not cse.subexprs[0].is_compatible(cse.subexprs[1]):
+            if cse.max_clique_size < 2:
+                remove.append(cse)
+
+        for cse in remove:
+            nodes.remove(cse)
+            for predeccessor in cse.predeccessors:
+                predeccessor.successors.remove(cse)
+            for successor in cse.successors:
+                successor.predeccessors.remove(cse)
+
+
+    def maximal_CSEs(self):
+        current_nodes = [node for node in self.all_CSEs.values()]
+
+        # print("all nodes", [str(node.expr) for node in current_nodes])
+        # remove not maximal CSEs
+
+        self.remove_invalid_CSEs(current_nodes)
+
+        self.remove_not_maximal_CSEs(current_nodes)
+
+        # print("all nodes", [str(node.expr) for node in current_nodes])
+
+        CSEs = []
+        while current_nodes:
+            # print("lattice", [str(node.expr) for node in lattice])
+            new_CSEs = []
+            for node in current_nodes:
+                # print("node", str(node.expr))
+                # print("successors", [str(node.expr) for node in node.successors])
+                if not node.successors:
+                    new_CSEs.append(node)
+
+            # print("new_CSEs", [str(node.expr) for node in new_CSEs])
+            for node in new_CSEs:
+                current_nodes.remove(node)
+                for predeccessor in node.predeccessors:
+                    predeccessor.successors.remove(node)
+
+            self.remove_not_maximal_CSEs(current_nodes)
+
+            CSEs.extend(new_CSEs)
+
+        return CSEs
+
+
+    def replaceable_CSEs(self, CSEs):
+
+        if len(CSEs) == 1:
+            # No constraints need to be checked here. All subexpressions belong
+            # to the same CSE, and there are no cliques with less than two
+            # nodes.
+            for clique in CSEs[0].all_cliques:
+                yield [self.all_subexpressions[id] for id in clique]
+        else:
+            subexprs = list(itertools.chain.from_iterable([node.subexprs for node in CSEs]))
+
+            adj = dict()
+            for subexpr1, subexpr2 in itertools.combinations(subexprs, 2):
+                if subexpr1.is_compatible(subexpr2):
+                    # print(subexpr1.expr, subexpr2.expr)
+                    adj.setdefault(subexpr1.id, set()).add(subexpr2.id)
+                    adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
+
+            cliques = []
+            for clique in find_max_cliques(adj):
+
+                _counter = Counter(self.subexpr_to_CSE[id] for id in clique)
+                # print(clique)
+                # print(_counter)
+
+                # if for a CSE there is only one subexpression, this subexpression is removed
+                remove = set()
+                for id in clique:
+                    if _counter[self.subexpr_to_CSE[id]] == 1:
+                        remove.add(id)
+                clique_no_singles = set(clique) - remove
+                cliques.append(clique_no_singles)
+
+            # removing cliques that are subsets of other cliques
+            # this is possible because of the previous step
+            remove = []
+            for clique1, clique2 in itertools.combinations(cliques, 2):
+                if clique1 <= clique2:
+                    remove.append(clique1)
+                elif clique2 < clique1:
+                    remove.append(clique2)
+
+            for clique in remove:
                 try:
-                    p2 = positions2[key1]
-                except KeyError:
-                    # In this case, cse1 is certainly not a subset of cse2
-                    return False
-
-                p1 = positions1[key1]
-                if len(p1) != len(p2):
-                    return False
-
-                for occurrence1, occurrence2 in zip(p1, p2):
-                    pos2 = None
-                    if occurrence2.type == 0:
-                        pos2 = occurrence2.pos + offset
-                    else:
-                        pos2 = occurrence2.pos + length_difference - offset
-                    if not (occurrence1.type == occurrence2.type and occurrence1.pos == pos2):
-                        match = False
-            if match:
-                return True
-    return False
-
-def _sequence_intersection(sequences):
-    """Computes all intersections of all sequences.
-
-    sequences has to be a list of sorted lists. This functions computes all
-    intersections of those lists. 
-
-    The idea is to simultaneously traverse all lists, collecting elements that
-    appear in multiple lists. This is done by maintaining a list of pointers,
-    where each pointer points to one element of a different list (the current
-    elements). Initially, all pointers point to the first element.
-
-    1. The smallest element of the current elements is determined.
-    2. Those elements that are equal to this smallest element are "collected".
-    3. The pointers pointing to those elements are moved forward by one.
-    4. This process is repeated, starting at 1., until all lists are completely
-       traversed.
-
-    The intersections are returned as a dictionary.
-    - The keys of this dictionary are tuples of integers. Those integers are the
-      indices in sequences that are part of this intersection. Example: (1, 2)
-      means that sequences[1] and sequences[2] have some elements in common.
-    - The values of this dictionary are lists of lists. Each inner list is one
-      set of indices, where those positions that also show up in the key are the
-      indices of that element that is in the intersection of those list.
-
-    Example:
-    Input: [["a", "b", "c"],["b", "c", "d"],[1, "c", "d"]]
-    Output: {(0, 1): [[1, 0, 1]], (0, 1, 2): [[2, 1, 1]], (1, 2): [[2, 2, 2]], (0, 2): [[0, 0, 0]]}
-
-    (0, 1): [[1, 0, 1]] means the following: From (0, 1) it follows that the
-    first two sequences have an element in common (it is "b"). Thus, we only
-    care about position 0 and 1 in l = [1, 0, 1]. l[0]=1 tells us that this
-    element of this intersection has the index 1 in sequences[0]. It is "b". The
-    other occurrence is l[1]=0, that is, the first position in sequences[1].
-    """
-
-    n = len(sequences)
-
-    pointer = [0 for _ in range(n)]
-    not_end = [True for _ in range(n)]
-
-    CSEs = dict()
-
-    while True:
-
-        # print("P:", pointer)
-
-        # Finding the index k of the first sequences that has some unprocessed
-        # elements left.
-        k = not_end.index(True)
-        min_val = sequences[k][pointer[k]]
-        min_sequences = [k]
-
-        # It is sufficient to start at k+1 because for all i < k, not_end[i] is
-        # False.
-        for i in range(k+1, n):
-            if not_end[i]:
-                val = sequences[i][pointer[i]]
-                # print(val, min_val)
-                if val < min_val:
-                    # print("smaller")
-                    min_sequences = [i]
-                    min_val = val
-                elif val == min_val:
-                    # print("equal")
-                    min_sequences.append(i)
-
-        # print(min_sequences)
-
-        if len(min_sequences) > 1:
-            CSEs.setdefault(tuple(min_sequences), []).append(tuple(copy.deepcopy(pointer)))
-            # CSEs.setdefault(tuple(min_sequences), []).append((min_val, copy.deepcopy(pointer)))
-
-            # This loop generates additional subsets. Example: If sequences 1, 2
-            # and 3 have an intersection, then (1, 2), (1, 3) and (2, 3) have
-            # intersections as well. They are generated here.
-            for i in range(2, len(min_sequences)):
-                for min_sequences_subset in itertools.combinations(min_sequences, i):
-                    CSEs.setdefault(tuple(min_sequences_subset), []).append(tuple(copy.deepcopy(pointer)))
-
-        # Advancing pointers pointing to minimal elements.
-        for i in min_sequences:
-            if pointer[i] + 1 == len(sequences[i]):
-                not_end[i] = False
-            else:
-                pointer[i] += 1
-
-        # print(not_end)
-        if not any(not_end):
-            break
-
-        
-        # print(min_val)
-        # print(min_sequences)
-
-    return CSEs
-
-class GraphNode(object):
-    """Node for the graph that represents the relation between intersections.
-
-    """
-    def __init__(self, seq_indices, positions):
-        self.seq_indices = seq_indices # frozenset
-        self.positions = positions # list of lists
-        self.supersets = []
-        self.subsets = []
-
-def _find_CSE_nodes(node):
-    """
-
-    This function traverses the subset graph starting at "node", move to all
-    subsets. Whenever a subset is found with more than one position, it stops
-    and returns that node as a CSE node.
-
-    This way, by traversing the graph from top to bottom and stopping as soon
-    as a CSE node is found, we don't detect CSEs where all occurrences are a
-    subsets of the occurrences of another CSE (this is the relation that this
-    graph represents).
-    """
-    if len(node.positions) > 1:
-        yield node
-    else:
-        for n in node.subsets:
-            yield from _find_CSE_nodes(n)
-
-def _sort(l):
-    """Returns a sorted copy of l plus a permutation list.
-
-    The permutation list describes how the original list was reordered during
-    sorting.
-    """ 
-    return zip(*sorted(enumerate(l), key=operator.itemgetter(1)))
-
-def find_CSEs_plus(sums):
-    n = len(sums)
-
-    tmp_sequences = [copy.copy(sum.operands) for sum in sums]
-    # Careful! transpose() sorts. Here however, I have to keep track of how the
-    # summands change positions, so I have to apply transpose in a way that it
-    # doesn't sort.
-    tmp_sequences.extend([[transpose(copy.deepcopy(summand)) for summand in sum.operands] for sum in sums])
-
-    pos_map = dict()
-    sequences = []
-    for seq_idx, sequence in enumerate(tmp_sequences):
-        # Sequences are sorted to allow efficient computation of the
-        # intersections. The pos_map stores the original positions of all
-        # expressions.
-        pos_map[seq_idx], sequence = _sort(sequence)
-        sequences.append(sequence)
-
-    # print("sequences", sequences)
-
-    intersections = _sequence_intersection(sequences)
-    # print(pos_map)
-    # print("intersections", intersections)
-
-    nodes = []
-    for seq_indices, positions in intersections.items():
-
-        # Here, we are dealing with the ugly special case. Notice that this
-        # still doesn't work in all cases.
-        # This is one example of the ugly special case
-        # Example: A + B + A^T + B^T + C
-        # The problem is that the intersection of that sum and its
-        # transpose contains the CSE A + B (or A^T + B^T, or A + B^T ...)
-        # twice (this does not happen if there is one additional occurrence
-        # of this CSE in some other sum. However, it potentially gets even
-        # worse when there are two sums like that. Note that A + B can not
-        # show up twice in one sum because it will be simplified to
-        # 2 A + 2 B).
-        # Solution (at least for the case where there is one such sum):
-        # We keep track of how many occurences there are in each orignal
-        # sequence. sequence_hit_count stores how often each sequence is "hit"
-        # If all sequences are either hit twice (or none), then this is a
-        # special case. For some of those cases, the problem can be solved by 
-        # discarding the second half of the positions. This works because the
-        # expressions were sorted, so the order is always [transposed, not transposed]
-        sequence_hit_count = [0 for _ in range(n)]
-
-        for seq_idx in seq_indices:
-            sequence_hit_count[seq_idx % n] += 1
-
-        # print("sequence_hit_count", seq_indices, sequence_hit_count, positions)
-
-        if all((hits == 2 or hits == 0) for hits in sequence_hit_count):
-            positions = positions[:len(positions)//2]
-            pass
-
-        # print("sequence_hit_count", seq_indices, sequence_hit_count, positions)
-        nodes.append(GraphNode(frozenset(seq_indices), positions))
-
-    # TODO this graph is similar a lattice https://en.wikipedia.org/wiki/Lattice_(order)
-
-    # Here, we are constructing the graph that respresents the subset/superset
-    # relation between the intersections. That is, the relation between the
-    # sequence indices.
-    for node1, node2 in itertools.combinations(nodes, 2):
-        if node1.seq_indices < node2.seq_indices:
-            node1.supersets.append(node2)
-            node2.subsets.append(node1)
-        elif node1.seq_indices > node2.seq_indices:
-            node1.subsets.append(node2)
-            node2.supersets.append(node1)
-
-    # A dictionary is used to make sure that no node is added more than ones.
-    # Nodes can be uniquely identified by seq_indices.
-    CSE_nodes = dict()
-
-    for node in nodes:
-        if not node.supersets:
-            for nd in _find_CSE_nodes(node):
-                seq_indices = list(nd.seq_indices)
-                type = seq_indices[0] // n
-                # If all occurences have the same type != 0, we also detect a CSE where
-                # all occurrences have type 0. Thus, those CSEs can be ignored.
-                # TODO It should be possible to discard those cases before contructing
-                # the graph.
-                if type != 0 and all(idx //n == type for idx in seq_indices[1:]):
-                    continue
-                else:
-                    # print("HERE")
-                    # Node is only added if its not in CSE_nodes.
-                    CSE_nodes.setdefault(nd.seq_indices, nd)
-
-    type_mapping = [[0, 1],
-                    [1, 0]]
-
-    # print(CSE_nodes)
-    # print(pos_map)
-
-    # Constructing the output representation fo the CSEs.
-    CSEs = []
-    for node in CSE_nodes.values():
-        positions = node.positions
-
-        # print("NODE:", node.seq_indices)   
-
-        # We don't care about CSEs with less than two operands.
-        if len(positions) > 1:
-            remove = dict()
-            tmp_types = dict()
-            tmp = None
-            reference_type = None
-            for seq_idx in node.seq_indices:
-                type = seq_idx // n
-                actual_seq_idx = seq_idx % n
-                actual_positions = [pos_map[seq_idx][position[seq_idx]] for position in positions]
-                if not tmp:
-                    reference_type = type
-                    tmp = (actual_seq_idx, actual_positions)
-
-                tmp_types.setdefault(actual_seq_idx, []).append(type_mapping[type][reference_type])
+                    cliques.remove(clique)
+                except ValueError:
+                    pass
                 
-                remove.setdefault(actual_seq_idx, []).extend(actual_positions)
-            # print(node.seq_indices)
-            # print(positions)
-            # print("tmp:", tmp)
-            # print("Remove:", remove)
-            # print("tmp_types", tmp_types)
-            # if there are duplicates in remove, something is wrong
-            duplicates = False
-            for _, _positions in remove.items():
-                seen = set()
-                for _pos in _positions:
-                    if _pos in seen:
-                        duplicates = True
-                        break
-                    else:
-                        seen.add(_pos)
-                if duplicates:
-                    break
-            if not duplicates:
-                CSEs.append((tmp, remove, tmp_types))
+            # print(cliques)
 
-    return CSEs
+            for clique in cliques:
+                yield [self.all_subexpressions[id] for id in clique]
 
 
-def is_replaceable_CSE(CSE):
-    """Test if a CSE is replaceable.
+    def construct_lattice(self):
+        for cse1, cse2 in itertools.product(self.all_CSEs.values(), repeat=2):
+            if cse1.is_subexpression(cse2):
+                cse1.predeccessors.append(cse2)
+                cse2.successors.append(cse1)
+                # print(str(cse1.expr), str(cse2.expr))
 
-    Replaceable means that there are no occurrences that overlap with itself.
-    Example: Sequence AAAA
-             CSE 1    AAA
-             CSE 2     AAA
-    Clearly, occurrences of AAA  overlap with itself, so replacing both is not
-    possible.
-    Of course, if there is a third occurrence somewhere else, it would be
-    possible to replace CSEs 1 and 3 or 2 and 3. We do not take this into
-    account because we expect that cases like that are rare.
-    In general, a subset of all CSEs might be replaceable. In order to explore
-    every possibility, one had to inspect all subsets. It would also be possible
-    to construct just those subsets that are replaceable, but the question is if
-    that would be worth the effort.
+    def count_compatible(self):
+        
+        # print("counting other")
+        for cse1, cse2 in itertools.combinations(self.all_CSEs.values(), 2):
+            # print("CSE", str(cse1.expr), str(cse2.expr), len(cse2.subexprs))
+            for subexpr1, subexpr2 in itertools.product(cse1.subexprs, cse2.subexprs):
+                if subexpr1.is_compatible(subexpr2):
+                    # print(str(subexpr1.expr), subexpr1.eqn_idx, subexpr1.positions, str(subexpr2.expr), subexpr2.eqn_idx, subexpr2.positions)
+                    subexpr1.compatible_count += 1
+                    subexpr2.compatible_count += 1
+
+        # print("counting self")
+        for cse in self.all_CSEs.values():
+            for subexpr1, subexpr2 in itertools.combinations(cse.subexprs, 2):
+                if subexpr1.is_compatible(subexpr2):
+                    # print(str(subexpr1.expr), subexpr1.eqn_idx, str(subexpr2.expr), subexpr2.eqn_idx)
+                    subexpr1.compatible_count += 1
+                    subexpr2.compatible_count += 1
+
+
+        for CSE in self.all_CSEs.values():
+            CSE.compatible_count = sum(subexpr.compatible_count for subexpr in CSE.subexprs)
+
+        print("compatible count", [(str(cse.expr), cse.compatible_count) for cse in self.all_CSEs.values()])
+
+
+    def CSEs(self):
+        self.construct_CSEs()
+
+        self.construct_lattice()
+
+        # self.count_compatible()
+
+        self.transitive_reduction()
+        maximal_CSEs = self.maximal_CSEs()
+
+        # adding pairs of CSEs that are compatible
+        # there is no reason not to go for larger groups, but they are probably very unlikely
+        grouped_CSEs = []
+        for cse1, cse2 in itertools.combinations(self.all_CSEs.values(), 2):
+            if cse1.is_compatible(cse2):
+                grouped_CSEs.append((cse1, cse2))
+
+        for group in grouped_CSEs:
+            for cse in group:
+                try:
+                    maximal_CSEs.remove(cse)
+                except ValueError:
+                    pass
+
+        for cse in maximal_CSEs:
+            grouped_CSEs.append((cse,))      
+
+        for group in grouped_CSEs:
+            print("group", [str(cse.expr) for cse in group])
+            yield from self.replaceable_CSEs(group)
+
+def find_max_cliques(G):
+    """Returns all maximal cliques in an undirected graph.
+
+    For each node *v*, a *maximal clique for v* is a largest complete
+    subgraph containing *v*. The largest maximal clique is sometimes
+    called the *maximum clique*.
+
+    This function returns an iterator over cliques, each of which is a
+    list of nodes. It is an iterative implementation, so should not
+    suffer from recursion depth issues.
+
+    Parameters
+    ----------
+    G : A dict that represents an undirected graph. They keys are nodes, the
+        values are sets of adjacent nodes.
+
+    Returns
+    -------
+    iterator
+        An iterator over maximal cliques, each of which is a list of
+        nodes in `G`. The order of cliques is arbitrary.
+
+    Copyright
+    --------
+    This funciton, including the docstring, is an adapted version of the
+    find_cliques function of the NetworkX module.
+
+    Copyright (C) 2004-2018 by
+    Aric Hagberg <hagberg@lanl.gov>
+    Dan Schult <dschult@colgate.edu>
+    Pieter Swart <swart@lanl.gov>
+    All rights reserved.
+    3-clause BSD license.
+
+    For the full license text, see /other_licenses/networkx.txt
+
+    Notes
+    -----
+    To obtain a list of all maximal cliques, use
+    `list(find_cliques(G))`. However, be aware that in the worst-case,
+    the length of this list can be exponential in the number of nodes in
+    the graph (for example, when the graph is the complete graph). This
+    function avoids storing all cliques in memory by only keeping
+    current candidate node lists in memory during its search.
+
+    This implementation is based on the algorithm published by Bron and
+    Kerbosch (1973) [1]_, as adapted by Tomita, Tanaka and Takahashi
+    (2006) [2]_ and discussed in Cazals and Karande (2008) [3]_. It
+    essentially unrolls the recursion used in the references to avoid
+    issues of recursion stack depth (for a recursive implementation, see
+    :func:`find_cliques_recursive`).
+
+    This algorithm ignores self-loops and parallel edges, since cliques
+    are not conventionally defined with such edges.
+
+    References
+    ----------
+    .. [1] Bron, C. and Kerbosch, J.
+       "Algorithm 457: finding all cliques of an undirected graph".
+       *Communications of the ACM* 16, 9 (Sep. 1973), 575--577.
+       <http://portal.acm.org/citation.cfm?doid=362342.362367>
+
+    .. [2] Etsuji Tomita, Akira Tanaka, Haruhisa Takahashi,
+       "The worst-case time complexity for generating all maximal
+       cliques and computational experiments",
+       *Theoretical Computer Science*, Volume 363, Issue 1,
+       Computing and Combinatorics,
+       10th Annual International Conference on
+       Computing and Combinatorics (COCOON 2004), 25 October 2006, Pages 28--42
+       <https://doi.org/10.1016/j.tcs.2006.06.015>
+
+    .. [3] F. Cazals, C. Karande,
+       "A note on the problem of reporting maximal cliques",
+       *Theoretical Computer Science*,
+       Volume 407, Issues 1--3, 6 November 2008, Pages 564--568,
+       <https://doi.org/10.1016/j.tcs.2008.05.010>
     """
-    positions, length = CSE
-    for seq_idx, occurrences in positions.items():
-        if len(occurrences) > 1:
-            occurrences.sort(key=lambda x: x.pos)
-            for n, CSE_pos in enumerate(occurrences[:-1]):
-                if CSE_pos.pos + length > occurrences[n+1].pos:
-                    return False
-    return True
+    if len(G) == 0:
+        return
 
-def is_simple_times_CSE(expr):
-    """Test if expr is sufficiently simple for CSE replacement."""
-    return len(expr.operands)>1 and all(_is_simple_times_CSE(operand) for operand in expr.operands)
+    adj = G
+    Q = [None]
 
-def _is_simple_times_CSE(expr):
-    # TODO what is missing?
-    if isinstance(expr, Symbol) \
-    or (isinstance(expr, Transpose) and isinstance(expr.operand, Symbol)) \
-    or (isinstance(expr, ConjugateTranspose) and isinstance(expr.operand, Symbol)) \
-    or (isinstance(expr, Inverse) and isinstance(expr.operand, Symbol)) \
-    or (isinstance(expr, InverseTranspose) and isinstance(expr.operand, Symbol)):
+    subg = set(G.keys())
+    cand = set(G.keys())
+    u = max(subg, key=lambda u: len(cand & adj[u]))
+    ext_u = cand - adj[u]
+    stack = []
+
+    try:
+        while True:
+            if ext_u:
+                q = ext_u.pop()
+                cand.remove(q)
+                Q[-1] = q
+                adj_q = adj[q]
+                subg_q = subg & adj_q
+                if not subg_q:
+                    yield Q[:]
+                else:
+                    cand_q = cand & adj_q
+                    if cand_q:
+                        stack.append((subg, cand, ext_u))
+                        Q.append(None)
+                        subg = subg_q
+                        cand = cand_q
+                        u = max(subg, key=lambda u: len(cand & adj[u]))
+                        ext_u = cand - adj[u]
+            else:
+                Q.pop()
+                subg, cand, ext_u = stack.pop()
+    except IndexError:
+        pass
+
+# TODO move to utils
+def contains_inverse(expr):
+    if is_inverse(expr):
         return True
-    else:
-        return False
+    if isinstance(expr, Operator):
+        return any(contains_inverse(operand) for operand in expr.operands)
+
+def contains_transpose(expr):
+    if is_transpose(expr):
+        return True
+    if isinstance(expr, Operator):
+        return any(contains_transpose(operand) for operand in expr.operands)
+
+def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
+    """
+    Canoical positions: If a subexpression is a single node in the expression
+    tree, its position is only one sequence.
+
+    Example: For ABC+D
+    ABC+D   {()}                not {(0,), (1,)}
+    ABC     {(0,)}              not {(0, 0), (0, 1), (0, 2)}
+    D       {(1,)}
+    AB      {(0, 0), (0, 1)}
+
+    This way, positions are unique.
+    """
+    if isinstance(expr, Operator):
+        if expr.arity == matchpy.Arity.unary:
+            if not (is_inverse(expr) and isinstance(predeccessor, Times)) and not (is_transpose(expr) and isinstance(expr.operand, Symbol)):
+                yield expr, {position}, level
+        elif expr.commutative:
+            if not is_blocked(expr):
+                yield expr, {position}, level
+            if len(expr.operands) > 2:
+                ops = [(op, position + (n,)) for n, op in enumerate(expr.operands)]
+                for subset in powerset(ops, 2, len(ops)):
+                    positions = set()
+                    _ops = []
+                    for op, pos in subset:
+                        positions.add(pos)
+                        _ops.append(op)
+                    if not is_blocked(expr):
+                        yield Plus(*_ops), positions, level+1
+        elif expr.associative:
+            if not is_blocked(expr):
+                yield expr, {position}, level
+            for i in range(2, len(expr.operands)):
+                for offset, seq in enumerate(window(expr.operands, i)):
+                    positions = set(position + (offset+j,) for j in range(i))
+                    if not is_blocked(expr):
+                        yield Times(*seq), positions, level+1
+        for n, operand in enumerate(expr.operands):
+            new_position = position + (n,)
+            yield from all_subexpressions(operand, new_position, level+1, expr)
+
+def indentify_subexpression_types(subexprs):
+    # subexprs_dict = dict()
+    # for subexpr in subexprs:
+    #     subexprs_dict.setdefault(subexpr.expr, []).append(subexpr)
+
+    # # print(subexprs_dict)
+
+    # if len(subexprs_dict.keys()) == 1:
+    #     return [CSEType.none for _ in subexprs]
+    # else:
+
+    ref_subexpr = subexprs[0]
+    return_types = [CSEType.none]
+    for subexpr in subexprs[1:]:
+        if subexpr.expr == ref_subexpr.expr:
+            return_types.append(CSEType.none)
+        elif subexpr.is_transpose(ref_subexpr):
+            return_types.append(CSEType.transpose)
+        elif subexpr.is_inverse(ref_subexpr):
+            return_types.append(CSEType.inverse)
+        elif subexpr.is_inverse_transpose(ref_subexpr):
+            return_types.append(CSEType.invert_transpose)
+    
+    # print(return_types)
+    return return_types
+
+def find_CSEs(equations):
+
+
+    CSE_detector = CSEDetector()
+    for eqn_idx, equation in enumerate(equations):
+        for expr, positions, level in all_subexpressions(equation.rhs):
+            # print(expr, positions)
+
+            # for expression of the form Inverse(expr), we don't want to add the
+            # inverted variant because this will produce "fake" CSEs. The reason
+            # is that expr will also be added.
+            # same for transpose
+            # TODO do we want to invert if expr is not square?
+            inv = contains_inverse(expr) and not is_inverse(expr)
+            trans = contains_transpose(expr) and not is_transpose(expr)
+            if expr.has_property(properties.SYMMETRIC):
+                trans = False
+            if inv and trans:
+                subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.inverse_transpose)
+                # print("inv trans", expr)
+                CSE_detector.add_subexpression(subexpr)
+            elif inv:
+                subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.inverse)
+                # print("inv", expr, subexpr.expr_var)
+                CSE_detector.add_subexpression(subexpr)
+            elif trans:
+                subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.transpose)
+                # print("trans", expr, subexpr.expr_var)
+                CSE_detector.add_subexpression(subexpr)
+            else:
+                subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.none)
+                CSE_detector.add_subexpression(subexpr)
+
+
+    # CSE_detector.print_self()
+    for CSE in CSE_detector.CSEs():
+        # pass
+        print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in CSE])
+
+        CSE_as_dict = dict()
+        for subexpr in CSE:
+            CSE_as_dict.setdefault(CSE_detector.subexpr_to_CSE[subexpr.id], []).append(subexpr)
+  
+        insert_equations = []
+        replacements_per_equation = dict()
+        for CSE_id, subexprs in CSE_as_dict.items():
+
+            min_eqn_idx = min(subexpr.eqn_idx for subexpr in subexprs)
+
+            CSE_expr = subexprs[0].expr # this works because indentify_subexpression_types uses subexprs[0] as reference
+            tmp = temporaries.create_tmp(CSE_expr, True)
+            eqn = Equal(tmp, CSE_expr)
+
+            insert_equations.append((min_eqn_idx, eqn))
+
+            for subexpr, subexpr_type in zip(subexprs, indentify_subexpression_types(subexprs)):
+                positions = list(subexpr.positions)
+                for position in positions[1:]:
+                    replacements_per_equation.setdefault(subexpr.eqn_idx, []).append(((1,) + position, []))
+
+                tmp_expr = tmp
+                if subexpr_type == CSEType.transpose:
+                    tmp_expr = Transpose(tmp)
+                elif subexpr_type == CSEType.inverse:
+                    tmp_expr = Inverse(tmp)
+                elif subexpr_type == CSEType.inverse_transpose:
+                    tmp_expr = InverseTranspose(tmp)
+
+                replacements_per_equation.setdefault(subexpr.eqn_idx, []).append(((1,) + positions[0], tmp_expr))
+
+
+        # print(replacements_per_equation)
+        equations_list = list(equations.equations)
+        for eqn_idx, replacements in replacements_per_equation.items():
+            equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
+            
+
+        # Inserting new equation for extracted CSE.
+        # It is inserted right before the first occurrence of the CSE.
+        insert_equations.sort(reverse=True)
+        for min_eqn_idx, eqn in insert_equations:
+            equations_list.insert(min_eqn_idx, eqn)
+        new_equations = Equations(*equations_list)
+        new_equations = new_equations.to_normalform()
+
+        print(new_equations)
+
+        yield new_equations
+
+
+
+if __name__ == "__main__":
+
+    import linnea.config
+
+    linnea.config.init()
+
+    from linnea.derivation.graph.constructive import DerivationGraph
+    # from linnea.derivation.graph.exhaustive import DerivationGraph
+    # from linnea.derivation.graph.matrix_chain_derivation import DerivationGraph
+
+    import linnea.examples.examples
+    import linnea.examples.lamp_paper.examples
+
+    # example = linnea.examples.lamp_paper.examples.Common_Subexpr_7_2_3()
+    # example = linnea.examples.lamp_paper.examples.Overlap_Common_Subexpr_7_2_4()
+    # example = linnea.examples.lamp_paper.examples.Matrix_Chain_7_2_6()
+    # example = linnea.examples.lamp_paper.examples.Generalized_LeastSquares_7_1_3()
+    # example = linnea.examples.lamp_paper.examples.Rewrite_Distributivity_7_2_5_1()
+    # example = linnea.examples.lamp_paper.examples.LMMSE_7_1_2() # TODO exhaustive: eigen trick is not applied?
+    # example = linnea.examples.lamp_paper.examples.LeastSquares_7_1_1()
+    # example = linnea.examples.lamp_paper.examples.Simplification_7_2_12()
+    # example = linnea.examples.lamp_paper.examples.Simplification_7_2_11()
+    # example = linnea.examples.lamp_paper.examples.Tikhonov_7_1_14() # TODO exhaustive: eigen trick is not applied because of dead ends?
+    # example = linnea.examples.lamp_paper.examples.EnsembleKalmarFilter_7_1_9_1() # large number of solutions
+    # example = linnea.examples.lamp_paper.examples.EnsembleKalmarFilter_7_1_9_2()
+    # example = linnea.examples.lamp_paper.examples.Common_Subexpr_7_2_2()
+    # example = linnea.examples.lamp_paper.examples.CDMA_7_1_15() # set_equivalent_upwards makes a big difference for number of nodes here
+    # example = linnea.examples.lamp_paper.examples.Local_Assimilation_Kalmar_7_1_7() # TODO problem with storage format (constructive)
+    # example = linnea.examples.lamp_paper.examples.ImageRestoration_7_1_13_1() # TODO POS problem? CSE problem
+    # example = linnea.examples.lamp_paper.examples.ImageRestoration_7_1_13_2() 
+    # example = linnea.examples.lamp_paper.examples.ImageRestoration_7_1_13_2(single=True) # all_algorithms is expensive here with exhaustive and dead_ends=False
+
+    # CSE example
+
+    # example = linnea.examples.examples.Example002()
+    # example = linnea.examples.examples.Example004()
+    # example = linnea.examples.examples.Example009()
+    # example = linnea.examples.examples.Example014()
+    # example = linnea.examples.examples.Example025()
+    # example = linnea.examples.examples.Example028()
+    # example = linnea.examples.examples.Example032()
+    # example = linnea.examples.examples.Example033()
+    # example = linnea.examples.examples.Example040()
+    # example = linnea.examples.examples.Example041()
+    # example = linnea.examples.examples.Example043()
+    # example = linnea.examples.examples.Example044()
+    # example = linnea.examples.examples.Example045()
+    # example = linnea.examples.examples.Example046()
+    # example = linnea.examples.examples.Example050()
+    # example = linnea.examples.examples.Example051()
+    # example = linnea.examples.examples.Example052()
+    # example = linnea.examples.examples.Example053()
+    # example = linnea.examples.examples.Example055() # TODO do we want C^-1 B^-1 ?
+    # example = linnea.examples.examples.Example056() # Plus
+    # example = linnea.examples.examples.Example057() # count compatible CSEs
+    # example = linnea.examples.examples.Example058()
+    # example = linnea.examples.examples.Example065()
+    example = linnea.examples.examples.Example066() #!! maximal CSE
+    # example = linnea.examples.examples.Example067()
+    example = linnea.examples.examples.Example069() # count compatible works (because of counting with itself)
+    # example = linnea.examples.examples.Example078()
+    # example = linnea.examples.examples.Example079()
+    # example = linnea.examples.examples.Example080() # type
+    # example = linnea.examples.examples.Example081() # type TODO do we want B^-T C^-T
+    # example = linnea.examples.examples.Example082() # type
+    # example = linnea.examples.examples.Example083() # type
+    # example = linnea.examples.examples.Example085() # count compatible works (because of counting with itself)
+    # example = linnea.examples.examples.Example086() # count compatible works (because of counting with itself)
+    # example = linnea.examples.examples.Example093() # overlapping CSEs # TODO do we want A B^-1 here?
+    # example = linnea.examples.examples.Example104() # explicit inversion
+    # example = linnea.examples.examples.Example116()
+    # example = linnea.examples.examples.Example124() # type
+    # example = linnea.examples.examples.Example130()
+    # example = linnea.examples.examples.Example131()
+    # example = linnea.examples.examples.Example132()
+    # example = linnea.examples.examples.Example134() # b = ((A (X^T X)^-1 X^T y) + (B (X^T X)^-1 X^T z))
+    # example = linnea.examples.examples.Example135() #!! on paper
+    # example = linnea.examples.examples.Example136() #!! even harder: removing wrong cliques here is difficult -> subgraphs
+    # example = linnea.examples.examples.Example137() #!! maximal CSE
+    # example = linnea.examples.examples.Example138() #!! maximal CSE # count compatible works
+    # example = linnea.examples.examples.Example139() # count compatible works
+    # example = linnea.examples.examples.Example140() # count compatible works
+    # example = linnea.examples.examples.Example141() # lots of solutions, count compatible, maximal CSE, connected components
+    # example = linnea.examples.examples.Example142() # overlapping with itself
+
+    eqns = example.eqns.to_normalform()
+
+    print(eqns)
+
+    for res in find_CSEs(eqns):
+        pass
+
+    # for equation in example.eqns:
+    #     # print(equation.rhs)
+    #     for subexpr, pos in all_subexpressions(equation.rhs):
+    #         print(str(subexpr), pos)
+
+
+    # graph = networkx.Graph()
+    # graph.add_edges_from({(0,1), (1,2), (2,3),(3,1)})
+    # # print(graph.nodes())
+    # for clique in networkx.find_cliques(graph):
+    #     print(clique)
