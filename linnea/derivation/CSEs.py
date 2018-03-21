@@ -156,7 +156,18 @@ class CSE(object):
         return True
 
 class CSEDetector(object):
-    """docstring for CSEDetector"""
+    """A wrapper for a dictionary to detect common subexpressions.
+
+    One of the challenges of detecting common subexpression is considering that
+    for example A^T B = B^T A. The idea to solve this is to construct a
+    surjective mapping of expressions to lists of Subexpression objects.
+
+    Whenever a subexpression is added, for all variants of the subexpression
+    (transposed, inverted) an entry is added to self.CSE_detection_dict that
+    points to the same list of subexpressions, containing the newly added
+    subexpression. Those lists of subexpressions are then potential common
+    subexpressions.
+    """
     def __init__(self):
         super(CSEDetector, self).__init__()
         self.CSE_detection_dict = dict()
@@ -202,6 +213,12 @@ class CSEDetector(object):
 
 
     def transitive_reduction(self):
+        """Computes the transitive reduction of the CSE lattice.
+
+        In practice, this means removing CSEs (nodes) from the predeccessor and
+        successor list.
+        """
+
         while True:
             remove_edge = []
             for node in self.all_CSEs.values():
@@ -222,8 +239,9 @@ class CSEDetector(object):
 
 
     def remove_not_maximal_CSEs(self, nodes):
-        
-        """
+        """Removes CSEs from the CSE lattice which are not maximal.
+
+        The crucial part is how to define maximality.
         This might be the most important part. Here it is decided which CSEs
         are considered.
         """
@@ -322,8 +340,8 @@ class CSEDetector(object):
                 clique_no_singles = set(clique) - remove
                 cliques.append(clique_no_singles)
 
-            # removing cliques that are subsets of other cliques
-            # this is possible because of the previous step
+            # Removing cliques that are subsets of other cliques.
+            # Those cases can happen because of the previous step.
             remove = []
             for clique1, clique2 in itertools.combinations(cliques, 2):
                 if clique1 <= clique2:
@@ -342,6 +360,13 @@ class CSEDetector(object):
 
 
     def construct_lattice(self):
+        """Constructs CSE lattice.
+
+        The CSE lattice describes the "is subexpression" relation between CSEs.
+
+        In practice, this means setting predeccessors and successors for all
+        CSEs.
+        """
         for cse1, cse2 in itertools.product(self.all_CSEs.values(), repeat=2):
             if cse1.is_subexpression(cse2):
                 cse1.predeccessors.append(cse2)
@@ -349,6 +374,18 @@ class CSEDetector(object):
                 # print(str(cse1.expr), str(cse2.expr))
 
     def count_compatible(self):
+        """Counts the number of compatible subexpressions for each subexpression.
+
+        This is done in two steps. First, we take all combinations of two CSEs.
+        Then, for each subexpression of one CSE, we count the number of
+        subexpressions of the other CSE which are compatible.
+
+        In the second step, for each CSE we count how many of its subexpressions
+        are compatible.
+        
+        The number of compatible subexpressions can be used in the CSE lattice
+        to decide which CSEs to use and which to discard.
+        """
         for cse1, cse2 in itertools.combinations(self.all_CSEs.values(), 2):
             # print("CSE", str(cse1.expr), str(cse2.expr), len(cse2.subexprs))
             for subexpr1, subexpr2 in itertools.product(cse1.subexprs, cse2.subexprs):
@@ -372,6 +409,7 @@ class CSEDetector(object):
 
     def CSEs(self):
 
+        # TODO should all of this happen in maximal_CSEs()?
         self.construct_CSEs()
         self.construct_lattice()
         # self.count_compatible()
@@ -515,7 +553,7 @@ def find_max_cliques(G):
 
 def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
     """
-    Canoical positions: If a subexpression is a single node in the expression
+    Canonical positions: If a subexpression is a single node in the expression
     tree, its position is only one sequence.
 
     Example: For ABC+D
@@ -533,31 +571,37 @@ def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
         elif expr.commutative:
             if not is_blocked(expr):
                 yield expr, {position}, level
-            # TODO this could indented. If expr is blocke, all subexpr are blocked.
-            if len(expr.operands) > 2:
-                ops = [(op, position + (n,)) for n, op in enumerate(expr.operands)]
-                for subset in powerset(ops, 2, len(ops)):
-                    positions = set()
-                    _ops = []
-                    for op, pos in subset:
-                        positions.add(pos)
-                        _ops.append(op)
-                    if not is_blocked(expr):
-                        yield Plus(*_ops), positions, level+1
+                if len(expr.operands) > 2:
+                    ops = [(op, position + (n,)) for n, op in enumerate(expr.operands)]
+                    for subset in powerset(ops, 2, len(ops)):
+                        positions = set()
+                        _ops = []
+                        for op, pos in subset:
+                            positions.add(pos)
+                            _ops.append(op)
+                        new_expr = Plus(*_ops)
+                        if not is_blocked(new_expr):
+                            yield new_expr, positions, level+1
         elif expr.associative:
             if not is_blocked(expr):
                 yield expr, {position}, level
-            # TODO this could indented. If expr is blocke, all subexpr are blocked.
-            for i in range(2, len(expr.operands)):
-                for offset, seq in enumerate(window(expr.operands, i)):
-                    positions = set(position + (offset+j,) for j in range(i))
-                    if not is_blocked(expr):
-                        yield Times(*seq), positions, level+1
+                for i in range(2, len(expr.operands)):
+                    for offset, seq in enumerate(window(expr.operands, i)):
+                        positions = set(position + (offset+j,) for j in range(i))
+                        new_expr = Times(*seq)
+                        if not is_blocked(new_expr):
+                            yield new_expr, positions, level+1
         for n, operand in enumerate(expr.operands):
             new_position = position + (n,)
             yield from all_subexpressions(operand, new_position, level+1, expr)
 
 def indentify_subexpression_types(subexprs):
+    """Assigns CSEType to each subexpression.
+
+    For now, this function generates one arbitrary assignement.
+
+    TODO what about A^-1 B^-1 ?
+    """
 
     ref_subexpr = subexprs[0]
     return_types = [CSEType.none]
@@ -580,7 +624,7 @@ def find_CSEs(equations):
         for expr, positions, level in all_subexpressions(equation.rhs):
             # print(expr, positions)
 
-            # for expression of the form Inverse(expr), we don't want to add the
+            # for expressions of the form Inverse(expr), we don't want to add the
             # inverted variant because this will produce "fake" CSEs. The reason
             # is that expr will also be added.
             # same for transpose
