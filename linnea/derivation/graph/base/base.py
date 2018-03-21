@@ -402,7 +402,7 @@ class GraphNodeBase(object):
         # add self to predecessors of target node
         target.predecessors.append(self)
         target.accumulated_cost = label.cost + self.accumulated_cost
-        # print("set", target.id, self.id, target.accumulated_cost, sum(label.cost), self.accumulated_cost)
+        # print("set", target.id, self.id, target.accumulated_cost, label.cost, self.accumulated_cost)
 
     def remove_edge(self, target):
         # if target not in self.successors:
@@ -442,8 +442,6 @@ class GraphNodeBase(object):
         if new_cost <= self.accumulated_cost:
             self.accumulated_cost = new_cost
             self.optimal_path_predecessor = predecessor
-        else:
-            return
         for successor, edge_label in zip(self.successors, self.edge_labels):
             successor.update_cost(edge_label.cost + self.accumulated_cost, self)
 
