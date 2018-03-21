@@ -149,7 +149,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
         transformed_expressions = []
 
-        transformed_expressions.extend(self.TR_matrix_chain(equations, 0, [1]))
+        transformed_expressions.extend(self.TR_matrix_chain(equations, 0, (1,))
 
         return transformed_expressions
 
@@ -190,6 +190,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
         transformed_expressions = []
 
-        transformed_expressions.extend(self.TR_unary_kernels(equations, 0, [1], metric))
+        transformed_expressions.extend(self.TR_unary_kernels(equations, 0, (1,, metric))
 
         return transformed_expressions

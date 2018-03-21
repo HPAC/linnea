@@ -90,7 +90,7 @@ def find_operands_to_factor(equations):
 
     operands_to_factor = set()
     for equation in equations:
-        for inv_expr, inv_pos in inverse_positions(equation.rhs, [1]):
+        for inv_expr, inv_pos in inverse_positions(equation.rhs, (1,)):
             for expr, pos in inv_expr.preorder_iter():
                 if isinstance(expr, Symbol) and expr.has_property(properties.ADMITS_FACTORIZATION):
                     operands_to_factor.add(expr)
@@ -132,11 +132,11 @@ def find_occurrences(equations, operands_to_factor):
     """
 
     for eqn_idx, equation in enumerate(equations):
-        for res in _find_occurrences(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=[1]):
+        for res in _find_occurrences(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=(1,)):
             # for grouping, we also need the eqn_idx
             yield Occurrence(eqn_idx, *res)
 
-def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, position=[], group=None, symbol=False, predecessor=None):
+def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, position=(), group=None, symbol=False, predecessor=None):
 
     if isinstance(expr, Symbol):
         if expr in operands_to_factor:
@@ -153,20 +153,18 @@ def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, posit
         symbol = isinstance(expr.operand, Symbol)
 
     for n, operand in enumerate(expr.operands):
-        position_copy = copy.deepcopy(position)
-        position_copy.append(n)
-        yield from _find_occurrences(operand, operands_to_factor, inv_type, position_copy, group, symbol, expr)
+        new_position = position + (n,)
+        yield from _find_occurrences(operand, operands_to_factor, inv_type, new_position, group, symbol, expr)
 
-def find_explicit_symbol_inverse(expr, position=[], predecessor=None):
+def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
 
     if is_inverse(expr) and isinstance(expr.operand, Symbol) and not isinstance(predecessor, Times):
         yield (expr, position)
 
     if isinstance(expr, Operator):
         for n, operand in enumerate(expr.operands):
-            position_copy = copy.deepcopy(position)
-            position_copy.append(n)
-            yield from find_explicit_symbol_inverse(operand, position_copy, expr)
+            new_position = position + (n,)
+            yield from find_explicit_symbol_inverse(operand, new_position, expr)
 
 def group_occurrences(occurrences):
     # group symbol inverses by eqn_idx, inverse group, operand
@@ -293,7 +291,7 @@ def process_next(equation):
     # It is necessary to search for inverses first because it's possible that
     # simple plus or times is inside an inverse, so factorizations have to be
     # used.
-    for expr, pos in inverse_positions(equation.rhs, [1]):
+    for expr, pos in inverse_positions(equation.rhs, (1,)):
         expr_type, op_type = inverse_type(expr)
         if expr_type == ExpressionType.simple_inverse_no_factor:
             continue
@@ -301,8 +299,7 @@ def process_next(equation):
             return (pos, expr_type, op_type)
 
 
-    # for expr, pos in equation.rhs.iterate_postorder_with_positions([1]):
-    for expr, pos in process_next_generator(equation.rhs, [1]):
+    for expr, pos in process_next_generator(equation.rhs, (1,)):
         # expr = equation[pos]
         # print("here", expr, expr.size)
         # print(list((n, n.size) for n in expr.iterate_preorder()))
@@ -313,10 +310,10 @@ def process_next(equation):
         elif isinstance(expr, Times) and is_simple_times(expr):
             return (pos, ExpressionType.simple, OperationType.times)
 
-    # [1] = position of right-hand side
-    return ([1], ExpressionType.none, OperationType.none)
+    # (1,) = position of right-hand side
+    return ((1,), ExpressionType.none, OperationType.none)
 
-def process_next_simple(expression, position=[]):
+def process_next_simple(expression, position=()):
     """Finds a subexpression to process next in the derivation.
 
     This is a simplified verision of process_next(). The difference is that this
@@ -342,10 +339,10 @@ def process_next_simple(expression, position=[]):
         elif isinstance(node, Times) and is_simple_times(node):
             return (pos, OperationType.times)
 
-    # [] = position of root
-    return ([], OperationType.none)
+    # () = position of root
+    return ((), OperationType.none)
 
-def process_next_generator(expr, position=[]):
+def process_next_generator(expr, position=()):
     """ Yields subexpressions to process next.
 
     Yields (position, expr). Positions are returned in post-order.
@@ -366,9 +363,8 @@ def process_next_generator(expr, position=[]):
 
     if not isinstance(expr, Symbol):
         for n, operand in enumerate(expr.operands):
-            position_copy = copy.deepcopy(position)
-            position_copy.append(n)
-            yield from process_next_generator(operand, position_copy)
+            new_position = position + (n,)
+            yield from process_next_generator(operand, new_position)
     yield (expr, position)
 
 def inverse_type(expr):
@@ -417,7 +413,7 @@ def identify_inverses_eqns(equations):
     for eqn_idx, equation in enumerate(equations):
         # always starting at right-hand side
         # inverse_positions uses postorder, so we look at deeper inverses first
-        for inv_expr, inv_pos in inverse_positions(equation.rhs, [1]):
+        for inv_expr, inv_pos in inverse_positions(equation.rhs, (1,)):
             type = inverse_type(inv_expr)
             if type == ExpressionType.simple_inverse_no_factor:
                 continue
@@ -529,9 +525,8 @@ def inverse_positions(expr, position=[]):
         return
 
     for n, operand in enumerate(expr.operands):
-        position_copy = copy.deepcopy(position)
-        position_copy.append(n)
-        yield from inverse_positions(operand, position_copy)
+        new_position = position + (n,)
+        yield from inverse_positions(operand, new_position)
 
     if is_inverse(expr):
         yield expr, position

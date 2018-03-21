@@ -144,7 +144,7 @@ def trick3_callback(substitution, equations, eqn_idx, position):
 
     replacement = Plus(Times(Transpose(substitution["WD1"]), tmp), Times(Transpose(tmp), substitution["WD1"]), *substitution["WS1"])
 
-    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], [1]+list(position), replacement)
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+position, replacement)
     
     new_equations = Equations(*equations_list)
 
@@ -175,7 +175,7 @@ def trick4_callback(substitution, equations, eqn_idx, position):
 
     replacement = Plus(Times(Transpose(substitution["WD1"]), tmp), Times(Transpose(tmp), substitution["WD1"]), *substitution["WS1"])
 
-    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], [1]+list(position), replacement)
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+position, replacement)
 
     equations_list = equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)

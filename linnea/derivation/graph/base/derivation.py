@@ -326,8 +326,7 @@ class DerivationGraphBase(base.GraphBase):
 
         # iterate over all subexpressions
         for node, _pos in initial_node.preorder_iter():
-            pos = copy.copy(initial_pos)
-            pos.extend(_pos)
+            pos = initial_pos + _pos
 
             kernel, substitution = select_optimal_match(collections_module.unary_kernel_DN.match(node))
 

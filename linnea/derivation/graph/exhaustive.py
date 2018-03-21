@@ -210,10 +210,10 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                     if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
                         transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True))
                     else:
-                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, [1])
+                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, (1,))
                         transformed_expressions.extend(te_reductions)
                         if not te_reductions:
-                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, [1]))
+                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, (1,)))
 
                 break
 
@@ -226,8 +226,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         initial_node = equations[eqn_idx][initial_pos]
 
         for node, _pos in initial_node.preorder_iter():
-            pos = copy.copy(initial_pos)
-            pos.extend(_pos)
+            pos = initial_pos + _pos
 
             for grouped_kernels in collections_module.reduction_MA.match(node).grouped():
 
