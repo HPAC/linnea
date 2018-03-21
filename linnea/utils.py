@@ -162,21 +162,19 @@ def transitive_reduction(closure):
     return closure
 
 def to_dot_file(self):
-    out = ""
+    out = ["digraph G {", "ranksep=1;", "rankdir=TB;"]
+
     for element in self:
-        element_str = "{0} [shape=box];\n".format(element.name)
-        out = "".join([out, element_str])
+        out.append("{0} [shape=box];".format(element.name))
 
     for e1, e2 in self.__ordering__:
-        edge_str = "{0} -> {1};\n".format(self(e2).name, self(e1).name)
-        out = "".join([out, edge_str])        
+        out.append("{0} -> {1};".format(self(e2).name, self(e1).name))
 
-    # out = "".join([node.to_dot(optimal_edges) for node in self.nodes])
-    out = "\n".join(["digraph G {", "ranksep=1;", "rankdir=TB;", out, "}"])
+    out.append("}")
     
     file_name = "partial_ordering.gv"
     output_file = open(file_name, "wt")
-    output_file.write(out) 
+    output_file.write("\n".join(out)) 
     print("Output was saved in %s" % file_name)
     output_file.close()
 

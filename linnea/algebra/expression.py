@@ -246,8 +246,8 @@ class Expression(matchpy.Expression):
 
         Expression.counter = 0
 
-        out = ""
-        out = self.to_dot(out)
+        out = []
+        out = "".join(self.to_dot(out))
         out = "\n".join(["digraph G {", "ranksep=1.5;", "ordering=out;", "rankdir=TB;", out, "}"])
 
         if not file_name:
@@ -338,13 +338,12 @@ class Operator(matchpy.Operation, Expression):
         node_name = "".join(["node", str(Expression.counter)])
         properties = ""#"\n".join([str(p) for p in self.properties])
         false_properties = ""#"\n".join([str(p) for p in self.false_properties])
-        out += dot_table_node.format(node_name, self.__class__.__name__, str(self.size), properties, false_properties)
-        # out = "".join([out, node_name, " [shape=record, label=\"<f0>", str(self.__class__.__name__), "|<f1>", str(self.size), "|<f2>", str(self.properties), "|<f3>", str(self.false_properties), "\"];\n" ])
-        # output_file.write(out)
+        out.append(dot_table_node.format(node_name, self.__class__.__name__, str(self.size), properties, false_properties))
+
         for operand in self.operands:
             Expression.counter+=1
-            operand_name = "".join(["node", str(Expression.counter)])
-            out = "".join([out, node_name, " -> ", operand_name, ";\n"])
+            operand_name = "node{}".format(Expression.counter)
+            out.append("{} -> {};\n".format(node_name, operand_name))
             out = operand.to_dot(out)
         return out
 
@@ -392,7 +391,7 @@ class Symbol(matchpy.Symbol, Expression):
         props = "\n".join([str(p) for p in self.properties])
         props = "\n".join([str(p) for p in properties if self.has_property(p)])
         false_properties = "\n".join([str(p) for p in self.false_properties])
-        out += dot_table_node.format(node_name, str(self.name), str(self.size), props, false_properties)
+        out.append(dot_table_node.format(node_name, str(self.name), str(self.size), props, false_properties))
         # out = "".join([out, node_name, " [shape=record, label=\"<f0>", str(self.name), "|<f1>", str(self.size), "|<f2>", str(self.properties), "|<f3>", str(self.false_properties), "\"];\n" ])
         # output_file.write(out)
         return out

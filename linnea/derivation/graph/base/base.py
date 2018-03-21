@@ -80,28 +80,10 @@ class GraphBase(object):
                     current_node = current_node.successors[path_idx]
                     optimal_edges.add((previous_node_id, current_node.id))
 
-        out = "".join([node.to_dot(optimal_edges) for node in self.nodes])
-        out = "\n".join(["digraph G {", "ranksep=2.5;", "rankdir=TB;", out, "}"])
-        return out
-
-
-    def to_dot_file(self, name=None):
-        if name is "date":
-            timestamp = datetime.datetime.now()
-            file_name = "".join(["graph_", timestamp.strftime("%Y-%m-%d_%H-%M-%S"), ".gv"])
-            output_file = open(file_name, "xt")
-        elif name is "counter":
-            file_name = "".join(["graph_", str(gn.GraphNode._counter),".gv"])
-            output_file = open(file_name, "xt")
-        elif name is None:
-            file_name = "graph.gv"
-            output_file = open(file_name, "wt")
-        else:
-            file_name = name
-            output_file = open(file_name, "wt")
-        output_file.write(self.to_dot())
-        print("Output was saved in %s" % file_name)
-        output_file.close()
+        out = ["digraph G {", "ranksep=2.5;", "rankdir=TB;"]
+        out.extend([node.to_dot(optimal_edges) for node in self.nodes])
+        out.append("}")
+        return "\n".join(out)
 
 
     def write_graph(self, output_name, file_name="graph"):
@@ -469,15 +451,13 @@ class GraphNodeBase(object):
         eqns_str = eqns_str.replace('\n', '\\n')
         eqns_str = eqns_str.replace("{", "&#123;")
         eqns_str = eqns_str.replace("}", "&#125;")
-        out = """{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} | {7} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))
-        # out = "".join([self.name, " [shape=record, label=\"<f0>", str(self.id), "|<f1>", eqns_str, "|<f2>", str(self.metric), "\"];\n" ])
+        out = ["""{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} | {7} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))]
         for successor, label in zip(self.successors, self.edge_labels):
             if (self.id, successor.id) in optimal_edges:
-                # out = "".join([out, self.name, " -> ", successor.name, " [style=bold, color=red, label=\"", str(label), "\"];\n"])
-                out = "".join([out, self.name, " -> ", successor.name, " [style=bold, label=\"", str(label), "\"];\n"])
+                out.append("""{} -> {} [style=bold, label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
             else:
-                out = "".join([out, self.name, " -> ", successor.name, " [label=\"", str(label), "\"];\n"])
-        return out
+                out.append("""{} -> {} [label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
+        return "".join(out)
 
     def is_terminal(self):
         raise NotImplementedError()
