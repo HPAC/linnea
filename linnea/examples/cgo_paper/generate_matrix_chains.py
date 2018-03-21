@@ -11,17 +11,8 @@ from linnea.algebra.transformations import simplify
 from linnea.algebra.properties import Property as properties
 from linnea.frontend.export import export
 from linnea.code_generation import experiments as cge
+from linnea.utils import window
 
-def window(seq, n=2):
-    "Returns a sliding window (of width n) over data from the iterable"
-    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
-    it = iter(seq)
-    result = tuple(itertools.islice(it, n))
-    if len(result) == n:
-        yield result
-    for elem in it:
-        result = result[1:] + (elem,)
-        yield result
 
 def matrix_size():
     return random.randrange(50, 2001, 50)
