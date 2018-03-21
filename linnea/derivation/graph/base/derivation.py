@@ -55,8 +55,8 @@ class DerivationGraphBase(base.GraphBase):
         if factored_operands:
             _factored_operands = _factored_operands.union(factored_operands)
 
-        for equations, metric, edge_label in description:
-            new_node = DerivationGraphNode(equations, metric, predecessor, _factored_operands.copy())
+        for equations, edge_label in description:
+            new_node = DerivationGraphNode(equations, predecessor, _factored_operands.copy())
             self.nodes.append(new_node)
             new_nodes.append(new_node)
             predecessor.set_labeled_edge(new_node, edge_label)
@@ -173,6 +173,8 @@ class DerivationGraphBase(base.GraphBase):
         """
         mins = dict()
         for node in self.active_nodes:
+            if node.metric is None:
+                node.metric = node.equations.metric()
             try:
                 min = mins[node.metric[0]]
             except KeyError:
@@ -273,7 +275,7 @@ class DerivationGraphBase(base.GraphBase):
         return transformed_expressions
 
 
-    def TR_matrix_chain(self, equations, eqn_idx, initial_pos, metric, explicit_inversion=False):
+    def TR_matrix_chain(self, equations, eqn_idx, initial_pos, explicit_inversion=False):
 
         try:
             msc = mcs.MatrixChainSolver(equations[eqn_idx][initial_pos], explicit_inversion)
@@ -289,15 +291,10 @@ class DerivationGraphBase(base.GraphBase):
 
         temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
         
-        new_metric = equations_copy.metric()
-        if new_metric <= metric:
-            # print(equations_copy)
-            return [(equations_copy, new_metric, base.EdgeLabel(*matched_kernels))]
-        else:
-            return []
+        return [(equations_copy, base.EdgeLabel(*matched_kernels))]
 
 
-    def TR_addition(self, equations, eqn_idx, initial_pos, metric):
+    def TR_addition(self, equations, eqn_idx, initial_pos):
 
         # Note: For addition, we decided to only use a binary kernel, no
         #       variadic addition.
@@ -308,11 +305,7 @@ class DerivationGraphBase(base.GraphBase):
         equations_copy = equations.set(eqn_idx, new_equation)
         equations_copy = equations_copy.to_normalform()
 
-        new_metric = equations_copy.metric()
-        if new_metric <= metric:
-            return [(equations_copy, new_metric, base.EdgeLabel(*matched_kernels))]
-        else:
-            return []
+        return [(equations_copy, base.EdgeLabel(*matched_kernels))]
 
 
     def TR_CSE_replacement(self, equations):
@@ -320,12 +313,12 @@ class DerivationGraphBase(base.GraphBase):
         transformed_expressions = []
 
         for new_equations in CSEs.find_CSEs(equations):
-            transformed_expressions.append((new_equations, new_equations.metric(), base.EdgeLabel()))
+            transformed_expressions.append((new_equations, base.EdgeLabel()))
 
         return transformed_expressions
 
 
-    def TR_unary_kernels(self, equations, eqn_idx, initial_pos, metric):
+    def TR_unary_kernels(self, equations, eqn_idx, initial_pos):
 
         transformed_expressions = []
 
@@ -349,12 +342,8 @@ class DerivationGraphBase(base.GraphBase):
                 equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))
                 equations_copy = equations_copy.to_normalform()
 
-                new_metric = equations_copy.metric()
-                # print("metric", m, metric)
-                # print(equations_copy)
-                if new_metric <= metric:
-                    edge_label = base.EdgeLabel(matched_kernel)
-                    transformed_expressions.append((equations_copy, new_metric, edge_label))
+                edge_label = base.EdgeLabel(matched_kernel)
+                transformed_expressions.append((equations_copy, edge_label))
 
         return transformed_expressions
 
@@ -560,7 +549,7 @@ class DerivationGraphBase(base.GraphBase):
                     equations_copy.set_equivalent(equations)               
 
                     edge_label = base.EdgeLabel(*matched_kernels)
-                    transformed_expressions.append((equations_copy, equations_copy.metric(), edge_label))
+                    transformed_expressions.append((equations_copy, edge_label))
                         
         return transformed_expressions, found_symbol_occurrence
 
@@ -569,8 +558,8 @@ class DerivationGraphNode(base.GraphNodeBase):
 
     _counter = 0
 
-    def __init__(self, equations=None, metric=None, predecessor=None, factored_operands=None):
-        super(DerivationGraphNode, self).__init__(metric, predecessor, factored_operands)
+    def __init__(self, equations=None, predecessor=None, factored_operands=None):
+        super(DerivationGraphNode, self).__init__(predecessor, factored_operands)
 
         # IDs for dot output
         self.id = DerivationGraphNode._counter

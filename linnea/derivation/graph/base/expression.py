@@ -19,8 +19,8 @@ class ExpressionGraphBase(base.GraphBase):
         new_nodes = []
         # print(description)
         # if description:
-        for expression, metric, edge_label in description:
-            new_node = ExpressionGraphNode(expression, metric, predecessor)
+        for expression, edge_label in description:
+            new_node = ExpressionGraphNode(expression, predecessor)
             self.nodes.append(new_node)
             new_nodes.append(new_node)
             predecessor.set_labeled_edge(new_node, edge_label)
@@ -31,8 +31,8 @@ class ExpressionGraphNode(base.GraphNodeBase):
 
     _counter = 0
 
-    def __init__(self, expression=None, metric=None, predecessor=None, factored_operands=None):
-        super(ExpressionGraphNode, self).__init__(metric, predecessor, factored_operands)
+    def __init__(self, expression=None, predecessor=None, factored_operands=None):
+        super(ExpressionGraphNode, self).__init__(predecessor, factored_operands)
         # IDs for dot output
         self.id = ExpressionGraphNode._counter
         self.name = "".join(["node", str(self.id)])

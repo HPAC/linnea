@@ -222,15 +222,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             else:
                 node.add_applied_step(DS_step.kernels)
 
-            transformed = self.TR_kernels(node.equations, node.metric)
+            transformed = self.TR_kernels(node.equations)
 
-            for equations, metric, edge_label in transformed:
+            for equations, edge_label in transformed:
                 equations = equations.remove_identities()
-                # TODO move that into TR_kernels (in an elegant way)?
-                # TODO in the best case, identity equations do not contribute to the metric
-                metric = equations.metric()
 
-                new_nodes.extend(self.create_nodes(node, (equations, metric, edge_label)))
+                new_nodes.extend(self.create_nodes(node, (equations, edge_label)))
 
             # Active node stops being active.
             # If no transformations were applied, it's a dead end.
@@ -245,7 +242,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         return len(new_nodes)
 
 
-    def TR_kernels(self, equations, metric):
+    def TR_kernels(self, equations):
 
         transformed_expressions = []
 
@@ -256,11 +253,11 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                     if op_type == OperationType.times:
                         expr = eqns_variant[eqn_idx][pos]
-                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, metric, is_explicit_inversion(expr)))
+                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr)))
                     elif op_type == OperationType.plus:
-                        transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos, metric))
+                        transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos))
                     elif op_type == OperationType.none:
-                        transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos, metric))
+                        transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos))
 
                 break
 

@@ -127,11 +127,11 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
         for node in self.active_nodes:
 
-            transformed = self.TR_kernels(node.equations, node.metric)
+            transformed = self.TR_kernels(node.equations)
 
-            for equations, metric, edge_label in transformed:
+            for equations, edge_label in transformed:
 
-                new_nodes.extend(self.create_nodes(node, (equations, metric, edge_label)))
+                new_nodes.extend(self.create_nodes(node, (equations, edge_label)))
 
             # Active node stops being active.
             # If no transformations were applied, it's a dead end.
@@ -145,11 +145,11 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         return len(new_nodes)
 
 
-    def TR_kernels(self, equations, metric):
+    def TR_kernels(self, equations):
 
         transformed_expressions = []
 
-        transformed_expressions.extend(self.TR_matrix_chain(equations, 0, [1], metric))
+        transformed_expressions.extend(self.TR_matrix_chain(equations, 0, [1]))
 
         return transformed_expressions
 

@@ -180,16 +180,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             else:
                 node.add_applied_step(DS_step.kernels)
 
-            transformed = self.TR_kernels(node.equations, node.metric)
+            transformed = self.TR_kernels(node.equations)
 
-            for equations, metric, edge_label in transformed:
+            for equations, edge_label in transformed:
                 equations = equations.remove_identities()
-                # If equations were removed, we have to recompute the metric.
-                # TODO move that into TR_kernels (in an elegant way)?
-                # TODO in the best case, identity equations do not contribute to the metric
-                metric = equations.metric()
 
-                new_nodes.extend(self.create_nodes(node, (equations, metric, edge_label)))
+                new_nodes.extend(self.create_nodes(node, (equations, edge_label)))
 
             # Active node stops being active.
             # If no transformations were applied, it's a dead end.
@@ -202,7 +198,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
         return len(new_nodes)
 
-    def TR_kernels(self, equations, metric):
+    def TR_kernels(self, equations):
 
         transformed_expressions = []
 
@@ -212,18 +208,18 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                     pos, op_type = process_next_simple(eqns_variant[eqn_idx])
 
                     if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
-                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, metric, True))
+                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True))
                     else:
-                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, [1], metric)
+                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, [1])
                         transformed_expressions.extend(te_reductions)
                         if not te_reductions:
-                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, [1], metric))
+                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, [1]))
 
                 break
 
         return transformed_expressions
 
-    def TR_reductions(self, equations, eqn_idx, initial_pos, metric):
+    def TR_reductions(self, equations, eqn_idx, initial_pos):
 
         transformed_expressions = []
 
@@ -257,11 +253,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 
-                new_metric = equations_copy.metric()
-                # print("metric", new_metric, metric)
-                # print(equations_copy)
-                # if new_metric <= metric:
                 edge_label = base.base.EdgeLabel(matched_kernel)
-                transformed_expressions.append((equations_copy, new_metric, edge_label))
+                transformed_expressions.append((equations_copy, edge_label))
 
         return transformed_expressions

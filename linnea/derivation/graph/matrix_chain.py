@@ -84,9 +84,8 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
             matched_kernel = kernel.set_match(substitution, False)
 
             transformed_expression = matched_kernel.replacement
-            metric = transformed_expression.metric()
             edge_label = base.EdgeLabel(matched_kernel)
-            return [(transformed_expression, metric, edge_label)]
+            return [(transformed_expression, edge_label)]
         return []
 
 
@@ -104,9 +103,7 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
                 evaled_repl = matched_kernel.replacement
                 transformed_expression = matchpy.replace(expression, pos, evaled_repl)
 
-                new_metric = transformed_expression.metric()
-
                 edge_label = base.EdgeLabel(matched_kernel)
-                transformed_expressions.append((transformed_expression, new_metric, edge_label))
+                transformed_expressions.append((transformed_expression, edge_label))
 
         return transformed_expressions

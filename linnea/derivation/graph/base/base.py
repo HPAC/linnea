@@ -352,12 +352,12 @@ class PathDoesNotExist(Exception):
 
 class GraphNodeBase(object):
 
-    def __init__(self, metric=None, predecessor=None, factored_operands=None):
+    def __init__(self, predecessor=None, factored_operands=None):
 
         self.successors = []
         self.edge_labels = []
         self.predecessors = []
-        self.metric = metric
+        self.metric = None
         self.accumulated_cost = 0
         self.level = None
         self.optimal_path_predecessor = predecessor
