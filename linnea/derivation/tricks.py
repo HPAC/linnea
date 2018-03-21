@@ -7,8 +7,6 @@ from ..algebra.transformations import simplify
 from ..algebra.representations import to_SOP
 from ..algebra.equations import Equations
 
-from .graph.base import base
-
 from .. import config
 from .. import temporaries
 
@@ -64,7 +62,7 @@ def eigen1_callback(substitution, equations, eqn_idx, position):
     equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)
 
-    return (new_equations, base.EdgeLabel())
+    return (new_equations, ())
 
 eigen2 = matchpy.Pattern(
             Plus(Times(SYM1, SYM2, Transpose(SYM1)), Times(WD1, SYM3), WS1),
@@ -101,7 +99,7 @@ def eigen2_callback(substitution, equations, eqn_idx, position):
     equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)
 
-    return (new_equations, base.EdgeLabel())
+    return (new_equations, ())
 
 def symmetric_product_constraint(WP1, WP2, _A):
     p1 = Times(*WP1)
@@ -126,8 +124,7 @@ def symmetric_product_callback(substitution, equations, eqn_idx, position):
     new_equations = Equations(*equations_list)
     new_equations.set_equivalent(equations)
     
-    edge_label = base.EdgeLabel(matched_kernel)
-    return (new_equations, edge_label)
+    return (new_equations, (matched_kernel,))
 
 
 # A^T B + B^T A + A^T A
@@ -151,8 +148,7 @@ def trick3_callback(substitution, equations, eqn_idx, position):
     
     new_equations = Equations(*equations_list)
 
-    edge_label = base.EdgeLabel(*matched_kernels)
-    return (new_equations, edge_label)
+    return (new_equations, matched_kernels)
 
 
 # A^T B + B^T A + A^T C A (C is symmetric)
@@ -184,7 +180,7 @@ def trick4_callback(substitution, equations, eqn_idx, position):
     equations_list = equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)
 
-    return (new_equations, base.EdgeLabel())
+    return (new_equations, ())
 
 # patterns = [eigen1, eigen2, symmetric_product, trick3]
 

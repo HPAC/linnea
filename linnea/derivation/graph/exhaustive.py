@@ -253,7 +253,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 
-                edge_label = base.base.EdgeLabel(matched_kernel)
-                transformed_expressions.append((equations_copy, edge_label))
+                transformed_expressions.append((equations_copy, (matched_kernel,)))
 
         return transformed_expressions

@@ -55,11 +55,11 @@ class DerivationGraphBase(base.GraphBase):
         if factored_operands:
             _factored_operands = _factored_operands.union(factored_operands)
 
-        for equations, edge_label in description:
+        for equations, matched_kernels in description:
             new_node = DerivationGraphNode(equations, predecessor, _factored_operands.copy())
             self.nodes.append(new_node)
             new_nodes.append(new_node)
-            predecessor.set_labeled_edge(new_node, edge_label)
+            predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels))
         return new_nodes
 
 
@@ -291,7 +291,7 @@ class DerivationGraphBase(base.GraphBase):
 
         temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
         
-        return [(equations_copy, base.EdgeLabel(*matched_kernels))]
+        return [(equations_copy, matched_kernels)]
 
 
     def TR_addition(self, equations, eqn_idx, initial_pos):
@@ -305,7 +305,7 @@ class DerivationGraphBase(base.GraphBase):
         equations_copy = equations.set(eqn_idx, new_equation)
         equations_copy = equations_copy.to_normalform()
 
-        return [(equations_copy, base.EdgeLabel(*matched_kernels))]
+        return [(equations_copy, matched_kernels)]
 
 
     def TR_CSE_replacement(self, equations):
@@ -313,7 +313,7 @@ class DerivationGraphBase(base.GraphBase):
         transformed_expressions = []
 
         for new_equations in CSEs.find_CSEs(equations):
-            transformed_expressions.append((new_equations, base.EdgeLabel()))
+            transformed_expressions.append((new_equations, ()))
 
         return transformed_expressions
 
@@ -342,8 +342,7 @@ class DerivationGraphBase(base.GraphBase):
                 equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))
                 equations_copy = equations_copy.to_normalform()
 
-                edge_label = base.EdgeLabel(matched_kernel)
-                transformed_expressions.append((equations_copy, edge_label))
+                transformed_expressions.append((equations_copy, (matched_kernel,)))
 
         return transformed_expressions
 
@@ -548,8 +547,7 @@ class DerivationGraphBase(base.GraphBase):
                     equations_copy = equations_copy.to_normalform()
                     equations_copy.set_equivalent(equations)               
 
-                    edge_label = base.EdgeLabel(*matched_kernels)
-                    transformed_expressions.append((equations_copy, edge_label))
+                    transformed_expressions.append((equations_copy, matched_kernels))
                         
         return transformed_expressions, found_symbol_occurrence
 
