@@ -112,6 +112,7 @@ class Equations(object):
             if equation.rhs == equation.lhs:
                 remove.append(n)
 
+        remove.sort(reverse=True)
         for idx in remove:
             del equations[idx]
 
