@@ -16,9 +16,6 @@ dot_table_node = """{0} [shape=record, label="{{{{ {1} | {2} }}| {3} | {4} }}"];
 class Expression(matchpy.Expression):
     """docstring for Expression"""
 
-    known_inv_symbols = set() # necessary for computing metric
-    known_symbols = set() # necessary for computing metric
-
     counter = 0 # for to_dot()
 
     def __init__(self, variable_name=None):
@@ -77,64 +74,44 @@ class Expression(matchpy.Expression):
         or orthogonal). The second integer is a count of all nodes (i.e.
         operands) in the expression (counting duplicates TODO change that?).
         """
-        Expression.known_inv_symbols = set()
-        Expression.known_symbols = set()
-        return self._metric()
-        # m = self._metric_unique()
-        # print(self)
-        # print(Expression.known_inv_symbols)
-        # print(Expression.known_symbols)
-        # return m
-        # return self._metric_unique()
+        return self._metric(set())
 
-    def _metric(self, inverse=False):
+    def _metric(self, known_inv_symbols, inverse=False):
         metric = [0, 0]
         if isinstance(self, Symbol):
             metric[1] += 1
-            if inverse and self.name not in Expression.known_inv_symbols:
-                Expression.known_inv_symbols.add(self.name)
+            if inverse and self.name not in known_inv_symbols:
+                known_inv_symbols.add(self.name)
                 if not any(self.has_property(prop) for prop in [properties.TRIANGULAR, properties.DIAGONAL, properties.ORTHOGONAL]):
                     metric[0] += 1
         else:
             inv = (isinstance(self, Inverse) or isinstance(self, InverseTranspose) or isinstance(self, InverseConjugate) or isinstance(self, InverseConjugateTranspose) or inverse)
             for operand in self.operands:
-                operand_metric = operand._metric(inv)
+                operand_metric = operand._metric(known_inv_symbols, inv)
                 metric[0] += operand_metric[0]
                 metric[1] += operand_metric[1]
         return metric
 
 
-    def _metric_unique(self, inverse=False):
-        # This funciton just calls unique nodes.
+    def _metric_unique(self, known_symbols, known_inv_symbols, inverse=False):
+        # This function just counts unique nodes.
         metric = [0, 0]
         if isinstance(self, Symbol):
             # metric[1] += 1
-            if inverse and self.name not in Expression.known_inv_symbols:
-                Expression.known_inv_symbols.add(self.name)
+            if inverse and self.name not in known_inv_symbols:
+                known_inv_symbols.add(self.name)
                 if not any(self.has_property(prop) for prop in [properties.TRIANGULAR, properties.DIAGONAL, properties.ORTHOGONAL]):
                     metric[0] += 1
-            if self.name not in Expression.known_symbols:
-                Expression.known_symbols.add(self.name)
+            if self.name not in known_symbols:
+                known_symbols.add(self.name)
                 metric[1] += 1
         else:
             inv = (isinstance(self, Inverse) or isinstance(self, InverseTranspose) or isinstance(self, InverseConjugate) or isinstance(self, InverseConjugateTranspose) or inverse)
             for operand in self.operands:
-                operand_metric = operand._metric(inv)
+                operand_metric = operand._metric(known_inv_symbols, inv)
                 metric[0] += operand_metric[0]
                 metric[1] += operand_metric[1]
         return metric
-
-        # self_is_inv = isinstance(self, Inverse)
-
-        # metric = 0
-        # for ch in self.operands:
-        #     if isinstance(ch, Symbol):
-        #         # alternatively all(not has_property)
-        #         if not any([ch.has_property(prop) for prop in [properties.TRIANGULAR, properties.DIAGONAL, properties.ORTHOGONAL]]):
-        #             metric += 1
-        #     else:
-        #         metric += ch.metric(self_is_inv)
-        # return metric
 
 
     def inverse_of(self, other):
