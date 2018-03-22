@@ -207,7 +207,7 @@ def set_equivalent_upwards(expr_before, expr_after):
                 break
 
 
-def expr_diff(e1, e2, p1=[], p2=[]):
+def expr_diff(e1, e2, p1=(), p2=()):
     """Computes the diff paths of two expressions.
 
     For two expressions e1!=e2, there exist two path p1, p2 such that by
@@ -243,7 +243,7 @@ def expr_diff(e1, e2, p1=[], p2=[]):
                 # print(permuted_operands)
                 rets = []
                 for (pos1, op1), (pos2, op2) in zip(enumerate(e1.operands), permuted_operands):
-                    ret = expr_diff(op1, op2, p1+[pos1], p2+[pos2])
+                    ret = expr_diff(op1, op2, p1+(pos1,), p2+(pos2,))
                     # print(op1, op2, ret)
                     if ret:
                         rets.append(ret)
@@ -255,7 +255,7 @@ def expr_diff(e1, e2, p1=[], p2=[]):
             # positions are what we are looking for
             rets = []
             for pos, (op1, op2) in enumerate(zip(e1.operands, e2.operands)):
-                ret = expr_diff(op1, op2, p1+[pos], p2+[pos])
+                ret = expr_diff(op1, op2, p1+(pos,), p2+(pos,))
                 # print(op1, op2, ret)
                 if ret:
                     rets.append(ret)
