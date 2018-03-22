@@ -8,7 +8,7 @@ import itertools
 class TransformationError(Exception):
     pass
 
-# @profile
+
 def simplify(expr):
     if not isinstance(expr, ae.Symbol) and not isinstance(expr, matchpy.Wildcard):
         expr = type(expr)(*list(map(simplify, expr.operands)))

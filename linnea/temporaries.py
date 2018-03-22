@@ -104,11 +104,11 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
     return tmp
 
 
-# @profile
 def _get_equivalent(expr):
     # TODO: This is horrible. Is there any way to fix it?
     new_expr = _flatten_equivalent(expr)
     return ar.to_SOP(at.simplify(ar.to_SOP(new_expr)))
+
 
 def _flatten_equivalent(expr):
     if isinstance(expr, ae.Symbol):
@@ -123,7 +123,6 @@ def _flatten_equivalent(expr):
             new_operands.append(new_operand)
         return type(expr)(*new_operands) if changed else expr
     return expr
-
 
 
 def set_equivalent(expr_before, expr_after):
@@ -162,6 +161,7 @@ def set_equivalent(expr_before, expr_after):
     # Looks like this is very expensive but rarely ever enables more merging.
     # set_equivalent_upwards(expr_before, expr_after)
 
+
 def set_equivalent_upwards(expr_before, expr_after):
     """Solves a problem too complicated to be described in one line.
 
@@ -193,15 +193,18 @@ def set_equivalent_upwards(expr_before, expr_after):
 
     # return
     path_before, path_after = expr_diff(expr_before, expr_after)
-    # print("here", path_before)
     for i in reversed(range(len(path_before))):
         # print(path_before[:i])
         equiv_subexpr_before = _get_equivalent(expr_before[path_before[:i]])
         if equiv_subexpr_before in _table_of_temporaries:
             equiv_subexpr_after = _get_equivalent(expr_after[path_after[:i]])
             if equiv_subexpr_after not in _table_of_temporaries:
-                # print(str(_get_equivalent(expr_before[path_before[:i]])))
-                # print(str(_get_equivalent(expr_after[path_after[:i]])))
+                # print("set_equivalent_upwards")
+                # print(str(expr_before))
+                # print(str(expr_after))
+                # print("###")
+                # print(str(equiv_subexpr_before))
+                # print(str(equiv_subexpr_after))
                 tmp = create_tmp(equiv_subexpr_before, True)
                 _table_of_temporaries[equiv_subexpr_after] = tmp
                 break
