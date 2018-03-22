@@ -64,9 +64,6 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
         # print(expr)
         equiv_expr = _get_equivalent(expr)
 
-    # REMEMBER: If it ever turns out to be a problem to use strings here,
-    # store real expressions in a sorted list and use bisect to find them.
-
     # print(expr, set_equivalent, equiv_expr, _properties)
 
     try:

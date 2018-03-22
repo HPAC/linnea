@@ -267,7 +267,9 @@ def generate_variants(equations, eqn_idx=None):
         variants.add(aeq.Equations(*new_equations_left))
         variants.add(aeq.Equations(*new_equations_right))
 
-    return variants
+    # Sorted is used here to avoid non-determinism between different runs.
+    # Mostly to make debugging easier.
+    return sorted(variants)
 
 
 def process_next(equation):
