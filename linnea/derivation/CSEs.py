@@ -28,7 +28,10 @@ class CSEType(Enum):
     inverse_transpose = 3
 
 class Subexpression(object):
-    """docstring for Subexpression"""
+    """Subexpression for CSE detection.
+
+    This class represents a subexpression to be used for CSE detection.
+    """
 
     _counter = 0
     def __init__(self, expr, eqn_idx, positions, level, type):
@@ -63,6 +66,18 @@ class Subexpression(object):
         Subexpression._counter +=1
 
     def is_compatible(self, other):
+        """Tests if self is compatible with other.
+
+        Two subexpressions are compatible if they do not overlap, or if none is
+        a subexpression of the other. This means that both subexpressions can
+        be replaced at the same time.
+
+        Args:
+            other (Subexpression): The other subexpression.
+
+        Returns:
+            True if self is compatible with other, False otherwise.       
+        """
         if self.eqn_idx != other.eqn_idx:
             return True
         elif not self.positions.isdisjoint(other.positions):
@@ -72,25 +87,37 @@ class Subexpression(object):
             # if there is more than one position, they all have the same
             # length and only differ in the last position, so it is sufficient
             # to just use one arbitrary position.
-            self_pos = next(iter(self.positions))
-            other_pos = next(iter(other.positions))
 
-            if len(self_pos) == len(other_pos):
+            if self.level == other.level:
                 # We know already that the sets are disjoint. If elements
                 # have the same lengths, none is a prefix of the other.
                 return True
             else:
                 # If one position is prefix of the other, they are not compatible
                 # print(self_pos, other_pos)
-                for _self_pos, _other_pos in itertools.product(self.positions, other.positions):
-                    if all(e1==e2 for e1, e2 in zip(_self_pos, _other_pos)):
+                # TODO it should be possible to do this without product.
+                # Check which one is longer, then check prefix.
+                for self_pos, other_pos in itertools.product(self.positions, other.positions):
+                    if all(e1==e2 for e1, e2 in zip(self_pos, other_pos)):
                         return False
                 return True
 
 
     def is_subexpression(self, other):
-        """
-        This function is transitive.
+        """Tests if self is a subexpression of other.
+
+        The test is based on positions, not expressions, so variants of
+        expressions do not play a role. However, his also means that this
+        function returns False if the self.expr is an actual subexpression of
+        other.expr in case they come from different positions.
+
+        This function defines a transitive relation.
+
+        Args:
+            other (Subexpression): The other subexpression.
+
+        Returns:
+            True if self is a subexpression of other, False otherwise.
         """
         if self.eqn_idx != other.eqn_idx:
             return False
@@ -107,16 +134,43 @@ class Subexpression(object):
             return self_prefix in other.positions
 
     def is_transpose(self, other):
+        """Tests if self is the transpose of other.
+
+        Args:
+            other (Subexpression): The other subexpression.
+
+        Returns:
+            True if self is the transpose of other, False otherwise.      
+        """
         return self.expr == other.expr_trans or self.expr_trans == other.expr
         
     def is_inverse(self, other):
+        """Tests if self is the inverse of other.
+
+        Args:
+            other (Subexpression): The other subexpression.
+
+        Returns:
+            True if self is the inverse of other, False otherwise.      
+        """
         return self.expr == other.expr_inv or self.expr_inv == other.expr
 
     def is_inverse_transpose(self, other):
+        """Tests if self is the inverse-transpose of other.
+
+        Args:
+            other (Subexpression): The other subexpression.
+
+        Returns:
+            True if self is the inverse-transpose of other, False otherwise.      
+        """
         return self.expr == other.expr_invtrans or self.expr_invtrans == other.expr
 
 class CSE(object):
-    """docstring for CSE"""
+    """Common Subexpression object
+
+    This is mostly just a collection of Subexpression objects.
+    """
 
     _counter = 0
     def __init__(self, subexprs):
@@ -130,6 +184,7 @@ class CSE(object):
 
         self.compatible_count = 0
 
+        # Contain the predeccessors and successors in the CSE lattice.
         self.predeccessors = []
         self.successors = []
 
@@ -142,14 +197,43 @@ class CSE(object):
 
         self.all_cliques = list(find_max_cliques(adj))
         self.max_clique_size = max((len(clique) for clique in self.all_cliques), default=0)
+        """int: This number gives the maximal number of subexpressions that can
+        be replaced at the same time. It is given by the size the largest
+        maximal clique in a graph where subexpressions are nodes, and edges
+        represents which subexpressions are compatible.
+        """
 
     def is_subexpression(self, other):
+        """Tests if self is a subexpression of other.
+
+        The test is based on the positions of the subexpressions of self and
+        other. If any subexpression of self is a subexpression of one in other,
+        this function returns True.
+
+        This function defines a transitive relation.
+
+        Args:
+            other (CSE): The other CSE
+
+        Returns:
+            True if self is a subexpression of other, False otherwise.
+        """
         for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
             if self_subexpr.is_subexpression(other_subexpr):
                 return True
         return False
 
     def is_compatible(self, other):
+        """Tests if self is compatible with other.
+
+        Two CSEs are compatible if all they subexpressions are compatible.
+
+        Args:
+            other (CSE): The other CSE.
+
+        Returns:
+            True if self is compatible with other, False otherwise.
+        """
         for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
             if not self_subexpr.is_compatible(other_subexpr):
                 return False
@@ -174,16 +258,20 @@ class CSEDetector(object):
         self.all_subexpressions = dict()
         self.all_CSEs = dict()
         self.subexpr_to_CSE = dict()
-        self.all_CSE_lists = []
+        self.all_subexpr_lists = []
 
     def add_subexpression(self, subexpr):
+        """Adds a subexpression to the detector.
 
+        Args:
+            subexpr (Subexpression): The subexpression to add.
+        """
         for expr in subexpr.expr_var:
             try:
                 subexprs = self.CSE_detection_dict[expr]
             except KeyError:
                 subexprs = []
-                self.all_CSE_lists.append(subexprs)
+                self.all_subexpr_lists.append(subexprs)
             else:
                 break
 
@@ -202,7 +290,12 @@ class CSEDetector(object):
                     print(str(subexpr.expr), subexpr.eqn_idx, subexpr.positions)
 
     def construct_CSEs(self):
-        for subexprs in self.all_CSE_lists:
+        """Constructs CSE objects from all subexpressions that were added.
+
+        The CSE objects are not returned, but stored in the self.all_CSEs
+        dictionary.
+        """
+        for subexprs in self.all_subexpr_lists:
             if len(subexprs) > 1:
                 cse = CSE(subexprs)
                 self.all_CSEs[cse.id] = cse
@@ -241,9 +334,19 @@ class CSEDetector(object):
     def remove_not_maximal_CSEs(self, nodes):
         """Removes CSEs from the CSE lattice which are not maximal.
 
-        The crucial part is how to define maximality.
-        This might be the most important part. Here it is decided which CSEs
-        are considered.
+        A CSE is maximal if there is a predecessor that has a smaller number of
+        occurrences (subexpressions). However, instead of the number of
+        occurrences, we use the maximum number of subexpressions that can be
+        replaced at the same time, which is given by CSE.max_clique_size.
+
+        One of the reasons for this is the common subexpression in Example063
+        after the Cholesky factorization is applied to S. The CSE that leads to
+        the optimal solution is not maximal based on the number of
+        subexpression. However, for the "larger" CSE, only two subexpression can
+        be replaced at the same time, because two of them overlap.
+        
+        Args:
+            nodes (list): The list of nodes (CSE objects) of the CSE lattice.
         """
 
         while True:
@@ -265,10 +368,14 @@ class CSEDetector(object):
                     predeccessor.successors.remove(node)
 
     def remove_invalid_CSEs(self, nodes):
-        """
+        """Removes invalid CSEs.
 
-        A common subexpression is invalid if it has only two occurrences, and
-        those occurrences are not compatible.
+        A common subexpression is invalid if there are no two subexpressions
+        that can be replaced at the same time. This is given by
+        CSE.max_clique_size.
+
+        Args:
+            nodes (list): The list of nodes (CSE objects) of the CSE lattice.
         """
 
         remove = []
@@ -285,6 +392,14 @@ class CSEDetector(object):
 
 
     def maximal_CSEs(self):
+        """Returns all maximal CSEs.
+
+        For a description of what "maximal" means here, see the docstring of
+        self.remove_not_maximal_CSEs.
+
+        Returns:
+            list: The list of maximal CSEs.
+        """
         current_nodes = [node for node in self.all_CSEs.values()]
 
         self.remove_invalid_CSEs(current_nodes)
@@ -310,7 +425,18 @@ class CSEDetector(object):
 
 
     def replaceable_CSEs(self, CSEs):
+        """Finds replaceable CSEs.
+        
+        A set of common subexpressions is replaceable if
+        - every subexpression is compatible with every other subexpression
+        - for each CSE, there are at least to subexpressions.
 
+        Args:
+            CSEs (list): A list of CSEs.
+
+        Yields:
+            list: Sets of replaceable CSEs, as a list of subexpressions.
+        """
         if len(CSEs) == 1:
             # No constraints need to be checked here. All subexpressions belong
             # to the same CSE, and there are no cliques with less than two
@@ -408,6 +534,11 @@ class CSEDetector(object):
 
 
     def CSEs(self):
+        """Generates all detected CSEs.
+
+        Yields:
+            list: Sets of replaceable CSEs, as a list of subexpressions.
+        """
 
         # TODO should all of this happen in maximal_CSEs()?
         self.construct_CSEs()
@@ -552,7 +683,14 @@ def find_max_cliques(G):
         pass
 
 def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
-    """
+    """Generates all subexpressions of expr.
+
+    Generates all subexpression of an expression for CSE detection. Technically,
+    not all subexpression are generated because it is already tested if
+    expressions are blocked. Also, single operands, transposed operands, and
+    expression that would introduce explicit inversion when replaced are not
+    returned either.
+
     Canonical positions: If a subexpression is a single node in the expression
     tree, its position is only one sequence.
 
@@ -563,6 +701,11 @@ def all_subexpressions(expr, position=tuple(), level=0, predeccessor=None):
     AB      {(0, 0), (0, 1)}
 
     This way, positions are unique.
+
+    Yields:
+        Expression: The subexpression.
+        set: A set of positions.
+        int: The level of the expression. This is also the length of the positions.
     """
     if isinstance(expr, Operator):
         if expr.arity == matchpy.Arity.unary:
@@ -601,6 +744,12 @@ def indentify_subexpression_types(subexprs):
     For now, this function generates one arbitrary assignement.
 
     TODO what about A^-1 B^-1 ?
+
+    Args:
+        subexprs (list): A list of subexpressions.
+
+    Returns:
+        list: List of CSEType objects, one for each element of subexprs.
     """
 
     ref_subexpr = subexprs[0]
@@ -618,6 +767,14 @@ def indentify_subexpression_types(subexprs):
     return return_types
 
 def find_CSEs(equations):
+    """Finds and replaces common subexpressions in equations.
+
+    Args:
+        equations (Equations): Some equations.
+
+    Yields:
+        Equations: The input equation with eliminated common subexpressions.        
+    """
 
     CSE_detector = CSEDetector()
     for eqn_idx, equation in enumerate(equations):
