@@ -138,7 +138,7 @@ class Algorithm(object):
         return "".join(code_list)
 
     def _matched_kernel_to_code(self, matched_kernel, line_number):
-        """Generates code for a signle MatchedKernel objects.
+        """Generates code for a single MatchedKernel objects.
 
         Args:
             matched_kernel (MatchedKernel)
@@ -153,7 +153,7 @@ class Algorithm(object):
             multiple times for the generation of algorithms.
 
         """
-        lines = ""
+        lines_list = []
 
         # print("#########")
         # print(matched_kernel.signature)
@@ -162,7 +162,7 @@ class Algorithm(object):
 
         mem_content = "".join([config.comment, self.memory.content_string_with_format(), "\n"])
         # mem_content = "".join([config.comment, self.memory.content_string(), "\n"])
-        lines = "".join([lines, mem_content])
+        lines_list.append(mem_content)
 
         # TODO arguments could be a stack or something, removing processed arguments. Then we don't need late_arguments.
         arguments = copy.copy(matched_kernel.arguments)
@@ -200,7 +200,7 @@ class Algorithm(object):
 
         if mem_ops_before:
             mem_code_before = "".join([mem_op.code() for mem_op in mem_ops_before])
-            lines = "".join([lines, mem_code_before])
+            lines_list.append(mem_code_before)
 
         # print(late_arguments)
         for argument in late_arguments:
@@ -220,23 +220,27 @@ class Algorithm(object):
             kernel_post_code.safe_substitute_copy(operand_mapping)
 
         if argument_pre_code:
-            lines = "".join([lines, *matched_kernel.remove_duplicate_lines(argument_pre_code, self.known_lines)])
+            lines_list.extend(self.remove_duplicate_lines(argument_pre_code, self.known_lines))
 
         if matched_kernel.pre_code:
-            lines = "".join([lines, kernel_pre_code.safe_substitute_str(argument_mapping)])
+            lines_list.append(kernel_pre_code.safe_substitute_str(argument_mapping))
 
-        lines = "".join([lines, config.comment, str(matched_kernel.operation), "\n"])
-        lines = "".join([lines, signature.safe_substitute_str(argument_mapping), "\n"])
+        lines_list.append(config.comment)
+        lines_list.append(str(matched_kernel.operation))
+        lines_list.append("\n")
+
+        lines_list.append(signature.safe_substitute_str(argument_mapping))
+        lines_list.append("\n")
 
         if matched_kernel.post_code:
-            lines = "".join([lines, kernel_post_code.safe_substitute_str(argument_mapping)])
+            lines_list.append(kernel_post_code.safe_substitute_str(argument_mapping))
 
         if mem_ops_after:
             mem_code_after = "".join([mem_op.code() for mem_op in mem_ops_after])
-            lines = "".join([lines, mem_code_after])
+            lines_list.append(mem_code_after)
 
-        lines = "".join([lines, "\n"])
-        return lines
+        lines_list.append("\n")
+        return "".join(lines_list)
 
 
     def _matched_kernel_to_pseudocode(self, matched_kernel):
@@ -423,107 +427,6 @@ class MatchedKernel(object):
 
         self.kernel_io = None
         
-    def code(self, memory, known_lines):
-        """
-        
-        Important:
-            This function can not modify self. The reason is that it may get
-            called multiple times, for different algorithms, with different
-            input arguments.
-        """
-        lines = ""
-
-        # print("#########")
-        # print(self.signature)
-        # print(self.operand_dict)
-        # print(self.kernel_io)
-
-        mem_content = "".join([config.comment, memory.content_string(), "\n"])
-        lines = "".join([lines, mem_content])
-
-        # TODO arguments could be a stack or something, removing processed arguments. Then we don't need late_arguments.
-        arguments = copy.copy(self.arguments)
-        argument_mapping = dict()
-        argument_pre_code = []
-
-        signature = self.signature.safe_substitute_copy(self.other_replacements)
-        if self.pre_code:
-            self.pre_code.safe_substitute(self.other_replacements)
-        if self.post_code:
-            self.post_code.safe_substitute(self.other_replacements)
-
-        late_arguments = []
-        for argument in arguments:
-            try:
-                pre_code, arg_replacement = argument.get_replacement(self.operand_dict, memory)
-            except memory_module.OperandNotInMemory:
-                """ This Argument object has to be used after
-                memory.add_operation(). Happens only for StrideArgument objects
-                if nothing is overwritten.
-                TODO: If nothing is overwritten, a new memory location is
-                allocated. Thus, the stride can be chosen. So does  this  make 
-                sense?
-                """
-                late_arguments.append(argument)
-            else:
-                if pre_code:
-                    argument_pre_code.append(pre_code)
-                argument_mapping[argument.name] = arg_replacement   
-
-        mem_ops_before, mem_ops_after, operand_mapping = memory.add_operation(self.kernel_io)
-        # print(operand_mapping)
-
-        if mem_ops_before:
-            mem_code_before = "".join([mem_op.code() for mem_op in mem_ops_before])
-            lines = "".join([lines, mem_code_before])
-
-        # print(late_arguments)
-        for argument in late_arguments:
-            pre_code, arg_replacement = argument.get_replacement(self.operand_dict, memory)
-            if pre_code:
-                argument_pre_code.append(pre_code)
-            argument_mapping[argument.name] = arg_replacement 
-
-        # print(argument_mapping)
-        # print(signature)
-
-        signature.safe_substitute(operand_mapping)
-        if self.pre_code:
-            self.pre_code.safe_substitute_copy(operand_mapping)
-        if self.post_code:
-            self.post_code.safe_substitute_copy(operand_mapping)
-
-        if argument_pre_code:
-            lines = "".join([lines, *self.remove_duplicate_lines(argument_pre_code, known_lines)])
-
-        if self.pre_code:
-            lines = "".join([lines, self.pre_code.safe_substitute_str(argument_mapping)])
-
-        lines = "".join([lines, config.comment, str(self.operation), "\n"])
-        lines = "".join([lines, signature.safe_substitute_str(argument_mapping), "\n"])
-
-        if self.post_code:
-            lines = "".join([lines, self.post_code.safe_substitute_str(argument_mapping)])
-
-        if mem_ops_after:
-            mem_code_after = "".join([mem_op.code() for mem_op in mem_ops_after])
-            lines = "".join([lines, mem_code_after])
-
-        lines = "".join([lines, "\n"])
-        return lines
-
-
-    def pseudocode(self):
-        return "{0:<30}# {1:.0f}\n".format(str(self.operation), self.cost)
-
-    def remove_duplicate_lines(self, lines, known_lines):
-        new_lines = []
-        for line in lines:
-            if line not in known_lines:
-                known_lines.add(line)
-                new_lines.append(line)
-        return new_lines
-
 
 julia_template = textwrap.dedent(
                         """
