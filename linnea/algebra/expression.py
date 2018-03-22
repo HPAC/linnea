@@ -414,17 +414,9 @@ class Equal(Operator):
     def lhs(self):
         return self.operands[0]
 
-    # @lhs.setter
-    # def lhs(self, value):
-    #     self.operands[0] = value
-
     @property
     def rhs(self):
         return self.operands[1]
-
-    # @rhs.setter
-    # def rhs(self, value):
-    #     self.operands[1] = value
 
     @property
     def size(self):
