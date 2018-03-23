@@ -10,7 +10,9 @@ import itertools
 
 import matchpy
 
-from . import utils as dgu
+from .graph import utils as dgu
+
+from . import utils as du
 
 class MatrixChainNotComputable(Exception):
     pass
@@ -73,7 +75,7 @@ class MatrixChainSolver(object):
                         continue
 
                     DN_solution = False
-                    kernel, match = dgu.select_optimal_match(collections_module.matrix_chain_DN.match(product))
+                    kernel, match = du.select_optimal_match(collections_module.matrix_chain_DN.match(product))
                     if kernel:
                         _cost = kernel.cost(match)
                         DN_solution = True

@@ -16,8 +16,6 @@ from collections import namedtuple, deque
 
 from enum import Enum, unique
 
-from ..utils import is_blocked
-
 import copy
 import itertools
 import operator
@@ -550,3 +548,53 @@ def contains_transpose(expr):
         return True
     if isinstance(expr, Operator):
         return any(contains_transpose(operand) for operand in expr.operands)
+
+# def is_blocked(operation):
+#     """Test if the operation is blocked.
+
+#     An operation is blocked if all operands are factors resulting from a
+#     factorization applied to the same operands.
+
+#     Example:
+#         When the LU factorization is applied to A in inv(A)*x, this results in
+#         inv(U)*inv(L)*x. In this case, computing inv(U)*inv(L) is not allowed
+#         because both factors come from factoring A. Computing inv(L)*x is
+#         allowed because x is not a factor. Similarly, L*U would be allowed if
+#         L and U came from factoring different operands.
+
+#     Args:
+#         operation (Expression): Operation to test.
+
+#     Returns:
+#         bool: False if this operation is not allowed, True otherwise.
+
+#     """    
+#     if all(operand.factorization_labels for operand in operation.operands):
+#         iterator = iter(operation.operands)
+#         try:
+#             first = next(iterator)
+#         except StopIteration:
+#             return False
+#         return all(first.factorization_labels == rest.factorization_labels for rest in iterator)
+#     else:
+#         return False
+
+def is_blocked(operation):
+    """Test if the operation is blocked.
+
+    An operation is blocked if all operands are factors from any factorizations.
+
+    Example:
+        When the LU factorization is applied to A in inv(A)*x, this results in
+        inv(U)*inv(L)*x. In this case, computing inv(U)*inv(L) is not allowed
+        because both factors come from factoring A. Computing inv(L)*x is
+        allowed because x is not a factor.
+
+    Args:
+        operation (Expression): Operation to test.
+
+    Returns:
+        bool: False if this operation is not allowed, True otherwise.
+
+    """
+    return all(operand.factorization_labels or operand.has_property(properties.CONSTANT) for operand in operation.operands)
