@@ -10,7 +10,8 @@ from .utils import generate_variants, \
                    process_next, process_next_simple, \
                    OperationType, ExpressionType, \
                    is_explicit_inversion, \
-                   DS_step
+                   DS_step, \
+                   is_blocked
 
 from .. import special_properties
 
@@ -21,7 +22,7 @@ import math
 
 from ... import temporaries
 from ... import config
-from ..utils import select_optimal_match, is_blocked
+from ..utils import select_optimal_match
 
 collections_module = config.import_collections()
 
