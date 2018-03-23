@@ -102,20 +102,44 @@ class Equations(object):
         return sum
 
     def remove_identities(self):
-        """Removes equations of the form X = X.
+        """Removes equations where both sides are temporaries.
 
-        Returns true if an equation was removed, false if not.
+        There are two different cases. If both sides of an equation are the
+        same, it can simply be removed.
+
+        If both sides are different, all occurrences of the temporary on the
+        left-hand side in the other equations are replaced by the temporary on
+        the right-hand side. This is necessary to ensure that code generation
+        still works. This case can happen when setting equivalent expressions
+        does not work perfectly.
+
+        Replacing the temporary in the other equations only works if the
+        temporary that is replaced is not part of any computation yet.
+
+        Furthermore, it is assumed that there are no cases such as
+        tmp2 = tmp3
+        tmp1 = tmp2
+
+        Returns:
+            Equations: self with equations removed.
         """
         remove = []
+        replace_eqns = []
         equations = list(self.equations)
         for n, equation in enumerate(self.equations):
-            if equation.rhs == equation.lhs:
+            if equation.lhs.name in temporaries._equivalent_expressions:
                 remove.append(n)
+                if equation.lhs != equation.rhs:
+                    replace_eqns.append(equation)
 
-        remove.sort(reverse=True)
-        for idx in remove:
+        for idx in reversed(remove):
             del equations[idx]
 
+        for replace_eqn in replace_eqns:
+            rule = matchpy.ReplacementRule(matchpy.Pattern(replace_eqn.lhs), lambda: replace_eqn.rhs)
+            equations = [matchpy.replace_all(equation, (rule,)) for equation in equations]
+
+        # TODO do we want to manipulate the table of temporaries here?
         return Equations(*equations)
 
     def apply_partitioning(self):

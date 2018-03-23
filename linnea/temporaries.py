@@ -57,11 +57,8 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
         # If there are temporaries, they are replaced (as a rule of thumb, this
         # should always be done if there are any)
         set_equivalent = True
-        # print(equiv_expr)
         equiv_expr = _get_equivalent(equiv_expr)
-        # print(equiv_expr)
     elif set_equivalent:
-        # print(expr)
         equiv_expr = _get_equivalent(expr)
 
     # print(expr, set_equivalent, equiv_expr, _properties)
@@ -72,13 +69,6 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
         name = "tmp{}".format(get_identifier())
         size = expr.size
 
-        # rows, columns = size
-        # if rows != 1 and columns != 1:
-        #     tmp = ae.Matrix(name, size)
-        # elif rows == 1 and columns == 1:
-        #     tmp = ae.Scalar(name)
-        # else:
-        #     tmp = ae.Vector(name, size)
         if expr.has_property(properties.SCALAR):
             tmp = ae.Scalar(name)
         elif expr.has_property(properties.VECTOR):
