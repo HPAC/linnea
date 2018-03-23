@@ -127,7 +127,8 @@ class Equations(object):
         replace_eqns = []
         equations = list(self.equations)
         for n, equation in enumerate(self.equations):
-            if equation.lhs.name in temporaries._equivalent_expressions:
+            if (equation.lhs.name in temporaries._equivalent_expressions 
+                    and equation.rhs.name in temporaries._equivalent_expressions):
                 remove.append(n)
                 if equation.lhs != equation.rhs:
                     replace_eqns.append(equation)
