@@ -389,7 +389,9 @@ class Symbol(matchpy.Symbol, Expression):
 
 class Constant(object):
     """docstring for Constant"""
-    pass
+    def __init__(self):
+        super(Constant, self).__init__()
+
 
 
 ######################
@@ -1166,7 +1168,7 @@ class ConstantMatrix(Matrix, Constant):
     """docstring for ConstantMatrix"""
     def __init__(self, name, size):
         super(ConstantMatrix, self).__init__(name, size)
-
+        self.set_property(properties.CONSTANT)
 
 class IdentityMatrix(ConstantMatrix):
     """docstring for IdentityMatrix"""
@@ -1225,6 +1227,7 @@ class ConstantScalar(Scalar, Constant):
     def __init__(self, value):
         super(ConstantScalar, self).__init__(str(value))
         self.value = value
+        self.set_property(properties.CONSTANT)
 
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)

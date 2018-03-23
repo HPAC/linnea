@@ -55,6 +55,7 @@ class Property(enum.Enum):
     #
     ZERO = "Zero"
     IDENTITY = "Identity"
+    CONSTANT = "Constant"
     DIAGONAL = "Diagonal"
     TRIANGULAR = "Triangular"
     LOWER_TRIANGULAR = "LowerTriangular"
@@ -82,6 +83,8 @@ class Property(enum.Enum):
     FACTOR = "Factor"
 
     __ordering__ = {
+        (ZERO, CONSTANT),
+        (IDENTITY, CONSTANT),
         (IDENTITY, DIAGONAL),
         # (IDENTITY, SYMMETRIC),
         (IDENTITY, FULL_RANK),
@@ -109,86 +112,6 @@ class Property(enum.Enum):
 
 # Property.to_dot_file(Property)
 
-# INPUT = "Input"
-# OUTPUT = "Output"
-# AUXILIARY = "Auxiliary"
-# #
-# SCALAR = "Scalar"
-# VECTOR = "Vector"
-# MATRIX = "Matrix"
-# #
-# SQUARE       = "Square"
-# ROW_PANEL    = "RowPanel"
-# COLUMN_PANEL = "ColumnPanel"
-# #
-# ZERO = "Zero"
-# IDENTITY = "Identity"
-# DIAGONAL = "Diagonal"
-# TRIANGULAR = "Triangular"
-# LOWER_TRIANGULAR = "LowerTriangular"
-# UPPER_TRIANGULAR = "UpperTriangular"
-# UNIT_DIAGONAL = "UnitDiagonal"
-# #
-# SYMMETRIC = "Symmetric"
-# SPD = "SPD"
-# #
-# NON_SINGULAR = "Non-singular"
-# ORTHOGONAL   = "Orthogonal"
-# FULL_RANK    = "FullRank"
-# # EXISTS_LU    = "ExistsLU"
-# #
-# UNITARY      = "Unitary"
-# NORMAL       = "Normal"
-# HERMITIAN    = "Hermitian"
-# #
-# ORTHOGONAL_COLUMNS   = "OrthogonalColumns" # for QR
-# ORTHOGONAL_ROWS   = "OrthogonalRows" # for QR
-# #
-# PERMUTATION = "Permutation"
-# #
-# ADMITS_FACTORIZATION = "AdmitsFactorization"
-
-
-
-# all = [
-#     INPUT,
-#     OUTPUT,
-#     AUXILIARY,
-#     #
-#     SCALAR,
-#     VECTOR,
-#     MATRIX,
-#     #
-#     SQUARE,
-#     ROW_PANEL,
-#     COLUMN_PANEL,
-#     #
-#     ZERO,
-#     IDENTITY,
-#     DIAGONAL,
-#     TRIANGULAR,
-#     LOWER_TRIANGULAR,
-#     UPPER_TRIANGULAR,
-#     UNIT_DIAGONAL,
-#     #
-#     SYMMETRIC,
-#     SPD,
-#     #
-#     NON_SINGULAR,
-#     ORTHOGONAL,
-#     FULL_RANK,
-#     # EXISTS_LU,
-#     #
-#     UNITARY,
-#     NORMAL,
-#     HERMITIAN,
-#     #
-#     ORTHOGONAL_COLUMNS,
-#     #
-#     PERMUTATION,
-#     #
-#     ADMITS_FACTORIZATION
-# ]
 
 # Add dictionary implies (prop) -> props
 #   e.g., SPD -> Symmetric
@@ -269,6 +192,7 @@ negative_implications = {
     #
     Property.ZERO : [Property.IDENTITY, Property.NON_SINGULAR, Property.FULL_RANK],
     Property.IDENTITY : [Property.ROW_PANEL, Property.COLUMN_PANEL, Property.ZERO],
+    Property.CONSTANT : [],
     Property.DIAGONAL : [],
     Property.TRIANGULAR : [], # is triangular a contradiction to symmetric? no if matrix is diagonal
     Property.LOWER_TRIANGULAR : [],

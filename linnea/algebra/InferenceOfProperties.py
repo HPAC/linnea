@@ -54,6 +54,12 @@ def isIdentity(node):
         return isIdentity(node.operand)
     return False
 
+def isConstant(node):
+    if isinstance(node, ae.Symbol):
+        return infer_property_symbol(node, properties.CONSTANT, isConstant)
+    if isinstance(node, ae.Operator):
+        return all(isConstant(operand) for operand in node.operands)
+
 def isFactor(node):
     if isinstance(node, ae.Symbol):
         return infer_property_symbol(node, properties.FACTOR, isFactor)
@@ -424,6 +430,7 @@ property_to_function = {
     # properties.EXISTS_LU: isExistsLU,
     properties.ADMITS_FACTORIZATION: admitsFactorization,
     properties.FACTOR: isFactor,
+    properties.CONSTANT: isConstant,
 }
 
 def infer_property(expr, prop):
@@ -434,67 +441,6 @@ def infer_property(expr, prop):
     except KeyError:
         raise NotImplementedError("No function to infer %s" % prop)
     return func(expr)
-    # print(prop)
-    # has_property = False
-    # if prop is properties.INPUT:
-    #     has_property = isInput(expr)
-    # elif prop is properties.OUTPUT:
-    #     has_property = isOutput(expr)
-    # elif prop is properties.AUXILIARY:
-    #     has_property = isAuxiliary(expr)
-    # elif prop is properties.ZERO:
-    #     has_property = isZero(expr)
-    # elif prop is properties.IDENTITY:
-    #     has_property = isIdentity(expr)
-    # elif prop is properties.DIAGONAL:
-    #     has_property = isDiagonal(expr)
-    # elif prop is properties.TRIANGULAR:
-    #     has_property = isTriangular(expr)
-    # elif prop is properties.LOWER_TRIANGULAR:
-    #     has_property = isLowerTriangular(expr)
-    # elif prop is properties.UPPER_TRIANGULAR:
-    #     has_property = isUpperTriangular(expr)
-    # elif prop is properties.UNIT_DIAGONAL:
-    #     has_property = isUnitDiagonal(expr)
-    # elif prop is properties.SYMMETRIC:
-    #     has_property = isSymmetric(expr)
-    # elif prop is properties.SPD:
-    #     has_property = isSPD(expr)
-    # elif prop is properties.NON_SINGULAR:
-    #     has_property = isNonSingular(expr)
-    # elif prop is properties.ORTHOGONAL:
-    #     has_property = isOrthogonal(expr)
-    # elif prop is properties.FULL_RANK:
-    #     has_property = isFullRank(expr)
-    # elif prop is properties.SQUARE:
-    #     has_property = isSquare(expr)
-    # elif prop is properties.SCALAR:
-    #     has_property = isScalar(expr)
-    # elif prop is properties.VECTOR:
-    #     has_property = isVector(expr)
-    # elif prop is properties.MATRIX:
-    #     has_property = isMatrix(expr)
-    # elif prop is properties.COLUMN_PANEL:
-    #     has_property = isColumnPanel(expr)
-    # elif prop is properties.ROW_PANEL:
-    #     has_property = isRowPanel(expr)
-    # elif prop is properties.UNITARY:
-    #     has_property = isUnitary(expr)
-    # elif prop is properties.NORMAL:
-    #     has_property = isNormal(expr)
-    # elif prop is properties.HERMITIAN:
-    #     has_property = isHermitian(expr)
-    # elif prop is properties.ORTHOGONAL_COLUMNS:
-    #     has_property = isOrthogonalColumns(expr)
-    # elif prop is properties.PERMUTATION:
-    #     has_property = isPermutation(expr)
-    # elif prop is properties.EXISTS_LU:
-    #     has_property = isExistsLU(expr)
-    # elif prop is properties.ADMITS_FACTORIZATION:
-    #     has_property = admitsFactorization(expr)
-    # else:
-    #     raise NotImplementedError("No function to infer %s" % prop)
-    # return has_property
 
 if __name__ == "__main__":
     pass
