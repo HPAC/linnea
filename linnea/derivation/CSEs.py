@@ -429,7 +429,7 @@ class CSEDetector(object):
         
         A set of common subexpressions is replaceable if
         - every subexpression is compatible with every other subexpression
-        - for each CSE, there are at least to subexpressions.
+        - for each CSE, there are at least two subexpressions.
 
         Args:
             CSEs (list): A list of CSEs.
@@ -536,6 +536,14 @@ class CSEDetector(object):
     def CSEs(self):
         """Generates all detected CSEs.
 
+        This function generates the following replaceable common subexpressions:
+        - Maximal common subexpressions.
+        - Pairs of two (potentially not maximal) common subexpression where all
+          subexpressions are compatible.
+
+        For all of those subexpressions, all subsets of subexpressions are
+        generated which are replaceable.
+
         Yields:
             list: Sets of replaceable CSEs, as a list of subexpressions.
         """
@@ -548,6 +556,7 @@ class CSEDetector(object):
         maximal_CSEs = self.maximal_CSEs()
 
         # adding pairs of CSEs that are compatible
+        # Here, we also consider CSEs which would not be considered otherwise because they are not maximal.
         # there is no reason not to go for larger groups, but they are probably very unlikely
         grouped_CSEs = []
         for cse1, cse2 in itertools.combinations(self.all_CSEs.values(), 2):
