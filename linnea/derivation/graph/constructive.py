@@ -49,7 +49,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         return nodes[:width]
 
     def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True, dead_ends=True):
-        # TODO default values?
 
         # init_partitiong and delete_partitioning is only done for performance
         # reasons. The additional attribute "partitioning" makes copying a lot
@@ -93,7 +92,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             new_nodes_per_iteration = 0
 
             new_nodes = self.DS_tricks()
-            # TODO could this be done better with logging?
             self.print_DS_numbered("Nodes added (tricks):", new_nodes, self.level_counter)
             trace.append(new_nodes)
             new_nodes_per_iteration += new_nodes
@@ -133,22 +131,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
             trace.append(new_nodes)
             new_nodes_per_iteration += new_nodes
-
-            # DEBUG TODO remove
-            # for node in self.active_nodes:
-            #     for equation in node.equations:
-            #         check_consistency(equation)
-
-            # for node in self.active_nodes:
-            #     rhs = node.expression.rhs
-            #     for node, pos in rhs.iterate_preorder_with_positions():
-            #         print("###")
-            #         print(node)
-            #         print(node.properties)
-            #         print(node.false_properties)
-                # for prop in properties.all:
-                #     has_property automatically stores properties on the node
-                #    node.has_property(prop)
 
             if new_nodes:
                 if dead_ends:

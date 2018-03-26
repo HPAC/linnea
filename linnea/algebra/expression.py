@@ -348,8 +348,6 @@ class Symbol(matchpy.Symbol, Expression):
         elif prop == properties.DIAGONAL:
             self.bandwidth = (0, 0)
 
-        # TODO those properties should not added to the sets because that causes
-        # problems when using update_properties()
         if prop == properties.SCALAR:
             return
         elif prop == properties.VECTOR:

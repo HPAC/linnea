@@ -15,9 +15,6 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
     def derivation(self):
         _break = False
         while self.active_nodes:
-            # self.DS_matrix_chain_kernels()
-            # self.DS_unary_kernels()
-            # # stop if there is a solution node? Does it ever pay off?
 
             new_nodes = []
             inactive_nodes = []
@@ -46,31 +43,6 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
             self.add_active_nodes(new_nodes)
 
             self.DS_merge_nodes()
-
-    # TODO remove?
-    def DS_matrix_chain(self):
-        new_nodes = []
-        inactive_nodes = []
-
-        for node in self.active_nodes:
-
-            transformed = self.TR_matrix_chain_kernels(node.expression)
-            transformed.extend(self.TR_unary_kernels(node.expression))
-
-            new_nodes.extend(self.create_nodes(node, *transformed))
-
-            # Active node stops being active.
-            # If transformations were applied, it's actually not a leaf anymore,
-            # i.e. it has successors.
-            # If no transformations were applied, it's a dead end.
-            inactive_nodes.append(node)
-        
-        for node in inactive_nodes:
-            self.active_nodes.remove(node)
-
-        self.add_active_nodes(new_nodes)
-
-        return len(new_nodes)
 
 
     def TR_matrix_chain_kernels(self, expression):
