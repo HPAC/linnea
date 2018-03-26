@@ -43,23 +43,8 @@ class Equations(object):
     def __len__(self):
         return len(self.equations)
 
-    def __deepcopy__(self, memo):
-        cpy = object.__new__(type(self))
-        cpy.equations = self.equations.copy()
-        return cpy
-
-    def __copy__(self):
-        # TODO remove
-        # This is only here because this function used to do what __deepcopy__
-        # does now, to make sure that I don't forget changing all places where
-        # copy(equations) was used.
-        raise NotImplementedError()
-
     def __hash__(self):
         return hash(tuple(self.equations))
-
-    # def __eq__(self, other):
-    #     return self.equations == other.equations
 
     def set(self, position, value):
         equations = list(self.equations)
