@@ -755,35 +755,9 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
         else:
             new_operands.append(operator_fct(operand))
 
-    # new_operands = flatten_times(new_operands)
-    # print("new_operands", new_operands)
-
     operands = scalars + new_operands
-    # print("operands", operands)
     return ae.Times(*operands)
 
-    # if not scalars and len(new_operands) == 1:
-    #     expr = new_operands[0]
-    # else:
-    #     operands = scalars + new_operands
-    #     expr = ae.Times(*operands)
-
-    # print("distribute OUT", expr)
-    # expr.to_dot_file()
-    # return expr
-
-def flatten_times(list):
-    """Flattens Times in a list of expressions.
-
-    Given a list [a, Times(b, c)], this function returns [a, b, c].
-    """
-    new_list = []
-    for expr in list:
-        if isinstance(expr, ae.Times):
-            new_list.extend(expr.children)
-        else:
-            new_list.append(expr)
-    return new_list
 
 def admits_undistribution(expr):
     """Test if the expression admits undistribution.
