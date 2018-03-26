@@ -132,13 +132,15 @@ def isNonSingular(node):
             return True
         else:
             return infer_property_symbol(node, properties.NON_SINGULAR, isNonSingular)
-    if isinstance(node, ae.Plus): # ?
-        return False
     if isinstance(node, ae.Times):
         return all(isNonSingular(factor) for factor in node.operands)
+    if isinstance(node, ae.Plus): # ?
+        return all(isNonSingular(operand) for operand in node.operands)
     if isinstance(node, ae.Transpose):
         return isNonSingular(node.operand)
     if isinstance(node, ae.Inverse):
+        return isNonSingular(node.operand)
+    if isinstance(node, ae.InverseTranspose):
         return isNonSingular(node.operand)
     return False
 
@@ -172,6 +174,8 @@ def isFullRank(node):
         return infer_property_symbol(node, properties.FULL_RANK, isFullRank)
     if isinstance(node, ae.Times):
         return all(isFullRank(factor) for factor in node.operands) and is_full_rank_product(node)
+    if isinstance(node, ae.Plus):
+        return all(isFullRank(operand) for operand in node.operands)
     if isinstance(node, ae.Transpose):
         return isFullRank(node.operand)
     if isinstance(node, ae.Inverse):
@@ -434,7 +438,7 @@ property_to_function = {
 }
 
 def infer_property(expr, prop):
-    if not expr.is_constant:
+    if not expr.is_constant: # does the expression contain variables?
         return False
     try:
         func = property_to_function[prop]
