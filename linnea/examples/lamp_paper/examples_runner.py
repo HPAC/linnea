@@ -55,9 +55,9 @@ if __name__ == "__main__":
     ##eqs.append(paper.Signal_Processing_7_1_5())
     #eqs.append(paper.Lower_Triangular_Inversion_7_1_6())
     # bug
-    #eqs.append(paper.Local_Assimilation_Kalmar_7_1_7())
-    eqs.append(paper.EnsembleKalmarFilter_7_1_9_1())
-    eqs.append(paper.EnsembleKalmarFilter_7_1_9_2())
+    #eqs.append(paper.Local_Assimilation_Kalman_7_1_7())
+    eqs.append(paper.EnsembleKalmanFilter_7_1_9_1())
+    eqs.append(paper.EnsembleKalmanFilter_7_1_9_2())
     #eqs.append(paper.SPA_7_1_12())
     #eqs.append(paper.SPA_7_1_12(q=2))
     #  IndexError: pop index out of range

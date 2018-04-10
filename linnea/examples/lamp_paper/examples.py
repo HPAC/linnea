@@ -255,10 +255,10 @@ class Lower_Triangular_Inversion_7_1_6(object):
                     )
 
 #FIXME: bug
-class Local_Assimilation_Kalmar_7_1_7(object):
+class Local_Assimilation_Kalman_7_1_7(object):
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
         # nino2016
-        # something something Kalmar filter
+        # something something Kalman filter
         # problem 7.1.7 in the paper
         # equation: Xa = Xb+ (B^-1 + H^T*R^-1*H)^-1(Y-H*Xb)
 
@@ -289,7 +289,7 @@ class Rank_1_Tensor_Update_7_1_8(object):
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
         pass
 
-class EnsembleKalmarFilter_7_1_9_1(object):
+class EnsembleKalmanFilter_7_1_9_1(object):
     def __init__(self, n = 1000, m = 1000):
         # rao2015
         # the first variant
@@ -367,7 +367,7 @@ class EnsembleKalmarFilter_7_1_9_1(object):
                     )
 
 
-class EnsembleKalmarFilter_7_1_9_2(object):
+class EnsembleKalmanFilter_7_1_9_2(object):
     def __init__(self, n = 1000, m = 1000):
         # rao2015
         # the first variant
