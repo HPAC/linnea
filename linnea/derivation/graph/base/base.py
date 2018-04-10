@@ -452,7 +452,9 @@ class GraphNodeBase(object):
         eqns_str = eqns_str.replace("{", "&#123;")
         eqns_str = eqns_str.replace("}", "&#125;")
         out = ["""{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} | {7} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))]
+        # out = ["{0} [shape=point];".format(self.name)]
         for successor, label in zip(self.successors, self.edge_labels):
+            # out.append("{} -> {};".format(self.name, successor.name))
             if (self.id, successor.id) in optimal_edges:
                 out.append("""{} -> {} [style=bold, label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
             else:
@@ -464,18 +466,18 @@ class GraphNodeBase(object):
 
 
     def shortest_paths_iter(self):
-        """Yields all path from root to self in order of increasing length.
+        """Yields all paths from root to self in order of increasing length.
 
         Yields:
             list: A path, in the form of indices of successors.
             float: The cost of the path.
         """
-        # All path that have already been computed can be returned right away.
+        # All paths that have already been computed can be returned right away.
         # This way, paths are not computed more than once, even if this function
         # is called multiple times.
         for path in self.k_shortest_paths:
             yield self.retrieve_path(path)
-        # All further path are computed.
+        # All further paths are computed.
         k = len(self.k_shortest_paths)
         while True:
             try:

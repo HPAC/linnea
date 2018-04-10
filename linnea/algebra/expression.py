@@ -389,6 +389,9 @@ class Constant(object):
     """docstring for Constant"""
     def __init__(self):
         super(Constant, self).__init__()
+        """Unfortunately, it's not possible to set property.CONSTANT here
+        because this function is called before self.properties is initialized.
+        """
 
 
 
