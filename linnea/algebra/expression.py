@@ -367,8 +367,6 @@ class Symbol(matchpy.Symbol, Expression):
         props = "\n".join([str(p) for p in properties if self.has_property(p)])
         false_properties = "\n".join([str(p) for p in self.false_properties])
         out.append(dot_table_node.format(node_name, str(self.name), str(self.size), props, false_properties))
-        # out = "".join([out, node_name, " [shape=record, label=\"<f0>", str(self.name), "|<f1>", str(self.size), "|<f2>", str(self.properties), "|<f3>", str(self.false_properties), "\"];\n" ])
-        # output_file.write(out)
         return out
 
     def to_julia_expression(self, recommended=False):
