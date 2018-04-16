@@ -1,3 +1,9 @@
+"""Matrix Chain Derivation Graph
+
+This module was used for the CGO 2018 paper to do experitments only with the
+matrix chain algorithm.
+"""
+
 from ...algebra import expression as ae
 from ...algebra import transformations as at
 
@@ -21,12 +27,6 @@ import math
 
 from ...import config
 
-"""Matrix Chain Derivation Graph
-
-This module was used for the CGO 2018 paper to do experitments only with the
-matrix chain algirithm.
-
-"""
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
