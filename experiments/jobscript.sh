@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+#BSUB -J "linnea_gen"    # job name
+#BSUB -W 0:15            # limits in hours:minutes
+#BSUB -M 10000 # memory in MB
+
 module load python/3.6.0
 
 # NEW_INDEX=$((JOB_INDEX-1))
 # echo $NEW_INDEX
-DATE=$(date +'%d_%m_%Y_%H_%M_%S')
+DATE=$(date +'%Y_%m_%d_%H_%M_%S')
 
 # SEED=${LSB_JOBINDEX}
 
