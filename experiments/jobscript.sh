@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-#BSUB -J "linnea_gen"    # job name
-#BSUB -W 0:15            # limits in hours:minutes
+#BSUB -J "linnea_gen"       # job name
+#BSUB -o linnea_gen.%J.cout # job output 
+#BSUB -W 0:15               # limits in hours:minutes
 #BSUB -M 10000 # memory in MB
 
 module load python/3.6.0
