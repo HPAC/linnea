@@ -90,7 +90,7 @@ if __name__ == "__main__":
     data = []
     for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True]):
     # for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True, False]):
-        data.append(measure(experiment[job_index], strategy, merge, reps))
+        data.append(measure(experiments[job_index], strategy, merge, reps))
 
     mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging"]], names=["example", "strategy", "merging"])
     # mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
