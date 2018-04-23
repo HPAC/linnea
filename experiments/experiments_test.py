@@ -50,8 +50,8 @@ def measure(example, strategy, merge, reps=10):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) > 1:
-        reps = int(sys.argv[1])
+    job_index = int(sys.argv[1])
+    reps = int(sys.argv[2])
 
     experiments = [
         lamp_paper.LeastSquares_7_1_1(),
@@ -88,13 +88,13 @@ if __name__ == "__main__":
     ]
 
     data = []
-    for experiment in experiments:
-        for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True, False]):
-            data.append(measure(experiment, strategy, merge, reps))
+    for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True]):
+    # for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True, False]):
+        data.append(measure(experiment[job_index], strategy, merge, reps))
 
-    mindex = pd.MultiIndex.from_product([[type(ex).__name__ for ex in experiments], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
-    col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
+    mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging"]], names=["example", "strategy", "merging"])
+    # mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
 
     dframe = pd.DataFrame(data, index=mindex, columns=col_index)
-    dframe.to_csv("linnea_generation.csv")
+    dframe.to_pickle("linnea_generation{}.pkl".format(job_index))
     # print(dframe)
