@@ -19,7 +19,7 @@ cd /home/hb765588/linnea/results/generation
 mkdir -p run_${DATE}
 cd run_${DATE}
 # cp ../config.json .
-python3 /home/hb765588/linnea/linnea/experiments/experiments_test.py
+python3 /home/hb765588/linnea/linnea/experiments/experiments_test.py 1
 
 exit
 

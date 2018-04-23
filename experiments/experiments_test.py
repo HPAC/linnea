@@ -2,6 +2,7 @@ import pandas as pd
 import time
 import numpy
 import itertools
+import sys
 
 import linnea.config
 
@@ -49,7 +50,8 @@ def measure(example, strategy, merge, reps=10):
 
 if __name__ == "__main__":
 
-
+    if len(sys.argv) > 1:
+        reps = int(sys.argv[1])
 
     experiments = [
         lamp_paper.LeastSquares_7_1_1(),
@@ -88,7 +90,7 @@ if __name__ == "__main__":
     data = []
     for experiment in experiments:
         for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True, False]):
-            data.append(measure(experiment, strategy, merge))
+            data.append(measure(experiment, strategy, merge, reps))
 
     mindex = pd.MultiIndex.from_product([[type(ex).__name__ for ex in experiments], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
     col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
