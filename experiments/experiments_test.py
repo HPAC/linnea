@@ -94,6 +94,7 @@ if __name__ == "__main__":
 
     mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging"]], names=["example", "strategy", "merging"])
     # mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
+    col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
 
     dframe = pd.DataFrame(data, index=mindex, columns=col_index)
     dframe.to_pickle("linnea_generation{}.pkl".format(job_index))
