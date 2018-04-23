@@ -201,6 +201,12 @@ def init():
     from .algebra import property_DNs
     property_DNs._init()
 
+def clear_all():
+    from linnea import temporaries
+    from linnea.derivation import partitioning
+    temporaries.clear()
+    partitioning.clear()
+
 
 # setting default values
 
