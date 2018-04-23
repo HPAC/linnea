@@ -17,7 +17,7 @@ import linnea.examples.lamp_paper.examples as lamp_paper
 from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
 from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 
-def measure(example, strategy, merge, reps=10):
+def measure(example, strategy, merge, job_index, reps=10):
 
     times = []
 
@@ -39,7 +39,7 @@ def measure(example, strategy, merge, reps=10):
                             dead_ends=True)
         graph.write_output(code=True,
                            pseudocode=False,
-                           output_name="tmp",
+                           output_name="tmp{}".format(job_index),
                            operand_generator=False,
                            algorithms_limit=1,
                            graph=False)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     data = []
     for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True]):
     # for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True, False]):
-        data.append(measure(experiments[job_index], strategy, merge, reps))
+        data.append(measure(experiments[job_index], strategy, merge, job_index, reps))
 
     mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging"]], names=["example", "strategy", "merging"])
     # mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
