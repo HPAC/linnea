@@ -3,6 +3,7 @@ import time
 import numpy
 import itertools
 import sys
+import math
 
 import linnea.config
 
@@ -44,8 +45,11 @@ def measure(example, strategy, merge, reps=10):
                            graph=False)
         t_end = time.perf_counter()
         times.append(t_end-t_start)
-    data = [numpy.mean(times), numpy.std(times), numpy.min(times), numpy.max(times)]
-    data.append(graph.nodes_count())
+    if graph.terminal_nodes():
+        data = [numpy.mean(times), numpy.std(times), numpy.min(times), numpy.max(times)]
+        data.append(graph.nodes_count())
+    else:
+        data = [math.nan]*5
     return data
 
 if __name__ == "__main__":
