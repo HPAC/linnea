@@ -1,39 +1,88 @@
+import pandas as pd
+import time
+import numpy
+
+def measure(example, merge, reps=10):
+
+    times = []
+
+    for i in range(reps):
+        linnea.config.clear_all()
+        graph = DerivationGraph(example.eqns)
+        t_start = time.perf_counter()
+        trace = graph.derivation(
+                            solution_nodes_limit=100,
+                            iteration_limit=15,
+                            merging=merge,
+                            dead_ends=True)
+        graph.write_output(code=True,
+                           pseudocode=False,
+                           output_name="tmp",
+                           operand_generator=False,
+                           algorithms_limit=1,
+                           graph=False)
+        t_end = time.perf_counter()
+        times.append(t_end-t_start)
+    data = [numpy.mean(times), numpy.std(times), numpy.min(times), numpy.max(times)]
+    data.append(graph.nodes_count())
+    return data
 
 if __name__ == "__main__":
 
     import linnea.config
 
-    linnea.config.init()
     linnea.config.set_output_path("~/linnea/output/")
-
-    from linnea.derivation.graph.constructive import DerivationGraph
-    # from linnea.derivation.graph.exhaustive import DerivationGraph
-    # from linnea.derivation.graph.matrix_chain_derivation import DerivationGraph
+    linnea.config.set_verbosity(0)
+    linnea.config.init()
 
     import linnea.examples.examples
-    import linnea.examples.lamp_paper.examples
+    import linnea.examples.lamp_paper.examples as lamp_paper
 
-    example = linnea.examples.examples.Example063()
+    experiments = [
+        lamp_paper.LeastSquares_7_1_1(),
+        lamp_paper.LMMSE_7_1_2(),
+        lamp_paper.Generalized_LeastSquares_7_1_3(),
+        lamp_paper.Optimization_Problem_7_1_4(),
+        lamp_paper.Signal_Processing_7_1_5(),
+        lamp_paper.Lower_Triangular_Inversion_7_1_6(),
+        lamp_paper.Local_Assimilation_Kalman_7_1_7(),
+        lamp_paper.EnsembleKalmanFilter_7_1_9_1(),
+        lamp_paper.EnsembleKalmanFilter_7_1_9_2(),
+        lamp_paper.SPA_7_1_12(),
+        lamp_paper.SPA_7_1_12(q=2),
+        lamp_paper.ImageRestoration_7_1_13_1(),
+        lamp_paper.ImageRestoration_7_1_13_2(single=False),
+        lamp_paper.ImageRestoration_7_1_13_2(single=True),
+        lamp_paper.Tikhonov_7_1_14(),
+        lamp_paper.CDMA_7_1_15(630, 300, 50),
+        lamp_paper.Common_Subexpr_7_2_1(),
+        lamp_paper.Common_Subexpr_7_2_2(),
+        lamp_paper.Common_Subexpr_7_2_3(),
+        lamp_paper.Overlap_Common_Subexpr_7_2_4(),
+        lamp_paper.Rewrite_Distributivity_7_2_5_1(),
+        lamp_paper.Rewrite_Distributivity_7_2_5_2(),
+        lamp_paper.Rewrite_Distributivity_7_2_5_3(),
+        lamp_paper.Rewrite_Distributivity_7_2_5_4(),
+        lamp_paper.Matrix_Chain_7_2_6(),
+        lamp_paper.Matrix_Chain_7_2_7(),
+        lamp_paper.Properties_7_2_8(),
+        lamp_paper.Transposed_Kernel_7_2_9(),
+        lamp_paper.Transposed_Kernel_7_2_10(),
+        lamp_paper.Simplification_7_2_11(),
+        lamp_paper.Simplification_7_2_12(),
+    ]
 
-    # print(example.eqns)
-    graph = DerivationGraph(example.eqns)
-    trace = graph.derivation(
-                        solution_nodes_limit=100,
-                        iteration_limit=15,
-                        merging=True,
-                        dead_ends=True)
-    print(":".join(str(t) for t in trace))
+    data = []
+    for experiment in experiments:
+        from linnea.derivation.graph.exhaustive import DerivationGraph
+        data.append(measure(experiment, True))
+        data.append(measure(experiment, False))
+        from linnea.derivation.graph.constructive import DerivationGraph
+        data.append(measure(experiment, True))
+        data.append(measure(experiment, False))
 
-    # import linnea.temporaries
-    # print("\n".join(["{}: {}".format(k, v) for k, v in linnea.temporaries._table_of_temporaries.items()]))
-    # print("\n".join(["{}: {}".format(k, v) for k, v in linnea.temporaries._equivalent_expressions.items()]))
+    mindex = pd.MultiIndex.from_product([[type(ex).__name__ for ex in experiments], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
+    col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
 
-    graph.write_output(code=True,
-                       pseudocode=True,
-                       output_name="tmp",
-                       operand_generator=True,
-                       algorithms_limit=100,
-                       graph=True)
-
-
-
+    dframe = pd.DataFrame(data, index=mindex, columns=col_index)
+    dframe.to_csv("linnea_generation.csv")
