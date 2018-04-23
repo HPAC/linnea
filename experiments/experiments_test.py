@@ -50,7 +50,7 @@ def measure(example, strategy, merge, reps=10):
 
 if __name__ == "__main__":
 
-    job_index = int(sys.argv[1])
+    job_index = int(sys.argv[1])-1
     reps = int(sys.argv[2])
 
     experiments = [
