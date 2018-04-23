@@ -261,6 +261,8 @@ class Local_Assimilation_Kalman_7_1_7(object):
         # something something Kalman filter
         # problem 7.1.7 in the paper
         # equation: Xa = Xb+ (B^-1 + H^T*R^-1*H)^-1(Y-H*Xb)
+        # B is a covariance matrix (symmetric positive semi-definite)
+        # R is a covariance matrix (symmetric positive semi-definite)
 
         minusone = ConstantScalar(-1)
 
