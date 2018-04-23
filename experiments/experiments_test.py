@@ -1,10 +1,30 @@
 import pandas as pd
 import time
 import numpy
+import itertools
 
-def measure(example, merge, reps=10):
+import linnea.config
+
+linnea.config.set_output_path("~/linnea/output/")
+linnea.config.set_verbosity(0)
+linnea.config.init()
+
+from linnea.config import Strategy
+import linnea.examples.examples
+import linnea.examples.lamp_paper.examples as lamp_paper
+from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
+from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
+
+def measure(example, strategy, merge, reps=10):
 
     times = []
+
+    if strategy is Strategy.constructive:
+        DerivationGraph = CDGraph
+    elif strategy is Strategy.exhaustive:
+        DerivationGraph = EDGraph
+    else:
+        raise NotImplementedError()   
 
     for i in range(reps):
         linnea.config.clear_all()
@@ -29,14 +49,7 @@ def measure(example, merge, reps=10):
 
 if __name__ == "__main__":
 
-    import linnea.config
 
-    linnea.config.set_output_path("~/linnea/output/")
-    linnea.config.set_verbosity(0)
-    linnea.config.init()
-
-    import linnea.examples.examples
-    import linnea.examples.lamp_paper.examples as lamp_paper
 
     experiments = [
         lamp_paper.LeastSquares_7_1_1(),
@@ -74,15 +87,12 @@ if __name__ == "__main__":
 
     data = []
     for experiment in experiments:
-        from linnea.derivation.graph.exhaustive import DerivationGraph
-        data.append(measure(experiment, True))
-        data.append(measure(experiment, False))
-        from linnea.derivation.graph.constructive import DerivationGraph
-        data.append(measure(experiment, True))
-        data.append(measure(experiment, False))
+        for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True, False]):
+            data.append(measure(experiment, strategy, merge))
 
     mindex = pd.MultiIndex.from_product([[type(ex).__name__ for ex in experiments], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
     col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
 
     dframe = pd.DataFrame(data, index=mindex, columns=col_index)
     dframe.to_csv("linnea_generation.csv")
+    # print(dframe)
