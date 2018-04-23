@@ -149,7 +149,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             self.print_DS("Nodes pruned:", pruned_nodes)
             trace.append(pruned_nodes)
 
-            terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
+            terminal_nodes = self.terminal_nodes()
 
             if len(terminal_nodes) >= solution_nodes_limit:
                 self.print("Specified number of algorithms found.")

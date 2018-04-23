@@ -38,6 +38,9 @@ class GraphBase(object):
     def derivation(self):
         raise NotImplementedError()
 
+    def terminal_nodes(self):
+        return list(filter(operator.methodcaller("is_terminal"), self.nodes))
+
     def nodes_count(self):
         return len(self.nodes)
 
