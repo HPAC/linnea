@@ -63,6 +63,8 @@ def main():
     parser.add_argument("-n", "--no_merging", action="store_true", help="Also use no merging.")
     args = parser.parse_args()
 
+    # TODO when using different sets of experiments, use that for output name
+
     job_index = args.job_index-1
     reps = args.repetitions
 
