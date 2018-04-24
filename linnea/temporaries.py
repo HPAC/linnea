@@ -78,7 +78,9 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
 
         tmp.indices = expr.indices
         tmp.bandwidth = expr.bandwidth
-        if isinstance(expr, ae.Operator) and expr.arity == matchpy.Arity.unary:
+        if isinstance(expr, ae.Operator) and all(operand.factorization_labels for operand in expr.operands):
+            # This covers unary operations, but also the case when an operation
+            # is not blocked because the result does not admit factorizations.
             tmp.factorization_labels = expr.factorization_labels
 
         if set_equivalent:

@@ -582,7 +582,10 @@ def contains_transpose(expr):
 def is_blocked(operation):
     """Test if the operation is blocked.
 
-    An operation is blocked if all operands are factors from any factorizations.
+    An operation is blocked if all non-constant operands are factors from any
+    factorizations. An operation is not blocked if all operands are constants,
+    or if the output does not admit factorizations (even if all operands are
+    factors).
 
     Example:
         When the LU factorization is applied to A in inv(A)*x, this results in
@@ -597,4 +600,9 @@ def is_blocked(operation):
         bool: False if this operation is not allowed, True otherwise.
 
     """
-    return all(operand.factorization_labels or operand.has_property(properties.CONSTANT) for operand in operation.operands)
+    if not operation.has_property(properties.ADMITS_FACTORIZATION):
+        return False
+    elif operation.has_property(properties.CONSTANT):
+        return False
+    else:
+        return all((operand.factorization_labels or operand.has_property(properties.CONSTANT)) for operand in operation.operands)
