@@ -25,7 +25,7 @@ def main():
     parser.add_argument("-o", "--output", help="name of the output")
     parser.add_argument("--pseudocode", action="store_const", const=True, help="generate pseudocode")
     group.add_argument("--silent", action="store_const", const=True, help="suppress non-error messages")
-    group.add_argument("--solution-nodes-limit", help="limit for the number of solution nodes")
+    parser.add_argument("--solution-nodes-limit", help="limit for the number of solution nodes")
     parser.add_argument("-s", "--strategy", choices=["constructive", "exhaustive"], help="specify derivation strategy")
     group.add_argument("-v", "--verbose", action="count", help="increase verbosity")
     parser.add_argument("--example", help=argparse.SUPPRESS)
