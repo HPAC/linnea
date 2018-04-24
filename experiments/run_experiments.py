@@ -53,7 +53,7 @@ def measure(example, strategy, merge, job_index, reps=10):
         data = [math.nan]*5
     return data
 
-if __name__ == "__main__":
+def main():
 
     parser = argparse.ArgumentParser(prog="run_exp")
     parser.add_argument("job_index", help="Job index.", type=int)
@@ -129,3 +129,7 @@ if __name__ == "__main__":
     dframe = pd.DataFrame(data, index=mindex, columns=col_index)
     dframe.to_pickle("linnea_generation{}.pkl".format(job_index))
     # print(dframe)
+
+
+if __name__ == "__main__":
+    main()
