@@ -19,7 +19,7 @@ cd /home/hb765588/linnea/results/generation
 mkdir -p run_${LSB_JOBID}
 cd run_${LSB_JOBID}
 # cp ../config.json .
-python3 /home/hb765588/linnea/linnea/experiments/experiments_test.py ${LSB_JOBINDEX} 1
+python3 /home/hb765588/linnea/linnea/experiments/run_experiments.py ${LSB_JOBINDEX} 1 -cen
 
 exit
 

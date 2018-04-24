@@ -4,6 +4,7 @@ import numpy
 import itertools
 import sys
 import math
+import argparse
 
 import linnea.config
 
@@ -54,9 +55,36 @@ def measure(example, strategy, merge, job_index, reps=10):
 
 if __name__ == "__main__":
 
-    job_index = int(sys.argv[1])-1
-    reps = int(sys.argv[2])
+    parser = argparse.ArgumentParser(prog="run_exp")
+    parser.add_argument("job_index", help="Job index.", type=int)
+    parser.add_argument("repetitions", help="Number of repetitions.", type=int, default=10)
+    parser.add_argument("-c", "--constructive", help="Use constructive strategy.")
+    parser.add_argument("-e", "--exhaustive", help="Use exhaustive strategy.")
+    parser.add_argument("-n", "--no_merging", help="Also use no merging.")
 
+    job_index = parser.job_index-1
+    reps = parser.repetitions
+
+    strategies = []
+    if parser.constructive and parser.exhaustive:
+        strategies = [Strategy.exhaustive, Strategy.constructive]
+    elif parser.constructive:
+        strategies = [Strategy.constructive]
+    elif parser.exhaustive:
+        strategies = [Strategy.exhaustive]
+    else:
+        return
+
+    merging_args = [True]
+    merging_labels = ["merging"]
+    if parser.no_merging:
+        merging_args.append(False)
+        merging_labels.append("no_merging")
+
+
+    # TODO doesn't work this way. Technically, init has to be called anew for each repetition.
+    # Obviously, this is a problem if arguments are passed.
+    # Reason: stuff like special properties. Properties in general?
     experiments = [
         lamp_paper.LeastSquares_7_1_1(),
         lamp_paper.LMMSE_7_1_2(),
@@ -92,12 +120,10 @@ if __name__ == "__main__":
     ]
 
     data = []
-    # for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True]):
-    for strategy, merge in itertools.product([Strategy.exhaustive, Strategy.constructive], [True, False]):
+    for strategy, merge in itertools.product(strategies, merging_args):
         data.append(measure(experiments[job_index], strategy, merge, job_index, reps))
 
-    # mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging"]], names=["example", "strategy", "merging"])
-    mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], ["exhaustive", "constructive"], ["merging", "no_merging"]], names=["example", "strategy", "merging"])
+    mindex = pd.MultiIndex.from_product([[type(experiments[job_index]).__name__], [strategy.name for strategy in strategies], merging_labels], names=["example", "strategy", "merging"])
     col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
 
     dframe = pd.DataFrame(data, index=mindex, columns=col_index)
