@@ -58,9 +58,9 @@ def main():
     parser = argparse.ArgumentParser(prog="run_exp")
     parser.add_argument("job_index", help="Job index.", type=int)
     parser.add_argument("repetitions", help="Number of repetitions.", type=int, default=10)
-    parser.add_argument("-c", "--constructive", help="Use constructive strategy.")
-    parser.add_argument("-e", "--exhaustive", help="Use exhaustive strategy.")
-    parser.add_argument("-n", "--no_merging", help="Also use no merging.")
+    parser.add_argument("-c", "--constructive", action="store_true", help="Use constructive strategy.")
+    parser.add_argument("-e", "--exhaustive", action="store_true", help="Use exhaustive strategy.")
+    parser.add_argument("-n", "--no_merging", action="store_true", help="Also use no merging.")
     args = parser.parse_args()
 
     job_index = args.job_index-1
