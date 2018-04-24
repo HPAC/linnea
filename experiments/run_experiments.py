@@ -61,23 +61,24 @@ def main():
     parser.add_argument("-c", "--constructive", help="Use constructive strategy.")
     parser.add_argument("-e", "--exhaustive", help="Use exhaustive strategy.")
     parser.add_argument("-n", "--no_merging", help="Also use no merging.")
+    args = parser.parse_args()
 
-    job_index = parser.job_index-1
-    reps = parser.repetitions
+    job_index = args.job_index-1
+    reps = args.repetitions
 
     strategies = []
-    if parser.constructive and parser.exhaustive:
+    if args.constructive and args.exhaustive:
         strategies = [Strategy.exhaustive, Strategy.constructive]
-    elif parser.constructive:
+    elif args.constructive:
         strategies = [Strategy.constructive]
-    elif parser.exhaustive:
+    elif args.exhaustive:
         strategies = [Strategy.exhaustive]
     else:
         return
 
     merging_args = [True]
     merging_labels = ["merging"]
-    if parser.no_merging:
+    if args.no_merging:
         merging_args.append(False)
         merging_labels.append("no_merging")
 
