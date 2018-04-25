@@ -2,8 +2,8 @@
 
 #BSUB -J "linnea_gen[1-31]" # job name
 #BSUB -o "/home/hb765588/linnea/results/generation/run_%J/out.out" # job output
-#BSUB -W 10:00              # limits in hours:minutes
-#BSUB -M 10000              # memory in MB
+#BSUB -W 24:00              # limits in hours:minutes
+#BSUB -M 20000              # memory in MB
 
 module load python/3.6.0
 
