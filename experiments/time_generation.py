@@ -31,7 +31,7 @@ def measure(example, strategy, merge, job_index, reps=10):
 
     for i in range(reps):
         linnea.config.clear_all()
-        if example.init:
+        if hasattr(example, "init"):
             # calls initialization that have to be done before each repetition
             example.init()
         graph = DerivationGraph(example.eqns)
