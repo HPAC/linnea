@@ -50,7 +50,9 @@ class LMMSE_7_1_2(object):
         x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
         sigma = Scalar("sigma")
 
-        derivation.special_properties.add_expression(Plus(Times(Transpose(H), H), Times(sigma, I)), {properties.SPD})
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(H), H), Times(sigma, I)), {properties.SPD})
+        self.init()
 
         # x = (H^H*H + \sigma^2 * I)^-1 * H^H * y
         self.eqns = Equations(
@@ -316,7 +318,8 @@ class EnsembleKalmanFilter_7_1_9_1(object):
         y = Vector("y", (m, sONE), properties = [properties.INPUT])
         H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
 
-        derivation.special_properties.add_expression(Plus(Times(H, P_b, Transpose(H)), R), {properties.SPD})
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(H, P_b, Transpose(H)), R), {properties.SPD})
+        self.init()
 
         self.eqns = Equations(
                             Equal(
@@ -397,7 +400,8 @@ class EnsembleKalmanFilter_7_1_9_2(object):
         y = Vector("y", (m, sONE), properties = [properties.INPUT])
         H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
 
-        derivation.special_properties.add_expression(Plus(Times(Plus(n_scalar, minusone), I), Times(Transpose(Y), Inverse(R), Y)), {properties.SPD})
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Plus(n_scalar, minusone), I), Times(Transpose(Y), Inverse(R), Y)), {properties.SPD})
+        self.init()
 
         self.eqns = Equations(
                             # Si_O = ((n-1)*I + Y^T * R^-1 * Y)^-1
@@ -655,7 +659,8 @@ class Tikhonov_7_1_14(object):
         x = Vector("x", (m, sONE), properties = [properties.OUTPUT])
         mu = Scalar("mu_sq")
 
-        derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(mu, I)), {properties.SPD})
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(mu, I)), {properties.SPD})
+        self.init()
 
         self.eqns = Equations(
                             Equal(x,
@@ -698,7 +703,8 @@ class CDMA_7_1_15(object):
         r = Vector("r", (G1, sONE), properties = [properties.INPUT])
         b = Vector("b", (K, sONE), properties = [properties.OUTPUT])
 
-        derivation.special_properties.add_expression(Plus(Times(sigma_sq, H, Transpose(H)), Q), {properties.SPD})
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(sigma_sq, H, Transpose(H)), Q), {properties.SPD})
+        self.init()
 
         self.eqns = Equations(
                             Equal(b,

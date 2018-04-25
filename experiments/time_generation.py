@@ -31,6 +31,9 @@ def measure(example, strategy, merge, job_index, reps=10):
 
     for i in range(reps):
         linnea.config.clear_all()
+        if example.init:
+            # calls initialization that have to be done before each repetition
+            example.init()
         graph = DerivationGraph(example.eqns)
         t_start = time.perf_counter()
         trace = graph.derivation(
@@ -64,6 +67,9 @@ def main():
     args = parser.parse_args()
 
     # TODO when using different sets of experiments, use that for output name
+    # also add init for new experiments
+
+    # TODO make job_index optional
 
     job_index = args.job_index-1
     reps = args.repetitions
@@ -84,10 +90,6 @@ def main():
         merging_args.append(False)
         merging_labels.append("no_merging")
 
-
-    # TODO doesn't work this way. Technically, init has to be called anew for each repetition.
-    # Obviously, this is a problem if arguments are passed.
-    # Reason: stuff like special properties. Properties in general?
     experiments = [
         lamp_paper.LeastSquares_7_1_1(),
         lamp_paper.LMMSE_7_1_2(),
