@@ -10,8 +10,8 @@ module load python/3.6.0
 cd ${HOME}/linnea
 source linnea_venv/bin/activate
 cd ${HOME}/linnea/results/generation
-mkdir -p run_${LSB_JOBID}
-cd run_${LSB_JOBID}
+mkdir -p run_${LSB_JOBID}_cen
+cd run_${LSB_JOBID}_cen
 python3 ${HOME}/linnea/linnea/experiments/time_generation.py ${LSB_JOBINDEX} 1 -cen
 
 exit
