@@ -133,9 +133,9 @@ def main():
     # TODO write description of experiment (name, operand sizes, equations) to file
 
     if args.jobindex == 0:
-        examples = lamp_examples
+        examples = enumerate(lamp_examples, 1)
     else:
-        examples = [lamp_examples[args.jobindex-1]]
+        examples = [(args.jobindex-1, lamp_examples[args.jobindex-1])]
 
     strategies = []
     if args.constructive and args.exhaustive:
@@ -156,7 +156,7 @@ def main():
             merging_labels.append("no_merging")
 
         data = []
-        for idx, example in enumerate(examples):
+        for idx, example in examples:
             for strategy, merge in itertools.product(strategies, merging_args):
                 name = generate_name(idx, strategy)
                 data.append(measure(example, name, strategy, merge, args.repetitions))
@@ -173,7 +173,7 @@ def main():
         # print(dframe)
 
     elif args.mode == "generate_code":
-        for idx, example in enumerate(examples):
+        for idx, example in examples:
             for strategy in strategies:
                 name = generate_name(idx, strategy)
                 generate(example, name, strategy)
