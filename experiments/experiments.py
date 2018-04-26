@@ -126,22 +126,25 @@ def main():
     # TODO when using different sets of examples, use that for output name
     # also add init for new examples
 
+    # for generation, output name needs to include strategy
+
     if args.jobindex == 0:
         examples = lamp_examples
     else:
         examples = [lamp_examples[args.jobindex-1]]
 
-    if args.mode == "time_generation":
+    strategies = []
+    if args.constructive and args.exhaustive:
+        strategies = [Strategy.exhaustive, Strategy.constructive]
+    elif args.constructive:
+        strategies = [Strategy.constructive]
+    elif args.exhaustive:
+        strategies = [Strategy.exhaustive]
+    else:
+        return
 
-        strategies = []
-        if args.constructive and args.exhaustive:
-            strategies = [Strategy.exhaustive, Strategy.constructive]
-        elif args.constructive:
-            strategies = [Strategy.constructive]
-        elif args.exhaustive:
-            strategies = [Strategy.exhaustive]
-        else:
-            return
+    if args.mode == "time_generation":
+        # TODO write parameters (repetitions) to file
 
         merging_args = [True]
         merging_labels = ["merging"]
