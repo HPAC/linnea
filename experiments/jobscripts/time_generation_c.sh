@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#BSUB -J "linnea_gen[1-31]" # job name
+#BSUB -J "linnea_time[1-31]" # job name
 #BSUB -o "linnea/results/generation/run_%J/cout.txt" # job output
 #BSUB -W 2:00               # limits in hours:minutes
 #BSUB -M 2000               # memory in MB
