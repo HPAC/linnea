@@ -4,6 +4,7 @@
 #BSUB -o "linnea/results/generation/run_%J/cout.txt" # job output
 #BSUB -W 2:00               # limits in hours:minutes
 #BSUB -M 2000               # memory in MB
+#BSUB -P aices2
 
 module load python/3.6.0
 

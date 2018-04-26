@@ -2,8 +2,11 @@
 
 #BSUB -J "linnea_gen[1-31]" # job name
 #BSUB -o "${HOME}/linnea/results/generation/run_%J/cout.txt" # job output
-#BSUB -W 24:00              # limits in hours:minutes
-#BSUB -M 20000              # memory in MB
+#BSUB -W 48:00              # limits in hours:minutes
+#BSUB -M 60000              # memory in MB
+#BSUB -P aices
+#BSUB -R model==SandyBridge_EP
+#BSUB -N
 
 module load python/3.6.0
 
