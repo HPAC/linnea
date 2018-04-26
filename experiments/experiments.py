@@ -79,7 +79,7 @@ def generate(example, name, strategy):
                        graph=False)
 
 def generate_name(index, strategy):
-    return "example{}{}".format(index, strategy.name[0])
+    return "lamp_example{}{}".format(index, strategy.name[0])
 
 def main():
 
