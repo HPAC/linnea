@@ -4,8 +4,8 @@ import pandas as pd
 if __name__ == '__main__':
 
     data = []
-    for job_index in range(31):
-        data.append(pd.read_pickle("linnea_generation{}.pkl".format(job_index)))
+    for jobindex in range(1, 32):
+        data.append(pd.read_csv("linnea_generation{}.csv".format(jobindex)))
 
     result = pd.concat(data)
     result.to_csv("linnea_generation.csv")
