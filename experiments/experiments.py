@@ -129,7 +129,7 @@ def main():
     if args.jobindex == 0:
         examples = lamp_examples
     else:
-        examples = [lamp_examples[args.jobindex]]
+        examples = [lamp_examples[args.jobindex-1]]
 
     if args.mode == "time_generation":
 
