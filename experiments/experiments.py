@@ -18,7 +18,7 @@ import linnea.examples.lamp_paper.examples as lamp_paper
 from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
 from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 
-def measure(example, strategy, merge, reps=10):
+def measure(example, name, strategy, merge, reps=10):
 
     times = []
 
@@ -43,7 +43,7 @@ def measure(example, strategy, merge, reps=10):
                             dead_ends=True)
         graph.write_output(code=True,
                            pseudocode=False,
-                           output_name=type(example).__name__,
+                           output_name=name,
                            operand_generator=False,
                            algorithms_limit=1,
                            graph=False)
@@ -56,7 +56,7 @@ def measure(example, strategy, merge, reps=10):
         data = [math.nan]*5
     return data
 
-def generate(example, strategy):
+def generate(example, name, strategy):
 
     if strategy is Strategy.constructive:
         DerivationGraph = CDGraph
@@ -73,10 +73,13 @@ def generate(example, strategy):
                         dead_ends=True)
     graph.write_output(code=True,
                        pseudocode=False,
-                       output_name=type(example).__name__,
+                       output_name=name,
                        operand_generator=True,
                        algorithms_limit=1,
                        graph=False)
+
+def generate_name(index, strategy):
+    return "example{}{}".format(index, strategy.name[0])
 
 def main():
 
@@ -126,7 +129,8 @@ def main():
     # TODO when using different sets of examples, use that for output name
     # also add init for new examples
 
-    # for generation, output name needs to include strategy
+    # TODO write parameters (repetitions) to file
+    # TODO write description of experiment (name, operand sizes, equations) to file
 
     if args.jobindex == 0:
         examples = lamp_examples
@@ -144,7 +148,6 @@ def main():
         return
 
     if args.mode == "time_generation":
-        # TODO write parameters (repetitions) to file
 
         merging_args = [True]
         merging_labels = ["merging"]
@@ -153,9 +156,10 @@ def main():
             merging_labels.append("no_merging")
 
         data = []
-        for example in examples:
+        for idx, example in enumerate(examples):
             for strategy, merge in itertools.product(strategies, merging_args):
-                data.append(measure(example, strategy, merge, args.repetitions))
+                name = generate_name(idx, strategy)
+                data.append(measure(example, name, strategy, merge, args.repetitions))
 
         mindex = pd.MultiIndex.from_product([[type(exp).__name__ for exp in examples], [strategy.name for strategy in strategies], merging_labels], names=["example", "strategy", "merging"])
         col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
@@ -169,9 +173,10 @@ def main():
         # print(dframe)
 
     elif args.mode == "generate_code":
-        for example in examples:
+        for idx, example in enumerate(examples):
             for strategy in strategies:
-                generate(example, strategy)
+                name = generate_name(idx, strategy)
+                generate(example, name, strategy)
 
 
 if __name__ == "__main__":
