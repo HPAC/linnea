@@ -81,7 +81,7 @@ def generate(example, strategy):
 def main():
 
     parser = argparse.ArgumentParser(prog="experiments")
-    parser.add_argument("mode", choices=["time_generation", "generate"])
+    parser.add_argument("mode", choices=["time_generation", "generate_code"])
     parser.add_argument("-j", "--jobindex", dest="jobindex", help="Job index.", type=int, default=0)
     parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
     parser.add_argument("-c", "--constructive", action="store_true", help="Use constructive strategy.")
@@ -165,7 +165,7 @@ def main():
             dframe.to_csv("linnea_generation{}.csv".format(args.jobindex))
         # print(dframe)
 
-    elif args.mode == "generate":
+    elif args.mode == "generate_code":
         for example in examples:
             for strategy in strategies:
                 generate(example, strategy)
