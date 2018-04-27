@@ -7,12 +7,12 @@
 #BSUB -P aices2
 
 
-for i in {0..19}; do
-    if [ -f ${HOME}/linnea/output/lamp_example${i}c/runner.jl ]; then
-        echo "File found!"
-        #JULIA_LOAD_PATH=/home/mc306023/projects/linnea/generators/MatrixGenerator.jl/src /home/mc306023/projects/linnea/install/julia/bin/julia ${DIR}/Julia/seed_${SEED}_matrix_chain_${i}/runner.jl > TEST_OUT_${SEED}_${i} 2>&1
+for i in {1..31}; do
+    if [ -f ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl ]; then
+        echo "File found!: ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl"
+        # ${DIR}/Julia/seed_${SEED}_matrix_chain_${i}/runner.jl > TEST_OUT_${SEED}_${i} 2>&1
     else
-        echo "File not found: ${HOME}/linnea/output/lamp_example${i}c/runner.jl"
+        echo "File not found: ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl"
     fi
 done
 
