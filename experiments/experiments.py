@@ -135,7 +135,7 @@ def main():
     if args.jobindex == 0:
         examples = enumerate(lamp_examples, 1)
     else:
-        examples = [(args.jobindex-1, lamp_examples[args.jobindex-1])]
+        examples = [(args.jobindex, lamp_examples[args.jobindex-1])]
 
     strategies = []
     if args.constructive and args.exhaustive:
