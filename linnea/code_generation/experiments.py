@@ -87,7 +87,7 @@ random_operand =  {config.Language.Julia: ["Properties.Random", "Shape.General"]
 
 benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     """
-                    using Base.Test
+                    using Test
                     using MatrixGenerator
                     
                     include("operand_generator.jl")
@@ -315,7 +315,8 @@ def benchmarker_to_file(output_name, language, algorithms_count=0):
     output_file.write(op_gen_file)
     output_file.close()
 
-cmake_script = """
+cmake_script = textwrap.dedent(
+                """
                 cmake_minimum_required(VERSION 3.0)
                 project(cpp_runner)
                 
@@ -328,11 +329,11 @@ cmake_script = """
                     target_link_libraries(${{source}} PRIVATE libtests)
                     set_target_properties(${{source}} PROPERTIES CXX_STANDARD 14)
                 endforeach()
-                """
+                """)
 
-def generate_cmake_script(paths):
+def generate_cmake_script(output_names):
     file_name = os.path.join(config.output_path, "CMakeLists.txt")
     output_file = open(file_name, "wt")
-    names = " ".join(paths)
+    names = " ".join(output_names)
     output_file.write(cmake_script.format(names))
     output_file.close()
