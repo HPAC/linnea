@@ -18,7 +18,7 @@ cd run_test
 # mkdir -p run_${LSB_JOBID}
 # cd run_${LSB_JOBID}
 
-MATLABPATH=${HOME}/matrix_generators/MatlabMatrixGenerator matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <${HOME}/linnea/output/lamp_example1c/Matlab/runner.m
+MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <${HOME}/linnea/output/lamp_example1c/Matlab/runner.m
 
 # for i in {1..31}; do
 #     if [ -f ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl ]; then
