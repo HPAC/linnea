@@ -18,23 +18,16 @@ cd run_${LSB_JOBID}
 export MATLAB_LOG_DIR=${HOME}/linnea/results/execution/run_${LSB_JOBID}
 export MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab
 
-# it is not possible to run runner.m directly here because of how importing in Matlab works.
-
 
 if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner.m ]; then
+    # it is not possible to run runner.m directly here because of how importing in Matlab works.
     matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
-    run ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner;quit();
+    addpath('${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/')
+    runner;
+    quit();
 EOF
 else
     echo "File not found: ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner.m"
 fi
-if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}e/Matlab/runner.m ]; then
-    matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
-    run ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}e/Matlab/runner;quit();
-EOF
-else
-    echo "File not found: ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}e/Matlab/runner.m"
-fi
-
 
 exit
