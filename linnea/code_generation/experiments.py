@@ -335,3 +335,21 @@ def generate_cmake_script(output_names):
     names = " ".join(output_names)
     output_file.write(cmake_script.format(names))
     output_file.close()
+
+cmake_script_v2 = textwrap.dedent(
+                """
+                cmake_minimum_required(VERSION 3.0)
+                project({0})
+                
+                find_package(LibTests REQUIRED)
+                
+                add_executable({0} runner.cpp)
+                target_link_libraries({0} PRIVATE libtests)
+                set_target_properties({0} PROPERTIES CXX_STANDARD 14)
+                """)
+
+def generate_cmake_script_v2(output_name):
+    file_name = os.path.join(config.output_path, output_name, config.Language.Cpp.name, "CMakeLists.txt")
+    output_file = open(file_name, "wt")
+    output_file.write(cmake_script_v2.format(output_name))
+    output_file.close()

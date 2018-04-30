@@ -147,7 +147,7 @@ class DerivationGraphBase(base.GraphBase):
             cge.benchmarker_to_file(output_name, algorithms_count=len(paths), language=config.Language.Julia)
             cge.benchmarker_to_file(output_name, language=config.Language.Matlab)
             cge.benchmarker_to_file(output_name, language=config.Language.Cpp)
-
+            cge.generate_cmake_script_v2(output_name)
             # create language runner
 
         return True
