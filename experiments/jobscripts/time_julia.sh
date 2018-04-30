@@ -6,6 +6,7 @@
 #BSUB -M 2000               # memory in MB
 #BSUB -P aices2
 
+# TODO commanline options for constructive/exhaustive, Matlab/C++/Julia?
 
 for i in {1..31}; do
     if [ -f ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl ]; then
