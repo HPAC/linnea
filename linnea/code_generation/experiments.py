@@ -115,7 +115,7 @@ benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     """
                     import MatrixGenerator.*;
                     % hardcoded directory with naive and recommended implementation
-                    algorithms_dir = fullfile('algorithms');
+                    algorithms_dir = fullfile(fileparts(mfilename('fullpath')), 'algorithms');
                     addpath(algorithms_dir);
                     matrices = operand_generator();
                     naive_ = @() naive(matrices{{:}});
