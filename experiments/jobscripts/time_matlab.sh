@@ -19,9 +19,10 @@ cd run_test
 # mkdir -p run_${LSB_JOBID}
 # cd run_${LSB_JOBID}
 
-MATLAB_LOG_DIR=${HOME}/linnea/results/execution/run_${LSB_JOBID}
-
-MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
+export MATLAB_LOG_DIR=${HOME}/linnea/results/execution/run_${LSB_JOBID}
+export MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab
+# it is not possible to run runner.m directly here because of how importing in Matlab works.
+matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
 run ${HOME}/linnea/output/lamp_example1c/Matlab/runner;quit();
 EOF
 
