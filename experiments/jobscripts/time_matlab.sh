@@ -21,7 +21,7 @@ cd run_test
 
 MATLAB_LOG_DIR=${HOME}/linnea/results/execution/run_${LSB_JOBID}
 
-MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <"run ${HOME}/linnea/output/lamp_example1c/Matlab/runner;"
+MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<"run ${HOME}/linnea/output/lamp_example1c/Matlab/runner;"
 
 # for i in {1..31}; do
 #     if [ -f ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl ]; then
