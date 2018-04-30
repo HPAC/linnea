@@ -20,21 +20,21 @@ export MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab
 
 # it is not possible to run runner.m directly here because of how importing in Matlab works.
 
-for i in {1..31}; do
-    if [ -f ${HOME}/linnea/output/lamp_example${i}c/Matlab/runner.m ]; then
-        matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
-        run ${HOME}/linnea/output/lamp_example${i}c/Matlab/runner;quit();
+
+if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner.m ]; then
+    matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
+    run ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner;quit();
 EOF
-    else
-        echo "File not found: ${HOME}/linnea/output/lamp_example${i}c/Matlab/runner.m"
-    fi
-    if [ -f ${HOME}/linnea/output/lamp_example${i}e/Matlab/runner.m ]; then
-        matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
-        run ${HOME}/linnea/output/lamp_example${i}e/Matlab/runner;quit();
+else
+    echo "File not found: ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner.m"
+fi
+if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}e/Matlab/runner.m ]; then
+    matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
+    run ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}e/Matlab/runner;quit();
 EOF
-    else
-        echo "File not found: ${HOME}/linnea/output/lamp_example${i}e/Matlab/runner.m"
-    fi
-done
+else
+    echo "File not found: ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}e/Matlab/runner.m"
+fi
+
 
 exit
