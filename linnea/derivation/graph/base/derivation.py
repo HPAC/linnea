@@ -137,9 +137,9 @@ class DerivationGraphBase(base.GraphBase):
             cgu.algorithm_to_file(output_name, "recommended",
                                   self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo, recommended=True),
                                   input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
-            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str,
+            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_matlab_expression(), input_str, output_str,
                                   config.Language.Matlab, ".m")
-            cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_julia_expression(recommended=True),
+            cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_matlab_expression(recommended=True),
                                   input_str, output_str, config.Language.Matlab, ".m")
             cge.operand_generator_to_file(output_name, input, input_str)
             cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)

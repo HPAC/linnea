@@ -369,6 +369,9 @@ class Symbol(matchpy.Symbol, Expression):
         out.append(dot_table_node.format(node_name, str(self.name), str(self.size), props, false_properties))
         return out
 
+    def to_matlab_expression(self, recommended=False):
+        return self.name
+
     def to_julia_expression(self, recommended=False):
         return self.name
 
@@ -434,6 +437,9 @@ class Equal(Operator):
     def __str__(self):
         return "{0} = {1}".format(*self.operands)
 
+    def to_matlab_expression(self, recommended=False):
+        return "{0} = {1};".format(*map(operator.methodcaller("to_matlab_expression", recommended), self.operands))
+
     def to_julia_expression(self, recommended=False):
         return "{0} = {1};".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
 
@@ -473,6 +479,10 @@ class Plus(Operator):
     def bandwidth(self):
         bands = list(zip(*[operand.bandwidth for operand in self.operands]))
         return (max(bands[0]), max(bands[1]))
+
+    def to_matlab_expression(self, recommended=False):
+        operand_str = '+'.join(map(operator.methodcaller("to_matlab_expression", recommended), self.operands))
+        return "({0})".format(operand_str)
 
     def to_julia_expression(self, recommended=False):
         operand_str = '+'.join(map(operator.methodcaller("to_julia_expression", recommended), self.operands))
@@ -607,21 +617,25 @@ class Times(Operator):
     def is_inverse_type(self, type):
         return type in [Inverse, InverseTranspose]
 
-    def recommended_julia_expression(self, idx):
+    def recommended_solve_expression(self, idx, to_expression_function_name):
         op = self.operands[idx]
+        to_expression_function = operator.methodcaller(to_expression_function_name, recommended=True)
+        to_expression_function_strip_inverse = operator.methodcaller(to_expression_function_name, recommended=True, strip_inverse=True)
         if self.is_inverse_type(type(op)):
             # there are at least two elements to process
             #  since op is inverse, it will be inv(a) * b -> a \ b
             # doesn't matter if b is inverse or not
             if idx != len(self.operands) - 1:
-                idx, second_operand = self.recommended_julia_expression(idx + 1)
+                idx, second_operand = self.recommended_solve_expression(idx + 1, to_expression_function_name)
                 return (idx, "(({0})\({1}))".format(
-                    op.to_julia_expression(recommended=True, strip_inverse=True),
+                    # op.to_julia_expression(recommended=True, strip_inverse=True),
+                    to_expression_function_strip_inverse(op),
                     second_operand
                 ))
             else:
                 return (idx + 1,
-                        "{0}".format(op.to_julia_expression(recommended=True))
+                        "{0}".format(to_expression_function(op))
+                        # "{0}".format(op.to_julia_expression(recommended=True))
                         )
         # only two elements are left, check if we should apply a * inv(b) -> a / b
         elif idx == len(self.operands) - 2:
@@ -629,17 +643,19 @@ class Times(Operator):
             # if next is an inverse, match a * inv(b) -> a / b
             if self.is_inverse_type(type(op_next)):
                 return (idx + 2, "({0}/({1}))".format(
-                    op.to_julia_expression(recommended=True),
-                    op_next.to_julia_expression(recommended=True, strip_inverse=True)
+                    # op.to_julia_expression(recommended=True),
+                    # op_next.to_julia_expression(recommended=True, strip_inverse=True)
+                    to_expression_function(op),
+                    to_expression_function_strip_inverse(op_next)
                 ))
             else:
                 return (idx + 1,
-                        "{0}".format(op.to_julia_expression(recommended=True))
+                        "{0}".format(to_expression_function(op))
                         )
         #otherwise, simply return this element processed
         else:
             return (idx + 1,
-                    "{0}".format(op.to_julia_expression(recommended=True))
+                    "{0}".format(to_expression_function(op))
                     )
 
     def solve_left_side_cpp(self, lib, op):
@@ -692,6 +708,21 @@ class Times(Operator):
                     "{0}".format(op.to_cpp_expression(lib, recommended=True))
                     )
 
+    def to_matlab_expression(self, recommended=False):
+        # TODO are parenthesis necessary?
+        # operand_str = '*'.join(map(operator.methodcaller("to_matlab_expression"), self.operands))
+        # return "({0})".format(operand_str)
+        if recommended:
+            str_ = ""
+            idx = 0
+            while idx < len(self.operands):
+                idx, str_new = self.recommended_solve_expression(idx, "to_matlab_expression")
+                str_ += str_new + ("*" if idx < len(self.operands) else "")
+            return str_
+        else:
+            return '*'.join(map(operator.methodcaller("to_matlab_expression"), self.operands))
+
+
     def to_julia_expression(self, recommended=False):
         # TODO are parenthesis necessary?
         # operand_str = '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
@@ -700,7 +731,7 @@ class Times(Operator):
             str_ = ""
             idx = 0
             while idx < len(self.operands):
-                idx, str_new = self.recommended_julia_expression(idx)
+                idx, str_new = self.recommended_solve_expression(idx, "to_julia_expression")
                 str_ += str_new + ("*" if idx < len(self.operands) else "")
             return str_
         else:
@@ -829,6 +860,9 @@ class Transpose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
+    def to_matlab_expression(self, recommended=False):
+        return "{0}'".format(self.operands[0].to_matlab_expression(recommended))
+
     def to_julia_expression(self, recommended=False):
         return "{0}'".format(self.operands[0].to_julia_expression(recommended))
 
@@ -916,6 +950,9 @@ class ConjugateTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
+    def to_matlab_expression(self, recommended=False):
+        raise NotImplementedError()
+
     def to_julia_expression(self, recommended=False):
         return "ctranspose({0})".format(self.operands[0].to_julia_expression(recommended))
 
@@ -966,6 +1003,12 @@ class Inverse(Operator):
 
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
+
+    def to_matlab_expression(self, recommended=False, strip_inverse=False):
+        if strip_inverse:
+            return self.operands[0].to_matlab_expression(recommended)
+        else:
+            return "inv({0})".format(self.operands[0].to_matlab_expression(recommended))
 
     def to_julia_expression(self, recommended=False, strip_inverse=False):
         if strip_inverse:
@@ -1026,6 +1069,12 @@ class InverseTranspose(Operator):
 
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
+
+    def to_matlab_expression(self, recommended=False, strip_inverse=False):
+        if strip_inverse:
+            return "{0}'".format(self.operands[0].to_matlab_expression(recommended))
+        else:
+            return "inv({0}')".format(self.operands[0].to_matlab_expression(recommended))
 
     def to_julia_expression(self, recommended=False, strip_inverse=False):
         if strip_inverse:
@@ -1179,12 +1228,12 @@ class IdentityMatrix(ConstantMatrix):
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
 
+    def to_matlab_expression(self, recommended=False):
+        # TODO add data type (last position)
+        return "eye({0}, {1})".format(*self.size)
+
     def to_julia_expression(self, recommended=False):
-        #FIXME: this requires proper matlab version
-        if not config.matlab:
-            return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
-        else:
-            return "eye({0}, {1})".format(*self.size)
+        return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
 
     def to_cpp_expression(self, lib, recommended=False):
         # IdentityMatrix can only be symmetric in Blaze
@@ -1218,6 +1267,10 @@ class ZeroMatrix(ConstantMatrix):
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
 
+    def to_matlab_expression(self):
+        # TODO add data type (last position)
+        return "zeros({0}, {1})".format(*self.size)
+
     def to_julia_expression(self):
         return "zeros({0}, {1}, {2})".format(config.data_type_string, *self.size)
 
@@ -1230,6 +1283,9 @@ class ConstantScalar(Scalar, Constant):
 
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)
+
+    def to_matlab_expression(self, recommended=False):
+        return "{0}".format(self.value)
 
     def to_julia_expression(self, recommended=False):
         return "{0}".format(self.value)
