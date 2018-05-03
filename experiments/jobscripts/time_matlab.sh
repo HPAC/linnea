@@ -15,14 +15,14 @@ cd ${HOME}/linnea/results/execution
 mkdir -p run_${LSB_JOBID}
 cd run_${LSB_JOBID}
 
-export MATLAB_LOG_DIR=${HOME}/linnea/results/execution/run_${LSB_JOBID}
+mkdir -p logs
+export MATLAB_LOG_DIR=${HOME}/linnea/results/execution/run_${LSB_JOBID}/logs
 export MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab
-
 
 if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner.m ]; then
     # it is not possible to run runner.m directly here because of how importing in Matlab works.
     matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
-    addpath('${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/')
+    addpath('${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/');
     runner;
     quit();
 EOF
