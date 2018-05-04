@@ -219,6 +219,9 @@ class Equations(object):
         for equation in self.equations:
             equation.to_dot_file()
 
+    def to_matlab_expression(self, recommended=False):
+        return "\n".join([equation.to_matlab_expression(recommended) for equation in self.equations])
+
     def to_julia_expression(self, recommended=False):
         return "\n".join([equation.to_julia_expression(recommended) for equation in self.equations])
 
