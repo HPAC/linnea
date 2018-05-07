@@ -8,22 +8,21 @@
 
 set -e
 
+mkdir -p ${HOME}/linnea/results/generation/run_${LSB_JOBID}
+
 module load python/3.6.0
 
 source ${HOME}/linnea/linnea_venv/bin/activate
-cd ${HOME}/linnea/results/generation
-mkdir -p run_${LSB_JOBID}
-# cd run_${LSB_JOBID}
 python3 ${HOME}/linnea/linnea/experiments/experiments.py generate_code -j=${LSB_JOBINDEX} -c
 
 module load cmake/3.10.1
-module load gcc/7
+module load gcc/5
 
 cd ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Cpp
-mkdir build
+mkdir -p build
 cd build
+rm -rf *
 cmake -DCMAKE_PREFIX_PATH=${HOME}/libraries/MatrixGeneratorCpp/ ..
 make
 
 exit
-
