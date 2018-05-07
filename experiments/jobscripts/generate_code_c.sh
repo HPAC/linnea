@@ -23,6 +23,6 @@ mkdir -p build
 cd build
 rm -rf *
 cmake -DCMAKE_PREFIX_PATH=${HOME}/libraries/MatrixGeneratorCpp/ ..
-make
+make VERBOSE=1
 
 exit
