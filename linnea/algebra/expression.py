@@ -274,6 +274,61 @@ def _test_relation_commutative(l1, l2, relation):
             return False
     return True
 
+def _inverse_iterator_RL(operands):
+    """Helper function for inverse_of()
+
+    When testing if one expression is the inverse of another, special care has
+    to be taken when dealing with expressions like (X^T X)^-1 A. The problem
+    is that the inverse of that expression is A^-1 X^T X, so simply comparing
+    the factors in each product (with reversed order for one) does not work.
+
+    This function yields the factors in the appropriate order for testing
+    if a product is the inverse of another. This funciton yields tuples. The
+    first element is a factor. The second element specifies if the factor shows
+    up inside an inverse or not. If it is inside an inverse, equality has to be
+    tested instead of inverse_of().
+
+    Example: For (X^T X)^-1 A, this function yields
+    (A, False)
+    (X^T, True)
+    (X, True)
+
+    This function takes a list of operands as input.
+
+    This function traverses the list from right to left. Inside inverses, it
+    proceeds from left to right.
+    """
+    for operand in reversed(operands):
+        if isinstance(operand, Inverse):
+            e = operand.operand
+            if isinstance(e, Times):
+                for c in e.operands:
+                    yield (c, True)
+            else:
+                yield (operand, False)
+        else:
+            yield (operand, False)
+
+
+def _inverse_iterator_LR(operands):
+    """Helper function for inverse_of()
+
+    See docstring for _inverse_iterator_RL().
+
+    This function traverses the list from left to right. Inside inverses, it
+    proceeds from right to left.
+    """
+    for operand in operands:
+        if isinstance(operand, Inverse):
+            e = operand.operand
+            if isinstance(e, Times):
+                for c in reversed(e.operands):
+                    yield (c, True)
+            else:
+                yield (operand, False)
+        else:
+            yield (operand, False)
+
 class Operator(matchpy.Operation, Expression):
     """docstring for Operator"""
     def __init__(self, *operands, variable_name=None):
