@@ -8,6 +8,8 @@
 
 # TODO commanline options for constructive/exhaustive, Matlab/C++/Julia?
 
+module load gcc/5
+
 cd ${HOME}/linnea/results/execution
 mkdir -p run_${LSB_JOBID}
 cd run_${LSB_JOBID}
