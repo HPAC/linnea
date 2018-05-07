@@ -40,7 +40,7 @@ class DerivationGraphBase(base.GraphBase):
     """
 
     def __init__(self, root_equations):
-        super(DerivationGraphBase, self).__init__()
+        super().__init__()
         self.root = DerivationGraphNode(root_equations)
         self.active_nodes = [self.root]
         self.nodes = [self.root]
@@ -557,7 +557,7 @@ class DerivationGraphNode(base.GraphNodeBase):
     _counter = 0
 
     def __init__(self, equations=None, predecessor=None, factored_operands=None):
-        super(DerivationGraphNode, self).__init__(predecessor, factored_operands)
+        super().__init__(predecessor, factored_operands)
 
         # IDs for dot output
         self.id = DerivationGraphNode._counter

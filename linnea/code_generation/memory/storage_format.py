@@ -115,7 +115,7 @@ def select_storage_format_conversion(source_format, target_format, conversion_di
     raise MissingStorageFormatConversion("No conversion from {0} to {1}.".format(source_format, target_format))
     # print("MISSING", source_format, target_format)
 
-class StorageFormatConversion(object):
+class StorageFormatConversion():
     """docstring for StorageFormatConversion"""
     def __init__(self, source_format, target_format, code_template):
         self.source_format = source_format

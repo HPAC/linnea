@@ -8,7 +8,7 @@ from ...code_generation.memory import memory as memory_module
 
 import matchpy
 
-class Kernel(object):
+class Kernel():
     """docstring for Kernel"""
 
     _counter = 0
@@ -67,7 +67,7 @@ class Kernel(object):
 
 
 
-class PropertyConstraints(object):
+class PropertyConstraints():
     """docstring for PropertyConstraints
     
     Acts as a constraint 'function' for wildcards in reduction kernels.
@@ -84,7 +84,7 @@ class PropertyConstraints(object):
     def __repr__(self):
         return "PropertyConstraints(" + repr(self.property_dict) + ")" 
 
-class InputOperand(object):
+class InputOperand():
     """docstring for InputOperand"""
     def __init__(self, operand, storage_format):
         self.operand = operand
@@ -93,7 +93,7 @@ class InputOperand(object):
     def __repr__(self):
         return "".join(["InputOperand(", self.operand.name, ", ", self.storage_format.name, ")"])
 
-class Argument(object):
+class Argument():
     """docstring for Argument"""
     def __init__(self, name, operand):
         self.name = name
@@ -115,7 +115,7 @@ class Argument(object):
 class SizeArgument(Argument):
     """docstring for SizeArgument"""
     def __init__(self, name, operand, dimension, as_value=False):
-        super(SizeArgument, self).__init__(name, operand)
+        super().__init__(name, operand)
         self.dimension = dimension
         self.as_value = as_value
 
@@ -152,7 +152,7 @@ class SizeArgument(Argument):
 class StrideArgument(Argument):
     """docstring for StrideArgument"""
     def __init__(self, name, operand, dimension, as_value=False):
-        super(StrideArgument, self).__init__(name, operand)
+        super().__init__(name, operand)
         self.dimension = dimension
         self.as_value = as_value
 
@@ -189,7 +189,7 @@ class StrideArgument(Argument):
 class PropertyArgument(Argument):
     """docstring for PropertyArgument"""
     def __init__(self, name, operand, property, values):
-        super(PropertyArgument, self).__init__(name, operand)
+        super().__init__(name, operand)
         self.property = property
         self.values = values
 
@@ -216,7 +216,7 @@ class PropertyArgument(Argument):
 class StorageFormatArgument(Argument):
     """docstring for StorageFormatArgument"""
     def __init__(self, name, operand, storage_format, values):
-        super(StorageFormatArgument, self).__init__(name, operand)
+        super().__init__(name, operand)
         self.storage_format = storage_format
         self.values = values
 
@@ -249,7 +249,7 @@ class StorageFormatArgument(Argument):
 class ConstantArgument(Argument):
     """docstring for ConstantArgument"""
     def __init__(self, name, value):
-        super(ConstantArgument, self).__init__(name, None)
+        super().__init__(name, None)
         self.value = value
 
     def get_value(self, match_dict=None, memory=None):
@@ -358,10 +358,10 @@ class PropertyTuple(tuple):
 
     """
     def __new__(cls, elements):
-        return super(PropertyTuple, cls).__new__(cls, tuple(elements))
+        return super().__new__(cls, tuple(elements))
 
     # def __init__(self, kernel, renaming, elements):
-    #     # super(PropertyTuple, self).__init__()
+    #     # super().__init__()
     #     self.kernel = kernel
     #     self.renaming = renaming
 

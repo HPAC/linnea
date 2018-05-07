@@ -16,7 +16,7 @@ from ... import config
 class OperandNotInMemory(Exception):
     pass
 
-class MemoryOperation(object):
+class MemoryOperation():
     pass
 
 class FreeMemory(MemoryOperation):
@@ -145,7 +145,7 @@ class ConvertStorageFormatInPlace(MemoryOperation):
         return self.conversion.code_template.safe_substitute_str(op=self.mem_loc.name, type=config.data_type_string, m=rows, n=columns)
         
 
-class Memory(object):
+class Memory():
     """docstring for Memory"""
     _counter = 0
 
@@ -627,7 +627,7 @@ def keyfunc(_tuple):
         return ""
     return item1.name
 
-class MemoryLocation(object):
+class MemoryLocation():
     """docstring for MemoryLocation"""
 
     _counter = 0
@@ -677,7 +677,7 @@ class MemoryLocation(object):
 # description of the kernels.
 # """
 
-# class MemoryInput(object):
+# class MemoryInput():
 #     """Input to a kernel as needed by Memory.add_operation().
 
 #     Describes the input of a kernel, containing all information necessary to
@@ -705,7 +705,7 @@ class MemoryLocation(object):
 #         return "".join(["MemoryInput(", content_str, ")"])
 
 
-# class MemoryOutput(object):
+# class MemoryOutput():
 #     """Output of a kernel as needed by Memory.add_operation().
 
 #     Describes the output of a kernel, containing all information necessary to
@@ -738,7 +738,7 @@ class MemoryLocation(object):
 #         content_str = ", ".join([str(c) for c in zip(self.operands, self.overwriting, self.storage_formats)])
 #         return "".join(["MemoryOuput(", content_str, ")"])
 
-class StorageDescription(object):
+class StorageDescription():
     """docstring for StorageDescription"""
     def __init__(self, *description):
         self.operands = []

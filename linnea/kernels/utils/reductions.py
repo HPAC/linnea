@@ -45,7 +45,7 @@ class ReductionKernel(Kernel):
     """docstring for ReductionKernel"""
 
     def __init__(self, pattern, input_operands, output_operand, cost_function, pre_code, signature, post_code, arguments, type=KernelType.identity, kernel_io=None):
-        super(ReductionKernel, self).__init__(cost_function, pre_code, signature, post_code, arguments)
+        super().__init__(cost_function, pre_code, signature, post_code, arguments)
 
         """The wildcard which represents the output operand. If it also appears
         in the pattern, it is assumed that it gets overwritten.
@@ -159,7 +159,7 @@ class ReductionKernel(Kernel):
     # @profile
     def set_match(self, match_dict, context, CSE_rules=False, blocked_products=False, set_equivalent=True, equiv_expr=None):
         
-        matched_kernel = super(ReductionKernel, self).set_match(match_dict, CSE_rules)
+        matched_kernel = super().set_match(match_dict, CSE_rules)
 
         #############
         # operation
@@ -303,7 +303,7 @@ def remove_transpose(expr, name):
     else:
         return type(expr)(*[remove_transpose(op, name) for op in expr.operands])
     
-class OutputOperand(object):
+class OutputOperand():
     """docstring for OutputOperand"""
     def __init__(self, operand, storage_format):
         self.operand = operand
@@ -312,7 +312,7 @@ class OutputOperand(object):
     def __repr__(self):
         return "".join(["OutputOperand(", self.operand.name, ", ", self.storage_format.name, ")"])
 
-class KernelVariant(object):
+class KernelVariant():
     """docstring for KernelVariant"""
     def __init__(self, arg_vals):
         self.arg_vals = arg_vals
@@ -333,7 +333,7 @@ class ExpressionKV(KernelVariant):
             expressions (Expression).
     """
     def __init__(self, arg_name, arg_vals):
-        super(ExpressionKV, self).__init__(arg_vals)
+        super().__init__(arg_vals)
         self.arg_name = arg_name
         
 class PropertyKV(KernelVariant):
@@ -355,7 +355,7 @@ class PropertyKV(KernelVariant):
         wildcard_name (str): The name of the wildcard corresponding to operand.
     """
     def __init__(self, arg_name, arg_vals, operand):
-        super(PropertyKV, self).__init__(arg_vals)
+        super().__init__(arg_vals)
         self.arg_name = arg_name
         self.operand = operand
         self.wildcard_name = to_wildcard_name(operand)
@@ -412,7 +412,7 @@ class OperatorKV(KernelVariant):
 
     """
     def __init__(self, arg_name, arg_vals, operator):
-        super(OperatorKV, self).__init__(arg_vals)
+        super().__init__(arg_vals)
         self.arg_name = arg_name
         self.operator = operator
 
@@ -431,7 +431,7 @@ class Op1(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(Op1, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
 
 class Op2(Operator):
@@ -445,7 +445,7 @@ class Op2(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(Op2, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
 
 ############################
@@ -454,7 +454,7 @@ class Op2(Operator):
 class KernelDescriptionError(Exception):
     pass        
 
-class KernelDescription(object):
+class KernelDescription():
     """Description of BLAS-like kernels.
 
     This class contains a complete description of a BLAS-like kernel. It is

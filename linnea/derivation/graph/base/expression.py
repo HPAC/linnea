@@ -9,7 +9,7 @@ class ExpressionGraphBase(base.GraphBase):
     """
 
     def __init__(self, root_expr):
-        super(ExpressionGraphBase, self).__init__()
+        super().__init__()
         self.root = ExpressionGraphNode(root_expr)
         self.active_nodes = [self.root]
         self.nodes = [self.root]
@@ -32,7 +32,7 @@ class ExpressionGraphNode(base.GraphNodeBase):
     _counter = 0
 
     def __init__(self, expression=None, predecessor=None, factored_operands=None):
-        super(ExpressionGraphNode, self).__init__(predecessor, factored_operands)
+        super().__init__(predecessor, factored_operands)
         # IDs for dot output
         self.id = ExpressionGraphNode._counter
         self.name = "".join(["node", str(self.id)])

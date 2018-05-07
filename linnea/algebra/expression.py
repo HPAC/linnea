@@ -19,7 +19,7 @@ class Expression(matchpy.Expression):
     counter = 0 # for to_dot()
 
     def __init__(self, variable_name=None):
-        super(Expression, self).__init__(variable_name)
+        super().__init__(variable_name)
 
     def init_partitioning(self):
         """Adds the attribute "partitioning" to all nodes in the expression tree.
@@ -332,7 +332,7 @@ def _inverse_iterator_LR(operands):
 class Operator(matchpy.Operation, Expression):
     """docstring for Operator"""
     def __init__(self, *operands, variable_name=None):
-        super(Operator, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     def split_operands(self):
         """Splits operands into scalar and non-scalar operands.
@@ -383,7 +383,7 @@ class Operator(matchpy.Operation, Expression):
 class Symbol(matchpy.Symbol, Expression):
     """docstring for Symbol"""
     def __init__(self, name, size, indices, properties = []):
-        super(Symbol, self).__init__(name, variable_name=None)
+        super().__init__(name, variable_name=None)
         self.size = size
         self.indices = indices
         self.bandwidth = (size[0]-1, size[1]-1)
@@ -441,10 +441,10 @@ class Symbol(matchpy.Symbol, Expression):
     def factorization_labels(self, value):
         self._factorization_labels = value
 
-class Constant(object):
+class Constant():
     """docstring for Constant"""
     def __init__(self):
-        super(Constant, self).__init__()
+        super().__init__()
         """Unfortunately, it's not possible to set property.CONSTANT here
         because this function is called before self.properties is initialized.
         """
@@ -467,7 +467,7 @@ class Equal(Operator):
     infix = True
 
     def __init__(self,  *operands, variable_name=None):
-        super(Equal, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def lhs(self):
@@ -516,7 +516,7 @@ class Plus(Operator):
     infix = True
 
     def __init__(self,  *operands, variable_name=None):
-        super(Plus, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -559,7 +559,7 @@ class Times(Operator):
     infix = True
 
     def __init__(self,  *operands, variable_name=None):
-        super(Times, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -849,7 +849,7 @@ class Identity(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(Identity, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -886,7 +886,7 @@ class Transpose(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(Transpose, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -938,7 +938,7 @@ class Conjugate(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(Conjugate, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -976,7 +976,7 @@ class ConjugateTranspose(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(ConjugateTranspose, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -1027,7 +1027,7 @@ class Inverse(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(Inverse, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -1095,7 +1095,7 @@ class InverseTranspose(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(InverseTranspose, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -1160,7 +1160,7 @@ class InverseConjugate(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(InverseConjugate, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -1198,7 +1198,7 @@ class InverseConjugateTranspose(Operator):
     infix = False
 
     def __init__(self,  *operands, variable_name=None):
-        super(InverseConjugateTranspose, self).__init__(*operands, variable_name=variable_name)
+        super().__init__(*operands, variable_name=variable_name)
 
     @property
     def size(self):
@@ -1236,13 +1236,13 @@ class InverseConjugateTranspose(Operator):
 class Scalar(Symbol):
     """docstring for Scalar"""
     def __init__(self, name, indices=set()):
-        super(Scalar, self).__init__(name, (1, 1), indices)
+        super().__init__(name, (1, 1), indices)
 
 
 class Vector(Symbol):
     """docstring for Vector"""
     def __init__(self, name, size, indices=set(), properties = []):
-        super(Vector, self).__init__(name, size, indices, properties)
+        super().__init__(name, size, indices, properties)
         if (size[0]==1 and size[1]==1) or (size[0]!=1 and size[1]!=1):
             raise ValueError("Symbol with size {} is not a vector.".format(size))
 
@@ -1256,7 +1256,7 @@ class Vector(Symbol):
 class Matrix(Symbol):
     """docstring for Matrix"""
     def __init__(self, name, size, indices=set(), properties = []):
-        super(Matrix, self).__init__(name, size, indices, properties)
+        super().__init__(name, size, indices, properties)
 
     def __repr__(self):
         return 'Matrix({!r}, size={})'.format(self.name, self.size)
@@ -1270,13 +1270,13 @@ class Matrix(Symbol):
 class ConstantMatrix(Matrix, Constant):
     """docstring for ConstantMatrix"""
     def __init__(self, name, size):
-        super(ConstantMatrix, self).__init__(name, size)
+        super().__init__(name, size)
         self.set_property(properties.CONSTANT)
 
 class IdentityMatrix(ConstantMatrix):
     """docstring for IdentityMatrix"""
     def __init__(self, rows, columns):
-        super(IdentityMatrix, self).__init__("I", (rows, columns))
+        super().__init__("I", (rows, columns))
         self.set_property(properties.IDENTITY)
         self.set_property(properties.DIAGONAL)
 
@@ -1316,7 +1316,7 @@ class IdentityMatrix(ConstantMatrix):
 class ZeroMatrix(ConstantMatrix):
     """docstring for ZeroMatrix"""
     def __init__(self, rows, columns):
-        super(ZeroMatrix, self).__init__("0", (rows, columns))
+        super().__init__("0", (rows, columns))
         self.set_property(properties.ZERO)
 
     def __repr__(self):
@@ -1332,7 +1332,7 @@ class ZeroMatrix(ConstantMatrix):
 class ConstantScalar(Scalar, Constant):
     """docstring for ConstantScalar"""
     def __init__(self, value):
-        super(ConstantScalar, self).__init__(str(value))
+        super().__init__(str(value))
         self.value = value
         self.set_property(properties.CONSTANT)
 
@@ -1349,7 +1349,7 @@ class ConstantScalar(Scalar, Constant):
         return "{0}".format(self.value)
 
 
-class Index(object):
+class Index():
     def __init__(self, name, value):
         self.name = name
         self.value = value

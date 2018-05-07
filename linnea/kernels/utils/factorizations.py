@@ -25,7 +25,7 @@ class FactorizationKernel(Kernel):
     """docstring for FactorizationKernel"""
 
     def __init__(self, pattern, input_operands, output, output_operands, cost_function, pre_code, signature, post_code, arguments):
-        super(FactorizationKernel, self).__init__(cost_function, pre_code, signature, post_code, arguments)
+        super().__init__(cost_function, pre_code, signature, post_code, arguments)
 
         self.pattern = pattern
         self.replacement_template = output
@@ -40,7 +40,7 @@ class FactorizationKernel(Kernel):
 
     def set_match(self, match_dict, context, CSE_rules=False, set_equivalent=True, equiv_expr=None):
 
-        matched_kernel = super(FactorizationKernel, self).set_match(match_dict, CSE_rules)
+        matched_kernel = super().set_match(match_dict, CSE_rules)
 
         #############
         # operation
@@ -169,7 +169,7 @@ class FactorizationKernel(Kernel):
         return _output_expr, _arg_dict, _partial_operand_dict, kernel_io
 
 
-class OutputOperand(object):
+class OutputOperand():
     """docstring for OutputOperand"""
     def __init__(self, operand, overwriting, size, properties, storage_format):
         self.operand = operand

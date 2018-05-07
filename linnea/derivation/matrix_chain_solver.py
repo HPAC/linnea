@@ -17,7 +17,7 @@ from . import utils as du
 class MatrixChainNotComputable(Exception):
     pass
 
-class MatrixChainSolver(object):
+class MatrixChainSolver():
     """docstring for MatrixChainSolver"""
     def __init__(self, expr, explicit_inversion=False):
         self.expr = expr

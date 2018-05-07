@@ -18,7 +18,7 @@ sZERO = 0
 #######################
 ### Diego's examples
 
-class Example001(object):
+class Example001():
     def __init__(self):
 
         # TAGS
@@ -45,7 +45,7 @@ class Example001(object):
 
 ###
 
-class Example002(object):
+class Example002():
     def __init__(self):
 
         # TAGS
@@ -70,7 +70,7 @@ class Example002(object):
 
 ###
 
-class Example003(object):
+class Example003():
     def __init__(self):
 
         # TAGS
@@ -98,7 +98,7 @@ class Example003(object):
 
 ###
 
-class Example004(object):
+class Example004():
     def __init__(self):
 
         # TAGS
@@ -120,7 +120,7 @@ class Example004(object):
 
 ###
 
-class Example005(object):
+class Example005():
     def __init__(self):
 
         # TAGS
@@ -145,7 +145,7 @@ class Example005(object):
 
 ###
 
-class Example006(object):
+class Example006():
     def __init__(self):
 
         # TAGS
@@ -170,7 +170,7 @@ class Example006(object):
 
 ###
 
-class Example007(object):
+class Example007():
     def __init__(self):
 
         # TAGS
@@ -194,7 +194,7 @@ class Example007(object):
 
 ###
 
-class Example008(object):
+class Example008():
     def __init__(self):
 
         # TAGS
@@ -225,7 +225,7 @@ class Example008(object):
 
 ###
 
-class Example009(object):
+class Example009():
     def __init__(self):
 
         # TAGS
@@ -252,7 +252,7 @@ class Example009(object):
 ### my examples
 
 
-class Example010(object):
+class Example010():
     def __init__(self):
 
         # TAGS
@@ -276,7 +276,7 @@ class Example010(object):
         self.eqns = Equations(Equal(Y, Inverse(Times(Transpose(CP), S, CP ) )))
 
 
-class Example011(object):
+class Example011():
     def __init__(self):
 
         # TAGS
@@ -300,7 +300,7 @@ class Example011(object):
         self.eqns = Equations(Equal(Y, Times(Transpose(CP), S, CP )))
 
 
-class Example012(object):
+class Example012():
     def __init__(self):
         
         # TAGS
@@ -317,7 +317,7 @@ class Example012(object):
         self.eqns = Equations(Equal(W, Times(Transpose(A), A)))
 
 
-class Example013(object):
+class Example013():
     def __init__(self):
 
         # TAGS
@@ -345,7 +345,7 @@ class Example013(object):
 
         self.eqns = Equations(Equal(W, Times(A, B, C, D)))
 
-class Example014(object):
+class Example014():
     def __init__(self):
 
         # TAGS
@@ -367,7 +367,7 @@ class Example014(object):
         self.eqns = Equations(Equal(W, Times(Transpose(B), Transpose(A), A, B)))
 
 
-class Example015(object):
+class Example015():
     def __init__(self):
 
         # TAGS
@@ -396,7 +396,7 @@ class Example015(object):
         self.eqns = Equations(Equal(W, Plus(A, B, C, D)))
 
 
-class Example016(object):
+class Example016():
     def __init__(self):
 
         # TAGS
@@ -421,7 +421,7 @@ class Example016(object):
         self.eqns = Equations(Equal(W, Times(A, Inverse(S), Inverse(Plus(A, Inverse(S) ) ), D)))
 
 
-class Example017(object):
+class Example017():
     def __init__(self):
 
         # TAGS
@@ -446,7 +446,7 @@ class Example017(object):
         self.eqns = Equations(Equal(W, Times(A, Inverse(S), Inverse(Plus(A, Inverse(D) ) ), D)))
 
 
-class Example018(object):
+class Example018():
     def __init__(self):
 
         # TAGS
@@ -475,7 +475,7 @@ class Example018(object):
         self.eqns = Equations(Equal(W, Plus(A, Inverse(B), Inverse(C), D)))
 
 
-class Example019(object):
+class Example019():
     def __init__(self):
 
         # TAGS
@@ -501,7 +501,7 @@ class Example019(object):
         self.eqns = Equations(Equal(W, Plus(Inverse(B), Inverse(C), D)))
 
 
-class Example020(object):
+class Example020():
     def __init__(self):
 
         # TAGS
@@ -519,7 +519,7 @@ class Example020(object):
         self.eqns = Equations(Equal(W, Inverse(S)))
 
 
-class Example021(object):
+class Example021():
     def __init__(self):
 
         # TAGS
@@ -545,7 +545,7 @@ class Example021(object):
         self.eqns = Equations(Equal(w, Times(A, Inverse(B), x)))
 
 
-class Example022(object):
+class Example022():
     def __init__(self):
 
         # TAGS
@@ -567,7 +567,7 @@ class Example022(object):
         self.eqns = Equations(Equal(w, Times(Inverse(B), x)))
 
 
-class Example023(object):
+class Example023():
     def __init__(self):
 
         # TAGS
@@ -589,7 +589,7 @@ class Example023(object):
         self.eqns = Equations(Equal(w, Times(Inverse(L), x)))
 
 
-class Example024(object):
+class Example024():
     def __init__(self):
 
         # TAGS
@@ -610,7 +610,7 @@ class Example024(object):
         self.eqns = Equations(Equal(w, Times(Inverse(S), x)))
 
 
-class Example025(object):
+class Example025():
     def __init__(self):
 
         # TAGS
@@ -636,7 +636,7 @@ class Example025(object):
         self.eqns = Equations(Equal(W, Plus(Times(A, B, S), Times(Transpose(B), Transpose(A), S) )))
 
 
-class Example026(object):
+class Example026():
     def __init__(self):
 
         # TAGS
@@ -665,7 +665,7 @@ class Example026(object):
         self.eqns = Equations(Equal(W, Plus(A, Transpose(B), C, D)))
 
 
-class Example027(object):
+class Example027():
     def __init__(self):
 
         # TAGS
@@ -687,7 +687,7 @@ class Example027(object):
         self.eqns = Equations(Equal(W, Times(Transpose(B), Transpose(C))))
 
 
-class Example028(object):
+class Example028():
     def __init__(self):
 
         # TAGS
@@ -709,7 +709,7 @@ class Example028(object):
         self.eqns = Equations(Equal(W, Times(Transpose(B), Transpose(C), C, B)))
 
 
-class Example029(object):
+class Example029():
     def __init__(self):
 
         # TAGS
@@ -734,7 +734,7 @@ class Example029(object):
         self.eqns = Equations(Equal(W, Times(y, Transpose(x), B)))
 
 
-class Example030(object):
+class Example030():
     def __init__(self):
 
         # TAGS
@@ -767,7 +767,7 @@ class Example030(object):
                         Equal(U, Times(Transpose(A), A))
                         )
 
-class Example031(object):
+class Example031():
     def __init__(self):
 
         # TAGS
@@ -822,7 +822,7 @@ class Example031(object):
                         )
         
 
-class Example032(object):
+class Example032():
     def __init__(self):
 
         # TAGS
@@ -854,7 +854,7 @@ class Example032(object):
                         )
 
 
-class Example033(object):
+class Example033():
     def __init__(self):
 
         # TAGS
@@ -886,7 +886,7 @@ class Example033(object):
                         )
 
 
-class Example034(object):
+class Example034():
     def __init__(self):
 
         # TAGS
@@ -922,7 +922,7 @@ class Example034(object):
                         )
 
 
-class Example035(object):
+class Example035():
     def __init__(self):
 
         # TAGS
@@ -953,7 +953,7 @@ class Example035(object):
                         )
         
 
-class Example036(object):
+class Example036():
     def __init__(self):
 
         # TAGS
@@ -984,7 +984,7 @@ class Example036(object):
                         )
 
 
-class Example037(object):
+class Example037():
     def __init__(self):
 
         # TAGS
@@ -1030,7 +1030,7 @@ class Example037(object):
                         )
 
 
-class Example038(object):
+class Example038():
     def __init__(self):
 
         # TAGS
@@ -1077,7 +1077,7 @@ class Example038(object):
 
 
 
-class Example039(object):
+class Example039():
     def __init__(self):
         
         # TAGS
@@ -1121,7 +1121,7 @@ class Example039(object):
                             )
         
 
-class Example040(object):
+class Example040():
     def __init__(self):
 
         # TAGS
@@ -1150,7 +1150,7 @@ class Example040(object):
                             )
 
 
-class Example041(object):
+class Example041():
     def __init__(self):
 
         # TAGS
@@ -1185,7 +1185,7 @@ class Example041(object):
                             )
 
 
-class Example042(object):
+class Example042():
     def __init__(self):
 
         # TAGS
@@ -1213,7 +1213,7 @@ class Example042(object):
         self.eqns = Equations(Equal(z, Times(Inverse(Times(Transpose(CP), S, CP ) ), Transpose(CP), Inverse(S), y)))
 
 
-class Example043(object):
+class Example043():
     def __init__(self):
 
         # TAGS
@@ -1246,7 +1246,7 @@ class Example043(object):
                             )
 
 
-class Example044(object):
+class Example044():
     def __init__(self):
 
         # TAGS
@@ -1278,7 +1278,7 @@ class Example044(object):
                             Equal(Y, Times(A, B))
                             )
 
-class Example045(object):
+class Example045():
     def __init__(self):
 
         # TAGS
@@ -1307,7 +1307,7 @@ class Example045(object):
                             )
 
 
-class Example046(object):
+class Example046():
     def __init__(self):
 
         # TAGS
@@ -1336,7 +1336,7 @@ class Example046(object):
                             )
 
 
-class Example047(object):
+class Example047():
     def __init__(self):
 
         # TAGS
@@ -1366,7 +1366,7 @@ class Example047(object):
                             )
 
 
-class Example048(object):
+class Example048():
     def __init__(self):
 
         # TAGS
@@ -1399,7 +1399,7 @@ class Example048(object):
                             )
 
 
-class Example049(object):
+class Example049():
     def __init__(self):
 
         # TAGS
@@ -1425,7 +1425,7 @@ class Example049(object):
                             )
 
 
-class Example050(object):
+class Example050():
     def __init__(self):
 
         # TAGS
@@ -1453,7 +1453,7 @@ class Example050(object):
                             )
 
 
-class Example051(object):
+class Example051():
     def __init__(self):
 
         # TAGS
@@ -1486,7 +1486,7 @@ class Example051(object):
                             )
 
 
-class Example052(object):
+class Example052():
     def __init__(self):
 
         # TAGS
@@ -1520,7 +1520,7 @@ class Example052(object):
                             )
 
 
-class Example053(object):
+class Example053():
     def __init__(self):
 
         # TAGS
@@ -1553,7 +1553,7 @@ class Example053(object):
                             Equal(Y, Times(C, D, A, B))
                             )
 
-class Example054(object):
+class Example054():
     def __init__(self):
 
         # TAGS
@@ -1585,7 +1585,7 @@ class Example054(object):
                             )
 
 
-class Example055(object):
+class Example055():
     def __init__(self):
 
         # TAGS
@@ -1620,7 +1620,7 @@ class Example055(object):
                         )
 
 
-class Example056(object):
+class Example056():
     def __init__(self):
 
         # TAGS
@@ -1655,7 +1655,7 @@ class Example056(object):
                             )
 
 
-class Example057(object):
+class Example057():
     def __init__(self):
 
         # TAGS
@@ -1696,7 +1696,7 @@ class Example057(object):
                             )
 
 
-class Example058(object):
+class Example058():
     def __init__(self):
 
         # TAGS
@@ -1732,7 +1732,7 @@ class Example058(object):
                             )
 
 
-class Example059(object):
+class Example059():
     def __init__(self):
 
         # TAGS
@@ -1769,7 +1769,7 @@ class Example059(object):
                             )
 
 
-class Example060(object):
+class Example060():
     def __init__(self):
 
         # TAGS
@@ -1804,7 +1804,7 @@ class Example060(object):
                             )
 
 
-class Example061(object):
+class Example061():
     def __init__(self):
 
         # TAGS
@@ -1828,7 +1828,7 @@ class Example061(object):
         self.eqns = Equations(Equal(b, Times(Inverse(Times(Transpose(X), X)), Transpose(X), y)))
 
 
-class Example062(object):
+class Example062():
     def __init__(self):
 
         # TAGS
@@ -1861,7 +1861,7 @@ class Example062(object):
                             )
 
 
-class Example063(object):
+class Example063():
     def __init__(self):
 
         # TAGS
@@ -1890,7 +1890,7 @@ class Example063(object):
         self.eqns = Equations(Equal(z, Times(Inverse(Times(Transpose(X), Inverse(S), X ) ), Transpose(X), Inverse(S), y)))
 
 
-class Example064(object):
+class Example064():
     def __init__(self):
 
         # TAGS
@@ -1920,7 +1920,7 @@ class Example064(object):
                         )
 
 
-class Example065(object):
+class Example065():
     def __init__(self):
 
         # TAGS
@@ -1956,7 +1956,7 @@ class Example065(object):
                             )
 
 
-class Example066(object):
+class Example066():
     def __init__(self):
 
         # TAGS
@@ -1995,7 +1995,7 @@ class Example066(object):
                             )
 
 
-class Example067(object):
+class Example067():
     def __init__(self):
 
         # TAGS
@@ -2034,7 +2034,7 @@ class Example067(object):
                             )
 
 
-class Example068(object):
+class Example068():
     def __init__(self):
 
         # TAGS
@@ -2066,7 +2066,7 @@ class Example068(object):
                             )
 
 
-class Example069(object):
+class Example069():
     def __init__(self):
 
         # TAGS
@@ -2098,7 +2098,7 @@ class Example069(object):
                             )
 
 
-class Example070(object):
+class Example070():
     def __init__(self):
 
         # TAGS
@@ -2119,7 +2119,7 @@ class Example070(object):
         self.eqns = Equations(Equal(W, Times(Inverse(Plus(A, Inverse(D) ) ), D)))
 
 
-class Example071(object):
+class Example071():
     def __init__(self):
 
         # TAGS
@@ -2140,7 +2140,7 @@ class Example071(object):
         self.eqns = Equations(Equal(W, Times(Inverse(Plus(A, D) ), D)))
 
 
-class Example072(object):
+class Example072():
     def __init__(self):
 
         # TAGS
@@ -2160,7 +2160,7 @@ class Example072(object):
         self.eqns = Equations(Equal(W, Plus(Inverse(A), B, A)))
 
 
-class Example073(object):
+class Example073():
     def __init__(self):
 
         # TAGS
@@ -2181,7 +2181,7 @@ class Example073(object):
         self.eqns = Equations(Equal(W, Plus(Inverse(D), A)))
 
 
-class Example074(object):
+class Example074():
     def __init__(self):
 
         # TAGS
@@ -2209,7 +2209,7 @@ class Example074(object):
         self.eqns = Equations(Equal(X, Plus(Times(Transpose(Q), W, Q), Times(Plus(two, alpha), I))))
 
 
-class Example075(object):
+class Example075():
     def __init__(self):
 
         # TAGS
@@ -2230,7 +2230,7 @@ class Example075(object):
         self.eqns = Equations(Equal(X, Plus(Times(alpha, A), Times(two, A))))
 
 
-class Example076(object):
+class Example076():
     def __init__(self):
 
         # TAGS
@@ -2264,7 +2264,7 @@ class Example076(object):
         self.eqns = Equations(Equal(X, Times(A, Plus(Times(Transpose(Q), W, Q), Times(alpha, I)), B)))
 
 
-class Example077(object):
+class Example077():
     def __init__(self):
 
         # TAGS
@@ -2304,7 +2304,7 @@ class Example077(object):
                         )
 
 
-class Example078(object):
+class Example078():
     def __init__(self):
 
         # TAGS
@@ -2341,7 +2341,7 @@ class Example078(object):
                             )
 
 
-class Example079(object):
+class Example079():
     def __init__(self):
 
         # TAGS
@@ -2364,7 +2364,7 @@ class Example079(object):
                             )
 
 
-class Example080(object):
+class Example080():
     def __init__(self):
 
         # TAGS
@@ -2392,7 +2392,7 @@ class Example080(object):
                             )
 
 
-class Example081(object):
+class Example081():
     def __init__(self):
 
         # TAGS
@@ -2416,7 +2416,7 @@ class Example081(object):
         self.eqns = Equations(Equal(W, Times(InverseTranspose(B), InverseTranspose(C), A, Transpose(C), Transpose(B))))
 
 
-class Example082(object):
+class Example082():
     def __init__(self):
 
         # TAGS
@@ -2440,7 +2440,7 @@ class Example082(object):
         self.eqns = Equations(Equal(W, Times(Transpose(B), InverseTranspose(C), A, Transpose(C), InverseTranspose(B))))
 
 
-class Example083(object):
+class Example083():
     def __init__(self):
 
         # TAGS
@@ -2465,7 +2465,7 @@ class Example083(object):
         self.eqns = Equations(Equal(W, Times(InverseTranspose(B), InverseTranspose(C), A, Transpose(C), Transpose(B),  D, Inverse(C), Inverse(B))))
 
 
-class Example084(object):
+class Example084():
     def __init__(self):
 
         # TAGS
@@ -2489,7 +2489,7 @@ class Example084(object):
         self.eqns = Equations(Equal(W, Plus(Times(B, C), Times(Inverse(B), A))))
 
 
-class Example085(object):
+class Example085():
     def __init__(self):
 
         # TAGS
@@ -2515,7 +2515,7 @@ class Example085(object):
                             Equal(Y, Times(Transpose(A), Transpose(B), B, A))
                             )
 
-class Example086(object):
+class Example086():
     def __init__(self):
 
         # TAGS
@@ -2544,7 +2544,7 @@ class Example086(object):
                             Equal(X, Plus(Times(A, B, Transpose(B), Transpose(A)), C))
                             )
 
-class Example087(object):
+class Example087():
     def __init__(self):
 
         # TAGS
@@ -2576,7 +2576,7 @@ class Example087(object):
                             Equal(X, Times(A, B, C, D)) 
                             )
 
-class Example088(object):
+class Example088():
     def __init__(self):
 
         # TAGS
@@ -2600,7 +2600,7 @@ class Example088(object):
                             Equal(X, Plus(Times(Transpose(A), B), Times(Transpose(B), A), Times(Transpose(A), A), C)) 
                             )
 
-class Example089(object):
+class Example089():
     def __init__(self):
 
         # TAGS
@@ -2634,7 +2634,7 @@ class Example089(object):
         self.eqns = Equations(Equal(X, Plus(Times(Transpose(Q), W, Q), Times(alpha, I), B)))
 
 
-class Example090(object):
+class Example090():
     def __init__(self):
 
         # TAGS
@@ -2663,7 +2663,7 @@ class Example090(object):
         self.eqns = Equations(Equal(X, Times(alpha, B, D)))
 
 
-class Example091(object):
+class Example091():
     def __init__(self):
 
         # TAGS
@@ -2693,7 +2693,7 @@ class Example091(object):
         self.eqns = Equations(Equal(X, Times(BlockedExpression([[A, B]]), C)))
 
 
-class Example092(object):
+class Example092():
     def __init__(self):
 
         # TAGS
@@ -2714,7 +2714,7 @@ class Example092(object):
         # self.eqns = Equations(Equal(X, Times(Transpose(V), V)))
 
 
-class Example093(object):
+class Example093():
     def __init__(self):
 
         # TAGS
@@ -2740,7 +2740,7 @@ class Example093(object):
                               )
 
 
-class Example094(object):
+class Example094():
     def __init__(self):
 
         # TAGS
@@ -2785,7 +2785,7 @@ class Example094(object):
                             Equal(X, Times(Inverse(A), B, C, D)) 
                             )
 
-class Example095(object):
+class Example095():
     def __init__(self):
 
         # TAGS
@@ -2814,7 +2814,7 @@ class Example095(object):
                             Equal(X, Times(A, B, c)) 
                             )
 
-class Example096(object):
+class Example096():
     def __init__(self):
 
         # TAGS
@@ -2845,7 +2845,7 @@ class Example096(object):
         self.eqns = Equations(Equal(W, Times(A, Inverse(B), InverseTranspose(C), D)))
 
 
-class Example097(object):
+class Example097():
     def __init__(self):
 
         # TAGS
@@ -2890,7 +2890,7 @@ class Example097(object):
         self.eqns = Equations(Equal(W, Times(Inverse(A), B, C, InverseTranspose(D), E, F)))
 
 
-class Example098(object):
+class Example098():
     def __init__(self):
 
         # TAGS
@@ -2904,7 +2904,7 @@ class Example098(object):
         self.eqns = Equations(Equal(beta, Times(alpha, two)))
 
 
-class Example099(object):
+class Example099():
     def __init__(self):
 
         # TAGS
@@ -2918,7 +2918,7 @@ class Example099(object):
         self.eqns = Equations(Equal(beta, Plus(alpha, two)))
 
 
-class Example100(object):
+class Example100():
     def __init__(self):
 
         # TAGS
@@ -2937,7 +2937,7 @@ class Example100(object):
         self.eqns = Equations(Equal(X, Times(two, A)))
 
 
-class Example101(object):
+class Example101():
     def __init__(self):
 
         # TAGS
@@ -2958,7 +2958,7 @@ class Example101(object):
         # self.eqns = Equations(Equal(X, Plus(Times(Transpose(A), A), Times(Transpose(B), B), IdentityMatrix(n1, n1))))
 
 
-class Example102(object):
+class Example102():
     def __init__(self):
 
         # TAGS
@@ -2978,7 +2978,7 @@ class Example102(object):
         self.eqns = Equations(Equal(X, Times(Transpose(A), A, Transpose(B), B)))
 
 
-class Example103(object):
+class Example103():
     def __init__(self):
 
         # TAGS
@@ -2999,7 +2999,7 @@ class Example103(object):
         self.eqns = Equations(Equal(x, Times(Inverse(Times(Transpose(A), A, Transpose(B), B)), y)))
 
 
-class Example104(object):
+class Example104():
     def __init__(self):
 
         # TAGS
@@ -3020,7 +3020,7 @@ class Example104(object):
 
 
 
-class Example105(object):
+class Example105():
     def __init__(self):
 
         # TAGS
@@ -3038,7 +3038,7 @@ class Example105(object):
         self.eqns = Equations(Equal(X, Plus(Times(alpha, A), Times(beta, B))))
 
 
-class Example106(object):
+class Example106():
     def __init__(self):
 
         # TAGS
@@ -3055,7 +3055,7 @@ class Example106(object):
         self.eqns = Equations(Equal(X, Plus(Transpose(A), Transpose(B))))
 
 
-class Example107(object):
+class Example107():
     def __init__(self):
 
         # TAGS
@@ -3071,7 +3071,7 @@ class Example107(object):
         self.eqns = Equations(Equal(X, Plus(A, IdentityMatrix(n1, n1))))
 
 
-class Example108(object):
+class Example108():
     def __init__(self):
 
         # TAGS
@@ -3089,7 +3089,7 @@ class Example108(object):
         self.eqns = Equations(Equal(X, Plus(A, Times(Plus(alpha, beta), B))))
 
 
-class Example109(object):
+class Example109():
     def __init__(self):
 
         # TAGS
@@ -3107,7 +3107,7 @@ class Example109(object):
         self.eqns = Equations(Equal(X, Plus(A, Times(alpha, beta, B))))
 
 
-class Example110(object):
+class Example110():
     def __init__(self):
 
         # TAGS
@@ -3135,7 +3135,7 @@ class Example110(object):
         self.eqns = Equations(Equal(X, Plus(Times(Transpose(Q), W, Q), Times(alpha, I))))
 
 
-class Example111(object):
+class Example111():
     def __init__(self):
 
         # TAGS
@@ -3157,7 +3157,7 @@ class Example111(object):
         self.eqns = Equations(Equal(x, Times(Inverse(Plus(Times(Transpose(A), A), Times(Transpose(B), B))), y)))
 
 
-class Example112(object):
+class Example112():
     def __init__(self):
 
         # TAGS
@@ -3180,7 +3180,7 @@ class Example112(object):
         self.eqns = Equations(Equal(x, Times(Inverse(Plus(S, Times(alpha, I))), y)))
 
 
-class Example113(object):
+class Example113():
     def __init__(self):
 
         # TAGS
@@ -3207,7 +3207,7 @@ class Example113(object):
                             )
 
 
-class Example114(object):
+class Example114():
     def __init__(self):
 
         # TAGS
@@ -3226,7 +3226,7 @@ class Example114(object):
                             )
 
 
-class Example115(object):
+class Example115():
     def __init__(self):
 
         # TAGS
@@ -3265,7 +3265,7 @@ class Example115(object):
         self.eqns = Equations(Equal(W, Times(A, B, C, D, E, F)))
 
 
-class Example116(object):
+class Example116():
     def __init__(self):
 
         # TAGS
@@ -3300,7 +3300,7 @@ class Example116(object):
                             )
 
 
-class Example117(object):
+class Example117():
     def __init__(self):
 
         # TAGS
@@ -3318,7 +3318,7 @@ class Example117(object):
         self.eqns = Equations(Equal(w, Times(Inverse(B), x)))
 
 
-class Example118(object):
+class Example118():
     def __init__(self):
 
         # TAGS
@@ -3334,7 +3334,7 @@ class Example118(object):
         self.eqns = Equations(Equal(X, Plus(A, Inverse(A))))
 
 
-class Example119(object):
+class Example119():
     def __init__(self):
 
         # TAGS
@@ -3350,7 +3350,7 @@ class Example119(object):
         self.eqns = Equations(Equal(X, Plus(A, Inverse(A))))
 
 
-class Example120(object):
+class Example120():
     def __init__(self):
 
         # TAGS
@@ -3375,7 +3375,7 @@ class Example120(object):
                             )
 
 
-class Example121(object):
+class Example121():
     def __init__(self):
 
         # TAGS
@@ -3405,7 +3405,7 @@ class Example121(object):
                             )
 
 
-class Example122(object):
+class Example122():
     def __init__(self):
         pass
 
@@ -3431,7 +3431,7 @@ class Example122(object):
         # b = S^H H^H (sigma^2 H H^H + Q)^-1 r
 
 
-class Example123(object):
+class Example123():
     def __init__(self):
 
         # TAGS
@@ -3460,7 +3460,7 @@ class Example123(object):
                                 ) 
                             )
 
-class Example124(object):
+class Example124():
     def __init__(self):
 
         # TAGS
@@ -3494,7 +3494,7 @@ class Example124(object):
                             )
 
 
-class Example125(object):
+class Example125():
     def __init__(self):
 
         # TAGS
@@ -3546,7 +3546,7 @@ class Example125(object):
         # print(self.eqns)
 
 
-class Example126(object):
+class Example126():
     def __init__(self):
 
         # TAGS
@@ -3597,7 +3597,7 @@ class Example126(object):
                                 )
                             )
 
-class Example127(object):
+class Example127():
     def __init__(self):
 
         # TAGS
@@ -3625,7 +3625,7 @@ class Example127(object):
                             )
 
 
-class Example128(object):
+class Example128():
     def __init__(self):
 
         # TAGS
@@ -3664,7 +3664,7 @@ class Example128(object):
                             Equal(X, Times(A, B, C, D, E)),
                             )
 
-class Example129(object):
+class Example129():
     def __init__(self):
 
         # TAGS
@@ -3692,7 +3692,7 @@ class Example129(object):
                             Equal(Y, Plus(Inverse(A), C)),
                             )
 
-class Example130(object):
+class Example130():
     def __init__(self):
 
         # TAGS
@@ -3717,7 +3717,7 @@ class Example130(object):
                             )
 
 
-class Example131(object):
+class Example131():
     def __init__(self):
 
         # TAGS
@@ -3744,7 +3744,7 @@ class Example131(object):
                             )
 
 
-class Example132(object):
+class Example132():
     def __init__(self):
 
         # TAGS
@@ -3771,7 +3771,7 @@ class Example132(object):
                             )
 
 
-class Example133(object):
+class Example133():
     def __init__(self):
 
         # TAGS
@@ -3799,7 +3799,7 @@ class Example133(object):
                             )
 
 
-class Example134(object):
+class Example134():
     def __init__(self):
 
         # TAGS
@@ -3837,7 +3837,7 @@ class Example134(object):
                         ))
 
 
-class Example135(object):
+class Example135():
     def __init__(self):
 
         # TAGS
@@ -3876,7 +3876,7 @@ class Example135(object):
                             )
 
 
-class Example136(object):
+class Example136():
     def __init__(self):
 
         # TAGS
@@ -3918,7 +3918,7 @@ class Example136(object):
                             Equal(W, Times(A, B, C, D)),
                             )
 
-class Example137(object):
+class Example137():
     def __init__(self):
 
         # TAGS
@@ -3960,7 +3960,7 @@ class Example137(object):
                             Equal(W, Times(A, B, C)),
                             )
 
-class Example138(object):
+class Example138():
     def __init__(self):
 
         # TAGS
@@ -3996,7 +3996,7 @@ class Example138(object):
                             Equal(W, Times(A, B)),
                             )
 
-class Example139(object):
+class Example139():
     def __init__(self):
 
         # TAGS
@@ -4034,7 +4034,7 @@ class Example139(object):
                             Equal(W, Times(A, B)),
                             )
 
-class Example140(object):
+class Example140():
     def __init__(self):
 
         # TAGS
@@ -4073,7 +4073,7 @@ class Example140(object):
                             Equal(Z, Times(A, B)),
                             )
 
-class Example141(object):
+class Example141():
     def __init__(self):
 
         # TAGS
@@ -4117,7 +4117,7 @@ class Example141(object):
                             Equal(U, Times(C, D)),
                             )
 
-class Example142(object):
+class Example142():
     def __init__(self):
 
         # TAGS

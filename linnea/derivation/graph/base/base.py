@@ -17,10 +17,10 @@ output_msg_plain = "   {0:.<22}{1:.>5n}"
 # output_msg_plain = "   {0}{1:.>27n}"
 
 # TODO rename to GenericGraph or something?
-class GraphBase(object):
+class GraphBase():
 
     def __init__(self):
-        super(GraphBase, self).__init__()
+        super().__init__()
         self.level_counter = -1
 
     def print(self, str):
@@ -335,7 +335,7 @@ class PathDoesNotExist(Exception):
     pass
 
 
-class GraphNodeBase(object):
+class GraphNodeBase():
 
     def __init__(self, predecessor=None, factored_operands=None):
 
@@ -603,7 +603,7 @@ class GraphNodeBase(object):
             raise PathDoesNotExist()
 
 
-class EdgeLabel(object):
+class EdgeLabel():
     def __init__(self, *matched_kernels):
         self.matched_kernels = matched_kernels
         self.cost = sum(matched_kernel.cost for matched_kernel in self.matched_kernels)

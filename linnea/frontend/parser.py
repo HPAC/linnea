@@ -33,7 +33,7 @@ class LinneaBuffer(Buffer):
         namechars='',
         **kwargs
     ):
-        super(LinneaBuffer, self).__init__(
+        super().__init__(
             text,
             whitespace=whitespace,
             nameguard=nameguard,
@@ -62,7 +62,7 @@ class LinneaParser(Parser):
     ):
         if keywords is None:
             keywords = KEYWORDS
-        super(LinneaParser, self).__init__(
+        super().__init__(
             whitespace=whitespace,
             nameguard=nameguard,
             comments_re=comments_re,
@@ -485,7 +485,7 @@ class LinneaParser(Parser):
         )
 
 
-class LinneaSemantics(object):
+class LinneaSemantics():
     def identifier(self, ast):
         return ast
 

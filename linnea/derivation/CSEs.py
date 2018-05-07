@@ -27,7 +27,7 @@ class CSEType(Enum):
     transpose = 2
     inverse_transpose = 3
 
-class Subexpression(object):
+class Subexpression():
     """Subexpression for CSE detection.
 
     This class represents a subexpression to be used for CSE detection.
@@ -35,7 +35,7 @@ class Subexpression(object):
 
     _counter = 0
     def __init__(self, expr, eqn_idx, positions, level, type):
-        super(Subexpression, self).__init__()
+        super().__init__()
         self.expr = expr
         self.expr_trans = None
         self.expr_inv = None
@@ -166,7 +166,7 @@ class Subexpression(object):
         """
         return self.expr == other.expr_invtrans or self.expr_invtrans == other.expr
 
-class CSE(object):
+class CSE():
     """Common Subexpression object
 
     This is mostly just a collection of Subexpression objects.
@@ -174,7 +174,7 @@ class CSE(object):
 
     _counter = 0
     def __init__(self, subexprs):
-        super(CSE, self).__init__()
+        super().__init__()
         self.subexprs = subexprs
         self.subexprs_ids = {subexpr.id for subexpr in self.subexprs}
         self.expr = subexprs[0].expr # for DEBUG only
@@ -239,7 +239,7 @@ class CSE(object):
                 return False
         return True
 
-class CSEDetector(object):
+class CSEDetector():
     """A wrapper for a dictionary to detect common subexpressions.
 
     One of the challenges of detecting common subexpression is considering that
@@ -253,7 +253,7 @@ class CSEDetector(object):
     subexpressions.
     """
     def __init__(self):
-        super(CSEDetector, self).__init__()
+        super().__init__()
         self.CSE_detection_dict = dict()
         self.all_subexpressions = dict()
         self.all_CSEs = dict()

@@ -10,7 +10,7 @@ import math
 import textwrap
 import os
 
-class Algorithm(object):
+class Algorithm():
     """Represents an Algorithm and translates it to code.
 
     This class represents one algorithm and offers functions to translate it to
@@ -293,7 +293,7 @@ class Algorithm(object):
                 new_lines.append(line)
         return new_lines
 
-class KernelIO(object):
+class KernelIO():
     """Describes the input and output of a kernel.
 
     This object describes the input and output of a kernel.
@@ -400,7 +400,7 @@ class KernelIO(object):
         return cpy
 
 
-class MatchedKernel(object):
+class MatchedKernel():
     """docstring for MatchedKernel"""
 
     _counter = 0
