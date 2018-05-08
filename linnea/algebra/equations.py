@@ -15,7 +15,7 @@ import matchpy
 class UnknownSymbolType(Exception):
     pass
 
-class Equations(object):
+class Equations():
 
     _counter = 0
 

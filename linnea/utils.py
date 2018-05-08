@@ -5,7 +5,7 @@ import itertools
 import matchpy
 
 
-class CodeTemplate(object):
+class CodeTemplate():
     """Represents signatures of kernels.
 
     This class is mostly a wrapper for a string.Template object. The purpose is

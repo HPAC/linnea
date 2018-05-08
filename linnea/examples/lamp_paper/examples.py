@@ -13,7 +13,7 @@ from ... import derivation
 sONE = 1
 sZERO = 0
 
-class LeastSquares_7_1_1(object):
+class LeastSquares_7_1_1():
     def __init__(self, n = 1500, m = 1000):
 
         # TAGS
@@ -36,7 +36,7 @@ class LeastSquares_7_1_1(object):
         # b = (X^T X)^-1 X^T y
         self.eqns = Equations(Equal(b, Times(Inverse(Times(Transpose(X), X)), Transpose(X), y)))
 
-class LMMSE_7_1_2(object):
+class LMMSE_7_1_2():
     def __init__(self, l = 1000, m = 500, n = 1000):
 
         # TAGS
@@ -78,7 +78,7 @@ class LMMSE_7_1_2(object):
                         )
                     )
 
-class Generalized_LeastSquares_7_1_3(object):
+class Generalized_LeastSquares_7_1_3():
     def __init__(self, n = 1500, m = 1000):
 
         # TAGS
@@ -101,7 +101,7 @@ class Generalized_LeastSquares_7_1_3(object):
 
         self.eqns = Equations(Equal(b, Times(Inverse(Times(Transpose(X), Inverse(M), X ) ), Transpose(X), Inverse(M), y)))
 
-class Optimization_Problem_7_1_4(object):
+class Optimization_Problem_7_1_4():
     def __init__(self, n = 1500, m = 1000):
 
         # TAGS
@@ -151,7 +151,7 @@ class Optimization_Problem_7_1_4(object):
                                 )
                             )
 
-class Signal_Processing_7_1_5(object):
+class Signal_Processing_7_1_5():
     def __init__(self, N = 1000):
         # TAGS
         # signal processing
@@ -198,7 +198,7 @@ class Signal_Processing_7_1_5(object):
                             )
                     )
 
-class Lower_Triangular_Inversion_7_1_6(object):
+class Lower_Triangular_Inversion_7_1_6():
     def __init__(self, n = 1000, m = 1000, k = 1000):
         # TAGS
         # signal processing
@@ -257,7 +257,7 @@ class Lower_Triangular_Inversion_7_1_6(object):
                     )
 
 #FIXME: bug
-class Local_Assimilation_Kalman_7_1_7(object):
+class Local_Assimilation_Kalman_7_1_7():
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
         # nino2016
         # something something Kalman filter
@@ -289,11 +289,11 @@ class Local_Assimilation_Kalman_7_1_7(object):
                                 )
                             )
 
-class Rank_1_Tensor_Update_7_1_8(object):
+class Rank_1_Tensor_Update_7_1_8():
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
         pass
 
-class EnsembleKalmanFilter_7_1_9_1(object):
+class EnsembleKalmanFilter_7_1_9_1():
     def __init__(self, n = 1000, m = 1000):
         # rao2015
         # the first variant
@@ -372,7 +372,7 @@ class EnsembleKalmanFilter_7_1_9_1(object):
                     )
 
 
-class EnsembleKalmanFilter_7_1_9_2(object):
+class EnsembleKalmanFilter_7_1_9_2():
     def __init__(self, n = 1000, m = 1000):
         # rao2015
         # the first variant
@@ -463,7 +463,7 @@ class EnsembleKalmanFilter_7_1_9_2(object):
                             )
                     )
 
-class SPA_7_1_12(object):
+class SPA_7_1_12():
     def __init__(self, d = 1000, m = 1000, k = 8000, q = 1):
         # Trier2017
         # m < n
@@ -504,7 +504,7 @@ class SPA_7_1_12(object):
                             )
                     )
 
-class ImageRestoration_7_1_13_1(object):
+class ImageRestoration_7_1_13_1():
     def __init__(self, n = 1500, m = 1000):
         # Trier2017
         # m < n
@@ -562,7 +562,7 @@ class ImageRestoration_7_1_13_1(object):
                             )
                     )
 
-class ImageRestoration_7_1_13_2(object):
+class ImageRestoration_7_1_13_2():
     def __init__(self, n = 1500, m = 1000, single = False):
         # Trier2017
         # m < n
@@ -644,7 +644,7 @@ class ImageRestoration_7_1_13_2(object):
                             )
                         )
 
-class Tikhonov_7_1_14(object):
+class Tikhonov_7_1_14():
     def __init__(self, n = 1500, m = 1000):
 
         # TAGS
@@ -668,7 +668,7 @@ class Tikhonov_7_1_14(object):
                                 )
                             )
 
-class CDMA_7_1_15(object):
+class CDMA_7_1_15():
     def __init__(self, G=63, K=30, L=5):
         pass
 
@@ -727,7 +727,7 @@ class CDMA_7_1_15(object):
                             ) 
                     )
 
-class Common_Subexpr_7_2_1(object):
+class Common_Subexpr_7_2_1():
     def __init__(self, n=1000):
         # similar to example 124
         # equation: X = ABCD, Y = BCDE, Z = BCDEF
@@ -750,7 +750,7 @@ class Common_Subexpr_7_2_1(object):
                             Equal(Z, Times(B, C, D, E, F)),
                             )
 
-class Common_Subexpr_7_2_2(object):
+class Common_Subexpr_7_2_2():
     def __init__(self, n = 1500, m = 100):
         # equation: X = AB*AB
         # optimal solution A((BA)B when n >> m
@@ -765,7 +765,7 @@ class Common_Subexpr_7_2_2(object):
                             Equal(X, Times(A, B, A, B)),
                             )
 
-class Common_Subexpr_7_2_3(object):
+class Common_Subexpr_7_2_3():
     def __init__(self, n = 1500):
         # equation: X = AS, Y = SA^T
         # optimal solution uses AS = (SA^T)^T
@@ -782,7 +782,7 @@ class Common_Subexpr_7_2_3(object):
                             Equal(Y, Times(S, Transpose(A)))
                             )
 
-class Overlap_Common_Subexpr_7_2_4(object):
+class Overlap_Common_Subexpr_7_2_4():
     def __init__(self, m = 1500, n = 100):
         # equation: X = AB, Y = ABC, Z = BC
         # m >> n
@@ -803,7 +803,7 @@ class Overlap_Common_Subexpr_7_2_4(object):
                             Equal(Z, Times(B, C))
                             )
 
-class Rewrite_Distributivity_Base(object):
+class Rewrite_Distributivity_Base():
     def create_matrices(self, n):
         A = Matrix("A", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
         B = Matrix("B", (n, n), properties = [properties.FULL_RANK, properties.INPUT])
@@ -885,7 +885,7 @@ class Rewrite_Distributivity_7_2_5_4(Rewrite_Distributivity_Base):
                             ))
                     )
 
-class Matrix_Chain_7_2_6(object):
+class Matrix_Chain_7_2_6():
     def __init__(self, n1 = 600, n2 = 200, n3 = 1500, n4 = 800, n5 = 1000):
         # equation: W = ABCDEF
         # A is lower triangular, 
@@ -904,7 +904,7 @@ class Matrix_Chain_7_2_6(object):
                             Equal(W, Times(A, B, C, D, E, F)),
                     )
 
-class Matrix_Chain_7_2_7(object):
+class Matrix_Chain_7_2_7():
     def __init__(self, n1 = 600, n2 = 200, n3 = 1500, n4 = 800, n5 = 1000):
         # equation: W = ABCDEF
         # A is lower triangular, 
@@ -928,7 +928,7 @@ class Matrix_Chain_7_2_7(object):
                             )),
                     )
 
-class Properties_7_2_8(object):
+class Properties_7_2_8():
     def __init__(self, n = 1000):
         # equation: X = (L1^-1 L2 U1^T + L3)^-1 U2^T
         # LX is lower triangular, UX is upper triangular
@@ -958,7 +958,7 @@ class Properties_7_2_8(object):
                             )   
                     )
 
-class Transposed_Kernel_7_2_9(object):
+class Transposed_Kernel_7_2_9():
     def __init__(self, m = 1000, n = 1000):
         # equation: X = x^T A
         # LX is lower triangular, UX is upper triangular
@@ -976,7 +976,7 @@ class Transposed_Kernel_7_2_9(object):
                             )   
                     )
 
-class Transposed_Kernel_7_2_10(object):
+class Transposed_Kernel_7_2_10():
     def __init__(self, m = 100, n = 1000):
         # m << n
         # equation: X = ASB^T
@@ -999,7 +999,7 @@ class Transposed_Kernel_7_2_10(object):
                             )   
                     )
 
-class Simplification_7_2_11(object):
+class Simplification_7_2_11():
     def __init__(self, m = 1000, n = 1000):
         # equation: X = 1/3A + 2/3A + B
         # A is mxn
@@ -1020,7 +1020,7 @@ class Simplification_7_2_11(object):
                             )   
                     )
 
-class Simplification_7_2_12(object):
+class Simplification_7_2_12():
     def __init__(self, m = 1000, n = 1000):
         # equation: X = 1/3A + 2/3A + B
         # A is mxn
