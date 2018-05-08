@@ -17,7 +17,7 @@ cd run_${LSB_JOBID}
 
 mkdir -p logs
 export MATLAB_LOG_DIR=${HOME}/linnea/results/execution/run_${LSB_JOBID}/logs
-export MATLABPATH=${HOME}/matrix_generators/MatrixGeneratorMatlab
+export MATLABPATH=${HOME}/repositories/MatrixGeneratorMatlab
 
 if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Matlab/runner.m ]; then
     # it is not possible to run runner.m directly here because of how importing in Matlab works.
