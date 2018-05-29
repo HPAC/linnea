@@ -267,11 +267,15 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
                 property_replacements.append(map_operand(language, prop))
         if not properties.SPD in operand.properties:
             property_replacements.extend(random_operand.get(language))
-        if language == config.Language.Cpp and properties.VECTOR in operand.properties:
-            if operand.size[0] == 1:
-                property_replacements.append("generator::shape::row_vector{}")
-            else:
-                property_replacements.append("generator::shape::col_vector{}")
+        if language == config.Language.Cpp:
+            if properties.VECTOR in operand.properties:
+                if operand.size[0] == 1:
+                    property_replacements.append("generator::shape::row_vector{}")
+                else:
+                    property_replacements.append("generator::shape::col_vector{}")
+            if operand.size[0] != operand.size[1]:
+                property_replacements.append("generator::shape::not_square{}")
+                
         replacement["size"] = ",".join(map(str, operand.size))
 
         replacement["properties"] = ", ".join(property_replacements)
