@@ -93,6 +93,12 @@ class DerivationGraphBase(base.GraphBase):
                         path_to_file = os.path.join(algorithms_dir_name, file)
                         if os.path.isfile(path_to_file):
                             os.remove(path_to_file)
+                pseudocode_dir_name = os.path.join(directory_name, config.language.name, "pseudocode")
+                if os.path.exists(pseudocode_dir_name):
+                    for file in os.listdir(pseudocode_dir_name):
+                        path_to_file = os.path.join(pseudocode_dir_name, file)
+                        if os.path.isfile(path_to_file):
+                            os.remove(path_to_file)
 
         if code or pseudocode:
             for n, (path, cost) in enumerate(paths):
