@@ -65,7 +65,7 @@ plu = FactorizationKernel(
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
-    Times(_P, _L, _U),
+    Times(Transpose(_P), _L, _U),
     [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.UNIT_DIAGONAL, properties.NON_SINGULAR], StorageFormat.LUfact_L),
      OutputOperand(_U, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.NON_SINGULAR], StorageFormat.LUfact_U),
      OutputOperand(_P, _A, ("N", "N"), [properties.PERMUTATION], StorageFormat.LUfact_P)

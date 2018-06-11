@@ -31,12 +31,12 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.full,
         sf.StorageFormat.permutation_vector,
-        utils.CodeTemplate("$output = findn($input)[1]\n")
+        utils.CodeTemplate("$output = invperm(findn($input)[1])\n") # this could also be done with convert(Array{Int64, 1}, P*range(1, size(P, 1)))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.permutation_vector,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = eye($type, $n)[:,$input]\n")
+        utils.CodeTemplate("$output = eye($type, $n)[$input,:]\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.cholfact_L,
@@ -56,7 +56,7 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.LUfact_P,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = eye($type, $n)[:,$input[:p]]\n")
+        utils.CodeTemplate("$output = $input[:P]\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.LUfact_P,

@@ -1643,11 +1643,245 @@ diagmv = KernelDescription(
     )
 
 
-# matrix and vector
-# A[:,F[:p]] # A*P
-# A[:,invperm(p)] # A*P^T
-# A[invperm(p),:] # P*A
-# A[p,:] # P^T*A
-# perumation*permutation
+# permutation * matrix
+
+P = Matrix("P", (n, n))
+P.set_property(properties.PERMUTATION)
+A = Matrix("A", (n, m))
+B = Matrix("B", (n, m))
+cf = lambda d: 0
+
+pmm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(P, A)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(A, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$B = $A[$P,:]",
+    "",
+    [SizeArgument("M", A, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# transpose(permutation) * matrix
+
+P = Matrix("P", (n, n))
+P.set_property(properties.PERMUTATION)
+A = Matrix("A", (n, m))
+B = Matrix("B", (n, m))
+cf = lambda d: 0
+
+ptmm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Transpose(P), A)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(A, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$B = $A[invperm($P),:]",
+    "",
+    [SizeArgument("M", A, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# matrix * permutation
+
+A = Matrix("A", (n, m))
+P = Matrix("P", (m, m))
+P.set_property(properties.PERMUTATION)
+B = Matrix("B", (n, m))
+cf = lambda d: 0
+
+mpm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(A, P)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(A, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$B = $A[:,invperm($P)]",
+    "",
+    [SizeArgument("M", A, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# matrix * transpose(permutation)
+
+A = Matrix("A", (n, m))
+P = Matrix("P", (m, m))
+P.set_property(properties.PERMUTATION)
+B = Matrix("B", (n, m))
+cf = lambda d: 0
+
+mptm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(A, Transpose(P))}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(A, StorageFormat.full),
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$B = $A[:,$P]",
+    "",
+    [SizeArgument("M", A, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+# permutation * vector
+
+P = Matrix("P", (n, n))
+P.set_property(properties.PERMUTATION)
+x = Vector("x", (n, 1))
+y = Vector("y", (n, 1))
+cf = lambda d: 0
+
+pvm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(P, x)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(x, StorageFormat.full),
+    ],
+    OutputOperand(y, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$y = $x[$P]",
+    "",
+    [SizeArgument("N", P, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# transpose(permutation) * vector
+
+P = Matrix("P", (n, n))
+P.set_property(properties.PERMUTATION)
+x = Vector("x", (n, 1))
+y = Vector("y", (n, 1))
+cf = lambda d: 0
+
+ptvm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Transpose(P), x)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(x, StorageFormat.full),
+    ],
+    OutputOperand(y, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$y = $x[invperm($P)]",
+    "",
+    [SizeArgument("N", P, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+# permutation * permutation
+
+P = Matrix("P", (n, n))
+P.set_property(properties.PERMUTATION)
+Q = Matrix("Q", (n, n))
+Q.set_property(properties.PERMUTATION)
+X = Matrix("X", (n, n))
+cf = lambda d: 0
+
+ppm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(P, Q)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(Q, StorageFormat.permutation_vector),
+    ],
+    OutputOperand(X, StorageFormat.permutation_vector), # return value
+    cf, # cost function
+    "",
+    "$X = $Q[$P]",
+    "",
+    [SizeArgument("N", P, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# transpose(permutation) * permutation
+
+P = Matrix("P", (n, n))
+P.set_property(properties.PERMUTATION)
+Q = Matrix("Q", (n, n))
+Q.set_property(properties.PERMUTATION)
+X = Matrix("X", (n, n))
+cf = lambda d: 0
+
+ptpm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Transpose(P), Q)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(Q, StorageFormat.permutation_vector),
+    ],
+    OutputOperand(X, StorageFormat.permutation_vector), # return value
+    cf, # cost function
+    "",
+    "$X = $Q[invperm($P)]",
+    "",
+    [SizeArgument("N", P, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# transpose(permutation)
+
+P = Matrix("P", (n, n))
+P.set_property(properties.PERMUTATION)
+Q = Matrix("Q", (n, n))
+cf = lambda d: 0
+
+transpose_perm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Transpose(P)}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+    ],
+    OutputOperand(Q, StorageFormat.permutation_vector), # return value
+    cf, # cost function
+    "",
+    "$Q = invperm($P)",
+    "",
+    [SizeArgument("N", P, "rows")], # Argument objects
+    [KernelType.identity]
+    )
+
 # what about diagonal A? could be almost the same as vector
 

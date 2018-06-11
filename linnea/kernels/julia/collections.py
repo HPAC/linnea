@@ -55,8 +55,16 @@ gesvrt = list(reductions.gesvrt.generate_kernels())
 posv_vec = list(reductions.posv_vec.generate_kernels())
 sysv_vec = list(reductions.sysv_vec.generate_kernels())
 gesv_vec = list(reductions.gesv_vec.generate_kernels())
-
-# MISSING: permuation kernels
+# operations with permutation matrices
+pmm = list(reductions.pmm.generate_kernels())
+ptmm = list(reductions.ptmm.generate_kernels())
+mpm = list(reductions.mpm.generate_kernels())
+mptm = list(reductions.mptm.generate_kernels())
+pvm = list(reductions.pvm.generate_kernels())
+ptvm = list(reductions.ptvm.generate_kernels())
+ppm = list(reductions.ppm.generate_kernels())
+ptpm = list(reductions.ptpm.generate_kernels())
+transpose_perm = list(reductions.transpose_perm.generate_kernels())
 
 # Currently, this list is not used (except for obtaining matrix chain kernels.)
 reductions = list(itertools.chain(
@@ -98,6 +106,14 @@ reductions = list(itertools.chain(
                 # posv_vec,
                 # sysv_vec,
                 # gesv_vec,
+                pmm,
+                ptmm,
+                mpm,
+                mptm,
+                pvm,
+                ptvm,
+                ppm,
+                ptpm,
             ))
 
 unused = list(itertools.chain(
@@ -112,7 +128,8 @@ unused = list(itertools.chain(
 
 transposition_kernels = list(itertools.chain(
                 transpose,
-                transpose_vector
+                transpose_vector,
+                transpose_perm
             ))
 
 unary_kernels = list(itertools.chain(
@@ -120,7 +137,8 @@ unary_kernels = list(itertools.chain(
                 trtri,
                 diaginv,
                 transpose,
-                transpose_vector
+                transpose_vector,
+                transpose_perm,
             ))
 
 addition_kernels = list(itertools.chain(
