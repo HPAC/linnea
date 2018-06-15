@@ -4163,3 +4163,27 @@ class Example142():
                             Equal(Z, Times(A, B)),
                             Equal(W, Times(A, B, C)),
                             )
+
+
+class Example143():
+    def __init__(self):
+
+        # TAGS
+        # linear system, matrix chain
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.SQUARE)
+        A.set_property(properties.NON_SINGULAR)
+        A.set_property(properties.INPUT)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.SQUARE)
+        B.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(Equal(X, Times(Inverse(A), B)))
