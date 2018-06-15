@@ -177,7 +177,7 @@ def trick4_callback(substitution, equations, eqn_idx, position):
 
     equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+position, replacement)
 
-    equations_list = equations_list.insert(eqn_idx, new_equation)
+    equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)
 
     return (new_equations, ())
