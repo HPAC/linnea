@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--no-dead-ends", dest="dead_ends", action="store_const", const=True, help="disable dead end detection")
     parser.add_argument("-e", "--experiments", action="store_const", const=True, help="generate code for experiments")
     parser.add_argument("-g", "--graph", action="store_const", const=True, help="write graph to file")
+    parser.add_argument("--graph-style", choices=["full", "simple", "minimal"], help="specify graph style")
     parser.add_argument("--iteration-limit", help="iteration limit")
     parser.add_argument("--no-code", dest="code", action="store_const", const=True, help="disable code generation")
     parser.add_argument("--no-merging", dest="merging", action="store_const", const=True, help="disable merging branches in the graph")
@@ -46,6 +47,8 @@ def main():
         config.set_dead_ends(args.dead_ends)
     if args.graph is not None:
         config.set_generate_graph(args.graph)
+    if args.graph_style is not None:
+        config.set_graph_style(config.GraphStyle[args.graph_style])
     if args.iteration_limit is not None:
         config.set_iteration_limit(args.iteration_limit)
     if args.code is not None:
@@ -126,7 +129,8 @@ def main():
                        output_name=config.output_name,
                        operand_generator=config.generate_experiments,
                        algorithms_limit=config.algorithms_limit,
-                       graph=config.generate_graph)
+                       graph=config.generate_graph,
+                       graph_style=config.graph_style)
 
 if __name__ == '__main__':
     main()

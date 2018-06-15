@@ -11,5 +11,6 @@
     "generate_pseudocode": false,
     "generate_code": true,
     "generate_experiments": false,
-    "verbosity": 1
+    "verbosity": 1,
+    "graph_style": "full",
 }

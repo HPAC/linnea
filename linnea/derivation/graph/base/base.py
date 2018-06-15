@@ -64,7 +64,7 @@ class GraphBase():
         self.active_nodes.extend(nodes)
 
 
-    def to_dot(self):
+    def to_dot(self, style):
         # TODO use source and sink ranks
 
         optimal_edges = set()
@@ -84,18 +84,18 @@ class GraphBase():
                     optimal_edges.add((previous_node_id, current_node.id))
 
         out = ["digraph G {", "ranksep=2.5;", "rankdir=TB;"]
-        out.extend([node.to_dot(optimal_edges) for node in self.nodes])
+        out.extend([node.to_dot(style, optimal_edges) for node in self.nodes])
         out.append("}")
         return "\n".join(out)
 
 
-    def write_graph(self, output_name, file_name="graph"):
+    def write_graph(self, output_name, style, file_name="graph"):
         file_path = os.path.join(config.output_path, output_name, config.language.name, "{}.gv".format(file_name))
         directory_name = os.path.dirname(file_path)
         if not os.path.exists(directory_name):
             os.makedirs(directory_name)
         output_file = open(file_path, "wt")
-        output_file.write(self.to_dot())
+        output_file.write(self.to_dot(style))
         output_file.close()
         if config.verbosity >= 2:
             print("Generate graph file {}".format(file_path))
@@ -447,21 +447,29 @@ class GraphNodeBase():
             out = " ".join([out, "\n    -[", str(edge_label.operation), "]->", str(successor.equations), "(", str(successor.name), ")"])
         return out
 
-    def to_dot(self, optimal_edges=set()):
-        #out = "".join([self.name, " [shape=box, label=\"", str(self.get_payload()), "\"];\n" ])
+    def to_dot(self, style, optimal_edges=set()):
+        
         eqns_str = str(self.get_payload())
         # TODO use html module?
         eqns_str = eqns_str.replace('\n', '\\n')
         eqns_str = eqns_str.replace("{", "&#123;")
         eqns_str = eqns_str.replace("}", "&#125;")
-        out = ["""{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} | {7} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))]
-        # out = ["{0} [shape=point];".format(self.name)]
+
+        if style is config.GraphStyle.full:
+            out = ["""{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} | {7} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))]
+        elif style is config.GraphStyle.simple:
+            out = ["""{0} [shape=rect, label="{1}"];""".format(self.name, eqns_str)]
+        elif style is config.GraphStyle.minimal:
+            out = ["{0} [shape=point];".format(self.name)]
+
         for successor, label in zip(self.successors, self.edge_labels):
-            # out.append("{} -> {};".format(self.name, successor.name))
-            if (self.id, successor.id) in optimal_edges:
-                out.append("""{} -> {} [style=bold, label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
+            if style is config.GraphStyle.minimal:
+                out.append("{} -> {};".format(self.name, successor.name))
             else:
-                out.append("""{} -> {} [label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
+                if (self.id, successor.id) in optimal_edges:
+                    out.append("""{} -> {} [style=bold, label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
+                else:
+                    out.append("""{} -> {} [label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
         return "".join(out)
 
     def is_terminal(self):

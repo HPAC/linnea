@@ -63,13 +63,13 @@ class DerivationGraphBase(base.GraphBase):
         return new_nodes
 
 
-    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, algorithms_limit=1, graph=False):
+    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, algorithms_limit=1, graph=False, graph_style=config.GraphStyle.full):
 
         if not config.output_path:
             raise config.OutputPathNotSet("Unable to write output: output_path not set.")
 
         if graph:
-            self.write_graph(output_name)
+            self.write_graph(output_name, graph_style)
         
         paths = list(self.k_shortest_paths(algorithms_limit))
 

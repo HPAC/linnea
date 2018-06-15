@@ -62,6 +62,11 @@ class Strategy(enum.Enum):
     constructive = 0
     exhaustive = 1
 
+class GraphStyle(enum.Enum):
+    full = 0
+    simple = 1
+    minimal = 2
+
 # defining variables
 
 language = None
@@ -78,6 +83,7 @@ strategy = None
 verbosity = -1
 solution_nodes_limit = -1
 iteration_limit = -1
+graph_style = None
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -197,6 +203,10 @@ def set_iteration_limit(limit):
     else:    
         iteration_limit = limit
 
+def set_graph_style(style):
+    global graph_style
+    graph_style = style
+
 def init():
     from .algebra import property_DNs
     property_DNs._init()
@@ -226,6 +236,7 @@ set_output_path(".")
 set_verbosity(1)
 set_solution_nodes_limit(math.inf)
 set_iteration_limit(100)
+set_graph_style(GraphStyle.full)
 
 
 def load_config():
@@ -251,6 +262,8 @@ def load_config():
                     set_solution_nodes_limit(value)
                 elif key == "iteration_limit":
                     set_iteration_limit(value)
+                elif key == "graph_style":
+                    set_graph_style(GraphStyle[value])
                 elif key in settings and not key.startswith('_'):
                     settings[key] = value
                 else:
