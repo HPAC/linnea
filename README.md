@@ -60,6 +60,8 @@ There are the following options (those are the names used in Python, the command
 
 * `generate_graph` Whether or not to generate a `.gv` file of the derivation graph. The default is `false`.
 
+* `graph_style` Style of the derivation graph. Either `full`, `simple`, or `minimal`. The default is `full`. Only applies if `generate_graph` is set to `True`.
+
 * `generate_pseudocode` Whether or not to generate pseudocode algorithms. The default is `false`.
 
 * `generate_code` Whether or not to generate the actual code of the algorithms. The default is `true`.
