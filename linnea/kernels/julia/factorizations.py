@@ -43,10 +43,10 @@ cholesky = FactorizationKernel(
     cf,
     None,
     CodeTemplate("""Base.LinAlg.LAPACK.potrf!('L', $_A)"""),
-    # CodeTemplate("""$_A = cholfact!($_A, :L)"""),
     None,
     [SizeArgument("N", _A, "rows")],
     )
+
 
 #####################
 # LU with pivoting
@@ -66,13 +66,13 @@ plu = FactorizationKernel(
     ),
     [InputOperand(_A, StorageFormat.full)],
     Times(Transpose(_P), _L, _U),
-    [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.UNIT_DIAGONAL, properties.NON_SINGULAR], StorageFormat.LUfact_L),
-     OutputOperand(_U, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.NON_SINGULAR], StorageFormat.LUfact_U),
-     OutputOperand(_P, _A, ("N", "N"), [properties.PERMUTATION], StorageFormat.LUfact_P)
+    [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.UNIT_DIAGONAL, properties.NON_SINGULAR], StorageFormat.lower_triangular_udiag),
+     OutputOperand(_U, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.NON_SINGULAR], StorageFormat.upper_triangular),
+     OutputOperand(_P, None, ("N", "N"), [properties.PERMUTATION], StorageFormat.ipiv)
     ],
     cf,
     CodeTemplate(),
-    CodeTemplate("$_A = lufact!($_A)"),
+    CodeTemplate("($_A, $_P, info) = Base.LinAlg.LAPACK.getrf!($_A)"),
     CodeTemplate(),
     [SizeArgument("N", _A, "rows")],
     )
@@ -179,7 +179,6 @@ eigendecomposition = FactorizationKernel(
     cf_eigen,
     None,
     CodeTemplate("$_W, $_A = Base.LinAlg.LAPACK.syev!('V', $uplo, $_A)"),
-    # CodeTemplate("$_A = eigfact!($_A)"),
     None,
     [SizeArgument("N", _A, "rows"),
      StorageFormatArgument("uplo", _A, StorageFormat.symmetric_lower_triangular, ["L", "U"]),]

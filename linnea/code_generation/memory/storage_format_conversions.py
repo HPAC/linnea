@@ -5,6 +5,7 @@ from ... import utils
 
 import itertools
 import operator
+import textwrap
 
 out_of_place_conversions = [
     sf.StorageFormatConversion(
@@ -37,6 +38,18 @@ out_of_place_conversions = [
         sf.StorageFormat.permutation_vector,
         sf.StorageFormat.full,
         utils.CodeTemplate("$output = eye($type, $n)[$input,:]\n")
+        ),
+    sf.StorageFormatConversion(
+        sf.StorageFormat.ipiv,
+        sf.StorageFormat.permutation_vector,
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            $output = [1:length($input);]
+            @inbounds for i in 1:length($input)
+                $output[i], $output[$input[i]] = $output[$input[i]], $output[i];
+            end
+            """
+            ))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.cholfact_L,

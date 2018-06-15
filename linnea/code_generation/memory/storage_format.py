@@ -31,13 +31,13 @@ class StorageFormat(enum.Enum):
     svdfact_S = 22
     svdfact_V = 23
     as_vector = 24
-
     """
     Output only. Actual format will be either symmetric_upper_triangular or
     symmetric_lower_triangular. If both are possible, symmetric_lower_triangular
     will be chosen.
     """
-    symmetric_triangular_out = 25 
+    symmetric_triangular_out = 25
+    ipiv = 26
 
     __ordering__ = {
         (triangular_udiag_opt, upper_triangular_udiag),
