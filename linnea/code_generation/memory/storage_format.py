@@ -63,6 +63,7 @@ class StorageFormat(enum.Enum):
         (svdfact_V, factorization_obj),
         (diagonal_vector, as_vector),
         (permutation_vector, as_vector),
+        (ipiv, as_vector),
         (symmetric_lower_triangular, symmetric_triangular_out),
         (symmetric_upper_triangular, symmetric_triangular_out),
         }
