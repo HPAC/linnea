@@ -81,6 +81,7 @@ reductions = list(itertools.chain(
                 scal,
                 matrix_sum,
                 lascl,
+                symm,
                 syrk,
                 symv,
                 trmv,
@@ -117,7 +118,6 @@ reductions = list(itertools.chain(
             ))
 
 unused = list(itertools.chain(
-                symm,
             ))
 
 # inversion_kernels = list(itertools.chain(
