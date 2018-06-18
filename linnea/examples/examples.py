@@ -553,10 +553,10 @@ class Example022():
 
         n = 10
 
-        B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
-        B.set_property(properties.INPUT)
+        A = Matrix("A", (n, n))
+        A.set_property(properties.SQUARE)
+        A.set_property(properties.NON_SINGULAR)
+        A.set_property(properties.INPUT)
 
         x = Vector("x", (n, sONE))
         x.set_property(properties.INPUT)
@@ -564,7 +564,7 @@ class Example022():
         w = Vector("w", (n, sONE))
         w.set_property(properties.OUTPUT)
 
-        self.eqns = Equations(Equal(w, Times(Inverse(B), x)))
+        self.eqns = Equations(Equal(w, Times(Inverse(A), x)))
 
 
 class Example023():
@@ -3308,14 +3308,14 @@ class Example117():
 
         n = 10
 
-        B = Matrix("B", (n, n))
-        B.set_property(properties.SPD)
+        S = Matrix("B", (n, n))
+        S.set_property(properties.SPD)
 
         x = Vector("x", (n, sONE))
 
         w = Vector("w", (n, sONE))
 
-        self.eqns = Equations(Equal(w, Times(Inverse(B), x)))
+        self.eqns = Equations(Equal(w, Times(Inverse(S), x)))
 
 
 class Example118():
@@ -3356,17 +3356,16 @@ class Example120():
         # TAGS
         # trick, tricks
 
-        n1 = 10
+        n = 20
+        m = 10
 
-        A = Matrix("A", (n1, n1))
-        B = Matrix("B", (n1, n1))
-        C = Matrix("C", (n1, n1))
+        A = Matrix("A", (n, m))
+        B = Matrix("B", (n, m))
 
         A.set_property(properties.INPUT)
         B.set_property(properties.INPUT)
-        C.set_property(properties.INPUT)
 
-        X = Matrix("X", (n1, n1))
+        X = Matrix("X", (m, m))
 
         X.set_property(properties.OUTPUT)
 
@@ -4187,3 +4186,229 @@ class Example143():
         X.set_property(properties.OUTPUT)
 
         self.eqns = Equations(Equal(X, Times(Inverse(A), B)))
+
+
+class Example144():
+    def __init__(self):
+
+        # TAGS
+        # slides
+
+        n = 10 # 10
+        m = 5 # 5
+
+        M = Matrix("M", (n, n))
+        M.set_property(properties.SPD)
+        M.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, m))
+        # X.set_property(properties.COLUMN_PANEL)
+        X.set_property(properties.FULL_RANK)
+        X.set_property(properties.INPUT)
+
+        z = Vector("z", (m, sONE))
+        z.set_property(properties.OUTPUT)
+
+        y = Vector("y", (m, sONE))
+        y.set_property(properties.INPUT)
+
+        self.eqns = Equations(Equal(z, Times(Transpose(X), Inverse(M), X, y)))
+
+
+class Example145():
+    def __init__(self):
+
+        # TAGS
+        # slides
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(A, B, C), D)),
+                            )
+
+
+class Example146():
+    def __init__(self):
+
+        # TAGS
+        # slides
+
+        n1 = 10
+        n2 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+        E.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(A, B, C), Times(C, D, E))),
+                            )
+
+
+class Example147():
+    def __init__(self):
+
+        # TAGS
+        # properties,
+
+        n = 100
+
+        L1 = Matrix("L1", (n, n))
+        L1.set_property(properties.INPUT)
+        L1.set_property(properties.LOWER_TRIANGULAR)
+        L1.set_property(properties.FULL_RANK)
+
+        L2 = Matrix("L2", (n, n))
+        L2.set_property(properties.INPUT)
+        L2.set_property(properties.LOWER_TRIANGULAR)
+        L2.set_property(properties.FULL_RANK)
+
+        U = Matrix("U", (n, n))
+        U.set_property(properties.INPUT)
+        U.set_property(properties.UPPER_TRIANGULAR)
+        U.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+
+        self.eqns = Equations(
+                            Equal(X, Times(Inverse(Plus(L1, Times(InverseTranspose(U), L2))), B)),
+                            )
+
+
+class Example148():
+    def __init__(self):
+
+        # TAGS
+        # properties,
+
+        n = 100
+
+        L = Matrix("L", (n, n))
+        L.set_property(properties.INPUT)
+        L.set_property(properties.LOWER_TRIANGULAR)
+        L.set_property(properties.FULL_RANK)
+
+        U1 = Matrix("U1", (n, n))
+        U1.set_property(properties.INPUT)
+        U1.set_property(properties.UPPER_TRIANGULAR)
+        U1.set_property(properties.FULL_RANK)
+
+        U2 = Matrix("U2", (n, n))
+        U2.set_property(properties.INPUT)
+        U2.set_property(properties.UPPER_TRIANGULAR)
+        U2.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+
+        self.eqns = Equations(
+                            Equal(X, Times(Inverse(Plus(L, Times(InverseTranspose(U1), U2))), B)),
+                            )
+
+
+class Example149():
+    def __init__(self):
+
+        # TAGS
+        # trick, tricks
+
+        n1 = 10
+
+        A = Matrix("A", (n1, n1))
+        B = Matrix("B", (n1, n1))
+        C = Matrix("C", (n1, n1))
+        D = Matrix("D", (n1, n1))
+
+        A.set_property(properties.INPUT)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+        D.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(Transpose(A), C, B), Times(Transpose(B), Transpose(C), A), Times(Transpose(A), C, Transpose(C), A))) 
+                            )
+
+
+class Example150():
+    def __init__(self):
+
+        # TAGS
+        # diagonal
+
+        n = 1000
+
+        D = Matrix("D", (n, n))
+        D.set_property(properties.SQUARE)
+        D.set_property(properties.DIAGONAL)
+        D.set_property(properties.FULL_RANK)
+        D.set_property(properties.INPUT)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.SQUARE)
+        B.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(Equal(X, Times(D, B)))
+
+
+class Example151():
+    def __init__(self):
+
+        # TAGS
+        # explicit inversion
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        B = Matrix("B", (n, n))
+        C = Matrix("C", (n, n))
+
+        A.set_property(properties.INPUT)
+        A.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.INPUT)
+        C.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Plus(A, Inverse(A))),
+                            )
