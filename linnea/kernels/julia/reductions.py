@@ -514,12 +514,12 @@ symm = KernelDescription(
 
 # SYRK
 
-A = Matrix("A", (m, k))
-C = Matrix("C", (m, n))
+A = Matrix("A", (n, k))
+C = Matrix("C", (n, n))
 C.set_property(properties.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: d["K"]*(d["M"]**2)
+cf = lambda d: d["K"]*(d["N"]**2)
 
 
 syrk = KernelDescription(
@@ -542,10 +542,49 @@ syrk = KernelDescription(
     "",
     "syrk!($uplo, $transA, $alpha, $A, $beta, $C)",
     "",
-    [SizeArgument("M", Op1(A), "rows"),
+    [SizeArgument("N", Op1(A), "rows"),
      SizeArgument("K", Op1(A), "columns"),
      StorageFormatArgument("uplo", C, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
     )
+
+
+# SYR2K
+
+A = Matrix("A", (n, k))
+B = Matrix("B", (n, k))
+C = Matrix("C", (n, n))
+C.set_property(properties.SYMMETRIC)
+alpha = Scalar("alpha")
+beta = Scalar("beta")
+cf = lambda d: d["K"]*(d["N"]**2)
+
+syr2k = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Plus(Times(alpha, Op1(A), Op1(Transpose(B))), Times(alpha, Op1(B), Op1(Transpose(A))), Times(beta, C))}
+    ),
+    [
+        OperatorKV("trans", {"N": Identity, "T": Transpose}, Op1),
+        DefaultValueKV(alpha, [ConstantScalar(1.0)]),
+        DefaultValueKV(beta, [ConstantScalar(0.0), ConstantScalar(1.0)])
+    ],
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+     InputOperand(beta, StorageFormat.full),
+     InputOperand(C, StorageFormat.symmetric_triangular),
+    ],
+    OutputOperand(C, StorageFormat.symmetric_triangular_out), # return value
+    cf, # cost function
+    "",
+    "syr2k!($uplo, $trans, $alpha, $A, $B, $beta, $C)",
+    "",
+    [SizeArgument("N", Op1(A), "rows"),
+     SizeArgument("K", Op1(A), "columns"),
+     StorageFormatArgument("uplo", C, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+    )
+
+
 
 
 # TRMM

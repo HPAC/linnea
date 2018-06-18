@@ -28,7 +28,7 @@ scal = list(reductions.scal.generate_kernels())
 matrix_sum = list(reductions.matrix_sum.generate_kernels())
 lascl = list(reductions.lascl.generate_kernels())
 syrk = list(reductions.syrk.generate_kernels())
-# NEW (not used yet):
+syr2k = list(reductions.syr2k.generate_kernels())
 symv = list(reductions.symv.generate_kernels())
 trmv = list(reductions.trmv.generate_kernels())
 syr = list(reductions.syr.generate_kernels())
@@ -83,6 +83,7 @@ reductions = list(itertools.chain(
                 lascl,
                 symm,
                 syrk,
+                syr2k,
                 symv,
                 trmv,
                 syr,
