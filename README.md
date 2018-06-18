@@ -14,7 +14,7 @@ If you intend to contribute to Linnea, you can install it from local sources by 
 
 Linnea is a prototype of a compiler/program synthesis tool that automates the translation of the mathematical description of a linear algebra problem to an efficient sequence of calls to BLAS and LAPACK kernels. The main idea of Linnea is to construct a search graph that represents a large number of programs, taking into account knowledge about linear algebra, numerical linear algebra and high-performance computing. The algebraic nature of the domain is used to reduce the size of the search graph, without reducing the size of the search space that is explored.
 
-At the moment, Linnea generates Julia code (see https://julialang.org), using BLAS and LAPACK wrappers whenever possible.
+The input to Linnea are linear algebra expressions. As operands, matrices, vectors and scalars are supported. Operands can be annotated with properties, such as 'lower triangular' or 'symmetric'. Supported operations are addition, multiplication, transposition and inversion. At the moment, Linnea generates Julia code (see https://julialang.org), using BLAS and LAPACK wrappers whenever possible.
 
 ## Usage
 
@@ -22,19 +22,68 @@ Linnea can be used in two different ways.
 
 ### Python Module
 
-At the moment, Linnea is primarily a Python module. An example script for how to use Linnea within Python can found in `examples/run_linnea.py`. Examples of input problems are provided in the `examples/inputX.py` files.
+At the moment, Linnea is primarily a Python module. An example script for how to use Linnea within Python can found in `examples/run_linnea.py`. The input expressions are represented as Python objects. As an example, consider the description of a lower triangular linear system (omitting imports):
+
+```python
+n = 1000
+
+L = Matrix("L", (n, n))
+L.set_property(properties.INPUT)
+L.set_property(properties.LOWER_TRIANGULAR)
+L.set_property(properties.FULL_RANK)
+
+x = Vector("x", (n, 1))
+x.set_property(properties.INPUT)
+
+y = Vector("y", (n, 1))
+y.set_property(properties.OUTPUT)
+
+input = Equations(Equal(y, Times(Inverse(L), x)))
+```
+
+Further examples of input problems are provided in the `examples/inputX.py` files.
 
 Options can be set with a number of `linnea.config.set_X()` functions.
 
 ### Commandline Tool
 
-When installing Linnea via `pip`, the commandline tool `linnea` is installed. As input, it takes a description of the input problem in a simple custom language. Some examples are provided in `examples/inputX.la`. Notice that the primary purpose of this input format is to make it slightly easier to try out Linnea. There are no plans to establish this as an actual language. New features will probably not be immediately available in this language, and the language may change in the future without being backward compatible.
+When installing Linnea via `pip`, the commandline tool `linnea` is installed. As input, it takes a description of the input problem in a simple custom language. With this language, the same lower triangular system is described as:
+
+```
+n = 1000
+
+Matrix L(n, n) <Input, LowerTriangular, FullRank>
+ColumnVector x(n) <Input>
+ColumnVector y(n) <Output>
+
+y = inv(L)*x
+```
+
+Further examples are provided in `examples/inputX.la`. Notice that the primary purpose of this input format is to make it slightly easier to try out Linnea. There are no plans to establish this as an actual language. New features will probably not be immediately available in this language, and the language may change in the future without being backward compatible.
 
 The list of commandline options is available via `linnea -h`.
 
 ### Output
 
 As output, Linnea generates a directory structure that may contain code and pseudocode files, as well a file containing a description of the derivation graph, the primary datastructure used by Linnea. Which files are generated can be set as options. Likewise, the location of the output can be specified. By default, it is the current directory.
+
+For the linear system from the previous examples, the following code will be generated:
+
+```julia
+using Base.LinAlg.BLAS
+using Base.LinAlg
+
+function algorithm0(ml0, ml1)
+    # cost 1e+06
+    # L: ml0, full, x: ml1, full
+    # tmp1 = (L^-1 x)
+    trsv!('L', 'N', 'N', ml0, ml1)
+
+    # tmp1: ml1, full
+    # y = tmp1
+    return (ml1)
+end
+```
 
 ### Options
 
