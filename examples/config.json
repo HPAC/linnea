@@ -12,5 +12,5 @@
     "generate_code": true,
     "generate_experiments": false,
     "verbosity": 1,
-    "graph_style": "full",
+    "graph_style": "full"
 }
