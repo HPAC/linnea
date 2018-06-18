@@ -231,7 +231,7 @@ class StorageFormatArgument(Argument):
         except KeyError:
             raise memory_module.OperandNotInMemory()
 
-        if self.storage_format == storage_format:
+        if self.storage_format <= storage_format:
             replacement = self.values[0]
         else:
             replacement = self.values[1]
