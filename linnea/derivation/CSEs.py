@@ -41,18 +41,18 @@ class Subexpression():
         self.expr_inv = None
         self.expr_invtrans = None
         if type == CSEType.none:
-            self.expr_var = [expr]
+            self.expr_var = [self.expr]
         elif type == CSEType.inverse:
             self.expr_inv = invert(expr)
-            self.expr_var = [self.expr_inv]
+            self.expr_var = [self.expr, self.expr_inv]
         elif type == CSEType.transpose:
             self.expr_trans = transpose(expr)
-            self.expr_var = [self.expr_trans]
+            self.expr_var = [self.expr, self.expr_trans]
         elif type == CSEType.inverse_transpose:
             self.expr_inv = invert(expr)
             self.expr_trans = transpose(expr)
             self.expr_invtrans = invert_transpose(expr)
-            self.expr_var = [self.expr_inv, self.expr_trans, self.expr_invtrans]
+            self.expr_var = [self.expr, self.expr_inv, self.expr_trans, self.expr_invtrans]
 
         # print([str(expr) for expr in self.expr_var])
         self.eqn_idx = eqn_idx
