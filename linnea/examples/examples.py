@@ -573,7 +573,7 @@ class Example023():
         # TAGS
         # triangular system
 
-        n = 10
+        n = 1000
 
         L = Matrix("L", (n, n))
         L.set_property(properties.LOWER_TRIANGULAR)
@@ -3217,9 +3217,13 @@ class Example114():
         n2 = 10 
 
         A = Matrix("A", (n1, n1))
+        A.set_property(properties.INPUT)
+
         B = Matrix("B", (n1, n1))
+        B.set_property(properties.INPUT)
 
         X = Matrix("X", (n1, n1))
+        X.set_property(properties.INPUT)
 
         self.eqns = Equations(
                             Equal(X, Times(A, B))
@@ -4411,4 +4415,48 @@ class Example151():
 
         self.eqns = Equations(
                             Equal(X, Plus(A, Inverse(A))),
+                            )
+
+
+class Example152():
+    def __init__(self):
+
+        # TAGS
+        # simple, product
+
+        n1 = 10
+        n2 = 10 
+
+        S = Matrix("S", (n1, n1))
+        S.set_property(properties.INPUT)
+        S.set_property(properties.SYMMETRIC)
+
+        B = Matrix("B", (n1, n1))
+        B.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(S, B))
+                            )
+
+
+class Example153():
+    def __init__(self):
+
+        # TAGS
+        # simple, product
+
+        n1 = 10
+        n2 = 10 
+
+        A = Matrix("A", (n1, n1))
+        A.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(Transpose(A), A))
                             )
