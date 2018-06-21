@@ -144,10 +144,13 @@ def main():
         examples = [(args.jobindex, lamp_examples[args.jobindex-1])]
 
     strategies = []
+    algorithms = []
     if args.constructive:
         strategies.append(Strategy.constructive)
+        algorithms.append(("constructive", "algorithm0c"))
     if args.exhaustive:
         strategies.append(Strategy.exhaustive)
+        algorithms.append(("exhaustive", "algorithm0e"))
     if not strategies:
         return
 
@@ -186,7 +189,6 @@ def main():
             reference_code.generate_reference_code(name, example.eqns)
             operand_generation.generate_operand_generator(name, example.eqns)
 
-            algorithms = [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]
             runner.generate_runner(name, algorithms)
 
 
