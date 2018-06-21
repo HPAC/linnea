@@ -18,7 +18,7 @@ python3 ${HOME}/linnea/linnea/experiments/experiments.py generate_code -j=${LSB_
 module load cmake/3.10.1
 module load gcc/5
 
-cd ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Cpp
+cd ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}/Cpp
 mkdir -p build
 cd build
 rm -rf *

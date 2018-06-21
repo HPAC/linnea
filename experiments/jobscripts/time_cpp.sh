@@ -14,10 +14,10 @@ cd ${HOME}/linnea/results/execution
 mkdir -p run_${LSB_JOBID}
 cd run_${LSB_JOBID}
 
-if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Cpp/build/lamp_example${LSB_JOBINDEX}c ]; then
-    ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Cpp/build/lamp_example${LSB_JOBINDEX}c
+if [ -f ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}/Cpp/build/lamp_example${LSB_JOBINDEX} ]; then
+    ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}/Cpp/build/lamp_example${LSB_JOBINDEX}
 else
-    echo "File not found: ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}c/Cpp/build/lamp_example${LSB_JOBINDEX}c"
+    echo "File not found: ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}/Cpp/build/lamp_example${LSB_JOBINDEX}"
 fi
 
 exit
