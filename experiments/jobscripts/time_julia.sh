@@ -8,13 +8,19 @@
 
 # TODO commanline options for constructive/exhaustive, Matlab/C++/Julia?
 
+module load gcc/7
+
+cd ${HOME}/linnea/results/execution
+mkdir -p run_${LSB_JOBID}
+cd run_${LSB_JOBID}
+
 for i in {1..31}; do
-    if [ -f ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl ]; then
-        echo "File found!: ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl"
-        # ${DIR}/Julia/seed_${SEED}_matrix_chain_${i}/runner.jl > TEST_OUT_${SEED}_${i} 2>&1
+    if [ -f ${HOME}/linnea/output/lamp_example${i}/Julia/runner.jl ]; then
+        # echo "File found!: ${HOME}/linnea/output/lamp_example${i}/Julia/runner.jl"
+        ${HOME}/julia/julia-0.6.3/julia ${HOME}/linnea/output/lamp_example${i}/Julia/runner.jl > julia_results_lamp_example${i}.txt 2>&1
     else
-        echo "File not found: ${HOME}/linnea/output/lamp_example${i}c/Julia/runner.jl"
+        echo "File not found: ${HOME}/linnea/output/lamp_example${i}/Julia/runner.jl"
     fi
 done
 
-#exit
+exit
