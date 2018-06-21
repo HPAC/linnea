@@ -185,8 +185,8 @@ def main():
             reference_code.generate_reference_code(name, example.eqns)
             operand_generation.generate_operand_generator(name, example.eqns)
 
-            cgu.remove_files(os.path.join(config.output_path, name, config.language.name, "constructive"))
-            cgu.remove_files(os.path.join(config.output_path, name, config.language.name, "exhaustive"))
+            # cgu.remove_files(os.path.join(config.output_path, name, config.language.name, "constructive"))
+            # cgu.remove_files(os.path.join(config.output_path, name, config.language.name, "exhaustive"))
 
             algorithms = [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]
             runner.generate_runner(name, algorithms)
