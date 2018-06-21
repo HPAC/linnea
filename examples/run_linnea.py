@@ -23,6 +23,6 @@ if __name__ == "__main__":
     graph.write_output(code=True,
                        pseudocode=False,
                        output_name="tmp",
-                       operand_generator=False,
+                       experiment_code=False,
                        algorithms_limit=100,
                        graph=False)

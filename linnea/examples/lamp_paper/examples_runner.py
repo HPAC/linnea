@@ -29,7 +29,7 @@ def generate(eq, append, merging_, algos = 100, iters = 10,reps=10):
                        #pseudocode=True,
                        # output_name=args.input.split(".")[0],
                        output_name="example_{}_{}_{}".format(type(equations).__name__, append, "merging" if merging_  else "nomerging"),
-                       operand_generator=True,
+                       experiment_code=True,
                        max_algorithms=100)
                        #graph=True)
     time_measurements.append(graph.nodes_count())

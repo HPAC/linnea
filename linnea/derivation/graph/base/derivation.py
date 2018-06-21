@@ -27,7 +27,7 @@ from ...matrix_sum import decompose_sum
 from ...utils import select_optimal_match
 from ....code_generation.memory import memory as memory_module
 from ....code_generation import utils as cgu
-from ....code_generation import experiments as cge
+from ....code_generation.experiments import operand_generation, runner, reference_code
 from .... import config
 from .... import temporaries
 
@@ -63,7 +63,7 @@ class DerivationGraphBase(base.GraphBase):
         return new_nodes
 
 
-    def write_output(self, code=True, pseudocode=False, output_name="tmp", operand_generator=False, algorithms_limit=1, graph=False, graph_style=config.GraphStyle.full):
+    def write_output(self, code=True, pseudocode=False, output_name="tmp", experiment_code=False, algorithms_limit=1, graph=False, graph_style=config.GraphStyle.full, subdir_name="generated", algorithm_name="algorithm{}"):
 
         if not config.output_path:
             raise config.OutputPathNotSet("Unable to write output: output_path not set.")
@@ -81,24 +81,16 @@ class DerivationGraphBase(base.GraphBase):
         #    print("No algorithm generated for this example")
         #    return False
 
-        if code or pseudocode or operand_generator:
+        if code or pseudocode or experiment_code:
             directory_name = os.path.join(config.output_path, output_name)
             if not os.path.exists(directory_name):
                 os.makedirs(directory_name)
             else:
                 # Removing existing algorithm files
-                algorithms_dir_name = os.path.join(directory_name, config.language.name, "algorithms")
-                if os.path.exists(algorithms_dir_name):
-                    for file in os.listdir(algorithms_dir_name):
-                        path_to_file = os.path.join(algorithms_dir_name, file)
-                        if os.path.isfile(path_to_file):
-                            os.remove(path_to_file)
+                algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name)
+                cgu.remove_files(algorithms_dir_name)
                 pseudocode_dir_name = os.path.join(directory_name, config.language.name, "pseudocode")
-                if os.path.exists(pseudocode_dir_name):
-                    for file in os.listdir(pseudocode_dir_name):
-                        path_to_file = os.path.join(pseudocode_dir_name, file)
-                        if os.path.isfile(path_to_file):
-                            os.remove(path_to_file)
+                cgu.remove_files(pseudocode_dir_name)
 
         if code or pseudocode:
             for n, (path, cost) in enumerate(paths):
@@ -113,7 +105,7 @@ class DerivationGraphBase(base.GraphBase):
                 algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
 
                 if code:
-                    cgu.algorithm_to_file(output_name, "algorithm{}".format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
+                    cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
 
                 if pseudocode:
                     file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
@@ -124,37 +116,15 @@ class DerivationGraphBase(base.GraphBase):
                     output_file.write(algorithm.pseudocode())
                     output_file.close()
 
-        if operand_generator:
-            input, output = self.root.equations.input_output()
-            input_str = ", ".join([operand.name for operand in input])
-            output_str = ", ".join([operand.name for operand in output])
-            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_julia_expression(), input_str, output_str, config.Language.Julia)
-            cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_julia_expression(recommended=True),
-                                  input_str, output_str, config.Language.Julia)
-            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Blaze),
-                                  input_str, output_str, config.Language.Cpp, ".hpp", "blaze")
-            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Eigen),
-                                  input_str, output_str, config.Language.Cpp, ".hpp", "eigen")
-            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo),
-                                  input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
-            cgu.algorithm_to_file(output_name, "recommended",
-                                  self.root.equations.to_cpp_expression(config.CppLibrary.Eigen, recommended=True),
-                                  input_str, output_str, config.Language.Cpp, ".hpp", "eigen")
-            cgu.algorithm_to_file(output_name, "recommended",
-                                  self.root.equations.to_cpp_expression(config.CppLibrary.Armadillo, recommended=True),
-                                  input_str, output_str, config.Language.Cpp, ".hpp", "armadillo")
-            cgu.algorithm_to_file(output_name, "naive", self.root.equations.to_matlab_expression(), input_str, output_str,
-                                  config.Language.Matlab, ".m")
-            cgu.algorithm_to_file(output_name, "recommended", self.root.equations.to_matlab_expression(recommended=True),
-                                  input_str, output_str, config.Language.Matlab, ".m")
-            cge.operand_generator_to_file(output_name, input, input_str)
-            cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Cpp)
-            cge.operand_generator_to_file(output_name, input, input_str, language=config.Language.Matlab)
-            cge.benchmarker_to_file(output_name, algorithms_count=len(paths), language=config.Language.Julia)
-            cge.benchmarker_to_file(output_name, language=config.Language.Matlab)
-            cge.benchmarker_to_file(output_name, language=config.Language.Cpp)
-            cge.generate_cmake_script_v2(output_name)
-            # create language runner
+        if experiment_code:
+
+            reference_code.generate_reference_code(output_name, self.root.equations)
+
+            operand_generation.generate_operand_generator(output_name, self.root.equations)
+
+            algorithms = [("generated", "algorithm0")]
+            runner.generate_runner(output_name, algorithms)
+
 
         return True
 

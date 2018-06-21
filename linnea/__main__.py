@@ -127,7 +127,7 @@ def main():
     graph.write_output(code=config.generate_code,
                        pseudocode=config.generate_pseudocode,
                        output_name=config.output_name,
-                       operand_generator=config.generate_experiments,
+                       experiment_code=config.generate_experiments,
                        algorithms_limit=config.algorithms_limit,
                        graph=config.generate_graph,
                        graph_style=config.graph_style)

@@ -17,6 +17,8 @@ import linnea.examples.examples
 import linnea.examples.lamp_paper.examples as lamp_paper
 from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
 from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
+from linnea.code_generation.experiments import operand_generation, runner, reference_code
+from linnea.code_generation import utils as cgu
 
 def measure(example, name, strategy, merge, reps=10):
 
@@ -44,7 +46,7 @@ def measure(example, name, strategy, merge, reps=10):
         graph.write_output(code=True,
                            pseudocode=False,
                            output_name=name,
-                           operand_generator=False,
+                           experiment_code=False,
                            algorithms_limit=1,
                            graph=False)
         t_end = time.perf_counter()
@@ -60,8 +62,10 @@ def generate(example, name, strategy):
 
     if strategy is Strategy.constructive:
         DerivationGraph = CDGraph
+        algorithm_name = "algorithm{}c"
     elif strategy is Strategy.exhaustive:
         DerivationGraph = EDGraph
+        algorithm_name = "algorithm{}e"
     else:
         raise NotImplementedError()
 
@@ -74,12 +78,14 @@ def generate(example, name, strategy):
     graph.write_output(code=True,
                        pseudocode=False,
                        output_name=name,
-                       operand_generator=True,
+                       experiment_code=False,
                        algorithms_limit=1,
-                       graph=False)
+                       graph=False,
+                       subdir_name=strategy.name,
+                       algorithm_name=algorithm_name)
 
-def generate_name(index, strategy):
-    return "lamp_example{}{}".format(index, strategy.name[0])
+def generate_name(index):
+    return "lamp_example{}".format(index)
 
 def main():
 
@@ -138,13 +144,11 @@ def main():
         examples = [(args.jobindex, lamp_examples[args.jobindex-1])]
 
     strategies = []
-    if args.constructive and args.exhaustive:
-        strategies = [Strategy.exhaustive, Strategy.constructive]
-    elif args.constructive:
-        strategies = [Strategy.constructive]
-    elif args.exhaustive:
-        strategies = [Strategy.exhaustive]
-    else:
+    if args.constructive:
+        strategies.append(Strategy.constructive)
+    if args.exhaustive:
+        strategies.append(Strategy.exhaustive)
+    if not strategies:
         return
 
     if args.mode == "time_generation":
@@ -174,9 +178,20 @@ def main():
 
     elif args.mode == "generate_code":
         for idx, example in examples:
+            name = generate_name(idx)
             for strategy in strategies:
-                name = generate_name(idx, strategy)
                 generate(example, name, strategy)
+
+            reference_code.generate_reference_code(name, example.eqns)
+            operand_generation.generate_operand_generator(name, example.eqns)
+
+            cgu.remove_files(os.path.join(config.output_path, name, config.language.name, "constructive"))
+            cgu.remove_files(os.path.join(config.output_path, name, config.language.name, "exhaustive"))
+
+            algorithms = [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]
+            runner.generate_runner(name, algorithms)
+
+
 
 
 if __name__ == "__main__":
