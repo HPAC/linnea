@@ -39,9 +39,10 @@ class DerivationGraphBase(base.GraphBase):
     Graph for equations.
     """
 
-    def __init__(self, root_equations):
+    def __init__(self, input):
         super().__init__()
-        self.root = DerivationGraphNode(root_equations)
+        self.input = input
+        self.root = DerivationGraphNode(input)
         self.active_nodes = [self.root]
         self.nodes = [self.root]
 
@@ -102,7 +103,7 @@ class DerivationGraphBase(base.GraphBase):
                     matched_kernels.extend(edge_label.matched_kernels)
                     current_node = current_node.successors[idx]
 
-                algorithm = cgu.Algorithm(self.root.equations, current_node.equations, matched_kernels, cost)
+                algorithm = cgu.Algorithm(self.input, current_node.equations, matched_kernels, cost)
 
                 if code:
                     cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
@@ -118,9 +119,9 @@ class DerivationGraphBase(base.GraphBase):
 
         if experiment_code:
 
-            reference_code.generate_reference_code(output_name, self.root.equations)
+            reference_code.generate_reference_code(output_name, self.input)
 
-            operand_generation.generate_operand_generator(output_name, self.root.equations)
+            operand_generation.generate_operand_generator(output_name, self.input)
 
             algorithms = [(subdir_name, algorithm_name.format(0))]
             runner.generate_runner(output_name, algorithms)
@@ -131,12 +132,12 @@ class DerivationGraphBase(base.GraphBase):
     def optimal_algorithm_to_str(self):
         matched_kernels, cost, final_equations = self.optimal_algorithm()
         if matched_kernels:
-            algorithm = cgu.Algorithm(self.root.equations, final_equations, matched_kernels, cost)
+            algorithm = cgu.Algorithm(self.input, final_equations, matched_kernels, cost)
             code = algorithm.code()
             # code_lines = code.splitlines()
             # del code_lines[1:3] # remove "using Base.LinAlg..."
             # code = "\n".join(code_lines)
-            function_name = "linnea_function{:X}".format(hash(self.root.equations))
+            function_name = "linnea_function{:X}".format(hash(self.input))
             return function_name, cgu.algorithm_to_str(function_name, code, algorithm.experiment_input, algorithm.experiment_output)
         else:
             return None, None
