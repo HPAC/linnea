@@ -20,7 +20,7 @@ algorithm_plot = {config.Language.Julia: """Benchmarker.Plotter.add_data(plotter
 
 benchmarker_code = {config.Language.Julia: textwrap.dedent(
                     """
-                    using Test
+                    using Base.Test
                     using MatrixGenerator
                     
                     include("operand_generator.jl")
