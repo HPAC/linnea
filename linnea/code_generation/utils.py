@@ -461,17 +461,16 @@ cpp_template = textwrap.dedent(
 
 def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input, output,
                       language = config.language,
-                      file_extension = config.filename_extension,
-                      filename_addition = ""):
+                      file_extension = config.filename_extension):
     file_name = os.path.join(config.output_path, output_name, language.name, subdir_name,
-                             "{}{}{}".format(algorithm_name, "_{0}".format(filename_addition) if filename_addition else "", file_extension))
+                             "".join([algorithm_name, file_extension]))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
     output_file = open(file_name, "wt")
     if config.verbosity >= 2:
         print("Generate algorithm file {}".format(file_name))
-    algorithm_name = algorithm_name + ("_" + filename_addition if filename_addition else "")
+    algorithm_name = algorithm_name
     algorithm_str = algorithm_to_str(algorithm_name, algorithm, input, output, language)
     # algorithm_str = julia_template.format(algorithm_name, input, textwrap.indent(algorithm, "    "), output)
     output_file.write(algorithm_str)

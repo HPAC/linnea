@@ -122,7 +122,7 @@ class DerivationGraphBase(base.GraphBase):
 
             operand_generation.generate_operand_generator(output_name, self.root.equations)
 
-            algorithms = [("generated", "algorithm0")]
+            algorithms = [(subdir_name, algorithm_name.format(0))]
             runner.generate_runner(output_name, algorithms)
 
 
