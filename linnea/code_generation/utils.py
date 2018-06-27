@@ -1,5 +1,7 @@
 
-from ..algebra.expression import Symbol
+from ..algebra.expression import Symbol, Times, Inverse, InverseTranspose, \
+                                 LinSolveL, LinSolveR
+from ..algebra.equations import Equations
 
 from .. import config
 
@@ -9,6 +11,7 @@ import copy
 import math
 import textwrap
 import os
+import matchpy
 
 class Algorithm():
     """Represents an Algorithm and translates it to code.
@@ -506,4 +509,53 @@ def remove_files(directory_name):
             path_to_file = os.path.join(directory_name, file)
             if os.path.isfile(path_to_file):
                 os.remove(path_to_file)
+
+
+WD1 = matchpy.Wildcard.dot("WD1")
+WD2 = matchpy.Wildcard.dot("WD2")
+WS1 = matchpy.Wildcard.star("WS1")
+WS2 = matchpy.Wildcard.star("WS2")
+
+linsolveL = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2)),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(WD1, WD2), *WS2)
+    )
+
+linsolveLT = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, InverseTranspose(WD1), WD2, WS2)),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(Transpose(WD1), WD2), *WS2)
+    )
+
+linsolveR = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2)),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, WD2), *WS2)
+    )
+
+linsolveRT = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, WD1, InverseTranspose(WD2), WS2)),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, Transpose(WD2)), *WS2)
+    )
+
+def replace_linsolve_left(equations):
+    """Replaces linear systems with a LinSolve operator.
+
+    This function can be used to generate Equations to generate naive and
+    recommended code.
+    """
+    new_eqns = []
+    for eqn in equations:
+        eqn = matchpy.replace_all(eqn, [linsolveL, linsolveLT])
+        new_eqns.append(eqn)
+    return Equations(*new_eqns)
     
+def replace_linsolve_right(equations):
+    """Replaces linear systems with a LinSolve operator.
+
+    This function can be used to generate Equations to generate naive and
+    recommended code.
+    """
+    new_eqns = []
+    for eqn in equations:
+        eqn = matchpy.replace_all(eqn, [linsolveR, linsolveRT])
+        new_eqns.append(eqn)
+    return Equations(*new_eqns)

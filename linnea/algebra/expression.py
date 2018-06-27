@@ -499,11 +499,11 @@ class Equal(Operator):
         return "{0} = {1};".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
 
     def to_cpp_expression(self, lib, recommended=False):
-        return {
-            CppLibrary.Blaze : "auto {0} = blaze::evaluate({1});",
-            CppLibrary.Eigen : "auto {0} = ({1}).eval();",
-            CppLibrary.Armadillo : "auto {0} = ({1}).eval();"
-        }.get(lib).format(*map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
+        if lib is CppLibrary.Blaze:
+            template_str = "auto {0} = blaze::evaluate({1});"
+        else:
+            template_str = "auto {0} = ({1}).eval();"
+        return template_str.format(*map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
 
 class Plus(Operator):
     """docstring for Plus"""
@@ -672,136 +672,14 @@ class Times(Operator):
     def is_inverse_type(self, type):
         return type in [Inverse, InverseTranspose]
 
-    def recommended_solve_expression(self, idx, to_expression_function_name):
-        op = self.operands[idx]
-        to_expression_function = operator.methodcaller(to_expression_function_name, recommended=True)
-        to_expression_function_strip_inverse = operator.methodcaller(to_expression_function_name, recommended=True, strip_inverse=True)
-        if self.is_inverse_type(type(op)):
-            # there are at least two elements to process
-            #  since op is inverse, it will be inv(a) * b -> a \ b
-            # doesn't matter if b is inverse or not
-            if idx != len(self.operands) - 1:
-                idx, second_operand = self.recommended_solve_expression(idx + 1, to_expression_function_name)
-                return (idx, "(({0})\({1}))".format(
-                    # op.to_julia_expression(recommended=True, strip_inverse=True),
-                    to_expression_function_strip_inverse(op),
-                    second_operand
-                ))
-            else:
-                return (idx + 1,
-                        "{0}".format(to_expression_function(op))
-                        # "{0}".format(op.to_julia_expression(recommended=True))
-                        )
-        # only two elements are left, check if we should apply a * inv(b) -> a / b
-        elif idx == len(self.operands) - 2:
-            op_next = self.operands[idx + 1]
-            # if next is an inverse, match a * inv(b) -> a / b
-            if self.is_inverse_type(type(op_next)):
-                return (idx + 2, "({0}/({1}))".format(
-                    # op.to_julia_expression(recommended=True),
-                    # op_next.to_julia_expression(recommended=True, strip_inverse=True)
-                    to_expression_function(op),
-                    to_expression_function_strip_inverse(op_next)
-                ))
-            else:
-                return (idx + 1,
-                        "{0}".format(to_expression_function(op))
-                        )
-        #otherwise, simply return this element processed
-        else:
-            return (idx + 1,
-                    "{0}".format(to_expression_function(op))
-                    )
-
-    def solve_left_side_cpp(self, lib, op):
-        op_str = op.to_cpp_expression(lib, recommended=True, strip_inverse=True)
-        # here we assume that op can only be Inverse - an input matrix wrapped with inverse
-        # trimatu() and trimatl() for solvers
-        if lib == CppLibrary.Armadillo:
-            if op.has_property(properties.UPPER_TRIANGULAR):
-                return "arma::trimatu({0})".format(op_str)
-            elif op.has_property(properties.LOWER_TRIANGULAR):
-                return "trimatl({0})".format(op_str)
-            else:
-                return op_str
-        # triangular view
-        elif lib == CppLibrary.Eigen:
-            if op.has_property(properties.UPPER_TRIANGULAR):
-                return "({0}).template triangularView<Eigen::Upper>()".format(op_str)
-            elif op.has_property(properties.LOWER_TRIANGULAR):
-                return "({0}).template triangularView<Eigen::Lower>()".format(op_str)
-            else:
-                if op.has_property(properties.SPD):
-                    return "({0}).llt()".format(op_str)
-                else:
-                    return "({0}).partialPivLu()".format(op_str)
-        else:
-            return op_str
-
-    def recommended_cpp_expression(self, lib, idx):
-        op = self.operands[idx]
-        if self.is_inverse_type(type(op)):
-            # there are at least two elements to process
-            #  since op is inverse, it will be inv(a) * b -> a \ b
-            # doesn't matter if b is inverse or not
-            if idx != len(self.operands) - 1:
-                idx, second_operand = self.recommended_cpp_expression(lib, idx + 1)
-                return (idx, {
-                    CppLibrary.Eigen: "( {0}.solve({1}) )",
-                    CppLibrary.Armadillo: "arma::solve({0}, {1}, arma::solve_opts::fast)"
-                }.get(lib).format(
-                    self.solve_left_side_cpp(lib, op),
-                    second_operand
-                ))
-            else:
-                return (idx + 1,
-                        "{0}".format(op.to_cpp_expression(lib, recommended=True))
-                        )
-        #otherwise, simply return this element processed
-        else:
-            return (idx + 1,
-                    "{0}".format(op.to_cpp_expression(lib, recommended=True))
-                    )
-
     def to_matlab_expression(self, recommended=False):
-        # TODO are parenthesis necessary?
-        # operand_str = '*'.join(map(operator.methodcaller("to_matlab_expression"), self.operands))
-        # return "({0})".format(operand_str)
-        if recommended:
-            str_ = ""
-            idx = 0
-            while idx < len(self.operands):
-                idx, str_new = self.recommended_solve_expression(idx, "to_matlab_expression")
-                str_ += str_new + ("*" if idx < len(self.operands) else "")
-            return str_
-        else:
-            return '*'.join(map(operator.methodcaller("to_matlab_expression"), self.operands))
-
+        return '*'.join(map(operator.methodcaller("to_matlab_expression", recommended), self.operands))
 
     def to_julia_expression(self, recommended=False):
-        # TODO are parenthesis necessary?
-        # operand_str = '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
-        # return "({0})".format(operand_str)
-        if recommended:
-            str_ = ""
-            idx = 0
-            while idx < len(self.operands):
-                idx, str_new = self.recommended_solve_expression(idx, "to_julia_expression")
-                str_ += str_new + ("*" if idx < len(self.operands) else "")
-            return str_
-        else:
-            return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
+        return '*'.join(map(operator.methodcaller("to_julia_expression", recommended), self.operands))
 
     def to_cpp_expression(self, lib, recommended=False):
-        if recommended:
-            str_ = ""
-            idx = 0
-            while idx < len(self.operands):
-                idx, str_new = self.recommended_cpp_expression(lib, idx)
-                str_ += str_new + ("*" if idx < len(self.operands) else "")
-            return str_
-        else:
-            return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
+        return '*'.join(map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
 
 
 class LinSolveL(Operator):
@@ -817,8 +695,57 @@ class LinSolveL(Operator):
     one_identity = False
     infix = True
 
-    def to_julia_expression(self):
-        return "({0}\{1})".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
+    @property
+    def size(self):
+        return (self.operands[0].size[1], self.operands[1].size[1])
+
+    @property
+    def bandwidth(self):
+        # It's ok for this to be slow, it's only used to generate code for experiments.
+        op1, op2 = self.operands
+        return Times(Inverse(op1), op2).bandwidth
+
+    def to_cpp_expression(self, lib, recommended=False):
+
+        op1 = self.operands[0]
+        op1_str, op2_str = map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands)
+
+        if lib is CppLibrary.Eigen:
+            if op1.has_property(properties.UPPER_TRIANGULAR):
+                op1_str = "({0}).template triangularView<Eigen::Upper>()".format(op1_str)
+            elif op1.has_property(properties.LOWER_TRIANGULAR):
+                op1_str = "({0}).template triangularView<Eigen::Lower>()".format(op1_str)
+            elif op1.has_property(properties.SPD):
+                op1_str = "({0}).llt()".format(op1_str)
+            else:
+                op1_str = "({0}).partialPivLu()".format(op1_str)
+
+            return "( {0}.solve({1}) )".format(op1_str, op2_str)
+
+        elif lib is CppLibrary.Armadillo:
+            if op1.has_property(properties.UPPER_TRIANGULAR):
+                op1_str = "arma::trimatu({0})".format(op1_str)
+            elif op1.has_property(properties.LOWER_TRIANGULAR):
+                op1_str = "trimatl({0})".format(op1_str)
+
+            return "arma::solve({0}, {1}, arma::solve_opts::fast)".format(op1_str, op2_str)
+        else:
+            raise NotImplementedError()
+
+    def to_matlab_expression(self, recommended=False):
+        return "({0}\{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
+
+    def to_julia_expression(self, recommended=False):
+        # This avoids a bug in Julia < 0.7 with solving linear systems where
+        # both matrices have type Symmetric.
+        op2 = self.operands[1]
+        template_str = "({0}\{1})"
+        if isinstance(op2, Symbol) and op2.has_property(properties.SYMMETRIC):
+            template_str = "({0}\{1}.data)"
+        return template_str.format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+
+    def __str__(self):
+        return "({0}\{1})".format(*self.operands)
 
 
 class LinSolveR(Operator):
@@ -834,8 +761,33 @@ class LinSolveR(Operator):
     one_identity = False
     infix = True
 
-    def to_julia_expression(self):
-        return "({0}/{1})".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
+    @property
+    def size(self):
+        return (self.operands[0].size[0], self.operands[1].size[0])
+
+    @property
+    def bandwidth(self):
+        # It's ok for this to be slow, it's only used to generate code for experiments.
+        op1, op2 = self.operands
+        return Times(op1, Inverse(op2)).bandwidth
+
+    def to_cpp_expression(self, lib, recommended=False):
+        NotImplementedError()
+
+    def to_matlab_expression(self, recommended=False):
+        return "({0}/{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
+
+    def to_julia_expression(self, recommended=False):
+        # This avoids a bug in Julia < 0.7 with solving linear systems where
+        # both matrices have type Symmetric.
+        op1 = self.operands[1]
+        template_str = "({0}/{1})"
+        if isinstance(op1, Symbol) and op1.has_property(properties.SYMMETRIC):
+            template_str = "({0}.data/{1})"
+        return template_str.format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+
+    def __str__(self):
+        return "({0}/{1})".format(*self.operands)
 
 
 class Identity(Operator):
@@ -922,12 +874,14 @@ class Transpose(Operator):
         return "{0}'".format(self.operands[0].to_julia_expression(recommended))
 
     def to_cpp_expression(self, lib, recommended=False):
-        op = self.operands[0].to_cpp_expression(lib, recommended)
-        return {
-            CppLibrary.Blaze: "blaze::trans({0})",
-            CppLibrary.Eigen: "({0}).transpose()",
-            CppLibrary.Armadillo: "({0}).t()"
-        }.get(lib).format(op)
+        template_str = None
+        if lib is CppLibrary.Blaze:
+            template_str = "blaze::trans({0})"
+        elif lib is CppLibrary.Eigen:
+            template_str = "({0}).transpose()"
+        elif lib is CppLibrary.Armadillo:
+            template_str = "({0}).t()"
+        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
 
 
 class Conjugate(Operator):
@@ -1012,11 +966,14 @@ class ConjugateTranspose(Operator):
         return "ctranspose({0})".format(self.operands[0].to_julia_expression(recommended))
 
     def to_cpp_expression(self, lib, recommended=False):
-        return {
-            CppLibrary.Blaze: "blaze::ctrans({0})",
-            CppLibrary.Eigen: "({0}).adjoint()",
-            CppLibrary.Armadillo: "({0}).t()"
-        }.get(lib).format(self.operands[0].to_cpp_expression(lib, recommended))
+        template_str = None
+        if lib is CppLibrary.Blaze:
+            template_str = "blaze::ctrans({0})"
+        elif lib is CppLibrary.Eigen:
+            template_str = "({0}).adjoint()"
+        elif lib is CppLibrary.Armadillo:
+            template_str = "({0}).t()"
+        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
 
 
 class Inverse(Operator):
@@ -1059,33 +1016,27 @@ class Inverse(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_matlab_expression(self, recommended=False, strip_inverse=False):
-        if strip_inverse:
-            return self.operands[0].to_matlab_expression(recommended)
-        else:
-            return "inv({0})".format(self.operands[0].to_matlab_expression(recommended))
+    def to_matlab_expression(self, recommended=False):
+        return "inv({0})".format(self.operands[0].to_matlab_expression(recommended))
 
-    def to_julia_expression(self, recommended=False, strip_inverse=False):
-        if strip_inverse:
-            return self.operands[0].to_julia_expression(recommended)
-        else:
-            return "inv({0})".format(self.operands[0].to_julia_expression(recommended))
+    def to_julia_expression(self, recommended=False):
+        return "inv({0})".format(self.operands[0].to_julia_expression(recommended))
 
-    def to_cpp_expression(self, lib, recommended=False, strip_inverse=False):
-        op = self.operands[0].to_cpp_expression(lib, recommended)
-        if strip_inverse:
-            return op
+    def to_cpp_expression(self, lib, recommended=False):
+        template_str = None
         # perform casting only for input matrices, not expression results
-        if lib == CppLibrary.Armadillo and type(self.operands[0]) is Matrix:
-            if self.operands[0].has_property(properties.SPD):
-               return "arma::inv_sympd({0})".format(op)
-            elif self.operands[0].has_property(properties.DIAGONAL):
-                return "arma::inv( arma::diagmat({0}))".format(op)
-        return {
-            CppLibrary.Blaze : "blaze::inv({0})",
-            CppLibrary.Eigen : "({0}).inverse()",
-            CppLibrary.Armadillo : "({0}).i()"
-        }.get(lib).format(op)
+        if lib is CppLibrary.Armadillo:
+            template_str = "({0}).i()"
+            if isinstance(self.operands[0], Matrix):
+                if self.operands[0].has_property(properties.SPD):
+                    template_str = "arma::inv_sympd({0})"
+                elif self.operands[0].has_property(properties.DIAGONAL):
+                    template_str = "arma::inv(arma::diagmat({0}))"
+        elif lib is CppLibrary.Eigen:
+            template_str = "({0}).inverse()"
+        elif lib is CppLibrary.Blaze:
+            template_str = "blaze::inv({0})"
+        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
 
 class InverseTranspose(Operator):
     """docstring for InverseTranspose"""
@@ -1125,32 +1076,27 @@ class InverseTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_matlab_expression(self, recommended=False, strip_inverse=False):
-        if strip_inverse:
-            return "{0}'".format(self.operands[0].to_matlab_expression(recommended))
-        else:
-            return "inv({0}')".format(self.operands[0].to_matlab_expression(recommended))
+    def to_matlab_expression(self, recommended=False):
+        return "inv({0}')".format(self.operands[0].to_matlab_expression(recommended))
 
-    def to_julia_expression(self, recommended=False, strip_inverse=False):
-        if strip_inverse:
-            return "{0}'".format(self.operands[0].to_julia_expression(recommended))
-        else:
-            return "inv({0}')".format(self.operands[0].to_julia_expression(recommended))
+    def to_julia_expression(self, recommended=False):
+        return "inv({0}')".format(self.operands[0].to_julia_expression(recommended))
 
-    def to_cpp_expression(self, lib, recommended=False, strip_inverse=False):
-        op = self.operands[0].to_cpp_expression(lib, recommended)
-        if strip_inverse:
-            return op
-        if lib == CppLibrary.Armadillo and type(self.operands[0]) is Matrix:
-            if self.operands[0].has_property(properties.SPD):
-               return "arma::inv_sympd(({0}).t())".format(op)
-            elif self.operands[0].has_property(properties.DIAGONAL):
-                return "arma::inv( arma::diagmat(({0}).t()) )".format(op)
-        return {
-            CppLibrary.Blaze : "blaze::inv(blaze::trans({0}))",
-            CppLibrary.Eigen : "({0}).transpose().inverse()",
-            CppLibrary.Armadillo : "({0}).t().i()"
-        }.get(lib).format(op)
+    def to_cpp_expression(self, lib, recommended=False):
+        template_str = None
+        # perform casting only for input matrices, not expression results
+        if lib is CppLibrary.Armadillo:
+            template_str = "({0}).t().i()"
+            if isinstance(self.operands[0], Matrix):
+                if self.operands[0].has_property(properties.SPD):
+                    template_str = "arma::inv_sympd(({0}).t())"
+                elif self.operands[0].has_property(properties.DIAGONAL):
+                    template_str = "arma::inv( arma::diagmat(({0}).t()) )"
+        elif lib is CppLibrary.Eigen:
+            template_str = "({0}).transpose().inverse()"
+        elif lib is CppLibrary.Blaze:
+            template_str = "blaze::inv(blaze::trans({0}))"
+        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
 
 class InverseConjugate(Operator):
     """docstring for InverseConjugate"""
@@ -1291,24 +1237,18 @@ class IdentityMatrix(ConstantMatrix):
         return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
 
     def to_cpp_expression(self, lib, recommended=False):
-        # IdentityMatrix can only be symmetric in Blaze
-        if lib == CppLibrary.Blaze:
+        if lib is CppLibrary.Blaze:
+            # IdentityMatrix can only be symmetric in Blaze
             if self.size[0] != self.size[1]:
                 raise ExpressionError("Non-square identity matrix not supported for Blaze")
-            return "blaze::IdentityMatrix<{0}>({1})".format(
-                "double" if config.float64 else "float",
-                *self.size
-            )
-        elif lib == CppLibrary.Eigen:
-            return "Eigen::{0}::Identity({1}, {2})".format(
-                "MatrixXd" if config.float64 else "MatrixXf",
-                *self.size
-            )
-        elif lib == CppLibrary.Armadillo:
-            return "arma::eye< arma::Mat<{0}> >({1}, {2})".format(
-                "double" if config.float64 else "float",
-                *self.size
-            )
+            data_type_str = "double" if config.float64 else "float"
+            return "blaze::IdentityMatrix<{0}>({1})".format(data_type_str, *self.size)
+        elif lib is CppLibrary.Eigen:
+            data_type_str = "MatrixXd" if config.float64 else "MatrixXf"
+            return "Eigen::{0}::Identity({1}, {2})".format(data_type_str, *self.size)
+        elif lib is CppLibrary.Armadillo:
+            data_type_str = "double" if config.float64 else "float"
+            return "arma::eye< arma::Mat<{0}> >({1}, {2})".format(data_type_str, *self.size)
         else:
             raise NotImplementedError()
 
