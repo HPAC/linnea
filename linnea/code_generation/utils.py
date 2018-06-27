@@ -1,5 +1,6 @@
 
-from ..algebra.expression import Symbol, Times, Inverse, InverseTranspose, \
+from ..algebra.expression import Symbol, Times, \
+                                 Inverse, InverseTranspose, Transpose, \
                                  LinSolveL, LinSolveR
 from ..algebra.equations import Equations
 
