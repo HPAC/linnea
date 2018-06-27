@@ -4460,3 +4460,30 @@ class Example153():
         self.eqns = Equations(
                             Equal(X, Times(Transpose(A), A))
                             )
+
+
+class Example154():
+    def __init__(self):
+
+        # TAGS
+        # linear system, matrix chain
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.INPUT)
+        A.set_property(properties.NON_SINGULAR)
+        A.set_property(properties.SYMMETRIC)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.INPUT)
+        B.set_property(properties.NON_SINGULAR)
+        B.set_property(properties.SYMMETRIC)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(Inverse(A), B)),
+                            # Equal(X, Times(A, Inverse(B)))
+                            )
