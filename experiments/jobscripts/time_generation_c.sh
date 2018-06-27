@@ -5,6 +5,7 @@
 #BSUB -W 2:00               # limits in hours:minutes
 #BSUB -M 2000               # memory in MB
 #BSUB -P aices2
+#BSUB -R model==Haswell_EP
 
 module load python/3.6.0
 

@@ -5,15 +5,23 @@
 #BSUB -W 2:00              # limits in hours:minutes
 #BSUB -M 2000              # memory in MB
 #BSUB -P aices2
+#BSUB -R model==Haswell_EP
+
+mkdir -p ${HOME}/linnea/results/generation/run_${LSB_JOBID}
 
 module load python/3.6.0
 
-cd ${HOME}/linnea
-source linnea_venv/bin/activate
-cd ${HOME}/linnea/results/generation
-mkdir -p run_${LSB_JOBID}
-cd run_${LSB_JOBID}
+source ${HOME}/linnea/linnea_venv/bin/activate
 python3 ${HOME}/linnea/linnea/experiments/experiments.py generate_code -j=${LSB_JOBINDEX} -ce
 
-exit
+module load cmake/3.10.1
+module load gcc/7
 
+cd ${HOME}/linnea/output/lamp_example${LSB_JOBINDEX}/Cpp
+mkdir -p build
+cd build
+rm -rf *
+cmake -DCMAKE_PREFIX_PATH=${HOME}/libraries/MatrixGeneratorCpp/ ..
+make
+
+exit
