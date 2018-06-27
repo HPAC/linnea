@@ -506,14 +506,14 @@ class SPA_7_1_12():
 
 class ImageRestoration_7_1_13_1():
     def __init__(self, n = 1500, m = 1000):
-        # Trier2017
+        # Tirer2017
         # m < n
         # Algorithm nr 1 P^P
         # x = (H^t * H + lambda * sigma^2 * I_n)^-1 * (H^T * y + lambda * sigma^2 * (v - u))
 
         minusone = ConstantScalar(-1)
-        lambda_ = Scalar("lambda")
-        sigma_ = Scalar("sigma_sq")
+        lambda_ = Scalar("lambda") # positive
+        sigma_ = Scalar("sigma_sq") # positive
 
         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(n, n)
@@ -523,6 +523,19 @@ class ImageRestoration_7_1_13_1():
         y = Vector("y", (m, sONE), properties = [properties.INPUT])
         x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
 
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(
+                                        Times(
+                                            Transpose(H),
+                                            H
+                                        ),
+                                        Times(
+                                            lambda_,
+                                            sigma_,
+                                            I
+                                        )
+                                    ), {properties.SPD})
+        self.init()
 
         self.eqns = Equations(
                             Equal(
@@ -572,8 +585,8 @@ class ImageRestoration_7_1_13_2():
         # H_dag is modeled input/output
 
         minusone = ConstantScalar(-1.0)
-        lambda_ = Scalar("lambda")
-        sigma_ = Scalar("sigma_sq")
+        lambda_ = Scalar("lambda") # positive
+        sigma_ = Scalar("sigma_sq") # positive
 
         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
@@ -583,6 +596,8 @@ class ImageRestoration_7_1_13_2():
         y_k = Vector("y_k", (n, sONE), properties = [properties.OUTPUT])
         y = Vector("y", (m, sONE), properties = [properties.INPUT])
         x = Vector("x", (n, sONE), properties = [properties.INPUT])
+
+
 
         h_dag = Times(
                     Transpose(H),
