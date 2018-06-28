@@ -99,37 +99,37 @@ def main():
     args = parser.parse_args()
 
     lamp_examples = [
-        lamp_paper.LeastSquares_7_1_1(),
-        lamp_paper.LMMSE_7_1_2(),
-        lamp_paper.Generalized_LeastSquares_7_1_3(),
-        lamp_paper.Optimization_Problem_7_1_4(),
-        lamp_paper.Signal_Processing_7_1_5(),
-        lamp_paper.Lower_Triangular_Inversion_7_1_6(),
-        lamp_paper.Local_Assimilation_Kalman_7_1_7(),
-        lamp_paper.EnsembleKalmanFilter_7_1_9_1(),
-        lamp_paper.EnsembleKalmanFilter_7_1_9_2(),
-        lamp_paper.SPA_7_1_12(),
-        lamp_paper.SPA_7_1_12(q=2),
-        lamp_paper.ImageRestoration_7_1_13_1(),
-        lamp_paper.ImageRestoration_7_1_13_2(single=False),
-        lamp_paper.ImageRestoration_7_1_13_2(single=True),
-        lamp_paper.Tikhonov_7_1_14(),
-        lamp_paper.CDMA_7_1_15(630, 300, 50),
-        lamp_paper.Common_Subexpr_7_2_1(),
-        lamp_paper.Common_Subexpr_7_2_2(),
-        lamp_paper.Common_Subexpr_7_2_3(),
-        lamp_paper.Overlap_Common_Subexpr_7_2_4(),
-        lamp_paper.Rewrite_Distributivity_7_2_5_1(),
-        lamp_paper.Rewrite_Distributivity_7_2_5_2(),
-        lamp_paper.Rewrite_Distributivity_7_2_5_3(),
-        lamp_paper.Rewrite_Distributivity_7_2_5_4(),
-        lamp_paper.Matrix_Chain_7_2_6(),
-        lamp_paper.Matrix_Chain_7_2_7(),
-        lamp_paper.Properties_7_2_8(),
-        lamp_paper.Transposed_Kernel_7_2_9(),
-        lamp_paper.Transposed_Kernel_7_2_10(),
-        lamp_paper.Simplification_7_2_11(),
-        lamp_paper.Simplification_7_2_12(),
+        lamp_paper.LeastSquares_7_1_1(), # 1
+        lamp_paper.LMMSE_7_1_2(), # 2
+        lamp_paper.Generalized_LeastSquares_7_1_3(), # 3
+        lamp_paper.Optimization_Problem_7_1_4(), # 4
+        lamp_paper.Signal_Processing_7_1_5(), # 5
+        lamp_paper.Lower_Triangular_Inversion_7_1_6(), # 6
+        lamp_paper.Local_Assimilation_Kalman_7_1_7(), # 7
+        lamp_paper.EnsembleKalmanFilter_7_1_9_1(), # 8
+        lamp_paper.EnsembleKalmanFilter_7_1_9_2(), # 9
+        lamp_paper.SPA_7_1_12(), # 10
+        lamp_paper.SPA_7_1_12(q=2), # 11
+        lamp_paper.ImageRestoration_7_1_13_1(), # 12
+        lamp_paper.ImageRestoration_7_1_13_2(single=False), # 13
+        lamp_paper.ImageRestoration_7_1_13_2(single=True), # 14
+        lamp_paper.Tikhonov_7_1_14(), # 15
+        lamp_paper.CDMA_7_1_15(630, 300, 50), # 16
+        lamp_paper.Common_Subexpr_7_2_1(), # 17
+        lamp_paper.Common_Subexpr_7_2_2(), # 18
+        lamp_paper.Common_Subexpr_7_2_3(), # 19
+        lamp_paper.Overlap_Common_Subexpr_7_2_4(), # 20
+        lamp_paper.Rewrite_Distributivity_7_2_5_1(), # 21
+        lamp_paper.Rewrite_Distributivity_7_2_5_2(), # 22
+        lamp_paper.Rewrite_Distributivity_7_2_5_3(), # 23
+        lamp_paper.Rewrite_Distributivity_7_2_5_4(), # 24
+        lamp_paper.Matrix_Chain_7_2_6(), # 25
+        lamp_paper.Matrix_Chain_7_2_7(), # 26
+        lamp_paper.Properties_7_2_8(), # 27
+        lamp_paper.Transposed_Kernel_7_2_9(), # 28
+        lamp_paper.Transposed_Kernel_7_2_10(), # 29
+        lamp_paper.Simplification_7_2_11(), # 30
+        lamp_paper.Simplification_7_2_12(), # 31
     ]
 
     # TODO when using different sets of examples, use that for output name
@@ -165,7 +165,7 @@ def main():
         data = []
         for idx, example in examples:
             for strategy, merge in itertools.product(strategies, merging_args):
-                name = generate_name(idx, strategy)
+                name = generate_name(idx)
                 data.append(measure(example, name, strategy, merge, args.repetitions))
 
         mindex = pd.MultiIndex.from_product([[type(exp).__name__ for exp in examples], [strategy.name for strategy in strategies], merging_labels], names=["example", "strategy", "merging"])
