@@ -508,6 +508,7 @@ symm = KernelDescription(
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
      StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+     [KernelType.identity, KernelType.transpose]
     )
 
 
