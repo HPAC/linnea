@@ -6,8 +6,7 @@
 #BSUB -M 2000               # memory in MB
 #BSUB -P aices2
 #BSUB -R model==Haswell_EP
-
-# TODO commanline options for constructive/exhaustive, Matlab/C++/Julia?
+##BSUB -x                   # exclusive access
 
 module load MISC
 module load matlab/2018a
