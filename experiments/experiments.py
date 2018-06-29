@@ -50,11 +50,12 @@ def measure(example, name, strategy, merge, reps=10):
                            graph=False)
         t_end = time.perf_counter()
         times.append(t_end-t_start)
-    if graph.terminal_nodes():
-        data = [numpy.mean(times), numpy.std(times), numpy.min(times), numpy.max(times)]
-        data.append(graph.nodes_count())
-    else:
-        data = [math.nan]*5
+    data = [numpy.mean(times),
+            numpy.std(times),
+            numpy.min(times),
+            numpy.max(times),
+            graph.nodes_count(),
+            bool(graph.terminal_nodes())]
     return data
 
 def generate(example, name, strategy):
@@ -163,22 +164,27 @@ def main():
             merging_args.append(False)
             merging_labels.append("no_merging")
 
+        mindex = pd.MultiIndex.from_product([
+            [type(exp).__name__ for exp in examples],
+            [strategy.name for strategy in strategies],
+            merging_labels],
+            names=["example", "strategy", "merging"])
+
+        col_index = pd.Index(["mean", "std", "min", "max", "nodes", "solution"])
+
         data = []
         for idx, example in examples:
             for strategy, merge in itertools.product(strategies, merging_args):
                 name = generate_name(idx)
                 data.append(measure(example, name, strategy, merge, args.repetitions))
+                dframe = pd.DataFrame(data, index=mindex, columns=col_index)
 
-        mindex = pd.MultiIndex.from_product([[type(exp).__name__ for exp in examples], [strategy.name for strategy in strategies], merging_labels], names=["example", "strategy", "merging"])
-        col_index = pd.Index(["mean", "std", "min", "max", "nodes"])
+                # Data is written after every measurement in case the job is killed
+                if args.jobindex == 0:
+                    dframe.to_csv("linnea_generation.csv")
+                else:  
+                    dframe.to_csv("linnea_generation{}.csv".format(args.jobindex))
 
-        dframe = pd.DataFrame(data, index=mindex, columns=col_index)
-
-        if args.jobindex == 0:
-            dframe.to_csv("linnea_generation.csv")
-        else:  
-            dframe.to_csv("linnea_generation{}.csv".format(args.jobindex))
-        # print(dframe)
 
     elif args.mode == "generate_code":
 
