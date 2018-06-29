@@ -165,25 +165,27 @@ def main():
             merging_labels.append("no_merging")
 
         mindex = pd.MultiIndex.from_product([
-            [type(exp).__name__ for exp in examples],
+            [generate_name(idx) for idx in examples[1]],
             [strategy.name for strategy in strategies],
             merging_labels],
             names=["example", "strategy", "merging"])
 
         col_index = pd.Index(["mean", "std", "min", "max", "nodes", "solution"])
 
+        if args.jobindex == 0:
+            output_file = "linnea_generation.csv"
+        else:
+            output_file = "linnea_generation{}.csv".format(args.jobindex)
+
         data = []
         for idx, example in examples:
             for strategy, merge in itertools.product(strategies, merging_args):
                 name = generate_name(idx)
                 data.append(measure(example, name, strategy, merge, args.repetitions))
-                dframe = pd.DataFrame(data, index=mindex, columns=col_index)
+                dframe = pd.DataFrame(data, index=mindex[:len(data)], columns=col_index)
 
                 # Data is written after every measurement in case the job is killed
-                if args.jobindex == 0:
-                    dframe.to_csv("linnea_generation.csv")
-                else:  
-                    dframe.to_csv("linnea_generation{}.csv".format(args.jobindex))
+                dframe.to_csv(output_file)
 
 
     elif args.mode == "generate_code":
