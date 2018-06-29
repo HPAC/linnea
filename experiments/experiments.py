@@ -165,7 +165,7 @@ def main():
             merging_labels.append("no_merging")
 
         mindex = pd.MultiIndex.from_product([
-            [generate_name(idx) for idx in examples[1]],
+            [generate_name(exp[1]) for exp in examples],
             [strategy.name for strategy in strategies],
             merging_labels],
             names=["example", "strategy", "merging"])
