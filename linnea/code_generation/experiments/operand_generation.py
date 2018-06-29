@@ -44,17 +44,17 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     if language is config.Language.Julia:
         file_name = "operand_generator.jl"
         op_gen_line_template = "{name} = generate(({size}), [{properties}])"
-        random_operand = "Properties.Random", "Shape.General"
+        random_operand = ["Properties.Random", "Shape.General"]
 
     elif language is config.Language.Cpp:
         file_name = "operand_generator.hpp"
         op_gen_line_template = "auto {name} = gen.generate({{{size}}}, {properties});"
-        random_operand = "generator::property::random{}"
+        random_operand = ["generator::property::random{}"]
 
     elif language is config.Language.Matlab:
         file_name = "operand_generator.m"
         op_gen_line_template = "{name} = generate([{size}], {properties});"
-        random_operand = "Properties.Random()", "Shape.General()"
+        random_operand = ["Properties.Random()", "Shape.General()"]
 
     else:
         raise config.LanguageOptionNotImplemented()
@@ -102,7 +102,6 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
         replacement["properties"] = ", ".join(property_replacements)
         op_gen_lines.append(op_gen_line_template.format(**replacement))
 
-        # print(operand)
     op_gen_lines = "\n".join(op_gen_lines)
     op_gen_file_template = utils.get_template(file_name, language)
     op_gen_file = op_gen_file_template.format(textwrap.indent(op_gen_lines, "    "), output_str)
