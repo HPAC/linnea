@@ -15,6 +15,6 @@ source linnea_venv/bin/activate
 cd ${HOME}/linnea/results/generation
 mkdir -p run_${LSB_JOBID}
 cd run_${LSB_JOBID}
-python3 ${HOME}/linnea/linnea/experiments/experiments.py time_generation -j=${LSB_JOBINDEX} -r=10 -cen
+python3 ${HOME}/linnea/linnea/experiments/experiments.py time_generation -j=${LSB_JOBINDEX} -r=1 -cen
 
 exit

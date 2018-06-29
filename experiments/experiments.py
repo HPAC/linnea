@@ -9,7 +9,6 @@ import argparse
 import linnea.config
 
 linnea.config.set_output_path("~/linnea/output/")
-linnea.config.set_verbosity(2)
 linnea.config.init()
 
 from linnea.config import Strategy
@@ -156,6 +155,8 @@ def main():
 
     if args.mode == "time_generation":
 
+        linnea.config.set_verbosity(0)
+
         merging_args = [True]
         merging_labels = ["merging"]
         if args.no_merging:
@@ -180,6 +181,9 @@ def main():
         # print(dframe)
 
     elif args.mode == "generate_code":
+
+        linnea.config.set_verbosity(2)
+
         for idx, example in examples:
             name = generate_name(idx)
 
