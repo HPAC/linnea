@@ -13,6 +13,7 @@ import math
 import textwrap
 import os
 import matchpy
+import pkg_resources
 
 class Algorithm():
     """Represents an Algorithm and translates it to code.
@@ -432,37 +433,6 @@ class MatchedKernel():
         self.kernel_io = None
         
 
-julia_template = textwrap.dedent(
-                        """
-                        using Base.LinAlg.BLAS
-                        using Base.LinAlg
-
-                        function {}({})
-                        {}
-                            return ({})
-                        end
-                        """)
-
-matlab_template = textwrap.dedent(
-                        """
-                        function [{3}] = {0}({1})
-                        {2}
-                        end
-                        """)
-
-cpp_template = textwrap.dedent(
-                        """
-                        struct {}
-                        {{
-                        template<{}>
-                        decltype(auto) operator()({})
-                        {{
-                        {}
-                            {}
-                        }}
-                        }};
-                        """)
-
 def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input, output,
                       language = config.language,
                       file_extension = config.filename_extension):
@@ -476,15 +446,16 @@ def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input
         print("Generate algorithm file {}".format(file_name))
     algorithm_name = algorithm_name
     algorithm_str = algorithm_to_str(algorithm_name, algorithm, input, output, language)
-    # algorithm_str = julia_template.format(algorithm_name, input, textwrap.indent(algorithm, "    "), output)
     output_file.write(algorithm_str)
     output_file.close()
 
 def algorithm_to_str(function_name, algorithm, input, output, language):
     if language == config.Language.Julia:
-        algorithm_str = julia_template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
+        template = get_template("algorithm.jl", language)
+        algorithm_str = template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
     elif language == config.Language.Matlab:
-        algorithm_str = matlab_template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
+        template = get_template("algorithm.m", language)
+        algorithm_str = template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
     elif language == config.Language.Cpp:
         types_list = ", ".join("typename Type_{}".format(op) for op in str.split(input, ", "))
         args_list = ", ".join("Type_{0} && {0}".format(op) for op in str.split(input, ", "))
@@ -498,7 +469,8 @@ def algorithm_to_str(function_name, algorithm, input, output, language):
                             return return_t({});
                          """)
             output_string = ret_string.format(output, output)
-        algorithm_str = cpp_template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output_string)
+        template = get_template("algorithm.cpp", language)
+        algorithm_str = template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output_string)
     else:
         raise config.LanguageOptionNotImplemented()
     
@@ -537,6 +509,7 @@ linsolveRT = matchpy.ReplacementRule(
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, Transpose(WD2)), *WS2)
     )
 
+
 def replace_linsolve_left(equations):
     """Replaces linear systems with a LinSolve operator.
 
@@ -548,6 +521,7 @@ def replace_linsolve_left(equations):
         eqn = matchpy.replace_all(eqn, [linsolveL, linsolveLT])
         new_eqns.append(eqn)
     return Equations(*new_eqns)
+
     
 def replace_linsolve_right(equations):
     """Replaces linear systems with a LinSolve operator.
@@ -560,3 +534,8 @@ def replace_linsolve_right(equations):
         eqn = matchpy.replace_all(eqn, [linsolveR, linsolveRT])
         new_eqns.append(eqn)
     return Equations(*new_eqns)
+
+
+def get_template(file_name, language):
+    template_path = "experiments/templates/{}/{}".format(language.name, file_name)
+    return pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
