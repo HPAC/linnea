@@ -47,7 +47,6 @@ def main():
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
-        print(replacement_copy)
         file_name_parts.append(".sh")
         file_name = "_".join(file_name_parts)
         with open(file_name, "wt", encoding='utf-8') as output_file:
