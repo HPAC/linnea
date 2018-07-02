@@ -47,8 +47,7 @@ def main():
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
-        file_name_parts.append(".sh")
-        file_name = "_".join(file_name_parts)
+        file_name = "{}.sh".format("_".join(file_name_parts))
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
