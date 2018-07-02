@@ -91,11 +91,11 @@ def main():
 
     parser = argparse.ArgumentParser(prog="experiments")
     parser.add_argument("mode", choices=["time_generation", "generate_code"])
-    parser.add_argument("-j", "--jobindex", dest="jobindex", help="Job index.", type=int, default=0)
+    parser.add_argument("-m", "--merging", choices=["true", "false", "both"], default="true")
+    parser.add_argument("-j", "--jobindex", help="Job index.", type=int, default=0)
     parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
     parser.add_argument("-c", "--constructive", action="store_true", help="Use constructive strategy.")
     parser.add_argument("-e", "--exhaustive", action="store_true", help="Use exhaustive strategy.")
-    parser.add_argument("-n", "--no-merging", dest="no_merging", action="store_true", help="Also use no merging.")
     args = parser.parse_args()
 
     lamp_examples = [
@@ -158,9 +158,12 @@ def main():
 
         linnea.config.set_verbosity(0)
 
-        merging_args = [True]
-        merging_labels = ["merging"]
-        if args.no_merging:
+        merging_args = []
+        merging_labels = []
+        if args.merging == "true" or args.merging == "both":
+            merging_args.append(True)
+            merging_labels.append("merging")
+        elif args.merging == "false" or args.merging == "both":
             merging_args.append(False)
             merging_labels.append("no_merging")
 
