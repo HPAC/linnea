@@ -56,7 +56,7 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _P = matchpy.Wildcard.symbol("_P")
 _L = matchpy.Wildcard.symbol("_L")
 _U = matchpy.Wildcard.symbol("_U")
-cf = lambda d: 2*(d["N"]**2)/3
+cf = lambda d: 2*(d["N"]**3)/3
 
 plu = FactorizationKernel(
     matchpy.Pattern(_A,
