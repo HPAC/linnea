@@ -1,8 +1,18 @@
 {
-    "time": 2,
-    "memory": 4000,
-    "group": "aices2",
-    "model": "Haswell_EP",
-    "exclusive": false,
-    "repetitions": 1
+    "generate":
+    {
+        "time": 2,
+        "memory": 4000,
+        "group": "aices2",
+        "model": "Haswell_EP"
+    },
+    "time":
+    {
+        "time": 2,
+        "memory": 4000,
+        "group": "aices2",
+        "model": "Haswell_EP",
+        "exclusive": false,
+        "repetitions": 1
+    }
 }

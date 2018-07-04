@@ -6,30 +6,34 @@ import itertools
 # this causes a problem because it tries to read the config.json in the current directory.
 # from linnea.config import Strategy
 
-def main():
+def load_config():
 
-    replacement = dict()
-    
     config_file = "config.json"
     if os.path.exists(config_file):
         with open(config_file) as jsonfile:
-            for key, value in json.load(jsonfile).items():
+            data = json.load(jsonfile)
+
+            data_time = dict()
+            for key, value in data["time"].items():
                 if key == "exclusive":
                     if value:
-                        replacement["exclusive"] = "#BSUB -x                     # exclusive access"
+                        data_time["exclusive"] = "#BSUB -x                     # exclusive access"
                     else:
-                        replacement["exclusive"] = ""
+                        data_time["exclusive"] = ""
                 else:
-                    replacement[key] = value    
+                    data_time[key] = value
+
+    return data["generate"], data_time
+
+def time_generation_script(replacement):
 
     template_path = "templates/time_generation.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    file_name = "time_generation_test.sh"
     for strategy, merging in itertools.product(["c", "e"], [True, False]):
         replacement_copy = replacement.copy()
 
-        file_name_parts = ["time_gen"]
+        file_name_parts = ["test_time_generation"]
 
         file_name_parts.append(strategy)
         replacement_copy["strategy"] = strategy
@@ -51,6 +55,43 @@ def main():
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
+
+
+def time_execution_scripts(replacement):
+
+    for language in ["julia", "matlab", "cpp"]:
+        template_path = "templates/time_{}.sh".format(language)
+        template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
+
+        file_name = "test_time_{}.sh".format(language)
+        with open(file_name, "wt", encoding='utf-8') as output_file:
+            print("Writing", file_name)
+            output_file.write(template_str.format(**replacement))
+
+
+def generate_code_scripts(replacement):
+
+    template_path = "templates/generate_code.sh"
+    template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
+
+    for strategy in ["c", "e"]:
+        replacement_copy = replacement.copy()
+
+        replacement_copy["strategy"] = strategy
+
+        file_name = "test_generate_code_{}.sh".format(strategy)
+        with open(file_name, "wt", encoding='utf-8') as output_file:
+            print("Writing", file_name)
+            output_file.write(template_str.format(**replacement_copy))
+
+
+def main():
+
+    replacement_generate, replacement_time = load_config()
+
+    time_generation_script(replacement_time)
+    time_execution_scripts(replacement_time)
+    generate_code_scripts(replacement_generate)
 
 
 if __name__ == '__main__':
