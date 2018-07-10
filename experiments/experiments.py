@@ -19,6 +19,8 @@ from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 from linnea.code_generation.experiments import operand_generation, runner, reference_code
 from linnea.code_generation import utils as cgu
 
+from linnea.experiments import random_expressions
+
 def measure(example, name, strategy, merge, reps=10):
 
     times = []
