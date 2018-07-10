@@ -9,11 +9,11 @@ from matchpy import Arity
 # Arity.polyadic = Arity(2, False)
 # Arity.variadic = Arity(0, False)
 
-from .algebra import expression as ae
-from .algebra.transformations import simplify
-from .utils import window
-from .algebra.validity import check_validity
-from .algebra.properties import Property as properties
+from linnea.algebra import expression as ae
+from linnea.algebra.transformations import simplify
+from linnea.utils import window
+from linnea.algebra.validity import check_validity
+from linnea.algebra.properties import Property as properties
 
 _counter = -1
 
