@@ -10,6 +10,7 @@ from matchpy import Arity
 # Arity.variadic = Arity(0, False)
 
 from linnea.algebra import expression as ae
+from linnea.algebra import equations as aeq
 from linnea.algebra.transformations import simplify
 from linnea.utils import window
 from linnea.algebra.validity import check_validity
@@ -133,13 +134,22 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
             if rows == 1:
                 return generate_scalar()
             
-            if random.random() > 0.5:       
-                operators = [ae.Transpose, ae.Inverse]
-                try:
-                    operators.remove(parent)
-                except ValueError:
-                    pass
-                operator = random.choice(operators)
+            if random.random() > 0.5:
+
+                if parent.arity == Arity.unary:
+                    if parent is ae.Inverse:
+                        operator = ae.Transpose
+                    elif parent is ae.Transpose:
+                        operator = ae.Inverse    
+                else:
+                    operators = [ae.Transpose, ae.Inverse]
+                    if parent is ae.Plus:
+                        weights = [2, 1]
+                    else:
+                        weights = [1, 2]
+
+                    operator = random.choices(operators, weights)[0]
+
                 return operator(generate_matrix(columns, rows))
 
             return generate_matrix(rows, columns)
@@ -159,31 +169,29 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
         # TODO do we really want to use transpose here? it get's pushed down anyway, and it leads to those towers
         if expr_size[0] == expr_size[1]:
             # operators = [ae.Times, ae.Plus, ae.Transpose, ae.Inverse]
-            operators = [ae.Times, ae.Plus, ae.Inverse]
 
             """Trying to tweak probabilities to get more realistic expressions.
             Mostly trying to avoid explicit inversion, which is rare.
-
-            TODO Perhaps instead of changing those list, we should just
-            construct population and weights list for random.choices
             """
             if parent is ae.Times:
-                operators.append(ae.Inverse)
+                operators = [ae.Plus, ae.Inverse]
+                weights = [1, 2]
             elif parent is ae.Plus:
-                operators.append(ae.Times)
+                operators = [ae.Times, ae.Inverse]
+                weights = [3, 1]
+            elif parent is ae.Inverse:
+                operators = [ae.Times, ae.Plus]
+                weights = [1, 1]    
             elif parent is None:
-                operators.append(ae.Times)
-                operators.append(ae.Plus)
+                operators = [ae.Times, ae.Plus, ae.Inverse]
+                weights = [3, 3, 1]
         else:
             # operators = [ae.Times, ae.Plus, ae.Transpose]
             operators = [ae.Times, ae.Plus]
+            weights = [1, 1]
 
-        try:
-            operators.remove(parent)
-        except ValueError:
-            pass
 
-        operator = random.choice(operators)
+        operator = random.choices(operators, weights)[0]
         if operator.arity == Arity.unary:
             # flip size here
             if operator is ae.Inverse:
@@ -204,14 +212,27 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
             return expr
 
 
-def main():
+def generate_equation(n_ops):
     expr_size = operand_sizes()
-    expr = generate_expression(6, expr_size)
-    print(expr)
-    print(simplify(expr))
-    print(check_validity(expr))
-    # print(random_composition(5))
-    # print(matrix_chain_sizes(10, 1000, 4))
+    out = ae.Matrix("out", expr_size)
+    expr = simplify(generate_expression(n_ops, expr_size))
+    return aeq.Equations(ae.Equal(out, expr))
+
+
+def main():
+    # expr_size = operand_sizes()
+    # expr = generate_expression(6, expr_size)
+    # print(expr)
+    # print(simplify(expr))
+    # print(check_validity(expr))
+
+    size = random.randint(3, 7)
+    eqn = generate_equation(size)
+    print(eqn)
+    # eqn = eqn.to_normalform()
+    # print(eqn)
+    print(check_validity(eqn))
+
 
 """
 What is happening here?

@@ -5,10 +5,11 @@ import itertools
 import sys
 import math
 import argparse
+import collections
+import random
 
 import linnea.config
 
-linnea.config.set_output_path("~/linnea/output/")
 linnea.config.init()
 
 from linnea.config import Strategy
@@ -19,7 +20,8 @@ from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 from linnea.code_generation.experiments import operand_generation, runner, reference_code
 from linnea.code_generation import utils as cgu
 
-from random_expressions import generate_expression
+from random_expressions import generate_equation
+from jobscripts import generate_scripts
 
 def measure(example, name, strategy, merge, reps=10):
 
@@ -71,6 +73,8 @@ def generate(example, name, strategy):
     else:
         raise NotImplementedError()
 
+    print(example.eqns)
+
     graph = DerivationGraph(example.eqns)
     trace = graph.derivation(
                         solution_nodes_limit=100,
@@ -86,13 +90,12 @@ def generate(example, name, strategy):
                        subdir_name=strategy.name,
                        algorithm_name=algorithm_name)
 
-def generate_name(index):
-    return "lamp_example{}".format(index)
 
 def main():
 
     parser = argparse.ArgumentParser(prog="experiments")
-    parser.add_argument("mode", choices=["time_generation", "generate_code"])
+    parser.add_argument("mode", choices=["time_generation", "generate_code", "jobscripts"])
+    parser.add_argument("experiment", choices=["lamp_example", "random"])
     parser.add_argument("-m", "--merging", choices=["true", "false", "both"], default="true")
     parser.add_argument("-j", "--jobindex", help="Job index.", type=int, default=0)
     parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
@@ -134,16 +137,35 @@ def main():
         lamp_paper.Simplification_7_2_12(), # 31
     ]
 
-    # TODO when using different sets of examples, use that for output name
+    ExampleContainer = collections.namedtuple("ExampleContainer", ["eqns"])
+
+    random.seed(0)
+    rand_exprs = [ExampleContainer(generate_equation(random.randint(4, 7))) for _ in range(100)]
+
     # also add init for new examples
 
     # TODO write parameters (repetitions) to file
     # TODO write description of experiment (name, operand sizes, equations) to file
 
-    if args.jobindex == 0:
-        examples = enumerate(lamp_examples, 1)
+    if args.experiment == "lamp_example":
+        examples = lamp_examples
+    elif args.experiment == "random":
+        examples = rand_exprs
     else:
-        examples = [(args.jobindex, lamp_examples[args.jobindex-1])]
+        return
+
+
+    JobExample = collections.namedtuple("JobExample", ["example", "name"])
+
+    if args.jobindex == 0:
+        job_examples = []
+        for idx, example in enumerate(examples, 1):
+            name = "{}{}".format(args.experiment, idx)
+            job_examples.append(JobExample(example, name))
+    else:
+        name = "{}{}".format(args.experiment, args.jobindex)
+        job_examples = [JobExample(examples[args.jobindex-1], name)]
+
 
     strategies = []
     algorithms = []
@@ -153,10 +175,11 @@ def main():
     if args.exhaustive:
         strategies.append(Strategy.exhaustive)
         algorithms.append(("exhaustive", "algorithm0e"))
-    if not strategies:
-        return
 
     if args.mode == "time_generation":
+
+        if not strategies:
+            return
 
         linnea.config.set_verbosity(0)
 
@@ -170,7 +193,7 @@ def main():
             merging_labels.append("no_merging")
 
         mindex = pd.MultiIndex.from_product([
-            [generate_name(exp[0]) for exp in examples],
+            [example.name for example in job_examples],
             [strategy.name for strategy in strategies],
             merging_labels],
             names=["example", "strategy", "merging"])
@@ -183,9 +206,8 @@ def main():
             output_file = "linnea_generation{}.csv".format(args.jobindex)
 
         data = []
-        for idx, example in examples:
+        for example, name in job_examples:
             for strategy, merge in itertools.product(strategies, merging_args):
-                name = generate_name(idx)
                 data.append(measure(example, name, strategy, merge, args.repetitions))
                 dframe = pd.DataFrame(data, index=mindex[:len(data)], columns=col_index)
 
@@ -197,8 +219,7 @@ def main():
 
         linnea.config.set_verbosity(2)
 
-        for idx, example in examples:
-            name = generate_name(idx)
+        for example, name in job_examples:
 
             for strategy in strategies:
                 generate(example, name, strategy)
@@ -208,7 +229,8 @@ def main():
 
             runner.generate_runner(name, algorithms)
 
-
+    elif args.mode == "jobscripts":
+        generate_scripts(args.experiment, len(examples))
 
 
 if __name__ == "__main__":
