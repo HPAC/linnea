@@ -4487,3 +4487,38 @@ class Example154():
                             Equal(X, Times(Inverse(A), B)),
                             # Equal(X, Times(A, Inverse(B)))
                             )
+
+
+class Example155():
+    def __init__(self):
+
+        # TAGS
+        # matrix chain
+
+        # M: 1150 by 1100
+        # v1: 1150 by 1
+        # v2: 1150 by 1
+        # v3: 1650 by 1
+        # v4: 1650 by 1
+
+        # M’*v*v3’*v4
+
+        n = 10
+
+        M = Matrix("M", (1100, 1150))
+        M.set_property(properties.INPUT)
+
+        v1 = Vector("v1", (1150, 1))
+        v1.set_property(properties.INPUT)
+
+        v2 = Vector("v2", (1650, 1))
+        v2.set_property(properties.INPUT)
+
+        v3 = Vector("v3", (1650, 1))
+        v3.set_property(properties.INPUT)
+
+        x = Vector("x", (1100, 1))
+        x.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(Equal(x, Times(M, v1, Transpose(v2), v3)))
+
