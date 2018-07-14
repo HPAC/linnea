@@ -36,6 +36,7 @@ class KernelType(enum.Enum):
     identity = 0
     transpose = 1
     conjugate_transpose = 2
+    scaling = 3 # only for kernels Times(scalar, something), to also generate Times(something, scalar)
 
 _op = matchpy.Wildcard.symbol("_op")
 ctx1 = matchpy.Wildcard.star("ctx1")
@@ -635,9 +636,14 @@ class KernelDescription():
                 # print(constraints)
 
                 kernel_io.replace_variables(self.wildcards)
-
                 for kernel_type in self.kernel_types:
-                    yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, kernel_type, kernel_io)        
+
+                    if kernel_type is KernelType.scaling:
+                        expr_copy3 = Times(*reversed(expr_copy2.operands))
+                    else:
+                        expr_copy3 = expr_copy2
+
+                    yield ReductionKernel(matchpy.Pattern(expr_copy3, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, kernel_type, kernel_io)        
 
 ############################
 # Auxiliary functions

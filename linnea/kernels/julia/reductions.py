@@ -123,6 +123,7 @@ scal = KernelDescription(
     "scal!($N, $alpha, $x, 1)",
     "",
     [SizeArgument("N", x, "rows")], # Argument objects
+    [KernelType.identity, KernelType.scaling]
     )
 
 # AXPY
@@ -704,6 +705,7 @@ lascl = KernelDescription(
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns"),
      SizeArgument("MN", X, "entries")], # Argument objects
+     [KernelType.identity, KernelType.scaling]
     )
 
 
@@ -1392,6 +1394,7 @@ diagscal = KernelDescription(
     "",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns")], # Argument objects
+    [KernelType.identity, KernelType.scaling]
     )
 
 # diagonal * diagonal
