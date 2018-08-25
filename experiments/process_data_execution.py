@@ -109,6 +109,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog="process_data")
     parser.add_argument("experiment", choices=["lamp_example", "random"])
+    args = parser.parse_args()
 
     if args.experiment == "lamp_example":
         number_of_experiments = 31
