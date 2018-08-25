@@ -32,7 +32,7 @@ if __name__ == '__main__':
     elif args.experiment == "random":
         number_of_experiments = 100
 
-    results = read_results(args.experiment, number_of_experiments)
+    results = read_results(number_of_experiments)
     results.to_csv("linnea_generation.csv")
     # print(results)
 
