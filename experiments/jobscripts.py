@@ -56,7 +56,7 @@ def time_generation_script(replacement):
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
-        file_name = "jobscripts/{}.sh".format("_".join(file_name_parts))
+        file_name = "jobscripts/{}/{}.sh".format(replacement_copy["name"], "_".join(file_name_parts))
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
@@ -68,7 +68,7 @@ def time_execution_scripts(replacement):
         template_path = "jobscripts/templates/time_{}.sh".format(language)
         template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-        file_name = "jobscripts/time_{}.sh".format(language)
+        file_name = "jobscripts/{}/time_{}.sh".format(replacement["name"], language)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement))
@@ -84,7 +84,7 @@ def generate_code_scripts(replacement):
 
         replacement_copy["strategy"] = strategy
 
-        file_name = "jobscripts/generate_code_{}.sh".format(strategy)
+        file_name = "jobscripts/{}/generate_code_{}.sh".format(replacement_copy["name"], strategy)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
