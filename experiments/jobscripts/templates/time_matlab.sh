@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #BSUB -J "linnea_time_matlab[1-{jobs}]" # job name
-#BSUB -o "linnea/results/execution/run_%J/cout.txt" # job output
+#BSUB -o "linnea/results/{name}/execution/matlab/cout.txt" # job output
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB
 #BSUB -P {group}
@@ -11,9 +11,9 @@
 module load MISC
 module load matlab/2018a
 
-cd ${{HOME}}/linnea/results/execution
-mkdir -p run_${{LSB_JOBID}}
-cd run_${{LSB_JOBID}}
+cd ${{HOME}}/linnea/results
+mkdir -p {name}/execution/matlab
+cd {name}/execution/matlab
 
 mkdir -p logs
 export MATLAB_LOG_DIR=${{HOME}}/linnea/results/execution/run_${{LSB_JOBID}}/logs

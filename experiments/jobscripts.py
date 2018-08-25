@@ -37,6 +37,11 @@ def time_generation_script(replacement):
 
         file_name_parts.append(strategy)
         replacement_copy["strategy"] = strategy
+        # TODO there is some redundancy here
+        if merging:
+            replacement_copy["strategy_name"] = strategy + "_m"
+        else:
+            replacement_copy["strategy_name"] = strategy + "_nm"
         # if strategy is Strategy.constructive:
         #     file_name_parts.append("c")
         #     replacement_copy["strategy"] = "c"
