@@ -90,12 +90,12 @@ def generate_code_scripts(replacement):
             output_file.write(template_str.format(**replacement_copy))
 
 
-def generate_scripts(experiment, jobs):
+def generate_scripts(experiment, number_of_experiments):
 
     replacement_generate, replacement_time = load_config()
 
-    replacement_generate["jobs"] = jobs
-    replacement_time["jobs"] = jobs
+    replacement_generate["jobs"] = number_of_experiments
+    replacement_time["jobs"] = number_of_experiments
     replacement_generate["name"] = experiment
     replacement_time["name"] = experiment
 

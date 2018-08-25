@@ -58,7 +58,7 @@ def compare_to_fastest(time_data, reference):
     return(diff)
 
 
-def read_results(usecols=range(0, 2)):
+def read_results(experiment_name, number_of_experiments, usecols=range(0, 2)):
 
     """ TODO idea: Instead of usecols, use Enum an argument, which is maped to
     columns. This can then also be used in df.rename()
@@ -66,33 +66,37 @@ def read_results(usecols=range(0, 2)):
     What if we want more than one column?
     """
 
-    example_names = ["lamp_example{}".format(i) for i in range(1, 32)]
+    # TODO move this into the loop below
+    example_names = ["{}{}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
 
     language_dfs = []
     for language in ["cpp", "julia", "matlab"]:
-
-        file_dfs = []
-        for example in example_names:
-            file_path = "{0}/{0}_results_{1}.txt".format(language, example)
-            if os.path.isfile(file_path):
-                df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, usecols=usecols, index_col=0)
-                df = df.transpose()
-                # df.rename(index={"Time": example}, inplace=True)
-                # This works only when we extrace not more than one column
-                df.rename(mapper=lambda _: example, inplace=True)
-                file_dfs.append(df)
-            else:
-                print("Missing file", file_path)
-
-        df = pd.concat(file_dfs)
-        language_dfs.append(df)
-
-    return pd.concat(language_dfs, axis=1)
+        if os.path.exists(language):
+            file_dfs = []
+            for example in example_names:
+                file_path = "{0}/{0}_results_{1}.txt".format(language, example)
+                if os.path.isfile(file_path):
+                    df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, usecols=usecols, index_col=0)
+                    df = df.transpose()
+                    # df.rename(index={"Time": example}, inplace=True)
+                    # This works only when we extrace not more than one column
+                    df.rename(mapper=lambda _: example, inplace=True)
+                    file_dfs.append(df)
+                else:
+                    print("Missing file", file_path)
 
 
-def check_std_dev(threshold=0.1):
-    execution_time = read_results()
-    std_dev = read_results(usecols=[0, 2])
+            df = pd.concat(file_dfs, sort=True)
+            language_dfs.append(df)
+        else:
+            print("No results for", language)
+
+    return pd.concat(language_dfs, axis=1, sort=True)
+
+
+def check_std_dev(experiment_name, number_of_experiments, threshold=0.1):
+    execution_time = read_results(experiment_name, number_of_experiments)
+    std_dev = read_results(experiment_name, number_of_experiments, usecols=[0, 2])
     rel_std_dev = std_dev/execution_time.values
     rel_std_dev = rel_std_dev.stack()
     rel_std_dev = rel_std_dev.loc[rel_std_dev > threshold]
@@ -102,8 +106,16 @@ def check_std_dev(threshold=0.1):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(prog="process_data")
+    parser.add_argument("experiment", choices=["lamp_example", "random"])
+
+    if args.experiment == "lamp_example":
+        number_of_experiments = 31
+    elif args.experiment == "random":
+        number_of_experiments = 100
+
     # execution_time = read_results()
-    execution_time = read_results([0, 3]) # use min
+    execution_time = read_results(args.experiment, number_of_experiments, [0, 3]) # use min
     
     execution_time.to_csv("execution_time.csv", na_rep="NaN")
 
@@ -111,7 +123,7 @@ if __name__ == '__main__':
     # performance_profiles_data.rename(columns={0:"y", "generated0":"linnea"}, inplace=True)
     performance_profiles_data.to_csv("performance_profile.csv", na_rep="NaN")
 
-    speedup_data = to_speedup_data(execution_time, "algorithm0e")
+    speedup_data = to_speedup_data(execution_time, "algorithm0c")
     speedup_data.to_csv("speedup.csv", na_rep="NaN")
 
     mean_speedup = to_mean_speedup(speedup_data)
@@ -119,7 +131,8 @@ if __name__ == '__main__':
 
     # print(mean_speedup)
 
-    print(compare_to_fastest(execution_time, "algorithm0c"))
+    speedup_over_linnea = compare_to_fastest(execution_time, "algorithm0c")
+    speedup_over_linnea.to_csv("speedup_over_linnea.csv", na_rep="NaN")
     # print(check_std_dev())
     
 
