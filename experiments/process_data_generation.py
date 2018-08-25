@@ -6,16 +6,16 @@ def read_results(number_of_experiments):
     # what about missing data?
 
     data = []
-    for jobindex in range(1, number_of_experiments+1):
-        for dir in ["c_m", "c_nm", "e_m", "e_nm"]:
-            if os.path.exists(dir):
+    for dir in ["c_m", "c_nm", "e_m", "e_nm"]:
+        if os.path.exists(dir):
+            for jobindex in range(1, number_of_experiments+1):
                 file_name = "{}/linnea_generation{}.csv".format(dir, jobindex)
                 if os.path.isfile(file_name):
                     data.append(pd.read_csv(file_name, index_col=[0, 1, 2]))
                 else:
                     print("Missing file", file_name)
-            else:
-                print("No directory", dir)
+        else:
+            print("No directory", dir)
 
     return pd.concat(data)
 
