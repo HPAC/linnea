@@ -2,20 +2,17 @@ import os.path
 import argparse
 import pandas as pd
 
-def read_results(number_of_experiments):
+def read_results(number_of_experiments, dirs):
     # what about missing data?
 
     data = []
-    for dir in ["c_m", "c_nm", "e_m", "e_nm"]:
-        if os.path.exists(dir):
-            for jobindex in range(1, number_of_experiments+1):
-                file_name = "{}/linnea_generation{}.csv".format(dir, jobindex)
-                if os.path.isfile(file_name):
-                    data.append(pd.read_csv(file_name, index_col=[0, 1, 2]))
-                else:
-                    print("Missing file", file_name)
-        else:
-            print("No directory", dir)
+    for dir in dirs:
+        for jobindex in range(1, number_of_experiments+1):
+            file_name = "{}/linnea_generation{}.csv".format(dir, jobindex)
+            if os.path.isfile(file_name):
+                data.append(pd.read_csv(file_name, index_col=[0, 1, 2]))
+            else:
+                print("Missing file", file_name)
 
     return pd.concat(data)
 
@@ -32,11 +29,17 @@ if __name__ == '__main__':
     elif args.experiment == "random":
         number_of_experiments = 100
 
-    results = read_results(number_of_experiments)
-    results.to_csv("linnea_generation.csv")
-    # print(results)
+    dirs = []
+    new_columns = []
+    for dir, col in zip(["c_m", "c_nm", "e_m", "e_nm"], ["constructive_merging", "constructive_no_merging", "exhaustive_merging", "exhaustive_no_merging"]):
+        if os.path.exists(dir):
+            dirs.append(dir)
+            new_columns.append(col)
+        else:
+            print("No directory", dir)
 
-    new_columns = ["constructive_merging", "constructive_no_merging", "exhaustive_merging", "exhaustive_no_merging"]
+    results = read_results(number_of_experiments, dirs)
+    results.to_csv("linnea_generation.csv")
 
     # we have to do something about missing data here
 
