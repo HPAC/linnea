@@ -1,6 +1,7 @@
 import pkg_resources
 import json
 import os.path
+import os
 import itertools
 
 # this causes a problem because it tries to read the config.json in the current directory.
@@ -98,6 +99,10 @@ def generate_scripts(experiment, number_of_experiments):
     replacement_time["jobs"] = number_of_experiments
     replacement_generate["name"] = experiment
     replacement_time["name"] = experiment
+
+    dirname = "jobscripts/{}/".format(experiment)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
     time_generation_script(replacement_time)
     time_execution_scripts(replacement_time)
