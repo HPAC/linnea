@@ -23,6 +23,9 @@ def load_config():
                         data_time["exclusive"] = ""
                 else:
                     data_time[key] = value
+    else:
+        print("'jobscripts/config.json' not found.")
+        exit()
 
     return data["generate"], data_time
 

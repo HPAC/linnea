@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
 #BSUB -J "linnea_gen[1-{jobs}]" # job name
-#BSUB -o "linnea/results/generation/run_%J/cout.txt" # job output
+#BSUB -oo "linnea/output/cout_{name}.txt" # job output
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB
 #BSUB -P {group}
 #BSUB -R model=={model}
 
-
-mkdir -p ${{HOME}}/linnea/results/generation/run_${{LSB_JOBID}}
 
 module load python/3.6.0
 

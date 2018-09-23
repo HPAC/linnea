@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #BSUB -J "linnea_time_cpp[1-{jobs}]" # job name
-#BSUB -o "linnea/results/{name}/execution/cpp/cout.txt" # job output
+#BSUB -oo "linnea/results/{name}/execution/cpp/cout.txt" # job output
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB
 #BSUB -P {group}
