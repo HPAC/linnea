@@ -131,7 +131,7 @@ scal = KernelDescription(
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda d: d["N"]
+cf = lambda d: max(d["N"], d["M"]) # to get correct cost for row and column vectors
 
 axpy = KernelDescription(
     ExpressionKV(
@@ -152,7 +152,8 @@ axpy = KernelDescription(
     "",
     "axpy!($alpha, $x, $y) # vectors",
     "",
-    [SizeArgument("N", x, "rows")], # Argument objects
+    [SizeArgument("N", x, "rows"),
+     SizeArgument("M", x, "columns")], # Argument objects
     )
 
 ###############
