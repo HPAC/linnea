@@ -49,7 +49,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # self.root.equations.replace_auxiliaries()
 
         check_validity(self.root.equations)
-        self.root.equations.to_normalform()
+        self.root.equations = self.root.equations.to_normalform()
         for eqn_idx, equation in enumerate(self.root.equations):
             for node, pos in equation.rhs.preorder_iter():
                 # I think it's not necessary to store properties both for
