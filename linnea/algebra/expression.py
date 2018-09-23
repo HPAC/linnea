@@ -736,11 +736,12 @@ class LinSolveL(Operator):
         return "({0}\{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
 
     def to_julia_expression(self, recommended=False):
-        # This avoids a bug in Julia < 0.7 with solving linear systems where
-        # both matrices have type Symmetric.
         op2 = self.operands[1]
         template_str = "({0}\{1})"
-        if isinstance(op2, Symbol) and op2.has_property(properties.SYMMETRIC):
+        # This avoids a bug in Julia < 0.7 with solving linear systems where
+        # op1 is symmetric and op2 also has a property.
+        from ..derivation.graph.utils import is_transpose
+        if (isinstance(op2, Symbol) or (is_transpose(op2) and isinstance(op2.operand, Symbol))) and (op2.has_property(properties.SYMMETRIC) or op2.has_property(properties.TRIANGULAR)) and not op2.has_property(properties.DIAGONAL):
             template_str = "({0}\{1}.data)"
         return template_str.format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
 
