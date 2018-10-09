@@ -198,10 +198,7 @@ class Signal_Processing_7_1_5():
 
 class Lower_Triangular_Inversion_7_1_6():
     def __init__(self, n = 1000, m = 1000, k = 1000):
-        # TAGS
-        # signal processing
-        # problem 7.1.6 in the paper
-        # equation: x = (A^-T B^T BA^-1 + R^TDR)^-1 A^-T B^T BA^-1 y
+
         # input-output variables are modeled as two seperate variables
 
         L00  = Matrix("L00", (n, n), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
@@ -254,7 +251,7 @@ class Lower_Triangular_Inversion_7_1_6():
                             )
                     )
 
-#FIXME: bug
+
 class Local_Assimilation_Kalman_7_1_7():
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
         # nino2016
@@ -280,12 +277,12 @@ class Local_Assimilation_Kalman_7_1_7():
                                     Xb,
                                     Times(
                                         Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-                                        # Times(H, Xb, minu1)
-                                        Plus(Y, Times(H, Xb))
+                                        Plus(Y, Times(minu1, H, Xb))
                                         )
                                     )
                                 )
                             )
+
 
 class Rank_1_Tensor_Update_7_1_8():
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
