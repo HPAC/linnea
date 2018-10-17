@@ -104,23 +104,22 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.svdfact_U,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input[:U]\n")
+        utils.CodeTemplate("$output = $input.U\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.svdfact_S,
         sf.StorageFormat.diagonal_vector,
-        utils.CodeTemplate("$output = $input[:S]\n")
+        utils.CodeTemplate("$output = $input.S\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.svdfact_S,
         sf.StorageFormat.full,
-        # utils.CodeTemplate("$output = diagm($input[:S])\n")
-        utils.CodeTemplate("$output = zeros($type, $m, $n)\nd = $input[:S]\nfor i = 1:min($m, $n); $output[i, i] = d[i]; end\n")
+        utils.CodeTemplate("$output = zeros($type, $m, $n)\nd = $input.S\nfor i = 1:min($m, $n); $output[i, i] = d[i]; end\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.svdfact_V,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input[:Vt]\n")
+        utils.CodeTemplate("$output = $input.Vt\n")
         ),
 ]
 

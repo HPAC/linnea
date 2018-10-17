@@ -207,7 +207,7 @@ singular_value = FactorizationKernel(
     ],
     cf,
     None,
-    CodeTemplate("$_A = svdfact!($_A, thin=false)"),
+    CodeTemplate("$_A = svd!($_A, full=true)"),
     None,
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
