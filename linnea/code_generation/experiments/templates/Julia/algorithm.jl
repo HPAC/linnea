@@ -1,5 +1,5 @@
-using Base.LinAlg.BLAS
-using Base.LinAlg
+using LinearAlgebra.BLAS
+using LinearAlgebra
 
 function {}({})
 {}

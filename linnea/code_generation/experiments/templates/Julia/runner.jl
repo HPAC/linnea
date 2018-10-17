@@ -1,4 +1,5 @@
-using Base.Test
+using Test
+using Logging
 using MatrixGenerator
 
 include("operand_generator.jl")
@@ -7,16 +8,19 @@ include("reference/naive.jl")
 include("reference/recommended.jl")
 
 matrices = operand_generator()
-#test run
+
+@info("Performing Test run...")
 result_naive = naive(matrices...)
 result_recommended = recommended(matrices...)
-#@test result_recommended ≈ result_naive
-#print("Norm: "*string(norm(result_naive - result_recommended))*"\\n")
-#print("Naive(0, 0): "*string(result_naive[1, 1])*"\\n")
+@test isapprox(result_recommended, result_naive)
 {1}
+@info("Test run performed successfully")
 
-plotter = Benchmarker.Plotter.Plot{{Float64}}("julia_results_{3}.txt", ["algorithm"]);
+
+@info("Running Benchmarks...")
+plotter = Benchmarker.Plot("julia_results_{3}.txt", ["algorithm"]);
 {2}
-Benchmarker.Plotter.add_data(plotter, ["naive_julia"], Benchmarker.measure(10, naive, matrices...) );
-Benchmarker.Plotter.add_data(plotter, ["recommended_julia"], Benchmarker.measure(10, recommended, matrices...) );
-Benchmarker.Plotter.finish(plotter);
+Benchmarker.add_data(plotter, ["naive_julia"], Benchmarker.measure(20, naive, matrices...) );
+Benchmarker.add_data(plotter, ["recommended_julia"], Benchmarker.measure(20, recommended, matrices...) );
+Benchmarker.finish(plotter);
+@info("Benchmarks complete")
