@@ -48,7 +48,7 @@ class AllocateMemory(MemoryOperation):
             return "{0}* {1} = ({0}*) malloc(sizeof({0})*{2});\n".format(config.data_type_string, self.mem_loc.name, size)
         elif config.julia:
             size = ", ".join(str(val) for val in self.mem_loc.size)
-            return "{0} = Array{{{1}}}({2})\n".format(self.mem_loc.name, config.data_type_string, size)
+            return "{0} = Array{{{1}}}(undef, {2})\n".format(self.mem_loc.name, config.data_type_string, size)
         else:
             raise config.LanguageOptionNotImplemented()
 

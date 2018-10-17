@@ -42,7 +42,7 @@ cholesky = FactorizationKernel(
     [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.NON_SINGULAR], StorageFormat.lower_triangular)],
     cf,
     None,
-    CodeTemplate("""Base.LinAlg.LAPACK.potrf!('L', $_A)"""),
+    CodeTemplate("""LinearAlgebra.LAPACK.potrf!('L', $_A)"""),
     None,
     [SizeArgument("N", _A, "rows")],
     )
@@ -72,7 +72,7 @@ plu = FactorizationKernel(
     ],
     cf,
     CodeTemplate(),
-    CodeTemplate("($_A, $_P, info) = Base.LinAlg.LAPACK.getrf!($_A)"),
+    CodeTemplate("($_A, $_P, info) = LinearAlgebra.LAPACK.getrf!($_A)"),
     CodeTemplate(),
     [SizeArgument("N", _A, "rows")],
     )
@@ -178,7 +178,7 @@ eigendecomposition = FactorizationKernel(
     ],
     cf_eigen,
     None,
-    CodeTemplate("$_W, $_A = Base.LinAlg.LAPACK.syev!('V', $uplo, $_A)"),
+    CodeTemplate("$_W, $_A = LinearAlgebra.LAPACK.syev!('V', $uplo, $_A)"),
     None,
     [SizeArgument("N", _A, "rows"),
      StorageFormatArgument("uplo", _A, StorageFormat.symmetric_lower_triangular, ["L", "U"]),]
