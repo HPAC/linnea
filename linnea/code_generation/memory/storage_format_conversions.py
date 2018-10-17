@@ -79,12 +79,12 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.QRfact_Q,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = full($input[:Q])\n")
+        utils.CodeTemplate("$output = Array($input.Q)\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.QRfact_R,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input[:R]\n")
+        utils.CodeTemplate("$output = $input.R\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.eigfact_Z,
