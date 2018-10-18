@@ -37,7 +37,7 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.permutation_vector,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = eye($type, $n)[$input,:]\n")
+        utils.CodeTemplate("$output = Array{$type}(I, $n, $n)[$input,:]\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.ipiv,

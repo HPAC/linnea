@@ -1219,10 +1219,10 @@ class IdentityMatrix(ConstantMatrix):
 
     def to_matlab_expression(self, recommended=False):
         # TODO add data type (last position)
-        return "eye({0}, {1})".format(*self.size)
+        return "Array{{{0}}}(I, {1}, {1})".format(*self.size)
 
     def to_julia_expression(self, recommended=False):
-        return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
+        return "Array{{{0}}}(I, {1}, {2})".format(config.data_type_string, *self.size)
 
     def to_cpp_expression(self, lib, recommended=False):
         if lib is CppLibrary.Blaze:
