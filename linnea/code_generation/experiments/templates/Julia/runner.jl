@@ -12,7 +12,7 @@ matrices = operand_generator()
 @info("Performing Test run...")
 result_naive = naive(matrices...)
 result_recommended = recommended(matrices...)
-@test isapprox(result_recommended, result_naive)
+@test isapprox(collect(result_recommended), collect(result_naive))
 {1}
 @info("Test run performed successfully")
 
