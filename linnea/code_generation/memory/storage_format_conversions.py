@@ -54,27 +54,27 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.cholfact_L,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = convert(Array{$type, 2}, $input[:L])\n")
+        utils.CodeTemplate("$output = convert(Array{$type, 2}, $input.L)\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.LUfact_L,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input[:L]\n")
+        utils.CodeTemplate("$output = $input.L\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.LUfact_U,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input[:U]\n")
+        utils.CodeTemplate("$output = $input.U\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.LUfact_P,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input[:P]\n")
+        utils.CodeTemplate("$output = $input.P\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.LUfact_P,
         sf.StorageFormat.permutation_vector,
-        utils.CodeTemplate("$output = $input[:p]\n")
+        utils.CodeTemplate("$output = $input.p\n")
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.QRfact_Q,
