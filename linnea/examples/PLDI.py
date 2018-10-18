@@ -323,8 +323,8 @@ class Example08():
         R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        X = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+        Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
 
         self.eqns = Equations(
                         Equal(dX,
@@ -354,15 +354,16 @@ class Example09():
         R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        X = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+        X = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
 
         self.eqns = Equations(
                         Equal(dX,
                             Times(
                                 X,
                                 Transpose(Times(H, X)),
-                                Inverse(Plus(R, Times(H, X, Transpose(H, X)))),
+                                Inverse(Plus(R, Times(H, X, Transpose(Times(H, X))))),
                                 Plus(Y, Times(minus1, H, Xb))
                                 )
                             )
