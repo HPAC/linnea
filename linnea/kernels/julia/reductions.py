@@ -1289,7 +1289,7 @@ diaginv = KernelDescription(
     OutputOperand(A, StorageFormat.diagonal_vector), # return value
     cf, # cost function
     "",
-    "$A = 1./$A",
+    "$A = 1 ./$A",
     "",
     [SizeArgument("N", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -1507,7 +1507,7 @@ diagsmr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "x = 1./$A; for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= x[i]; end; end;", # faster with current Julia version
+    "x = 1 ./$A; for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= x[i]; end; end;", # faster with current Julia version
     # "for i = 1:size($B, 2); $B[:,i] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
@@ -1542,7 +1542,7 @@ diagsml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "x = 1./$A; for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
+    "x = 1 ./$A; for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
     # "for i = 1:size($B, 1); $B[i,:] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
