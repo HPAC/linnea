@@ -15,7 +15,6 @@ from .. import derivation
 class Example01():
     def __init__(self):
 
-        # 1.1
         # least squares
 
         n = 1500
@@ -38,7 +37,6 @@ class Example01():
 class Example02():
     def __init__(self):
 
-        # 1.2
         # generalized least squares
 
         n = 1500
@@ -66,7 +64,6 @@ class Example02():
 class Example03():
     def __init__(self, ):
 
-        # 1.3
         # optimization problem 1
 
         n = 1500
@@ -112,7 +109,6 @@ class Example03():
 class Example04():
     def __init__(self, ):
 
-        # 1.4
         # optimization problem 2
 
         n = 1500
@@ -174,7 +170,6 @@ class Example04():
 class Example05():
     def __init__(self, N = 1000):
 
-        # 1.5
         # signal processing
 
         A = Matrix("A", (N, N), properties = [properties.FULL_RANK, properties.INPUT])
@@ -220,7 +215,6 @@ class Example05():
 class Example06():
     def __init__(self):
 
-        # 1.6
         # inversion of lower triangular matrix
 
         n = 1000
@@ -281,8 +275,7 @@ class Example06():
 class Example07():
     def __init__(self):
 
-        # 1.7
-        # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition
+        # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition 1
 
         N = 1000
         msd = 1000
@@ -297,7 +290,7 @@ class Example07():
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        Xa = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+        Xa = Matrix("Xa", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
 
         self.eqns = Equations(
                             Equal(
@@ -311,3 +304,543 @@ class Example07():
                                     )
                                 )
                             )
+
+
+class Example08():
+    def __init__(self):
+
+        # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition 2
+
+        N = 1000
+        msd = 1000
+        nsd = 1000
+
+        minus1 = ConstantScalar(-1)
+
+        B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        # B is a covariance matrix (symmetric positive semi-definite)
+        H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        # R is a covariance matrix (symmetric positive semi-definite)
+        Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        X = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+
+        self.eqns = Equations(
+                        Equal(dX,
+                            Times(
+                                Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
+                                Transpose(H),
+                                Inverse(R),
+                                Plus(Y, Times(minus1, H, Xb))
+                                )
+                            )
+                        )
+
+class Example09():
+    def __init__(self):
+
+        # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition 3
+
+        N = 1000
+        msd = 1000
+        nsd = 1000
+
+        minus1 = ConstantScalar(-1)
+
+        B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        # B is a covariance matrix (symmetric positive semi-definite)
+        H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        # R is a covariance matrix (symmetric positive semi-definite)
+        Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        X = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+
+        self.eqns = Equations(
+                        Equal(dX,
+                            Times(
+                                X,
+                                Transpose(Times(H, X)),
+                                Inverse(Plus(R, Times(H, X, Transpose(H, X)))),
+                                Plus(Y, Times(minus1, H, Xb))
+                                )
+                            )
+                        )
+
+
+class Example10():
+    def __init__(self):
+
+        # image restoration 1
+
+        n = 1500
+        m = 1000
+
+        minus1 = ConstantScalar(-1)
+        lambda_ = Scalar("lambda") # positive
+        sigma_ = Scalar("sigma_sq") # positive
+
+        H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        I = IdentityMatrix(n, n)
+
+        v_k = Vector("v_k", (n, 1), properties = [properties.INPUT])
+        u_k = Vector("u_k", (n, 1), properties = [properties.INPUT])
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.OUTPUT])
+
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(
+                                        Times(
+                                            Transpose(H),
+                                            H
+                                        ),
+                                        Times(
+                                            lambda_,
+                                            sigma_,
+                                            I
+                                        )
+                                    ), {properties.SPD})
+        self.init()
+
+        self.eqns = Equations(
+                            Equal(
+                                x,
+                                Times(
+                                    # (H^t * H + lambda * sigma^2 * I_n)^-1
+                                    Inverse( Plus(
+                                        Times(
+                                            Transpose(H),
+                                            H
+                                        ),
+                                        Times(
+                                            lambda_,
+                                            sigma_,
+                                            I
+                                        )
+                                    )),
+                                    # (H^T * y + lambda * sigma^2 * (v - u))
+                                    Plus(
+                                        Times(
+                                            Transpose(H),
+                                            y
+                                        ),
+                                        Times(
+                                            lambda_,
+                                            sigma_,
+                                            Plus(
+                                                v_k,
+                                                Times(
+                                                    minus1,
+                                                    u_k
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+
+
+class Example11():
+    def __init__(self):
+
+        # image restoration 2
+
+        n = 1500
+        m = 1000
+
+        minus1 = ConstantScalar(-1.0)
+        lambda_ = Scalar("lambda") # positive
+        sigma_ = Scalar("sigma_sq") # positive
+
+        H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
+        H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
+        I = IdentityMatrix(n, n)
+
+        y_k = Vector("y_k", (n, 1), properties = [properties.OUTPUT])
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.INPUT])
+
+        h_dag = Times(
+                    Transpose(H),
+                    Inverse(
+                        Times(
+                            H,
+                            Transpose(H)
+                        )
+                    )
+                )
+
+        self.eqns = Equations(
+                        Equal(
+                            H_dag_O,
+                            h_dag
+                        ),
+                        Equal(
+                            y_k,
+                            Plus(
+                                Times(
+                                    H_dag_I,
+                                    y
+                                ),
+                                Times(
+                                    Plus(
+                                        I,
+                                        Times(
+                                            minus1,
+                                            H_dag_I,
+                                            H
+                                        )
+                                    ),
+                                    x
+                                )
+                            )
+                        )
+                    )
+
+
+class Example12():
+    def __init__(self):
+
+        # image restoration 3
+
+        n = 1500
+        m = 1000
+
+        minus1 = ConstantScalar(-1.0)
+        lambda_ = Scalar("lambda") # positive
+        sigma_ = Scalar("sigma_sq") # positive
+
+        H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
+        H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
+        I = IdentityMatrix(n, n)
+
+        y_k = Vector("y_k", (n, 1), properties = [properties.OUTPUT])
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.INPUT])
+
+        h_dag = Times(
+                    Transpose(H),
+                    Inverse(
+                        Times(
+                            H,
+                            Transpose(H)
+                        )
+                    )
+                )
+
+        self.eqns = Equations(
+                        Equal(
+                            y_k,
+                            Plus(
+                                Times(
+                                    h_dag,
+                                    y
+                                ),
+                                Times(
+                                    Plus(
+                                        I,
+                                        Times(
+                                            minus1,
+                                            h_dag,
+                                            H
+                                        )
+                                    ),
+                                    x
+                                )
+                            )
+                        )
+                    )
+
+
+class Example13():
+    def __init__(self):
+
+        # randomized matrix inversion 1
+
+        # q << n
+        n = 10000
+        q = 500
+
+        W = Matrix("W", (n, n))
+        W.set_property(properties.SPD)
+        W.set_property(properties.INPUT)
+
+        S = Matrix("S", (n, q))
+        S.set_property(properties.FULL_RANK)
+        S.set_property(properties.INPUT)
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+        A.set_property(properties.INPUT)
+
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(properties.INPUT)
+
+        Xout = Matrix("Xout", (n, n))
+        Xout.set_property(properties.FULL_RANK)
+        Xout.set_property(properties.OUTPUT)
+
+        I = IdentityMatrix(n, n)
+        minus1 = ConstantScalar(-1.0)
+
+        self.eqns = Equations(
+                        Equal(Xout,
+                            Plus(Xin,
+                                Times(
+                                    W, Transpose(A), S,
+                                    Inverse(Times(Transpose(S), A, W, Transpose(A), S)),
+                                    Transpose(S),
+                                    Plus(I, Times(minus1, A, Xin))
+                                    )
+                                )
+                            )
+                        )
+
+class Example14():
+    def __init__(self):
+
+        # randomized matrix inversion 2
+
+        # q << n
+        n = 10000
+        q = 500
+
+        W = Matrix("W", (n, n))
+        W.set_property(properties.SPD)
+        W.set_property(properties.INPUT)
+
+        S = Matrix("S", (n, q))
+        S.set_property(properties.FULL_RANK)
+        S.set_property(properties.INPUT)
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+        A.set_property(properties.INPUT)
+
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(properties.INPUT)
+
+        Xout = Matrix("Xout", (n, n))
+        Xout.set_property(properties.FULL_RANK)
+        Xout.set_property(properties.OUTPUT)
+
+        I = IdentityMatrix(n, n)
+        minus1 = ConstantScalar(-1.0)
+
+        self.eqns = Equations(
+                        Equal(Xout,
+                            Plus(Xin,
+                                Times(
+                                    Plus(I, Times(minus1, A, Xin)),
+                                    S,
+                                    Inverse(Times(Transpose(S), Transpose(A), W, A, S)),
+                                    Transpose(S), Transpose(A), W
+                                    )
+                                )
+                            )
+                        )
+
+
+class Example15():
+    def __init__(self):
+
+        # randomized matrix inversion 3
+
+        # q << n
+        n = 10000
+        q = 500
+
+        W = Matrix("W", (n, n))
+        W.set_property(properties.SPD)
+        W.set_property(properties.INPUT)
+
+        S = Matrix("S", (n, q))
+        S.set_property(properties.FULL_RANK)
+        S.set_property(properties.INPUT)
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.SYMMETRIC)
+        A.set_property(properties.FULL_RANK)
+        A.set_property(properties.INPUT)
+
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(properties.INPUT)
+
+        Xout = Matrix("Xout", (n, n))
+        Xout.set_property(properties.FULL_RANK)
+        Xout.set_property(properties.OUTPUT)
+
+        I = IdentityMatrix(n, n)
+        minus1 = ConstantScalar(-1.0)
+
+        Lambda = Times(S, Inverse(Times(Transpose(S), A, W, A, S)), Transpose(S))
+        Omega = Times(Lambda, A, W)
+        M_k = Plus(Times(Xin, A), Times(minus1, I)) 
+
+        self.eqns = Equations(
+                        Equal(Xout,
+                            Plus(Xin,
+                                Times(minus1, M_k, Omega),
+                                Times(minus1, Transpose(Times(M_k, Omega))),
+                                Times(
+                                    Transpose(Omega),
+                                    Plus(Times(A, Xin, A), Times(minus1, A)),
+                                    Omega
+                                    )
+                                )
+                            )
+                        )
+
+
+class Example16():
+    def __init__(self):
+
+        # randomized matrix inversion 4
+
+        # q << n
+        n = 10000
+        q = 500
+
+        S = Matrix("S", (n, q))
+        S.set_property(properties.FULL_RANK)
+        S.set_property(properties.INPUT)
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.SYMMETRIC)
+        A.set_property(properties.FULL_RANK)
+        A.set_property(properties.INPUT)
+
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(properties.INPUT)
+
+        Xout = Matrix("Xout", (n, n))
+        Xout.set_property(properties.FULL_RANK)
+        Xout.set_property(properties.OUTPUT)
+
+        I = IdentityMatrix(n, n)
+        minus1 = ConstantScalar(-1.0)
+
+        subexpr = Times(S, Inverse(Times(Transpose(S), A, S)), Transpose(S))
+
+        self.eqns = Equations(
+                        Equal(Xout,
+                            Plus(
+                                subexpr,
+                                Times(
+                                    Plus(I, Times(minus1, subexpr, A)),
+                                    Xin,
+                                    Plus(I, Times(minus1, A, subexpr))
+                                    )
+                                )
+                            )
+                        )
+
+
+class Example17():
+    def __init__(self):
+
+        # Stochastic Newton and Quasi-Newton for Large Linear Least-squares 1
+
+        # l < n
+        # n << m
+        l = 625
+        n = 1000
+        m = 50000
+
+        Wk = Matrix("Wk", (m, l))
+        Wk.set_property(properties.FULL_RANK)
+        Wk.set_property(properties.INPUT)
+
+        A = Matrix("A", (m, n))
+        A.set_property(properties.FULL_RANK)
+        A.set_property(properties.INPUT)
+
+        Bin = Matrix("Bin", (n, n))
+        Bin.set_property(properties.SPD)
+        Bin.set_property(properties.INPUT)
+
+        Bout = Matrix("Bout", (n, n))
+        Bout.set_property(properties.SPD)
+        Bout.set_property(properties.OUTPUT)
+
+        In = IdentityMatrix(n, n)
+        Il = IdentityMatrix(l, l)
+        k = Scalar("k")
+        minus1 = ConstantScalar(-1.0)
+        kminus1 = Plus(k, minus1)
+
+        self.eqns = Equations(
+                        Equal(Bout,
+                            Times(
+                                Times(k, Inverse(kminus1)),
+                                Bin,
+                                Plus(
+                                    In,
+                                    Times(
+                                        minus1, Transpose(A), Wk,
+                                        Inverse(Plus(
+                                            Times(kminus1, Il),
+                                            Times(Transpose(Wk), A, Bin, Transpose(A), Wk)
+                                            )),
+                                        Transpose(Wk), A, Bin
+                                        )
+                                    )
+                                )
+                            )
+                        )
+
+
+class Example18():
+    def __init__(self):
+
+        # Stochastic Newton and Quasi-Newton for Large Linear Least-squares 2
+
+        # l < n
+        # n << m
+        l = 625
+        n = 1000
+        m = 50000
+
+        Wk = Matrix("Wk", (m, l))
+        Wk.set_property(properties.FULL_RANK)
+        Wk.set_property(properties.INPUT)
+
+        A = Matrix("A", (m, n))
+        A.set_property(properties.FULL_RANK)
+        A.set_property(properties.INPUT)
+
+        Bout = Matrix("Bout", (n, n))
+        Bout.set_property(properties.SPD)
+        Bout.set_property(properties.OUTPUT)
+
+        In = IdentityMatrix(n, n)
+        Il = IdentityMatrix(l, l)
+        lambda_ = Scalar("lambda")
+        minus1 = ConstantScalar(-1.0)
+
+        self.eqns = Equations(
+                        Equal(Bout,
+                            Times(
+                                Times(ConstantScalar(1.0), Inverse(lambda_)),
+                                Plus(
+                                    In,
+                                    Times(
+                                        minus1, Transpose(A), Wk,
+                                        Inverse(Plus(
+                                            Times(lambda_, Il),
+                                            Times(Transpose(Wk), A, Transpose(A), Wk)
+                                            )),
+                                        Transpose(Wk), A
+                                        )
+                                    )
+                                )
+                            )
+                        )
