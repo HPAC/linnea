@@ -10,6 +10,8 @@ def to_kernels(descriptions):
     return list(itertools.chain.from_iterable( list(description.generate_kernels()) for description in descriptions))
 
 scalar_product = list(reductions.scalar_product.generate_kernels())
+scalar_division = list(reductions.scalar_division.generate_kernels())
+scalar_inversion = list(reductions.scalar_inversion.generate_kernels())
 scalar_sum = list(reductions.scalar_sum.generate_kernels())
 dot = list(reductions.dot.generate_kernels())
 ger = list(reductions.ger.generate_kernels())
@@ -69,6 +71,7 @@ transpose_perm = list(reductions.transpose_perm.generate_kernels())
 # Currently, this list is not used (except for obtaining matrix chain kernels.)
 reductions = list(itertools.chain(
                 scalar_product,
+                scalar_division,
                 scalar_sum,
                 dot,
                 ger,
@@ -140,6 +143,7 @@ unary_kernels = list(itertools.chain(
                 transpose,
                 transpose_vector,
                 transpose_perm,
+                scalar_inversion
             ))
 
 addition_kernels = list(itertools.chain(

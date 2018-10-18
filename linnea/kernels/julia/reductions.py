@@ -49,7 +49,52 @@ scalar_product = KernelDescription(
     [], # Argument objects
     )
 
-# TODO scalar division? -> scalar inversion
+# scalar division
+
+alpha = Scalar("alpha")
+beta = Scalar("beta")
+out = Scalar("out")
+cf = lambda d: 1
+
+scalar_division = KernelDescription(
+    ExpressionKV(
+        "side",
+        {"R": Times(alpha, Inverse(beta)),
+         "L": Times(Inverse(beta), alpha)}
+        ),
+    [], # variants
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(beta, StorageFormat.full)
+    ],
+    OutputOperand(out, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$out = $alpha / $beta",
+    "",
+    [], # Argument objects
+    )
+
+# scalar inversion
+
+alpha = Scalar("alpha")
+out = Scalar("out")
+cf = lambda d: 1
+
+scalar_inversion = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Inverse(alpha)}
+        ),
+    [], # variants
+    [InputOperand(alpha, StorageFormat.full),
+    ],
+    OutputOperand(out, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$out = 1.0 / $alpha",
+    "",
+    [], # Argument objects
+    )
 
 # scalar sum
 
