@@ -8,10 +8,10 @@ from .. import utils
 algorithm_inclusion = {config.Language.Julia: """include("{0}/{1}.jl")""",
                     config.Language.Cpp: ""}
 
-algorithm_test = {config.Language.Julia: "#@test {0}(map(MatrixGenerator.unwrap, matrices)...) ≈ result_naive",
+algorithm_test = {config.Language.Julia: "@test isapprox(collect({0}(map(MatrixGenerator.unwrap, matrices)...)), collect(result_naive))",
                     config.Language.Cpp: ""}
 
-algorithm_plot = {config.Language.Julia: """Benchmarker.Plotter.add_data(plotter, ["{0}"], Benchmarker.measure(20, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
+algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"], Benchmarker.measure(20, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
                     config.Language.Cpp: ""}
 
 

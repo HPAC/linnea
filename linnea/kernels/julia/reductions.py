@@ -758,7 +758,7 @@ trtri = KernelDescription(
     OutputOperand(A, StorageFormat.as_overwritten), # return value
     cf, # cost function
     "",
-    "Base.LinAlg.LAPACK.trtri!($uplo, $diag, $A)",
+    "LinearAlgebra.LAPACK.trtri!($uplo, $diag, $A)",
     "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
@@ -794,8 +794,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-Base.LinAlg.LAPACK.potrf!('L', A)
-Base.LinAlg.LAPACK.potrs!('L', A, B)
+LinearAlgebra.LAPACK.potrf!('L', A)
+LinearAlgebra.LAPACK.potrs!('L', A, B)
 """
 
 posv = KernelDescription(
@@ -810,7 +810,7 @@ posv = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "Base.LinAlg.LAPACK.posv!('L', $A, $B)",
+    "LinearAlgebra.LAPACK.posv!('L', $A, $B)",
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -829,8 +829,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-Base.LinAlg.LAPACK.potrf!('L', A)
-Base.LinAlg.LAPACK.potrs!('L', A, B)
+LinearAlgebra.LAPACK.potrf!('L', A)
+LinearAlgebra.LAPACK.potrs!('L', A, B)
 """
 
 posvr = KernelDescription(
@@ -845,7 +845,7 @@ posvr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "$B = $B'\nBase.LinAlg.LAPACK.posv!('L', $A, $B)\n$B = $B'",
+    "$B = $B'\nLinearAlgebra.LAPACK.posv!('L', $A, $B)\n$B = $B'",
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
@@ -864,8 +864,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-(A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
-Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+(A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
+LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
 TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
@@ -881,7 +881,7 @@ sysv = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "Base.LinAlg.LAPACK.sysv!('L', $A, $B)",
+    "LinearAlgebra.LAPACK.sysv!('L', $A, $B)",
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -900,8 +900,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-(A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
-Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+(A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
+LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
 TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
@@ -917,7 +917,7 @@ sysvr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "$B = $B'\nBase.LinAlg.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
+    "$B = $B'\nLinearAlgebra.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
@@ -934,7 +934,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-Base.LinAlg.LAPACK.gesv!($A, $B)
+LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesv = KernelDescription(
@@ -951,7 +951,7 @@ gesv = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "($A, ipiv, info) = Base.LinAlg.LAPACK.getrf!($A)\nBase.LinAlg.LAPACK.getrs!($transA, $A, ipiv, $B)",
+    "($A, ipiv, info) = LinearAlgebra.LAPACK.getrf!($A)\nLinearAlgebra.LAPACK.getrs!($transA, $A, ipiv, $B)",
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -969,7 +969,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-Base.LinAlg.LAPACK.gesv!($A, $B)
+LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesvr = KernelDescription(
@@ -1001,7 +1001,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-Base.LinAlg.LAPACK.gesv!($A, $B)
+LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesvrt = KernelDescription(
@@ -1038,8 +1038,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-Base.LinAlg.LAPACK.potrf!('L', A)
-Base.LinAlg.LAPACK.potrs!('L', A, B)
+LinearAlgebra.LAPACK.potrf!('L', A)
+LinearAlgebra.LAPACK.potrs!('L', A, B)
 """
 
 posv_vec = KernelDescription(
@@ -1054,7 +1054,7 @@ posv_vec = KernelDescription(
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "Base.LinAlg.LAPACK.posv!('L', $A, $x)",
+    "LinearAlgebra.LAPACK.posv!('L', $A, $x)",
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -1073,8 +1073,8 @@ posv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# Base.LinAlg.LAPACK.potrf!('L', A)
-# Base.LinAlg.LAPACK.potrs!('L', A, B)
+# LinearAlgebra.LAPACK.potrf!('L', A)
+# LinearAlgebra.LAPACK.potrs!('L', A, B)
 # """
 
 # posvr = KernelDescription(
@@ -1089,7 +1089,7 @@ posv_vec = KernelDescription(
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
 #     "",
-#     "$B = $B'\nBase.LinAlg.LAPACK.posv!('L', $A, $B)\n$B = $B'",
+#     "$B = $B'\nLinearAlgebra.LAPACK.posv!('L', $A, $B)\n$B = $B'",
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
@@ -1108,8 +1108,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-(A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
-Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+(A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
+LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
 TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
@@ -1125,7 +1125,7 @@ sysv_vec = KernelDescription(
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "Base.LinAlg.LAPACK.sysv!('L', $A, $x)",
+    "LinearAlgebra.LAPACK.sysv!('L', $A, $x)",
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -1144,8 +1144,8 @@ sysv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# (A, ipiv) = Base.LinAlg.LAPACK.sytrf!('L', A)
-# Base.LinAlg.LAPACK.sytrs!('L', A, ipiv, B)
+# (A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
+# LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
 # TODO For whatever reason, sytrs is very slow. Investigate.
 # """
 
@@ -1161,7 +1161,7 @@ sysv_vec = KernelDescription(
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
 #     "",
-#     "$B = $B'\nBase.LinAlg.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
+#     "$B = $B'\nLinearAlgebra.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
@@ -1178,7 +1178,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-Base.LinAlg.LAPACK.gesv!($A, $B)
+LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesv_vec = KernelDescription(
@@ -1195,7 +1195,7 @@ gesv_vec = KernelDescription(
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "($A, ipiv, info) = Base.LinAlg.LAPACK.getrf!($A)\nBase.LinAlg.LAPACK.getrs!($transA, $A, ipiv, $x)",
+    "($A, ipiv, info) = LinearAlgebra.LAPACK.getrf!($A)\nLinearAlgebra.LAPACK.getrs!($transA, $A, ipiv, $x)",
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -1213,7 +1213,7 @@ gesv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# Base.LinAlg.LAPACK.gesv!($A, $B)
+# LinearAlgebra.LAPACK.gesv!($A, $B)
 # """
 
 # gesvr = KernelDescription(
@@ -1246,7 +1246,7 @@ gesv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# Base.LinAlg.LAPACK.gesv!($A, $B)
+# LinearAlgebra.LAPACK.gesv!($A, $B)
 # """
 
 # gesvrt = KernelDescription(
@@ -1289,7 +1289,7 @@ diaginv = KernelDescription(
     OutputOperand(A, StorageFormat.diagonal_vector), # return value
     cf, # cost function
     "",
-    "$A = 1./$A",
+    "$A = 1 ./$A",
     "",
     [SizeArgument("N", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -1507,7 +1507,7 @@ diagsmr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "x = 1./$A; for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= x[i]; end; end;", # faster with current Julia version
+    "x = 1 ./$A; for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= x[i]; end; end;", # faster with current Julia version
     # "for i = 1:size($B, 2); $B[:,i] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
@@ -1542,7 +1542,7 @@ diagsml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "x = 1./$A; for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
+    "x = 1 ./$A; for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
     # "for i = 1:size($B, 1); $B[i,:] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),

@@ -736,14 +736,7 @@ class LinSolveL(Operator):
         return "({0}\{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
 
     def to_julia_expression(self, recommended=False):
-        op2 = self.operands[1]
-        template_str = "({0}\{1})"
-        # This avoids a bug in Julia < 0.7 with solving linear systems where
-        # op1 is symmetric and op2 also has a property.
-        from ..derivation.graph.utils import is_transpose
-        if (isinstance(op2, Symbol) or (is_transpose(op2) and isinstance(op2.operand, Symbol))) and (op2.has_property(properties.SYMMETRIC) or op2.has_property(properties.TRIANGULAR)) and not op2.has_property(properties.DIAGONAL):
-            template_str = "({0}\{1}.data)"
-        return template_str.format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+        return "({0}\{1})".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
 
     def __str__(self):
         return "({0}\{1})".format(*self.operands)
@@ -779,13 +772,7 @@ class LinSolveR(Operator):
         return "({0}/{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
 
     def to_julia_expression(self, recommended=False):
-        # This avoids a bug in Julia < 0.7 with solving linear systems where
-        # both matrices have type Symmetric.
-        op1 = self.operands[1]
-        template_str = "({0}/{1})"
-        if isinstance(op1, Symbol) and op1.has_property(properties.SYMMETRIC):
-            template_str = "({0}.data/{1})"
-        return template_str.format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+        return "({0}/{1})".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
 
     def __str__(self):
         return "({0}/{1})".format(*self.operands)
@@ -1232,10 +1219,10 @@ class IdentityMatrix(ConstantMatrix):
 
     def to_matlab_expression(self, recommended=False):
         # TODO add data type (last position)
-        return "eye({0}, {1})".format(*self.size)
+        return "Array{{{0}}}(I, {1}, {1})".format(*self.size)
 
     def to_julia_expression(self, recommended=False):
-        return "eye({0}, {1}, {2})".format(config.data_type_string, *self.size)
+        return "Array{{{0}}}(I, {1}, {2})".format(config.data_type_string, *self.size)
 
     def to_cpp_expression(self, lib, recommended=False):
         if lib is CppLibrary.Blaze:

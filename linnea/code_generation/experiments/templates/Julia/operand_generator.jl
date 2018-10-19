@@ -2,5 +2,5 @@ using MatrixGenerator
 
 function operand_generator()
 {}
-    return ({})
+    return ({},)
 end
