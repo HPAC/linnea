@@ -845,3 +845,43 @@ class Example18():
                                 )
                             )
                         )
+
+
+class Example19():
+    def __init__(self):
+
+        # Kalman filter
+        
+        # TODO: R is symmetric positive semi-definite, which property?
+
+        n = 1000
+        m = 1000
+        minus1 = ConstantScalar(-1.0)
+
+        Kk_O = Matrix("Kk_O", (n, m), properties = [properties.FULL_RANK, properties.OUTPUT])
+        Kk_I = Matrix("Kk_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
+        P_b = Matrix("P_b", (n, n), properties = [properties.INPUT, properties.SPD])
+        P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
+        H = Matrix("H", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (m, m), properties = [properties.FULL_RANK, properties.INPUT, properties.SYMMETRIC])
+        I = IdentityMatrix(n, n)
+
+        x_a = Vector("x_a", (n, 1), properties = [properties.OUTPUT])
+        x_b = Vector("x_b", (n, 1), properties = [properties.INPUT])
+        zk = Vector("zk", (m, 1), properties = [properties.INPUT])
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(H, P_b, Transpose(H)), R), {properties.SPD})
+        self.init()
+
+        self.eqns = Equations(
+                            Equal(
+                                Kk_O,
+                                Times(
+                                    P_b,
+                                    Transpose(H),
+                                    Inverse(Plus(Times(H, P_b, Transpose(H)), R))
+                                )
+                            ),
+                            Equal(x_a, Plus(x_b, Times(Kk_I, Plus( zk, Times(minus1, H, x_b))))),
+                            Equal(P_a, Times(Plus(I, Times(minus1, Kk_I, H)), P_b))
+                        )
