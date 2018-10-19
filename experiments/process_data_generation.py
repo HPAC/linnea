@@ -28,6 +28,8 @@ if __name__ == '__main__':
         number_of_experiments = 31
     elif args.experiment == "random":
         number_of_experiments = 100
+    elif args.experiment == "pldi":
+        number_of_experiments = 19
 
     dirs = []
     new_columns = []

@@ -1,10 +1,10 @@
 
 
 from ..algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar, \
-                                Equal, Plus, Times, Transpose, Inverse, \
-                                InverseTranspose, InverseConjugate, \
-                                InverseConjugateTranspose, \
-                                ConjugateTranspose, Index, IdentityMatrix
+                                 Equal, Plus, Times, Transpose, Inverse, \
+                                 InverseTranspose, InverseConjugate, \
+                                 InverseConjugateTranspose, \
+                                 ConjugateTranspose, Index, IdentityMatrix
 
 from ..algebra.properties import Property as properties
 
@@ -12,8 +12,6 @@ from ..algebra.equations import Equations
 
 from .. import derivation
 
-sONE = 1
-sZERO = 0
 
 #######################
 ### Diego's examples
@@ -26,13 +24,13 @@ class Example001():
 
         n = 10
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
-        z = Vector("z", (n, sONE))
+        z = Vector("z", (n, 1))
         z.set_property(properties.INPUT)
 
         alpha = Scalar("alpha")
@@ -59,10 +57,10 @@ class Example002():
         Y = Matrix("Y", (n, n))
         Y.set_property(properties.INPUT)
 
-        v = Vector("v", (n, sONE))
+        v = Vector("v", (n, 1))
         v.set_property(properties.INPUT)
 
-        w = Vector("w", (n, sONE))
+        w = Vector("w", (n, 1))
         w.set_property(properties.OUTPUT)
 
         # w = X Y^T v + Y X^T v
@@ -82,10 +80,10 @@ class Example003():
         L.set_property(properties.INPUT)
         L.set_property(properties.LOWER_TRIANGULAR)
 
-        v = Vector("v", (n, sONE))
+        v = Vector("v", (n, 1))
         v.set_property(properties.INPUT)
 
-        u = Vector("u", (n, sONE))
+        u = Vector("u", (n, 1))
         u.set_property(properties.INPUT)
 
         alpha = Scalar("alpha")
@@ -106,10 +104,10 @@ class Example004():
 
         n = 10
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
         alpha = Scalar("alpha")
@@ -183,10 +181,10 @@ class Example007():
         X.set_property(properties.INPUT)
         X.set_property(properties.FULL_RANK)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
-        b = Vector("b", (m, sONE))
+        b = Vector("b", (m, 1))
         b.set_property(properties.OUTPUT)
 
         # b = (X^T X)^-1 X^T y
@@ -536,10 +534,10 @@ class Example021():
         # B.set_property(properties.SPD)
         B.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        w = Vector("w", (n, sONE))
+        w = Vector("w", (n, 1))
         w.set_property(properties.OUTPUT)
 
         self.eqns = Equations(Equal(w, Times(A, Inverse(B), x)))
@@ -558,10 +556,10 @@ class Example022():
         A.set_property(properties.NON_SINGULAR)
         A.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        w = Vector("w", (n, sONE))
+        w = Vector("w", (n, 1))
         w.set_property(properties.OUTPUT)
 
         self.eqns = Equations(Equal(w, Times(Inverse(A), x)))
@@ -580,10 +578,10 @@ class Example023():
         L.set_property(properties.NON_SINGULAR)
         L.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        w = Vector("w", (n, sONE))
+        w = Vector("w", (n, 1))
         w.set_property(properties.OUTPUT)
 
         self.eqns = Equations(Equal(w, Times(Inverse(L), x)))
@@ -601,10 +599,10 @@ class Example024():
         S.set_property(properties.SPD)
         S.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        w = Vector("w", (n, sONE))
+        w = Vector("w", (n, 1))
         w.set_property(properties.OUTPUT)
 
         self.eqns = Equations(Equal(w, Times(Inverse(S), x)))
@@ -722,10 +720,10 @@ class Example029():
         B.set_property(properties.NON_SINGULAR)
         B.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
         W = Matrix("W", (n, n))
@@ -750,10 +748,10 @@ class Example030():
         B.set_property(properties.NON_SINGULAR)
         B.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
         W = Matrix("W", (n, n))
@@ -942,10 +940,10 @@ class Example035():
         C = Matrix("C", (n3, n4))
         C.set_property(properties.INPUT)
 
-        d = Vector("d", (n4, sONE))
+        d = Vector("d", (n4, 1))
         d.set_property(properties.INPUT)
 
-        x = Vector("x", (n1, sONE))
+        x = Vector("x", (n1, 1))
         x.set_property(properties.OUTPUT)
 
         self.eqns = Equations(
@@ -1006,10 +1004,10 @@ class Example037():
         C = Matrix("C", (n3, n4))
         C.set_property(properties.INPUT)
 
-        d = Vector("d", (n4, sONE))
+        d = Vector("d", (n4, 1))
         d.set_property(properties.INPUT)
 
-        x = Vector("x", (n1, sONE))
+        x = Vector("x", (n1, 1))
         x.set_property(properties.OUTPUT)
 
         E = Matrix("E", (n5, n6))
@@ -1204,10 +1202,10 @@ class Example042():
         CP.set_property(properties.FULL_RANK)
         CP.set_property(properties.INPUT)
 
-        z = Vector("z", (m, sONE))
+        z = Vector("z", (m, 1))
         z.set_property(properties.OUTPUT)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
         self.eqns = Equations(Equal(z, Times(Inverse(Times(Transpose(CP), S, CP ) ), Transpose(CP), Inverse(S), y)))
@@ -1818,10 +1816,10 @@ class Example061():
         X.set_property(properties.FULL_RANK)
         X.set_property(properties.COLUMN_PANEL)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
-        b = Vector("b", (m, sONE))
+        b = Vector("b", (m, 1))
         b.set_property(properties.OUTPUT)
 
         # b = (X^T X)^-1 X^T y
@@ -1879,10 +1877,10 @@ class Example063():
         X.set_property(properties.FULL_RANK)
         X.set_property(properties.INPUT)
 
-        z = Vector("z", (m, sONE))
+        z = Vector("z", (m, 1))
         z.set_property(properties.OUTPUT)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
         # clak.special_properties.add_expression(Times(Transpose(X), Inverse(S), X ), set([properties.SPD))
@@ -1906,13 +1904,13 @@ class Example064():
         B.set_property(properties.NON_SINGULAR)
         B.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.INPUT)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
-        w = Vector("w", (sONE, n))
+        w = Vector("w", (1, n))
         w.set_property(properties.OUTPUT)
 
         self.eqns = Equations(
@@ -3315,9 +3313,9 @@ class Example117():
         S = Matrix("B", (n, n))
         S.set_property(properties.SPD)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
 
-        w = Vector("w", (n, sONE))
+        w = Vector("w", (n, 1))
 
         self.eqns = Equations(Equal(w, Times(Inverse(S), x)))
 
@@ -3447,14 +3445,14 @@ class Example123():
         A.set_property(properties.FULL_RANK)
         A.set_property(properties.INPUT)
 
-        b = Vector("b", (n, sONE))
+        b = Vector("b", (n, 1))
         b.set_property(properties.INPUT)
 
         mu = Scalar("mu")
 
         I = IdentityMatrix(m, m)
 
-        x = Vector("x", (m, sONE))
+        x = Vector("x", (m, 1))
         x.set_property(properties.OUTPUT)
 
         self.eqns = Equations(
@@ -3508,7 +3506,7 @@ class Example125():
         N = 1000
 
         
-        minusone = ConstantScalar(-1)
+        minu1 = ConstantScalar(-1)
 
         B = Matrix("B", (N, N))
         H = Matrix("H", (msd, N))
@@ -3531,7 +3529,7 @@ class Example125():
                                     Xb,
                                     Times(
                                         Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-                                        Plus(Y, Times(H, Xb, minusone))
+                                        Plus(Y, Times(H, Xb, minu1))
                                         )
                                     )
                                 )
@@ -3574,16 +3572,16 @@ class Example126():
         W.set_property(properties.NON_SINGULAR)
         W.set_property(properties.INPUT)
 
-        b = Vector("b", (m, sONE))
+        b = Vector("b", (m, 1))
         b.set_property(properties.INPUT)
 
-        c = Vector("c", (n, sONE))
+        c = Vector("c", (n, 1))
         c.set_property(properties.INPUT)
 
-        x = Vector("x", (n, sONE))
+        x = Vector("x", (n, 1))
         x.set_property(properties.OUTPUT)
 
-        minusone = ConstantScalar(-1.0)
+        minu1 = ConstantScalar(-1.0)
 
         # derivation.special_properties.add_expression(Times(A, W, Transpose(A)), {properties.SPD})
 
@@ -3594,7 +3592,7 @@ class Example126():
                                     W,
                                     Plus(
                                         Times(Transpose(A), Inverse(Times(A, W, Transpose(A))), b),
-                                        Times(minusone, c)
+                                        Times(minu1, c)
                                         )
                                     )
                                 )
@@ -3823,13 +3821,13 @@ class Example134():
         X.set_property(properties.INPUT)
         X.set_property(properties.FULL_RANK)
 
-        y = Vector("y", (n, sONE))
+        y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
-        z = Vector("z", (n, sONE))
+        z = Vector("z", (n, 1))
         z.set_property(properties.INPUT)
 
-        b = Vector("b", (m, sONE))
+        b = Vector("b", (m, 1))
         b.set_property(properties.OUTPUT)
 
         self.eqns = Equations(Equal(b, 
@@ -4210,10 +4208,10 @@ class Example144():
         X.set_property(properties.FULL_RANK)
         X.set_property(properties.INPUT)
 
-        z = Vector("z", (m, sONE))
+        z = Vector("z", (m, 1))
         z.set_property(properties.OUTPUT)
 
-        y = Vector("y", (m, sONE))
+        y = Vector("y", (m, 1))
         y.set_property(properties.INPUT)
 
         self.eqns = Equations(Equal(z, Times(Transpose(X), Inverse(M), X, y)))

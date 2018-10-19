@@ -10,8 +10,6 @@ from ...algebra.equations import Equations
 
 from ... import derivation
 
-sONE = 1
-sZERO = 0
 
 class LeastSquares_7_1_1():
     def __init__(self, n = 1500, m = 1000):
@@ -29,9 +27,9 @@ class LeastSquares_7_1_1():
 
         X = Matrix("X", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
 
-        y = Vector("y", (n, sONE), properties = [properties.INPUT])
+        y = Vector("y", (n, 1), properties = [properties.INPUT])
 
-        b = Vector("b", (m, sONE), properties = [properties.OUTPUT])
+        b = Vector("b", (m, 1), properties = [properties.OUTPUT])
 
         # b = (X^T X)^-1 X^T y
         self.eqns = Equations(Equal(b, Times(Inverse(Times(Transpose(X), X)), Transpose(X), y)))
@@ -46,8 +44,8 @@ class LMMSE_7_1_2():
 
         H = Matrix("H", (l + m, n), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(n, n)
-        y = Vector("y", (l + m, sONE), properties = [properties.INPUT])
-        x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
+        y = Vector("y", (l + m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.OUTPUT])
         sigma = Scalar("sigma")
 
 
@@ -95,9 +93,9 @@ class Generalized_LeastSquares_7_1_3():
         M = Matrix("M", (n, n), properties = [properties.SPD, properties.INPUT])
 
         X = Matrix("X", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
-        y = Vector("y", (n, sONE), properties = [properties.INPUT])
+        y = Vector("y", (n, 1), properties = [properties.INPUT])
 
-        b = Vector("b", (m, sONE), properties = [properties.OUTPUT])
+        b = Vector("b", (m, 1), properties = [properties.OUTPUT])
 
         self.eqns = Equations(Equal(b, Times(Inverse(Times(Transpose(X), Inverse(M), X ) ), Transpose(X), Inverse(M), y)))
 
@@ -131,11 +129,11 @@ class Optimization_Problem_7_1_4():
         #W.set_property(properties.NON_SINGULAR)
         #W.set_property(properties.INPUT)
 
-        b = Vector("b", (m, sONE), properties = [properties.INPUT])
-        c = Vector("c", (n, sONE), properties = [properties.INPUT])
-        x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
+        b = Vector("b", (m, 1), properties = [properties.INPUT])
+        c = Vector("c", (n, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.OUTPUT])
 
-        minusone = ConstantScalar(-1.0)
+        minu1 = ConstantScalar(-1.0)
 
 
         self.eqns = Equations(
@@ -145,7 +143,7 @@ class Optimization_Problem_7_1_4():
                                     W,
                                     Plus(
                                         Times(Transpose(A), Inverse(Times(A, W, Transpose(A))), b),
-                                        Times(minusone, c)
+                                        Times(minu1, c)
                                         )
                                     )
                                 )
@@ -167,8 +165,8 @@ class Signal_Processing_7_1_5():
         R = Matrix("R", (N - 1, N), properties = [properties.FULL_RANK, properties.UPPER_TRIANGULAR, properties.INPUT])
         L = Matrix("L", (N - 1, N - 1), properties = [properties.FULL_RANK, properties.DIAGONAL, properties.INPUT])
 
-        y = Vector("y", (N, sONE), properties = [properties.INPUT])
-        x = Vector("x", (N, sONE), properties = [properties.OUTPUT])
+        y = Vector("y", (N, 1), properties = [properties.INPUT])
+        x = Vector("x", (N, 1), properties = [properties.OUTPUT])
 
         self.eqns = Equations(
                             Equal(
@@ -200,10 +198,7 @@ class Signal_Processing_7_1_5():
 
 class Lower_Triangular_Inversion_7_1_6():
     def __init__(self, n = 1000, m = 1000, k = 1000):
-        # TAGS
-        # signal processing
-        # problem 7.1.6 in the paper
-        # equation: x = (A^-T B^T BA^-1 + R^TDR)^-1 A^-T B^T BA^-1 y
+
         # input-output variables are modeled as two seperate variables
 
         L00  = Matrix("L00", (n, n), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
@@ -218,7 +213,7 @@ class Lower_Triangular_Inversion_7_1_6():
         X10Output  = Matrix("X10Output", (m, n), properties = [properties.OUTPUT])
         X20Input  = Matrix("X20Input", (k, n), properties = [properties.INPUT])
         X20Output  = Matrix("X20Output", (k, n), properties = [properties.OUTPUT])
-        minusone = ConstantScalar(-1.0)
+        minu1 = ConstantScalar(-1.0)
 
         self.eqns = Equations(
                             Equal(
@@ -249,14 +244,14 @@ class Lower_Triangular_Inversion_7_1_6():
                             Equal(
                                 X21,
                                 Times(
-                                    minusone,
+                                    minu1,
                                     Inverse(L22),
                                     L21
                                 )
                             )
                     )
 
-#FIXME: bug
+
 class Local_Assimilation_Kalman_7_1_7():
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
         # nino2016
@@ -266,7 +261,7 @@ class Local_Assimilation_Kalman_7_1_7():
         # B is a covariance matrix (symmetric positive semi-definite)
         # R is a covariance matrix (symmetric positive semi-definite)
 
-        minusone = ConstantScalar(-1)
+        minu1 = ConstantScalar(-1)
 
         B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.INPUT])
         H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
@@ -282,12 +277,12 @@ class Local_Assimilation_Kalman_7_1_7():
                                     Xb,
                                     Times(
                                         Inverse(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H))),
-                                        # Times(H, Xb, minusone)
-                                        Plus(Y, Times(H, Xb))
+                                        Plus(Y, Times(minu1, H, Xb))
                                         )
                                     )
                                 )
                             )
+
 
 class Rank_1_Tensor_Update_7_1_8():
     def __init__(self, N = 1000, msd = 1000, nsd = 1000):
@@ -303,7 +298,7 @@ class EnsembleKalmanFilter_7_1_9_1():
         # P_a = (I - K*H)*P_b
         # TODO: R is symmetric positive semi-definite, which property?
 
-        minusone = ConstantScalar(-1.0)
+        minu1 = ConstantScalar(-1.0)
 
         Ki_O = Matrix("Ki_O", (n, m), properties = [properties.FULL_RANK, properties.OUTPUT])
         Ki_I = Matrix("Ki_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
@@ -313,10 +308,10 @@ class EnsembleKalmanFilter_7_1_9_1():
         R = Matrix("R", (m, m), properties = [properties.FULL_RANK, properties.INPUT, properties.SYMMETRIC])
         I = IdentityMatrix(n, n)
 
-        x_a = Vector("x_a", (n, sONE), properties = [properties.OUTPUT])
-        x_b = Vector("x_b", (n, sONE), properties = [properties.INPUT])
-        y = Vector("y", (m, sONE), properties = [properties.INPUT])
-        H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
+        x_a = Vector("x_a", (n, 1), properties = [properties.OUTPUT])
+        x_b = Vector("x_b", (n, 1), properties = [properties.INPUT])
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        H_x_b = Vector("H_x_b", (m, 1), properties = [properties.INPUT])
 
         self.init = lambda: derivation.special_properties.add_expression(Plus(Times(H, P_b, Transpose(H)), R), {properties.SPD})
         self.init()
@@ -348,7 +343,7 @@ class EnsembleKalmanFilter_7_1_9_1():
                                         Plus(
                                             y,
                                             Times(
-                                                minusone,
+                                                minu1,
                                                 H_x_b
                                             )
                                         )
@@ -361,7 +356,7 @@ class EnsembleKalmanFilter_7_1_9_1():
                                     Plus(
                                         I,
                                         Times(
-                                            minusone,
+                                            minu1,
                                             Ki_I,
                                             H
                                         )
@@ -383,7 +378,7 @@ class EnsembleKalmanFilter_7_1_9_2():
         # P_a = X * S * X^T
         # TODO: R is symmetric positive semi-definite, which property?
 
-        minusone = ConstantScalar(-1.0)
+        minu1 = ConstantScalar(-1.0)
         n_scalar = ConstantScalar(n)
 
         K = Matrix("K", (n, m), properties = [properties.FULL_RANK, properties.OUTPUT])
@@ -395,12 +390,12 @@ class EnsembleKalmanFilter_7_1_9_2():
         I = IdentityMatrix(n, n)
         P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
 
-        x_a = Vector("x_a", (n, sONE), properties = [properties.OUTPUT])
-        x_b = Vector("x_b", (n, sONE), properties = [properties.INPUT])
-        y = Vector("y", (m, sONE), properties = [properties.INPUT])
-        H_x_b = Vector("H_x_b", (m, sONE), properties = [properties.INPUT])
+        x_a = Vector("x_a", (n, 1), properties = [properties.OUTPUT])
+        x_b = Vector("x_b", (n, 1), properties = [properties.INPUT])
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        H_x_b = Vector("H_x_b", (m, 1), properties = [properties.INPUT])
 
-        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Plus(n_scalar, minusone), I), Times(Transpose(Y), Inverse(R), Y)), {properties.SPD})
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Plus(n_scalar, minu1), I), Times(Transpose(Y), Inverse(R), Y)), {properties.SPD})
         self.init()
 
         self.eqns = Equations(
@@ -411,7 +406,7 @@ class EnsembleKalmanFilter_7_1_9_2():
                                     Times(
                                         Plus(
                                             n_scalar,
-                                            minusone
+                                            minu1
                                         ),
                                         I
                                     ),
@@ -445,7 +440,7 @@ class EnsembleKalmanFilter_7_1_9_2():
                                         Plus(
                                             y,
                                             Times(
-                                                minusone,
+                                                minu1,
                                                 H_x_b
                                             )
                                         )
@@ -511,17 +506,17 @@ class ImageRestoration_7_1_13_1():
         # Algorithm nr 1 P^P
         # x = (H^t * H + lambda * sigma^2 * I_n)^-1 * (H^T * y + lambda * sigma^2 * (v - u))
 
-        minusone = ConstantScalar(-1)
+        minu1 = ConstantScalar(-1)
         lambda_ = Scalar("lambda") # positive
         sigma_ = Scalar("sigma_sq") # positive
 
         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(n, n)
 
-        v_k = Vector("v_k", (n, sONE), properties = [properties.INPUT])
-        u_k = Vector("u_k", (n, sONE), properties = [properties.INPUT])
-        y = Vector("y", (m, sONE), properties = [properties.INPUT])
-        x = Vector("x", (n, sONE), properties = [properties.OUTPUT])
+        v_k = Vector("v_k", (n, 1), properties = [properties.INPUT])
+        u_k = Vector("u_k", (n, 1), properties = [properties.INPUT])
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.OUTPUT])
 
 
         self.init = lambda: derivation.special_properties.add_expression(Plus(
@@ -565,7 +560,7 @@ class ImageRestoration_7_1_13_1():
                                             Plus(
                                                 v_k,
                                                 Times(
-                                                    minusone,
+                                                    minu1,
                                                     u_k
                                                 )
                                             )
@@ -584,7 +579,7 @@ class ImageRestoration_7_1_13_2():
         # y_k = H^dag y + (I - H^dag H)x_k
         # H_dag is modeled input/output
 
-        minusone = ConstantScalar(-1.0)
+        minu1 = ConstantScalar(-1.0)
         lambda_ = Scalar("lambda") # positive
         sigma_ = Scalar("sigma_sq") # positive
 
@@ -593,9 +588,9 @@ class ImageRestoration_7_1_13_2():
         H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
         I = IdentityMatrix(n, n)
 
-        y_k = Vector("y_k", (n, sONE), properties = [properties.OUTPUT])
-        y = Vector("y", (m, sONE), properties = [properties.INPUT])
-        x = Vector("x", (n, sONE), properties = [properties.INPUT])
+        y_k = Vector("y_k", (n, 1), properties = [properties.OUTPUT])
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.INPUT])
 
 
 
@@ -621,7 +616,7 @@ class ImageRestoration_7_1_13_2():
                                         Plus(
                                             I,
                                             Times(
-                                                minusone,
+                                                minu1,
                                                 h_dag,
                                                 H
                                             )
@@ -648,7 +643,7 @@ class ImageRestoration_7_1_13_2():
                                         Plus(
                                             I,
                                             Times(
-                                                minusone,
+                                                minu1,
                                                 H_dag_I,
                                                 H
                                             )
@@ -670,8 +665,8 @@ class Tikhonov_7_1_14():
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(m, m)
-        b = Vector("b", (n, sONE), properties = [properties.INPUT])
-        x = Vector("x", (m, sONE), properties = [properties.OUTPUT])
+        b = Vector("b", (n, 1), properties = [properties.INPUT])
+        x = Vector("x", (m, 1), properties = [properties.OUTPUT])
         mu = Scalar("mu_sq")
 
         self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(mu, I)), {properties.SPD})
@@ -715,8 +710,8 @@ class CDMA_7_1_15():
         S = Matrix("S", (G, K), properties = [properties.FULL_RANK, properties.INPUT])
         H = Matrix("H", (G1, G), properties = [properties.INPUT, properties.FULL_RANK])
         Q = Matrix("Q", (G1, G1), properties = [properties.FULL_RANK, properties.INPUT, properties.SYMMETRIC])
-        r = Vector("r", (G1, sONE), properties = [properties.INPUT])
-        b = Vector("b", (K, sONE), properties = [properties.OUTPUT])
+        r = Vector("r", (G1, 1), properties = [properties.INPUT])
+        b = Vector("b", (K, 1), properties = [properties.OUTPUT])
 
         self.init = lambda: derivation.special_properties.add_expression(Plus(Times(sigma_sq, H, Transpose(H)), Q), {properties.SPD})
         self.init()
@@ -979,8 +974,8 @@ class Transposed_Kernel_7_2_9():
         # LX is lower triangular, UX is upper triangular
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-        x = Vector("x", (m, sONE), properties = [properties.INPUT])
-        y = Vector("y", (sONE, n), properties = [properties.OUTPUT])
+        x = Vector("x", (m, 1), properties = [properties.INPUT])
+        y = Vector("y", (1, n), properties = [properties.OUTPUT])
 
         self.eqns = Equations(
                             Equal(y,

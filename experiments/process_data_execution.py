@@ -108,13 +108,15 @@ def check_std_dev(experiment_name, number_of_experiments, threshold=0.1):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog="process_data")
-    parser.add_argument("experiment", choices=["lamp_example", "random"])
+    parser.add_argument("experiment", choices=["lamp_example", "random", "pldi"])
     args = parser.parse_args()
 
     if args.experiment == "lamp_example":
         number_of_experiments = 31
     elif args.experiment == "random":
         number_of_experiments = 100
+    elif args.experiment == "pldi":
+        number_of_experiments = 19
 
     # execution_time = read_results()
     execution_time = read_results(args.experiment, number_of_experiments, [0, 3]) # use min

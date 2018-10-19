@@ -15,6 +15,7 @@ linnea.config.init()
 from linnea.config import Strategy
 import linnea.examples.examples
 import linnea.examples.lamp_paper.examples as lamp_paper
+import linnea.examples.PLDI as PLDI
 from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
 from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 from linnea.code_generation.experiments import operand_generation, runner, reference_code
@@ -95,7 +96,7 @@ def main():
 
     parser = argparse.ArgumentParser(prog="experiments")
     parser.add_argument("mode", choices=["time_generation", "generate_code", "jobscripts"])
-    parser.add_argument("experiment", choices=["lamp_example", "random"])
+    parser.add_argument("experiment", choices=["lamp_example", "random", "pldi"])
     parser.add_argument("-m", "--merging", choices=["true", "false", "both"], default="true")
     parser.add_argument("-j", "--jobindex", help="Job index.", type=int, default=0)
     parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
@@ -137,6 +138,28 @@ def main():
         lamp_paper.Simplification_7_2_12(), # 31
     ]
 
+    PLDI_examples = [
+        PLDI.Example01(),
+        PLDI.Example02(),
+        PLDI.Example03(),
+        PLDI.Example04(),
+        PLDI.Example05(),
+        PLDI.Example06(),
+        PLDI.Example07(),
+        PLDI.Example08(),
+        PLDI.Example09(),
+        PLDI.Example10(),
+        PLDI.Example11(),
+        PLDI.Example12(),
+        PLDI.Example13(),
+        PLDI.Example14(),
+        PLDI.Example15(),
+        PLDI.Example16(),
+        PLDI.Example17(),
+        PLDI.Example18(),
+        PLDI.Example19(),
+    ]
+
     ExampleContainer = collections.namedtuple("ExampleContainer", ["eqns"])
 
     random.seed(0)
@@ -151,6 +174,8 @@ def main():
         examples = lamp_examples
     elif args.experiment == "random":
         examples = rand_exprs
+    elif args.experiment == "pldi":
+        examples = PLDI_examples
     else:
         return
 
