@@ -281,7 +281,7 @@ class Example07():
         msd = 1000
         nsd = 1000
 
-        minus1 = ConstantScalar(-1)
+        minus1 = ConstantScalar(-1.0)
 
         B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
@@ -315,7 +315,7 @@ class Example08():
         msd = 1000
         nsd = 1000
 
-        minus1 = ConstantScalar(-1)
+        minus1 = ConstantScalar(-1.0)
 
         B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
@@ -346,7 +346,7 @@ class Example09():
         msd = 1000
         nsd = 1000
 
-        minus1 = ConstantScalar(-1)
+        minus1 = ConstantScalar(-1.0)
 
         B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
@@ -378,7 +378,7 @@ class Example10():
         n = 1500
         m = 1000
 
-        minus1 = ConstantScalar(-1)
+        minus1 = ConstantScalar(-1.0)
         lambda_ = Scalar("lambda") # positive
         sigma_ = Scalar("sigma_sq") # positive
 
