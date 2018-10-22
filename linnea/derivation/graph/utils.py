@@ -130,7 +130,7 @@ def find_occurrences(equations, operands_to_factor):
     """
 
     for eqn_idx, equation in enumerate(equations):
-        for res in _find_occurrences(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=(1,)):
+        for res in _find_occurrences_v2(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=(1,), group=(1,)):
             # for grouping, we also need the eqn_idx
             yield Occurrence(eqn_idx, *res)
 
@@ -153,6 +153,30 @@ def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, posit
     for n, operand in enumerate(expr.operands):
         new_position = position + (n,)
         yield from _find_occurrences(operand, operands_to_factor, inv_type, new_position, group, symbol, expr)
+
+
+def _find_occurrences_v2(expr, operands_to_factor, inv_type=InverseType.none, position=(), group=None, symbol=False, predecessor=None):
+
+    if isinstance(expr, Symbol):
+        if expr in operands_to_factor:
+            yield (position, expr, inv_type, group, symbol)
+        return
+
+    if is_inverse(expr):
+        # if not group: # this avoids nested groups
+        #     group = position
+        if isinstance(predecessor, Times):
+            inv_type = InverseType.linear_system
+        else:
+            inv_type = InverseType.explicit_inversion
+        symbol = isinstance(expr.operand, Symbol)
+
+    for n, operand in enumerate(expr.operands):
+        new_position = position + (n,)
+        new_group = group
+        if isinstance(operand, Plus):
+            new_group = new_position
+        yield from _find_occurrences_v2(operand, operands_to_factor, inv_type, new_position, new_group, symbol, expr)
 
 def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
 
