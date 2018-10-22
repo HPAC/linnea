@@ -1012,18 +1012,21 @@ class Inverse(Operator):
 
     def to_cpp_expression(self, lib, recommended=False):
         template_str = None
-        # perform casting only for input matrices, not expression results
-        if lib is CppLibrary.Armadillo:
-            template_str = "({0}).i()"
-            if isinstance(self.operands[0], Matrix):
-                if self.operands[0].has_property(properties.SPD):
-                    template_str = "arma::inv_sympd({0})"
-                elif self.operands[0].has_property(properties.DIAGONAL):
-                    template_str = "arma::inv(arma::diagmat({0}))"
-        elif lib is CppLibrary.Eigen:
-            template_str = "({0}).inverse()"
-        elif lib is CppLibrary.Blaze:
-            template_str = "blaze::inv({0})"
+        if self.operand.has_property(properties.SCALAR):
+            template_str = "1/({0})"
+        else:
+            if lib is CppLibrary.Armadillo:
+                template_str = "({0}).i()"
+                # use specialized functions only for single matrices, not expressions
+                if isinstance(self.operands[0], Matrix):
+                    if self.operands[0].has_property(properties.SPD):
+                        template_str = "arma::inv_sympd({0})"
+                    elif self.operands[0].has_property(properties.DIAGONAL):
+                        template_str = "arma::inv(arma::diagmat({0}))"
+            elif lib is CppLibrary.Eigen:
+                template_str = "({0}).inverse()"
+            elif lib is CppLibrary.Blaze:
+                template_str = "blaze::inv({0})"
         return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
 
 class InverseTranspose(Operator):
