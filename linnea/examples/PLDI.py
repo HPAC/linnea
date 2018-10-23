@@ -638,7 +638,7 @@ class Example14():
                         Equal(Xout,
                             Plus(Xin,
                                 Times(
-                                    Plus(I, Times(minus1, A, Xin)),
+                                    Plus(I, Times(minus1, Xin, Transpose(A))),
                                     S,
                                     Inverse(Times(Transpose(S), Transpose(A), W, A, S)),
                                     Transpose(S), Transpose(A), W
