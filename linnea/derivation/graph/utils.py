@@ -115,10 +115,9 @@ def find_occurrences(equations, operands_to_factor):
     * position: The position of the occurrence in equation.
     * operand: The Operand.
     * type: The type of this occurrence. This is an InverseType object.
-    * group: An identifier for the group, the position of the outermost inverse
-      is used.
+    * group: An identifier for the group. Either the root of the expression, or
+      the position of this subexpression in the last sum.
     * symbol: True if this occurrence is a symbol inverse, that is Inverse(A).
-
 
     Args:
         equations (Equations): The equations that are searched.
@@ -130,7 +129,7 @@ def find_occurrences(equations, operands_to_factor):
     """
 
     for eqn_idx, equation in enumerate(equations):
-        for res in _find_occurrences(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=(1,)):
+        for res in _find_occurrences(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=(1,), group=(1,)):
             # for grouping, we also need the eqn_idx
             yield Occurrence(eqn_idx, *res)
 
@@ -142,8 +141,6 @@ def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, posit
         return
 
     if is_inverse(expr):
-        if not group: # this avoids nested groups
-            group = position
         if isinstance(predecessor, Times):
             inv_type = InverseType.linear_system
         else:
@@ -152,7 +149,10 @@ def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, posit
 
     for n, operand in enumerate(expr.operands):
         new_position = position + (n,)
-        yield from _find_occurrences(operand, operands_to_factor, inv_type, new_position, group, symbol, expr)
+        new_group = group
+        if isinstance(expr, Plus):
+            new_group = new_position
+        yield from _find_occurrences(operand, operands_to_factor, inv_type, new_position, new_group, symbol, expr)
 
 def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
 
