@@ -226,29 +226,29 @@ class Example06():
         L22 = Matrix("L22", (k, k), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
         L21 = Matrix("L21", (k, m), properties = [properties.FULL_RANK, properties.INPUT])
         L10 = Matrix("L10", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
+        L20 = Matrix("L20", (k, n), properties = [properties.FULL_RANK, properties.INPUT])
 
         X21 = Matrix("X21", (k, m), properties = [properties.OUTPUT])
         X11 = Matrix("X11", (m, m), properties = [properties.OUTPUT])
-        X10Input = Matrix("X10Input", (m, n), properties = [properties.INPUT])
-        X10Output = Matrix("X10Output", (m, n), properties = [properties.OUTPUT])
-        X20Input = Matrix("X20Input", (k, n), properties = [properties.INPUT])
-        X20Output = Matrix("X20Output", (k, n), properties = [properties.OUTPUT])
+        X10 = Matrix("X10", (m, n), properties = [properties.OUTPUT])
+        
+        X20 = Matrix("X20", (k, n), properties = [properties.OUTPUT])
         minus1 = ConstantScalar(-1.0)
 
         self.eqns = Equations(
                             Equal(
-                                X10Output,
+                                X10,
                                 Times(
-                                    X10Input,
+                                    L10,
                                     Inverse(
                                         L00
                                     )
                                 )
                             ),
                             Equal(
-                                X20Output,
+                                X20,
                                 Plus(
-                                    X20Input,
+                                    L20,
                                     Times(
                                         Inverse(L22),
                                         L21,
