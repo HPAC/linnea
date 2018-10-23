@@ -174,7 +174,7 @@ def _find_occurrences_v2(expr, operands_to_factor, inv_type=InverseType.none, po
     for n, operand in enumerate(expr.operands):
         new_position = position + (n,)
         new_group = group
-        if isinstance(operand, Plus):
+        if isinstance(expr, Plus):
             new_group = new_position
         yield from _find_occurrences_v2(operand, operands_to_factor, inv_type, new_position, new_group, symbol, expr)
 
