@@ -17,6 +17,6 @@ source linnea_venv/bin/activate
 cd ${{HOME}}/linnea/results/
 mkdir -p {name}/generation/{strategy_name}
 cd {name}/generation/{strategy_name}
-python3 ${{HOME}}/linnea/linnea/experiments/experiments.py time_generation {name} -j=${{LSB_JOBINDEX}} -r={repetitions} -{strategy} -m={merging}
+python3 ${{HOME}}/linnea/linnea/experiments/experiments.py time_generation {name} -j=${{LSB_JOBINDEX}} -r=1 -{strategy} -m={merging}
 
 exit
