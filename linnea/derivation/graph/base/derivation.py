@@ -370,7 +370,7 @@ class DerivationGraphBase(base.GraphBase):
 
                 found_symbol_inv_occurrence = []
                 for equations in generate_variants(node.equations):
-                    _transformed, _found_symbol_inv_occurrence = self.TR_factorizations(equations, operands_to_factor, factorization_dict)
+                    _transformed, _found_symbol_inv_occurrence = self.TR_factorizations_v2(equations, operands_to_factor, factorization_dict)
                     found_symbol_inv_occurrence.append(_found_symbol_inv_occurrence)
                     transformed.extend(_transformed)
 
@@ -424,73 +424,56 @@ class DerivationGraphBase(base.GraphBase):
         # find all occurrences
         all_occurrences = list(find_occurrences(equations, operands_to_factor))
 
-        # print(all_occurrences)
+        # print(equations)
 
-        # Filter out occurrences that are not in inverses or inverses of single
-        # symbols.
-        non_inv_occurrences = []
-        inv_occurrences = []
-        symbol_inv_occurrences = []
-        found_symbol_occurrence = False
-        for occurrence in all_occurrences:
-            if occurrence.symbol:
-                symbol_inv_occurrences.append(occurrence)
-                found_symbol_occurrence = True
-            elif occurrence.type is InverseType.none:
-                non_inv_occurrences.append(occurrence)
-            else:
-                inv_occurrences.append(occurrence)
+        def print_ocs(ocs):
+            print("##")
+            for oc in ocs:
+                print(oc)
+            print("")
 
-        # group InverseType.none occurrences by operands
-        non_inv_occurrences_dict = dict()
-        for occurrence in non_inv_occurrences:
-            non_inv_occurrences_dict.setdefault(occurrence.operand.name, []).append(occurrence)
+        def print_groups(groups):
+            print("#######")
+            for g in groups:
+                print_ocs(g)
 
-        inv_occurrences_grouped = group_occurrences(inv_occurrences)
-        symbol_inv_occurrences_grouped = group_occurrences(symbol_inv_occurrences)
+        # print_ocs(all_occurrences)
+
+        candidate_occurrences = []
+        for oc_group in group_occurrences(all_occurrences):
+            if any(oc.type != InverseType.none for oc in oc_group):
+                candidate_occurrences.extend(oc_group)
+
+        # print_ocs(candidate_occurrences)
 
         # collect all operands that show up
-        ops = set()
+        ops = set(oc.operand.name for oc in candidate_occurrences)
 
-        for ocs in symbol_inv_occurrences_grouped:
-            ops.update([oc.operand.name for oc in ocs])
+        ops_must_factor = set()
+        ops_may_factor = set()
+        found_symbol_occurrence = False
+        for op in ops:
+            if any(oc.operand.name == op and oc.symbol for oc in candidate_occurrences):
+                ops_must_factor.add(op)
+                found_symbol_occurrence = True
+            else:
+                ops_may_factor.add(op)
 
-        # all subsets of grouped occurrences
-        for subset_inv_occurrences_grouped in powerset(inv_occurrences_grouped):
+        # print(ops, ops_must_factor, ops_may_factor)
 
-            # print(subset_inv_occurrences_grouped)
+        for ops_subset in powerset(ops_may_factor):
 
-            # collect all non inverse occurences of those operands that are in
-            # the current subset
-            ops_copy = ops.copy()
-            for ocs in subset_inv_occurrences_grouped:
-                ops_copy.update([oc.operand.name for oc in ocs])
-
-            ops_copy = list(ops_copy)
-
-            non_inv_occurrences = []
-            factorizations_candidates = []
-            for op in ops_copy:
-                try:
-                    ocs = non_inv_occurrences_dict[op]
-                except KeyError:
-                    pass
-                else:
-                    non_inv_occurrences.extend(ocs)
-                
-                factorizations_candidates.append(factorization_dict[op])
-
-            # this is the case for the empty subset
-            # TODO this could by adding and argument to powerset() for min size
-            if not factorizations_candidates:
+            factor_ops = ops_must_factor.union(ops_subset)
+            if not factor_ops:
                 continue
 
-            # generated all subsets of occurrences outside of inverses
-            # for subset_non_inv_occurrences in powerset(non_inv_occurrences):
+            factorizations_candidates = []
+            for op in factor_ops:
+                factorizations_candidates.append(factorization_dict[op])
 
             # apply all factorizations
             for factorizations in itertools.product(*factorizations_candidates):
-                facts_dict = dict(zip(ops_copy, factorizations))
+                facts_dict = dict(zip(factor_ops, factorizations))
 
                 # collect matched kernels (avoiding duplicates)
                 matched_kernels = []
@@ -503,16 +486,9 @@ class DerivationGraphBase(base.GraphBase):
                 # collect replacements 
                 replacements_per_equation = dict()
 
-                for ocs in symbol_inv_occurrences_grouped:
-                    for oc in ocs:
+                for oc in candidate_occurrences:
+                    if oc.operand.name in factor_ops:
                         replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
-
-                for ocs in subset_inv_occurrences_grouped:
-                    for oc in ocs:
-                        replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
-
-                for oc in non_inv_occurrences:
-                    replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
 
                 # replace
                 equations_list = list(equations.equations)
@@ -526,7 +502,8 @@ class DerivationGraphBase(base.GraphBase):
                 equations_copy.set_equivalent(equations)               
 
                 transformed_expressions.append((equations_copy, matched_kernels))
-                        
+
+
         return transformed_expressions, found_symbol_occurrence
 
 
