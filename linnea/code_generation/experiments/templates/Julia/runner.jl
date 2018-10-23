@@ -2,6 +2,9 @@ using Test
 using Logging
 using MatrixGenerator
 
+using LinearAlgebra.BLAS
+BLAS.set_num_threads(1)
+
 include("operand_generator.jl")
 {0}
 include("reference/naive.jl")
