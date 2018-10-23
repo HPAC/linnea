@@ -391,7 +391,6 @@ class DerivationGraphBase(base.GraphBase):
         return len(new_nodes)
 
 
-
     def TR_factorizations(self, equations, operands_to_factor, factorization_dict):
         """This function generates new equations by applying factorizations.
 
@@ -401,16 +400,13 @@ class DerivationGraphBase(base.GraphBase):
         - We never apply different facotrizations to differrent occurrences of
           the same matrix. As an example, if the matrix A shows up twice, we
           will never apply LU to one occurrence and QR to another.
-        - If there are multiple occurrences of one matrix within the same
-          inverse, a factorization is applied to either all or none of the those
-          occurrences.
-        - A matrix that is not inside of any inverse will only be factored if
-          there is at least one occurrence of that matrix inside an inverse
-          which is also factored. The argument operands_to_factor is constructed
-          to only contain matrices that appear in an inverse.
         - Factorization will always be applied to matrices that appear
           immediately inside an inverse. That is, the A in Inverse(A) will be
           factored. A and B in Inverse(Times(A, B)) don't have to be factored.
+        - If there is a summand that contains a matrix which is factored, but
+          the summand does not contain any occurrences of that matrix within an
+          inverse, that matrix will not be factored in this summand. This is
+          to make sure that for A+inv(A), the first A is not factored.
         - Some factorizations rule out others. If Cholesky can be applied, LU
           will no be applied. Which factorization can be applied per operand is
           decided in DS_factorizations(). The factorization_dict contains the
@@ -425,107 +421,69 @@ class DerivationGraphBase(base.GraphBase):
         # find all occurrences
         all_occurrences = list(find_occurrences(equations, operands_to_factor))
 
-        # Filter out occurrences that are not in inverses or inverses of single
-        # symbols.
-        non_inv_occurrences = []
-        inv_occurrences = []
-        symbol_inv_occurrences = []
-        found_symbol_occurrence = False
-        for occurrence in all_occurrences:
-            if occurrence.symbol:
-                symbol_inv_occurrences.append(occurrence)
-                found_symbol_occurrence = True
-            elif occurrence.type is InverseType.none:
-                non_inv_occurrences.append(occurrence)
-            else:
-                inv_occurrences.append(occurrence)
-
-        # group InverseType.none occurrences by operands
-        non_inv_occurrences_dict = dict()
-        for occurrence in non_inv_occurrences:
-            non_inv_occurrences_dict.setdefault(occurrence.operand.name, []).append(occurrence)
-
-        inv_occurrences_grouped = group_occurrences(inv_occurrences)
-        symbol_inv_occurrences_grouped = group_occurrences(symbol_inv_occurrences)
+        # Removing groups (summands) which do not contain any inverted occurrences.
+        candidate_occurrences = []
+        for oc_group in group_occurrences(all_occurrences):
+            if any(oc.type != InverseType.none for oc in oc_group):
+                candidate_occurrences.extend(oc_group)
 
         # collect all operands that show up
-        ops = set()
+        ops = set(oc.operand.name for oc in candidate_occurrences)
 
-        for ocs in symbol_inv_occurrences_grouped:
-            ops.update([oc.operand.name for oc in ocs])
+        # Symbols directely inside an inverse always have to be factored.
+        ops_must_factor = set()
+        ops_may_factor = set()
+        found_symbol_occurrence = False
+        for op in ops:
+            if any(oc.operand.name == op and oc.symbol for oc in candidate_occurrences):
+                ops_must_factor.add(op)
+                found_symbol_occurrence = True
+            else:
+                ops_may_factor.add(op)
 
-        # all subsets of grouped occurrences
-        for subset_inv_occurrences_grouped in powerset(inv_occurrences_grouped):
+        for ops_subset in powerset(ops_may_factor):
 
-            # print(subset_inv_occurrences_grouped)
-
-            # collect all non inverse occurences of those operands that are in
-            # the current subset
-            ops_copy = ops.copy()
-            for ocs in subset_inv_occurrences_grouped:
-                ops_copy.update([oc.operand.name for oc in ocs])
-
-            ops_copy = list(ops_copy)
-
-            non_inv_occurrences = []
-            factorizations_candidates = []
-            for op in ops_copy:
-                try:
-                    ocs = non_inv_occurrences_dict[op]
-                except KeyError:
-                    pass
-                else:
-                    non_inv_occurrences.extend(ocs)
-                
-                factorizations_candidates.append(factorization_dict[op])
-
-            # this is the case for the empty subset
-            # TODO this could by adding and argument to powerset() for min size
-            if not factorizations_candidates:
+            factor_ops = ops_must_factor.union(ops_subset)
+            if not factor_ops:
                 continue
 
-            # generated all subsets of occurrences outside of inverses
-            for subset_non_inv_occurrences in powerset(non_inv_occurrences):
+            factorizations_candidates = []
+            for op in factor_ops:
+                factorizations_candidates.append(factorization_dict[op])
 
-                # apply all factorizations
-                for factorizations in itertools.product(*factorizations_candidates):
-                    facts_dict = dict(zip(ops_copy, factorizations))
+            # apply all factorizations
+            for factorizations in itertools.product(*factorizations_candidates):
+                facts_dict = dict(zip(factor_ops, factorizations))
 
-                    # collect matched kernels (avoiding duplicates)
-                    matched_kernels = []
-                    _already_seen = set()
-                    for matched_kernel in factorizations:
-                        if matched_kernel.id not in _already_seen:
-                            matched_kernels.append(matched_kernel)
-                            _already_seen.add(matched_kernel.id)
+                # collect matched kernels (avoiding duplicates)
+                matched_kernels = []
+                _already_seen = set()
+                for matched_kernel in factorizations:
+                    if matched_kernel.id not in _already_seen:
+                        matched_kernels.append(matched_kernel)
+                        _already_seen.add(matched_kernel.id)
 
-                    # collect replacements 
-                    replacements_per_equation = dict()
+                # collect replacements 
+                replacements_per_equation = dict()
 
-                    for ocs in symbol_inv_occurrences_grouped:
-                        for oc in ocs:
-                            replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
-
-                    for ocs in subset_inv_occurrences_grouped:
-                        for oc in ocs:
-                            replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
-
-                    for oc in subset_non_inv_occurrences:
+                for oc in candidate_occurrences:
+                    if oc.operand.name in factor_ops:
                         replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, facts_dict[oc.operand.name].replacement))
 
-                    # replace
-                    equations_list = list(equations.equations)
+                # replace
+                equations_list = list(equations.equations)
 
-                    for eqn_idx, replacements in replacements_per_equation.items():
-                        if replacements:
-                            equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
-                    
-                    equations_copy = Equations(*equations_list)
-                    equations_copy = equations_copy.to_normalform()
-                    equations_copy.set_equivalent(equations)               
+                for eqn_idx, replacements in replacements_per_equation.items():
+                    if replacements:
+                        equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
+                
+                equations_copy = Equations(*equations_list)
+                equations_copy = equations_copy.to_normalform()
+                equations_copy.set_equivalent(equations)               
 
-                    transformed_expressions.append((equations_copy, matched_kernels))
-                        
+                transformed_expressions.append((equations_copy, matched_kernels))
+
+
         return transformed_expressions, found_symbol_occurrence
 
 
