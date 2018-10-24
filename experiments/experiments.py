@@ -158,6 +158,13 @@ def main():
         PLDI.Example17(),
         PLDI.Example18(),
         PLDI.Example19(),
+        PLDI.Example20(),
+        PLDI.Example21(),
+        PLDI.Example22(),
+        PLDI.Example23(),
+        PLDI.Example24(),
+        PLDI.Example25(),
+        PLDI.Example26(),
     ]
 
     ExampleContainer = collections.namedtuple("ExampleContainer", ["eqns"])

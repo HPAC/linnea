@@ -850,6 +850,195 @@ class Example18():
 class Example19():
     def __init__(self):
 
+        # tikhonov regularization 1
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
+        I = IdentityMatrix(m, m)
+        Gamma = Matrix("Gamma", (m , m), properties = [properties.INPUT, properties.FULL_RANK])
+        b = Vector("b", (n, 1), properties = [properties.INPUT])
+        x = Vector("x", (m, 1), properties = [properties.OUTPUT])
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(Transpose(Gamma), Gamma)), {properties.SPD})
+        self.init()
+
+        self.eqns = Equations(
+                            Equal(x,
+                                Times(Inverse(Plus(Times(Transpose(A), A), Times(Transpose(Gamma), Gamma))), Transpose(A), b)
+                                )
+                            )
+
+
+class Example20():
+    def __init__(self):
+
+        # tikhonov regularization 2
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
+        I = IdentityMatrix(m, m)
+        b = Vector("b", (n, 1), properties = [properties.INPUT])
+        x = Vector("x", (m, 1), properties = [properties.OUTPUT])
+        alpha = Scalar("alpha_sq")
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(alpha, I)), {properties.SPD})
+        self.init()
+
+        self.eqns = Equations(
+                            Equal(x,
+                                Times(Inverse(Plus(Times(Transpose(A), A), Times(alpha, I))), Transpose(A), b)
+                                )
+                            )
+
+
+class Example21():
+    def __init__(self):
+
+        # tikhonov regularization 3
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
+        P = Matrix("P", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        b = Vector("b", (n, 1), properties = [properties.INPUT])
+        x0 = Vector("x0", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (m, 1), properties = [properties.OUTPUT])
+
+        self.eqns = Equations(
+                            Equal(x,
+                                Times(
+                                    Inverse(Plus(Times(Transpose(A), P, A), Q)),
+                                    Plus(Times(Transpose(A), P, b), Times(Q, x0))
+                                    )
+                                )
+                            )
+
+
+class Example22():
+    def __init__(self):
+
+        # tikhonov regularization 4
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
+        P = Matrix("P", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        b = Vector("b", (n, 1), properties = [properties.INPUT])
+        x0 = Vector("x0", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (m, 1), properties = [properties.OUTPUT])
+        minus1 = ConstantScalar(-1.0)
+
+        self.eqns = Equations(
+                            Equal(x,
+                                Plus(x0,
+                                    Times(
+                                        Inverse(Plus(Times(Transpose(A), P, A), Q)),
+                                        Transpose(A), P, Plus(b, Times(minus1, A, x0))
+                                        )
+                                    )
+                                )
+                            )
+
+
+class Example23():
+    def __init__(self):
+
+        # linear MMSE estimator 1
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.INPUT])
+        xout = Vector("xout", (n, 1), properties = [properties.OUTPUT])
+        minus1 = ConstantScalar(-1.0)
+
+        self.eqns = Equations(
+                        Equal(xout,
+                            Plus(
+                                Times(Cx, Transpose(A),
+                                    Inverse(Plus(Times(A, Cx, Transpose(A)), Cz)),
+                                    Plus(y, Times(minus1, A, x))
+                                    ),
+                                x)
+                            )
+                        )
+
+
+class Example24():
+    def __init__(self):
+
+        # linear MMSE estimator 2
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.INPUT])
+        xout = Vector("xout", (n, 1), properties = [properties.OUTPUT])
+        minus1 = ConstantScalar(-1.0)
+
+        self.eqns = Equations(
+                        Equal(xout,
+                            Plus(
+                                Times(
+                                    Inverse(Plus(Times(Transpose(A), Inverse(Cz), A), Inverse(Cx))),
+                                    Transpose(A), Inverse(Cz),
+                                    Plus(y, Times(minus1, A, x))
+                                    ),
+                                x)
+                            )
+                        )
+
+
+class Example25():
+    def __init__(self):
+
+        # linear MMSE estimator 3
+
+        n = 1500
+        m = 1000
+
+        A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        Kin = Matrix("Kin", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
+        Cin = Matrix("Cin", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        y = Vector("y", (m, 1), properties = [properties.INPUT])
+        x = Vector("x", (n, 1), properties = [properties.INPUT])
+
+        xout = Vector("xout", (n, 1), properties = [properties.OUTPUT])
+        Cout = Matrix("Cout", (n, n), properties = [properties.OUTPUT])
+        Kout = Matrix("Kout", (n, m), properties = [properties.OUTPUT])
+
+        minus1 = ConstantScalar(-1.0)
+        I = IdentityMatrix(n, n)
+
+        self.eqns = Equations(
+                        Equal(Kout, 
+                            Times(Cin, Transpose(A), Inverse(Plus(Times(A, Cin, Transpose(A)), Cz)))),
+                        Equal(xout,
+                            Plus(x, Times(Kin, Plus(y, Times(minus1, A, x))))),
+                        Equal(Cout, 
+                            Times(Plus(I, Times(minus1, Kin, A)), Cin))
+            )
+
+class Example26():
+    def __init__(self):
+
         # Kalman filter
         
         # TODO: R is symmetric positive semi-definite, which property?

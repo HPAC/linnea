@@ -116,7 +116,7 @@ if __name__ == '__main__':
     elif args.experiment == "random":
         number_of_experiments = 100
     elif args.experiment == "pldi":
-        number_of_experiments = 19
+        number_of_experiments = 26
 
     # execution_time = read_results()
     execution_time = read_results(args.experiment, number_of_experiments, [0, 3]) # use min
