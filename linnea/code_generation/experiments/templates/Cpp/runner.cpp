@@ -11,7 +11,6 @@
 #include "reference/recommended_armadillo.hpp"
 #include "reference/naive_eigen.hpp"
 #include "reference/recommended_eigen.hpp"
-#include "reference/naive_blaze.hpp"
 
 #include "operand_generator.hpp"
 
@@ -25,7 +24,7 @@ decltype(auto) call(Function && f, Tuple && t, std::index_sequence<I...>)
 
 int main(int argc, char ** argv)
 {{
-    std::cout << "Test runner for algorithm {0}\\n";
+    std::cout << "Test runner for algorithm {0}" << std::endl;
     linalg_tests::basic_benchmarker<std::chrono::duration<float>> benchmark;
     benchmark.set_cache_size(30 * 1024 * 1024);
     {{
@@ -62,21 +61,9 @@ int main(int argc, char ** argv)
             call(recommended_eigen{{}}, matrices, Indices{{}});
             }});
     }}
-    {{
-    generator::generator<library::blaze, float_type> blaze_gen{{100}};
-    auto matrices = operand_generator(blaze_gen);
-    constexpr std::size_t tuple_length = std::tuple_size<decltype(matrices)>::value;
-    typedef std::make_index_sequence<tuple_length> Indices;
-    auto res_naive = call(naive_blaze{{}}, matrices, Indices{{}});
-    //std::cout << "Blaze naive(0, 0): " << res_naive(0, 0) << std::endl;
-
-    benchmark.run(20, [&]() {{
-            call(naive_blaze{{}}, matrices, Indices{{}});
-            }});
-    }}
 
     std::array<std::string, 5> labels{{ {{"naive_armadillo", "recommended_armadillo",
-        "naive_eigen", "recommended_eigen", "naive_blaze"}} }};
+        "naive_eigen", "recommended_eigen"}} }};
     std::ofstream file("cpp_results_{0}.txt");
     benchmark.output_results(file, labels);
     file.close();

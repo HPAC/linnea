@@ -12,10 +12,6 @@ def generate_reference_code(output_name, equations):
     utils.remove_files(os.path.join(config.output_path, output_name, config.Language.Cpp.name, "reference"))
     utils.remove_files(os.path.join(config.output_path, output_name, config.Language.Matlab.name, "reference"))
 
-    utils.algorithm_to_file(output_name, "reference", "naive_blaze",
-                        equations.to_cpp_expression(config.CppLibrary.Blaze),
-                        input_str, output_str,
-                        config.Language.Cpp, ".hpp")
     utils.algorithm_to_file(output_name, "reference", "naive_eigen",
                         equations.to_cpp_expression(config.CppLibrary.Eigen),
                         input_str, output_str,
