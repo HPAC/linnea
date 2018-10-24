@@ -1222,7 +1222,7 @@ class IdentityMatrix(ConstantMatrix):
 
     def to_matlab_expression(self, recommended=False):
         # TODO add data type (last position)
-        return "Array{{{0}}}(I, {1}, {1})".format(*self.size)
+        return "eye({0}, {1})".format(*self.size)
 
     def to_julia_expression(self, recommended=False):
         return "Array{{{0}}}(I, {1}, {2})".format(config.data_type_string, *self.size)
