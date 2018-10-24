@@ -21,7 +21,7 @@ def read_results(number_of_experiments, dirs):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog="process_data")
-    parser.add_argument("experiment", choices=["lamp_example", "random"])
+    parser.add_argument("experiment", choices=["lamp_example", "random", "pldi"])
     args = parser.parse_args()
 
     if args.experiment == "lamp_example":
