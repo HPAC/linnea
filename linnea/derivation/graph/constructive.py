@@ -164,7 +164,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         else:
             self.print("Iteration limit reached.")
 
-        self.print("{:-<30}".format(""))
+        self.print("{:-<34}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
         self.print_DS("Number of nodes:", len(self.nodes))
 

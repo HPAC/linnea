@@ -11,9 +11,9 @@ from .... import config
 from .. import utils as dgbu
 
 
-output_msg_add = "{2:>2n} {0:.<22}{1:.>5n}"
+output_msg_add = "{2:>2n} {0:.<26}{1:.>5n}"
 # output_msg_add = "{2:>2n} {0}:{1:.>27n}"
-output_msg_plain = "   {0:.<22}{1:.>5n}"
+output_msg_plain = "   {0:.<26}{1:.>5n}"
 # output_msg_plain = "   {0}{1:.>27n}"
 
 # TODO rename to GenericGraph or something?
