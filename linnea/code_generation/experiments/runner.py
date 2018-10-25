@@ -8,7 +8,10 @@ from .. import utils
 algorithm_inclusion = {config.Language.Julia: """include("{0}/{1}.jl")""",
                     config.Language.Cpp: ""}
 
-algorithm_test = {config.Language.Julia: "@test isapprox(collect({0}(map(MatrixGenerator.unwrap, matrices)...)), collect(result_naive))",
+algorithm_tmp_result = {config.Language.Julia: """result_{0} = collect({0}(map(MatrixGenerator.unwrap, matrices)...))""",
+                    config.Language.Cpp: ""}
+
+algorithm_test = {config.Language.Julia: "@test isapprox(result_{0}, result_recommended)",
                     config.Language.Cpp: ""}
 
 algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"], Benchmarker.measure(20, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
@@ -30,14 +33,17 @@ def runner_to_file(output_name, language, algorithms=[]):
     file_path = os.path.join(config.output_path, output_name, language.name, file_name)
     output_file = open(file_path, "wt", encoding='utf-8')
     inclusions = []
+    tmp_results = []
     tests = []
     plots = []
     incl_format = algorithm_inclusion.get(language)
+    tmp_format = algorithm_tmp_result.get(language)
     test_format = algorithm_test.get(language)
     plot_format = algorithm_plot.get(language)
 
     for subdir_name, algorithm_name in algorithms:
         inclusions.append(incl_format.format(subdir_name, algorithm_name))
+        tmp_results.append(tmp_format.format(algorithm_name))
         tests.append(test_format.format(algorithm_name))
         plots.append(plot_format.format(algorithm_name))
 
@@ -47,9 +53,10 @@ def runner_to_file(output_name, language, algorithms=[]):
     if language == config.Language.Julia:
         runner_file = runner_template.format(
             "\n".join(inclusions),
+            "\n".join(tmp_results),
             "\n".join(tests),
+            output_name,
             "\n".join(plots),
-            output_name
         )
     else:
         runner_file = runner_template.format(output_name)
