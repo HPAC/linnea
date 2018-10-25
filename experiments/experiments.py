@@ -7,6 +7,7 @@ import math
 import argparse
 import collections
 import random
+import os
 
 import linnea.config
 
