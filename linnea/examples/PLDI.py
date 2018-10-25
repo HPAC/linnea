@@ -563,7 +563,7 @@ class Example13():
         # randomized matrix inversion 1
 
         # q << n
-        n = 10000
+        n = 5000
         q = 500
 
         W = Matrix("W", (n, n))
@@ -608,7 +608,7 @@ class Example14():
         # randomized matrix inversion 2
 
         # q << n
-        n = 10000
+        n = 5000
         q = 500
 
         W = Matrix("W", (n, n))
@@ -654,7 +654,7 @@ class Example15():
         # randomized matrix inversion 3
 
         # q << n
-        n = 10000
+        n = 5000
         q = 500
 
         W = Matrix("W", (n, n))
@@ -706,7 +706,7 @@ class Example16():
         # randomized matrix inversion 4
 
         # q << n
-        n = 10000
+        n = 5000
         q = 500
 
         S = Matrix("S", (n, q))
@@ -754,7 +754,7 @@ class Example17():
         # n << m
         l = 625
         n = 1000
-        m = 50000
+        m = 5000
 
         Wk = Matrix("Wk", (m, l))
         Wk.set_property(properties.FULL_RANK)
@@ -808,7 +808,7 @@ class Example18():
         # n << m
         l = 625
         n = 1000
-        m = 50000
+        m = 5000
 
         Wk = Matrix("Wk", (m, l))
         Wk.set_property(properties.FULL_RANK)
