@@ -83,11 +83,7 @@ def generate_code_scripts(replacement):
     template_path = "jobscripts/templates/generate_code.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    """Constructive and exhaustive code can't be generated separately if it is
-    supposed to be run in the same experiments. The reason is that during each
-    code generation, a runner is generated that only calls the code that was
-    just generated."""
-    for strategy in ["c", "e", "ce"]:
+    for strategy in ["c", "e", "f"]:
         replacement_copy = replacement.copy()
 
         replacement_copy["strategy"] = strategy

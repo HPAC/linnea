@@ -12,7 +12,7 @@ import linnea.config
 
 linnea.config.init()
 
-from linnea.config import Strategy
+from linnea.config import Strategy, Language
 import linnea.examples.examples
 import linnea.examples.lamp_paper.examples as lamp_paper
 import linnea.examples.PLDI as PLDI
@@ -102,6 +102,7 @@ def main():
     parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
     parser.add_argument("-c", "--constructive", action="store_true", help="Use constructive strategy.")
     parser.add_argument("-e", "--exhaustive", action="store_true", help="Use exhaustive strategy.")
+    parser.add_argument("-f", "--reference", action="store_true", help="Generate reference code.")
     args = parser.parse_args()
 
     lamp_examples = [
@@ -256,10 +257,18 @@ def main():
             for strategy in strategies:
                 generate(example, name, strategy)
 
-            reference_code.generate_reference_code(name, example.eqns)
-            operand_generation.generate_operand_generator(name, example.eqns)
+            if args.reference:
+                reference_code.generate_reference_code(name, example.eqns)
+                operand_generation.generate_operand_generator(name, example.eqns)
 
-            runner.generate_runner(name, algorithms)
+                # runner should only include files that actually exists
+                existing_algorithms = []
+                for subdir_name, algorithm_name in [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]:
+                    file_path = os.path.join(linnea.config.output_path, name, Language.Julia, subdir_name, algorithm_name + ".jl")
+                    if os.path.exists(file_path):
+                        existing_algorithms.append((subdir_name, algorithm_name))
+                
+                runner.generate_runner(name, existing_algorithms)
 
     elif args.mode == "jobscripts":
         generate_scripts(args.experiment, len(examples))
