@@ -856,10 +856,10 @@ class Transpose(Operator):
         return "{0}{1}".format(self.operands[0], self.name)
 
     def to_matlab_expression(self, recommended=False):
-        return "{0}'".format(self.operands[0].to_matlab_expression(recommended))
+        return "transpose({0})".format(self.operands[0].to_matlab_expression(recommended))
 
     def to_julia_expression(self, recommended=False):
-        return "{0}'".format(self.operands[0].to_julia_expression(recommended))
+        return "transpose({0})".format(self.operands[0].to_julia_expression(recommended))
 
     def to_cpp_expression(self, lib, recommended=False):
         template_str = None
@@ -1068,10 +1068,10 @@ class InverseTranspose(Operator):
         return "{0}{1}".format(self.operands[0], self.name)
 
     def to_matlab_expression(self, recommended=False):
-        return "inv({0}')".format(self.operands[0].to_matlab_expression(recommended))
+        return "inv(transpose({0}))".format(self.operands[0].to_matlab_expression(recommended))
 
     def to_julia_expression(self, recommended=False):
-        return "inv({0}')".format(self.operands[0].to_julia_expression(recommended))
+        return "inv(transpose({0}))".format(self.operands[0].to_julia_expression(recommended))
 
     def to_cpp_expression(self, lib, recommended=False):
         template_str = None
