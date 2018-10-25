@@ -13,14 +13,16 @@ module load python/3.6.0
 source ${{HOME}}/linnea/linnea_venv/bin/activate
 python3 ${{HOME}}/linnea/linnea/experiments/experiments.py generate_code {name} -j=${{LSB_JOBINDEX}} -{strategy}
 
-module load cmake/3.10.1
-module load gcc/7
+if {compile}; then
+    module load cmake/3.10.1
+    module load gcc/7
 
-cd ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Cpp
-mkdir -p build
-cd build
-rm -rf *
-cmake -DCMAKE_PREFIX_PATH=${{HOME}}/libraries/MatrixGeneratorCpp/ ..
-make
+    cd ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Cpp
+    mkdir -p build
+    cd build
+    rm -rf *
+    cmake -DCMAKE_PREFIX_PATH=${{HOME}}/libraries/MatrixGeneratorCpp/ ..
+    make
+fi
 
 exit

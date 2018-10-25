@@ -88,6 +88,11 @@ def generate_code_scripts(replacement):
 
         replacement_copy["strategy"] = strategy
 
+        if strategy == "f":
+            replacement_copy["compile"] = "true"
+        else:
+            replacement_copy["compile"] = "false"
+
         file_name = "jobscripts/{}/generate_code_{}.sh".format(replacement_copy["name"], strategy)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
