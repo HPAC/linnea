@@ -2199,7 +2199,7 @@ class Example074():
 
         alpha = Scalar("alpha")
 
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         X = Matrix("X", (n, n))
         X.set_property(properties.OUTPUT)
@@ -2220,7 +2220,7 @@ class Example075():
 
         alpha = Scalar("alpha")
 
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         X = Matrix("X", (n, n))
         X.set_property(properties.OUTPUT)
@@ -2254,7 +2254,7 @@ class Example076():
 
         alpha = Scalar("alpha")
 
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         X = Matrix("X", (n, n))
         X.set_property(properties.OUTPUT)
@@ -2288,7 +2288,7 @@ class Example077():
 
         alpha = Scalar("alpha")
 
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         X = Matrix("X", (n, n))
         X.set_property(properties.OUTPUT)
@@ -2624,7 +2624,7 @@ class Example089():
 
         alpha = Scalar("alpha")
 
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         X = Matrix("X", (n, n))
         X.set_property(properties.OUTPUT)
@@ -2895,7 +2895,7 @@ class Example098():
         # simple, scalar, constant
 
         alpha = Scalar("alpha")
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         beta = Scalar("beta")
 
@@ -2909,7 +2909,7 @@ class Example099():
         # simple, scalar, constant
 
         alpha = Scalar("alpha")
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         beta = Scalar("beta")
 
@@ -2925,7 +2925,7 @@ class Example100():
         n = 10
 
         A = Matrix("A", (n, n))
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         X = Matrix("X", (n, n))
 
@@ -3125,7 +3125,7 @@ class Example110():
 
         alpha = Scalar("alpha")
 
-        two = ConstantScalar(2)
+        two = ConstantScalar(2.0)
 
         X = Matrix("X", (n, n))
         X.set_property(properties.OUTPUT)
@@ -3506,7 +3506,7 @@ class Example125():
         N = 1000
 
         
-        minu1 = ConstantScalar(-1)
+        minu1 = ConstantScalar(-1.0)
 
         B = Matrix("B", (N, N))
         H = Matrix("H", (msd, N))
