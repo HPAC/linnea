@@ -654,8 +654,8 @@ class Example15():
         # randomized matrix inversion 3
 
         # q << n
-        n = 5000
-        q = 500
+        n = 4000
+        q = 400
 
         W = Matrix("W", (n, n))
         W.set_property(properties.SPD)
