@@ -441,6 +441,15 @@ class Memory():
 
         return memory_operation
 
+    def convert_to_full(self, operands):
+
+        memory_operations = []
+        for operand in operands:
+            if self.storage_format[operand.name] != StorageFormat.full:
+                memory_operations.extend(self.storage_conversion(operand, StorageFormat.full))
+
+        return "".join(mem_op.code() for mem_op in memory_operations)
+
     def storage_conversion(self, operand, target_format):
         """Generates operations to convert the storage format of an operand.
 

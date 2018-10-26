@@ -125,8 +125,6 @@ class Algorithm():
 
         if config.c:
             code_list.append("int info = 0;\n\n")
-        # elif config.julia:
-        #     code_list.append("using Base.LinAlg.BLAS\nusing Base.LinAlg\n\n")
 
         for line_number, matched_kernel in enumerate(self.matched_kernels):
             code_list.append(self._matched_kernel_to_code(matched_kernel, line_number))
@@ -135,9 +133,17 @@ class Algorithm():
         code_list.append(self.memory.content_string_with_format())
         code_list.append("\n")
 
-        code_list.append(textwrap.indent(str(self.final_equations), config.comment))
-
         output_operand_mapping = {eqn.lhs: eqn.rhs for eqn in self.final_equations}
+        conversion_to_full = self.memory.convert_to_full(output_operand_mapping.values())
+        if conversion_to_full:
+            code_list.append(conversion_to_full)
+            code_list.append("\n")
+
+            code_list.append(config.comment)
+            code_list.append(self.memory.content_string_with_format())
+            code_list.append("\n")
+
+        code_list.append(textwrap.indent(str(self.final_equations), config.comment))
         self.experiment_output = ", ".join([self.memory.lookup[output_operand_mapping[operand].name].name for operand in output_operands])
 
         return "".join(code_list)
