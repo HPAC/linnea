@@ -8,7 +8,7 @@ from .. import utils
 algorithm_inclusion = {config.Language.Julia: """include("{0}/{1}.jl")""",
                     config.Language.Cpp: ""}
 
-algorithm_tmp_result = {config.Language.Julia: """result_{0} = collect({0}(map(MatrixGenerator.unwrap, matrices)...))""",
+algorithm_tmp_result = {config.Language.Julia: """result_{0} = collect({0}(map(MatrixGenerator.unwrap, map(copy, matrices))...))""",
                     config.Language.Cpp: ""}
 
 algorithm_test = {config.Language.Julia: "@test isapprox(result_{0}, result_recommended)",
