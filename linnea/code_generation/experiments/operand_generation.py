@@ -47,7 +47,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     if language is config.Language.Julia:
         file_name = "operand_generator.jl"
         op_gen_line_template = "{name} = generate(({size}), [{properties}])"
-        random_operand = ["Properties.Random"]
+        random_operand = ["Properties.Random(1, 2)"]
 
     elif language is config.Language.Cpp:
         file_name = "operand_generator.hpp"
@@ -57,7 +57,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     elif language is config.Language.Matlab:
         file_name = "operand_generator.m"
         op_gen_line_template = "{name} = generate([{size}], {properties});"
-        random_operand = ["Properties.Random()"]
+        random_operand = ["Properties.Random([1, 2])"]
 
     else:
         raise config.LanguageOptionNotImplemented()
