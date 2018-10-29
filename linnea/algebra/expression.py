@@ -416,6 +416,14 @@ class Symbol(matchpy.Symbol, Expression):
         self.false_properties.discard(prop)
         self.false_properties.difference_update(implications.get(prop, tuple()))
 
+    @property
+    def rows(self):
+        return self.size[0]
+
+    @property
+    def columns(self):
+        return self.size[1]
+
     def to_dot(self, out):
         node_name = "".join(["node", str(Expression.counter)])
         props = "\n".join([str(p) for p in self.properties])
