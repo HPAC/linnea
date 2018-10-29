@@ -1,6 +1,7 @@
 import matchpy
 import functools
 import operator
+import itertools
 
 from . import InferenceOfProperties
 from .properties import Property as properties
