@@ -232,7 +232,6 @@ def _to_POS(expr, side):
     # the keyfuncs don't work (because they try to access one element of the
     # list containing non-scalar expressions).
     
-    # print("in", expr)
     # TODO does this make it faster?
     if not isinstance(expr, ae.Plus) and not isinstance(expr, ae.Symbol):
         return type(expr)(*[_to_POS(operand, side) for operand in expr.operands])
@@ -291,13 +290,10 @@ def _to_POS(expr, side):
             # also have scalars in common. If yes, they are factored out as well.
             if all(len(scalars) > 0 for scalars in scalar_sequences):
                 map(operator.methodcaller("sort"), scalar_sequences)
-                # print(scalar_sequences)
                 intersection = _sequence_intersection(scalar_sequences)
                 
                 if intersection:
                     scalar_common_factors = [scalar_sequences[0][positions[0]] for positions in intersection]
-                    # print(scalar_sequences)
-                    # print(intersection)    
 
                     # Following from the way the intersections are constructed,
                     # positions with smaller indices always come first (i.e. 
@@ -319,20 +315,20 @@ def _to_POS(expr, side):
             #     alpha*B + beta*B = (alpha + beta)*B
             use_identity = any(non_scalar_sequences)
 
+            if use_identity:
+                for expr_, scalars, non_scalars in group:
+                    if non_scalars:
+                        identity_size = (non_scalars[0].rows, non_scalars[-1].columns)
+
             # Constructing the new terms with common factors removed.         
             rest = []
-            # print("use Id", use_identity)
-            # print("group before", group)
             for expr_, scalars, non_scalars in group:
                 scalars.sort()
                 if len(non_scalars) == 0:
                     if scalars:
                         if use_identity:
                             # New rest is: Times(alpha, beta, I)
-                            size = expr_.size
-                            # By setting expr_.operands, the existing Times is
-                            # reused and no new expression has to be created.
-                            operands = scalars + [ae.IdentityMatrix(*size)]
+                            operands = scalars + [ae.IdentityMatrix(*identity_size)]
                             rest.append(ae.Times(*operands))
                         else:
                             if len(scalars) == 1:
@@ -345,8 +341,7 @@ def _to_POS(expr, side):
                     else:
                         if use_identity:
                             # New rest is: I
-                            size = expr_.size
-                            rest.append(ae.IdentityMatrix(*size))
+                            rest.append(ae.IdentityMatrix(*identity_size))
                         else:
                             # New rest is: 1
                             rest.append(ae.ConstantScalar(1))
@@ -364,10 +359,7 @@ def _to_POS(expr, side):
                             operands = non_scalars
                             rest.append(ae.Times(*operands))
 
-            # print("common_factor", common_factor)
-            # print("rest", rest)
             rest_expr = _to_POS(ae.Plus(*rest), side)
-            # print("rest_expr", rest_expr)
             if side == "l":
                 new_operands.append(at.simplify(ae.Times(*(common_factor + [rest_expr]))))
             elif side == "r":
@@ -375,10 +367,8 @@ def _to_POS(expr, side):
         else:
             # In this case, there is no common non-scalar factor, so the
             # original expression is still a operand of this plus.
-            # print(group)
             new_operands.append(group[0][0])
     if len(new_operands) == 1:
         return new_operands[0]
     else:
-        # expr.operands = new_operands
         return type(expr)(*new_operands)
