@@ -6,7 +6,11 @@ from ..algebra.equations import Equations
 
 from .. import config
 
+from ..utils import PropertyConstraint
+
 from .memory import memory as memory_module
+
+from ..algebra.properties import Property as properties
 
 import copy
 import math
@@ -494,24 +498,26 @@ WD1 = matchpy.Wildcard.dot("WD1")
 WD2 = matchpy.Wildcard.dot("WD2")
 WS1 = matchpy.Wildcard.star("WS1")
 WS2 = matchpy.Wildcard.star("WS2")
+PS1 = PropertyConstraint("WD1", set([properties.MATRIX]))
+PS2 = PropertyConstraint("WD2", set([properties.MATRIX]))
 
 linsolveL = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2)),
+    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(WD1, WD2), *WS2)
     )
 
 linsolveLT = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, InverseTranspose(WD1), WD2, WS2)),
+    matchpy.Pattern(Times(WS1, InverseTranspose(WD1), WD2, WS2), PS1, PS2),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(Transpose(WD1), WD2), *WS2)
     )
 
 linsolveR = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2)),
+    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, WD2), *WS2)
     )
 
 linsolveRT = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, WD1, InverseTranspose(WD2), WS2)),
+    matchpy.Pattern(Times(WS1, WD1, InverseTranspose(WD2), WS2), PS1, PS2),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, Transpose(WD2)), *WS2)
     )
 
