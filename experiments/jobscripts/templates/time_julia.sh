@@ -5,7 +5,7 @@
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB
 #BSUB -P {group}
-#BSUB -R model=={model}
+#BSUB -R {model}
 {exclusive}
 
 module load gcc/7
