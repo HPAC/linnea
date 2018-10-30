@@ -13,6 +13,7 @@
         "group": "aices2",
         "model": "model==Haswell_EP",
         "exclusive": false,
-        "repetitions": 1
+        "repetitions": 1,
+        "julia_path": "${HOME}/julia/julia-1.0.1-haswell/julia"
     }
 }
