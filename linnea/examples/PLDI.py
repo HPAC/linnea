@@ -720,7 +720,7 @@ class Example16():
         A.set_property(properties.INPUT)
 
         Xin = Matrix("Xin", (n, n))
-        Xin.set_property(properties.SYMMETRIC
+        Xin.set_property(properties.SYMMETRIC)
         Xin.set_property(properties.FULL_RANK)
         Xin.set_property(properties.INPUT)
 
