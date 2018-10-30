@@ -283,10 +283,10 @@ class Example07():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
         H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        R = Matrix("R", (msd, msd), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
@@ -317,10 +317,10 @@ class Example08():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
         H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        R = Matrix("R", (msd, msd), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
@@ -348,10 +348,10 @@ class Example09():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (N, N), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
         H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (msd, msd), properties = [properties.FULL_RANK, properties.SYMMETRIC, properties.INPUT])
+        R = Matrix("R", (msd, msd), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
         X = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
@@ -904,8 +904,8 @@ class Example21():
         m = 1000
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
-        P = Matrix("P", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
-        Q = Matrix("Q", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        P = Matrix("P", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
         b = Vector("b", (n, 1), properties = [properties.INPUT])
         x0 = Vector("x0", (m, 1), properties = [properties.INPUT])
         x = Vector("x", (m, 1), properties = [properties.OUTPUT])
@@ -929,8 +929,8 @@ class Example22():
         m = 1000
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
-        P = Matrix("P", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
-        Q = Matrix("Q", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        P = Matrix("P", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
         b = Vector("b", (n, 1), properties = [properties.INPUT])
         x0 = Vector("x0", (m, 1), properties = [properties.INPUT])
         x = Vector("x", (m, 1), properties = [properties.OUTPUT])
@@ -957,8 +957,8 @@ class Example23():
         m = 1000
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
         y = Vector("y", (m, 1), properties = [properties.INPUT])
         x = Vector("x", (n, 1), properties = [properties.INPUT])
         xout = Vector("xout", (n, 1), properties = [properties.OUTPUT])
@@ -985,8 +985,8 @@ class Example24():
         m = 1000
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
         y = Vector("y", (m, 1), properties = [properties.INPUT])
         x = Vector("x", (n, 1), properties = [properties.INPUT])
         xout = Vector("xout", (n, 1), properties = [properties.OUTPUT])
@@ -1015,8 +1015,8 @@ class Example25():
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         Kin = Matrix("Kin", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
-        Cin = Matrix("Cin", (n, n), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.FULL_RANK, properties.SYMMETRIC]) # covariance matrix
+        Cin = Matrix("Cin", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
         y = Vector("y", (m, 1), properties = [properties.INPUT])
         x = Vector("x", (n, 1), properties = [properties.INPUT])
 
@@ -1040,8 +1040,7 @@ class Example26():
     def __init__(self):
 
         # Kalman filter
-        
-        # TODO: R is symmetric positive semi-definite, which property?
+
 
         n = 1000
         m = 1000
@@ -1051,8 +1050,8 @@ class Example26():
         Kk_I = Matrix("Kk_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
         P_b = Matrix("P_b", (n, n), properties = [properties.INPUT, properties.SPD])
         P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
-        H = Matrix("H", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (m, m), properties = [properties.FULL_RANK, properties.INPUT, properties.SYMMETRIC])
+        H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+        R = Matrix("R", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
         I = IdentityMatrix(n, n)
 
         x_a = Vector("x_a", (n, 1), properties = [properties.OUTPUT])
