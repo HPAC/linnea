@@ -11,7 +11,7 @@ algorithm_inclusion = {config.Language.Julia: """include("{0}/{1}.jl")""",
 algorithm_tmp_result = {config.Language.Julia: """result_{0} = collect({0}(map(MatrixGenerator.unwrap, map(copy, matrices))...))""",
                     config.Language.Cpp: ""}
 
-algorithm_test = {config.Language.Julia: "@test isapprox(result_{0}, result_recommended)",
+algorithm_test = {config.Language.Julia: "@test isapprox(result_{0}, result_recommended, rtol=1e-3)",
                     config.Language.Cpp: ""}
 
 algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"], Benchmarker.measure(20, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
