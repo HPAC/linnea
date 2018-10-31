@@ -4520,3 +4520,31 @@ class Example155():
 
         self.eqns = Equations(Equal(x, Times(M, v1, Transpose(v2), v3)))
 
+
+class Example156():
+    def __init__(self):
+
+        # TAGS
+        # linear system, matrix chain
+
+        n = 1000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.SPD)
+        A.set_property(properties.INPUT)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+        B.set_property(properties.INPUT)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.LOWER_TRIANGULAR)
+        C.set_property(properties.FULL_RANK)
+        C.set_property(properties.INPUT)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                            Equal(X, Times(Inverse(A), B, Transpose(C))),
+                            )
