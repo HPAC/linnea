@@ -502,62 +502,62 @@ class Example11():
                     )
 
 
+# class Example12():
+#     def __init__(self):
+
+#         # image restoration 3
+
+#         n = 1500
+#         m = 1000
+
+#         minus1 = ConstantScalar(-1.0)
+#         lambda_ = Scalar("lambda") # positive
+#         sigma_ = Scalar("sigma_sq") # positive
+
+#         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
+#         H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
+#         H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
+#         I = IdentityMatrix(n, n)
+
+#         y_k = Vector("y_k", (n, 1), properties = [properties.OUTPUT])
+#         y = Vector("y", (m, 1), properties = [properties.INPUT])
+#         x = Vector("x", (n, 1), properties = [properties.INPUT])
+
+#         h_dag = Times(
+#                     Transpose(H),
+#                     Inverse(
+#                         Times(
+#                             H,
+#                             Transpose(H)
+#                         )
+#                     )
+#                 )
+
+#         self.eqns = Equations(
+#                         Equal(
+#                             y_k,
+#                             Plus(
+#                                 Times(
+#                                     h_dag,
+#                                     y
+#                                 ),
+#                                 Times(
+#                                     Plus(
+#                                         I,
+#                                         Times(
+#                                             minus1,
+#                                             h_dag,
+#                                             H
+#                                         )
+#                                     ),
+#                                     x
+#                                 )
+#                             )
+#                         )
+#                     )
+
+
 class Example12():
-    def __init__(self):
-
-        # image restoration 3
-
-        n = 1500
-        m = 1000
-
-        minus1 = ConstantScalar(-1.0)
-        lambda_ = Scalar("lambda") # positive
-        sigma_ = Scalar("sigma_sq") # positive
-
-        H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-        H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
-        H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
-        I = IdentityMatrix(n, n)
-
-        y_k = Vector("y_k", (n, 1), properties = [properties.OUTPUT])
-        y = Vector("y", (m, 1), properties = [properties.INPUT])
-        x = Vector("x", (n, 1), properties = [properties.INPUT])
-
-        h_dag = Times(
-                    Transpose(H),
-                    Inverse(
-                        Times(
-                            H,
-                            Transpose(H)
-                        )
-                    )
-                )
-
-        self.eqns = Equations(
-                        Equal(
-                            y_k,
-                            Plus(
-                                Times(
-                                    h_dag,
-                                    y
-                                ),
-                                Times(
-                                    Plus(
-                                        I,
-                                        Times(
-                                            minus1,
-                                            h_dag,
-                                            H
-                                        )
-                                    ),
-                                    x
-                                )
-                            )
-                        )
-                    )
-
-
-class Example13():
     def __init__(self):
 
         # randomized matrix inversion 1
@@ -578,31 +578,38 @@ class Example13():
         A.set_property(properties.FULL_RANK)
         A.set_property(properties.INPUT)
 
+        LambdaIn = Matrix("LambdaIn", (n, n))
+        LambdaIn.set_property(properties.SYMMETRIC)
+        LambdaIn.set_property(properties.FULL_RANK)
+        LambdaIn.set_property(properties.INPUT)
+
+        LambdaOut = Matrix("LambdaOut", (n, n))
+        LambdaOut.set_property(properties.OUTPUT)
+
         Xin = Matrix("Xin", (n, n))
         Xin.set_property(properties.FULL_RANK)
         Xin.set_property(properties.INPUT)
 
         Xout = Matrix("Xout", (n, n))
-        Xout.set_property(properties.FULL_RANK)
         Xout.set_property(properties.OUTPUT)
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
 
         self.eqns = Equations(
+                        Equal(LambdaOut,
+                                Times(S, Inverse(Times(Transpose(S), A, W, Transpose(A), S)), Transpose(S))),
                         Equal(Xout,
                             Plus(Xin,
                                 Times(
-                                    W, Transpose(A), S,
-                                    Inverse(Times(Transpose(S), A, W, Transpose(A), S)),
-                                    Transpose(S),
+                                    W, Transpose(A), LambdaIn,
                                     Plus(I, Times(minus1, A, Xin))
                                     )
                                 )
                             )
                         )
 
-class Example14():
+class Example13():
     def __init__(self):
 
         # randomized matrix inversion 2
@@ -623,32 +630,39 @@ class Example14():
         A.set_property(properties.FULL_RANK)
         A.set_property(properties.INPUT)
 
+        LambdaIn = Matrix("LambdaIn", (n, n))
+        LambdaIn.set_property(properties.SYMMETRIC)
+        LambdaIn.set_property(properties.FULL_RANK)
+        LambdaIn.set_property(properties.INPUT)
+
+        LambdaOut = Matrix("LambdaOut", (n, n))
+        LambdaOut.set_property(properties.OUTPUT)
+
         Xin = Matrix("Xin", (n, n))
         Xin.set_property(properties.FULL_RANK)
         Xin.set_property(properties.INPUT)
 
         Xout = Matrix("Xout", (n, n))
-        Xout.set_property(properties.FULL_RANK)
         Xout.set_property(properties.OUTPUT)
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
 
         self.eqns = Equations(
+                        Equal(LambdaOut,
+                            Times(S, Inverse(Times(Transpose(S), Transpose(A), W, A, S)), Transpose(S))),
                         Equal(Xout,
                             Plus(Xin,
                                 Times(
                                     Plus(I, Times(minus1, Xin, Transpose(A))),
-                                    S,
-                                    Inverse(Times(Transpose(S), Transpose(A), W, A, S)),
-                                    Transpose(S), Transpose(A), W
+                                    LambdaIn, Transpose(A), W
                                     )
                                 )
                             )
                         )
 
 
-class Example15():
+class Example14():
     def __init__(self):
 
         # randomized matrix inversion 3
@@ -670,38 +684,59 @@ class Example15():
         A.set_property(properties.FULL_RANK)
         A.set_property(properties.INPUT)
 
+        LambdaIn = Matrix("LambdaIn", (n, n))
+        LambdaIn.set_property(properties.SYMMETRIC)
+        LambdaIn.set_property(properties.FULL_RANK)
+        LambdaIn.set_property(properties.INPUT)
+
+        LambdaOut = Matrix("LambdaOut", (n, n))
+        LambdaOut.set_property(properties.OUTPUT)
+
+        OmegaIn = Matrix("OmegaIn", (n, n))
+        OmegaIn.set_property(properties.FULL_RANK)
+        OmegaIn.set_property(properties.INPUT)
+
+        OmegaOut = Matrix("OmegaOut", (n, n))
+        OmegaOut.set_property(properties.OUTPUT)
+
+        MkIn = Matrix("MkIn", (n, n))
+        MkIn.set_property(properties.FULL_RANK)
+        MkIn.set_property(properties.INPUT)
+
+        MkOut = Matrix("MkOut", (n, n))
+        MkOut.set_property(properties.OUTPUT)
+
         Xin = Matrix("Xin", (n, n))
         Xin.set_property(properties.SYMMETRIC)
         Xin.set_property(properties.FULL_RANK)
         Xin.set_property(properties.INPUT)
 
         Xout = Matrix("Xout", (n, n))
-        Xout.set_property(properties.FULL_RANK)
         Xout.set_property(properties.OUTPUT)
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
 
-        Lambda = Times(S, Inverse(Times(Transpose(S), A, W, A, S)), Transpose(S))
-        Omega = Times(Lambda, A, W)
-        M_k = Plus(Times(Xin, A), Times(minus1, I)) 
 
         self.eqns = Equations(
+                        Equal(LambdaOut, Times(S, Inverse(Times(Transpose(S), A, W, A, S)), Transpose(S))),
+                        Equal(OmegaOut, Times(LambdaIn, A, W)),
+                        Equal(MkOut, Plus(Times(Xin, A), Times(minus1, I))),
                         Equal(Xout,
                             Plus(Xin,
-                                Times(minus1, M_k, Omega),
-                                Times(minus1, Transpose(Times(M_k, Omega))),
+                                Times(minus1, MkIn, OmegaIn),
+                                Times(minus1, Transpose(Times(MkIn, OmegaIn))),
                                 Times(
-                                    Transpose(Omega),
+                                    Transpose(OmegaIn),
                                     Plus(Times(A, Xin, A), Times(minus1, A)),
-                                    Omega
+                                    OmegaIn
                                     )
                                 )
                             )
                         )
 
 
-class Example16():
+class Example15():
     def __init__(self):
 
         # randomized matrix inversion 4
@@ -747,7 +782,7 @@ class Example16():
                         )
 
 
-class Example17():
+class Example16():
     def __init__(self):
 
         # Stochastic Newton and Quasi-Newton for Large Linear Least-squares 1
@@ -801,7 +836,7 @@ class Example17():
                         )
 
 
-class Example18():
+class Example17():
     def __init__(self):
 
         # Stochastic Newton and Quasi-Newton for Large Linear Least-squares 2
@@ -849,7 +884,7 @@ class Example18():
                         )
 
 
-class Example19():
+class Example18():
     def __init__(self):
 
         # tikhonov regularization 1
@@ -873,7 +908,7 @@ class Example19():
                             )
 
 
-class Example20():
+class Example19():
     def __init__(self):
 
         # tikhonov regularization 2
@@ -897,7 +932,7 @@ class Example20():
                             )
 
 
-class Example21():
+class Example20():
     def __init__(self):
 
         # tikhonov regularization 3
@@ -922,7 +957,7 @@ class Example21():
                             )
 
 
-class Example22():
+class Example21():
     def __init__(self):
 
         # tikhonov regularization 4
@@ -950,7 +985,7 @@ class Example22():
                             )
 
 
-class Example23():
+class Example22():
     def __init__(self):
 
         # linear MMSE estimator 1
@@ -978,7 +1013,7 @@ class Example23():
                         )
 
 
-class Example24():
+class Example23():
     def __init__(self):
 
         # linear MMSE estimator 2
@@ -1007,7 +1042,7 @@ class Example24():
                         )
 
 
-class Example25():
+class Example24():
     def __init__(self):
 
         # linear MMSE estimator 3
@@ -1038,7 +1073,7 @@ class Example25():
                             Times(Plus(I, Times(minus1, Kin, A)), Cin))
             )
 
-class Example26():
+class Example25():
     def __init__(self):
 
         # Kalman filter
