@@ -29,6 +29,7 @@ def to_performance_profiles_data(time_data):
 
     # add y axis
     final = pd.concat([y_coordinates, sorted_data], axis=1)
+    final.rename(columns={0: "y"}, inplace=True)
 
     return final
 
