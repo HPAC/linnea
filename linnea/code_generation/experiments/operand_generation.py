@@ -47,17 +47,24 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
     if language is config.Language.Julia:
         file_name = "operand_generator.jl"
         op_gen_line_template = "{name} = generate(({size}), [{properties}])"
-        random_operand = ["Properties.Random(20, 21)"]
+        # random_operand = ["Properties.Random(20, 21)"]
+        def random_operand(l, u):
+            return "Properties.Random({}, {})".format(l, u)
 
     elif language is config.Language.Cpp:
         file_name = "operand_generator.hpp"
         op_gen_line_template = "auto {name} = gen.generate({{{size}}}, {properties});"
-        random_operand = ["generator::property::random{}"]
+        # random_operand = ["generator::property::random{}"]
+        def random_operand(l, u):
+            return "generator::property::random{}"
 
     elif language is config.Language.Matlab:
         file_name = "operand_generator.m"
         op_gen_line_template = "{name} = generate([{size}], {properties});"
-        random_operand = ["Properties.Random([20, 21])"]
+        # random_operand = ["Properties.Random([20, 21])"]
+        def random_operand(l, u):
+            return "Properties.Random([{}, {}])".format(l, u)
+
 
     else:
         raise config.LanguageOptionNotImplemented()
@@ -96,7 +103,19 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
                 property_replacements.append("Shape.General()")
 
         if not properties.SPD in operand.properties and not properties.ORTHOGONAL in operand.properties:
-            property_replacements.extend(random_operand)
+            if properties.DIAGONAL in operand.properties:
+                property_replacements.append(random_operand(10, 11))
+            elif properties.LOWER_TRIANGULAR in operand.properties:
+                property_replacements.append(random_operand(10, 11))
+            elif properties.UPPER_TRIANGULAR in operand.properties:
+                property_replacements.append(random_operand(10, 11))
+            elif properties.SYMMETRIC in operand.properties:
+                property_replacements.append(random_operand(10, 11))
+            elif operand.has_property(properties.SCALAR):
+                property_replacements.append(random_operand(0.5, 1.5))
+            else:
+                property_replacements.append(random_operand(-1, 1))
+
         if language == config.Language.Cpp:
             if properties.VECTOR in operand.properties:
                 if operand.size[0] == 1:
