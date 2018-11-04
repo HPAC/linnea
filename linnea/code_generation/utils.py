@@ -12,6 +12,8 @@ from .memory import memory as memory_module
 
 from ..algebra.properties import Property as properties
 
+from ..derivation.graph.utils import is_inverse
+
 import copy
 import math
 import textwrap
@@ -500,6 +502,7 @@ WS1 = matchpy.Wildcard.star("WS1")
 WS2 = matchpy.Wildcard.star("WS2")
 PS1 = PropertyConstraint("WD1", set([properties.MATRIX]))
 PS2 = PropertyConstraint("WD2", set([properties.MATRIX]))
+notInv = matchpy.CustomConstraint(lambda WD2: not is_inverse(WD2))
 
 linsolveL = matchpy.ReplacementRule(
     matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2),
@@ -521,6 +524,25 @@ linsolveRT = matchpy.ReplacementRule(
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, Transpose(WD2)), *WS2)
     )
 
+linsolveLnI = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2, notInv),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(WD1, WD2), *WS2)
+    )
+
+linsolveLTnI = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, InverseTranspose(WD1), WD2, WS2), PS1, PS2, notInv),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(Transpose(WD1), WD2), *WS2)
+    )
+
+linsolveRnI = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2, notInv),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, WD2), *WS2)
+    )
+
+linsolveRTnI = matchpy.ReplacementRule(
+    matchpy.Pattern(Times(WS1, WD1, InverseTranspose(WD2), WS2), PS1, PS2, notInv),
+    lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, Transpose(WD2)), *WS2)
+    )
 
 def replace_linsolve_left(equations):
     """Replaces linear systems with a LinSolve operator.
@@ -530,6 +552,7 @@ def replace_linsolve_left(equations):
     """
     new_eqns = []
     for eqn in equations:
+        eqn = matchpy.replace_all(eqn, [linsolveLnI, linsolveLTnI])
         eqn = matchpy.replace_all(eqn, [linsolveL, linsolveLT])
         new_eqns.append(eqn)
     return Equations(*new_eqns)
@@ -543,6 +566,7 @@ def replace_linsolve_right(equations):
     """
     new_eqns = []
     for eqn in equations:
+        eqn = matchpy.replace_all(eqn, [linsolveRnI, linsolveRTnI])
         eqn = matchpy.replace_all(eqn, [linsolveR, linsolveRT])
         new_eqns.append(eqn)
     return Equations(*new_eqns)
