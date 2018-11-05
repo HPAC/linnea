@@ -120,11 +120,11 @@ if __name__ == '__main__':
         number_of_experiments = 25
 
     # execution_time = read_results()
-    execution_time = read_results(args.experiment, number_of_experiments, [0, 3]) # use min
+    execution_time = read_results(args.experiment, number_of_experiments, [0, 1]) # [0, 3] for min 
     
     execution_time.to_csv("execution_time.csv", na_rep="NaN")
 
-    performance_profiles_data = to_performance_profiles_data(execution_time)
+    performance_profiles_data = to_performance_profiles_data(execution_time.drop(columns=["algorithm0c"]))
     # performance_profiles_data.rename(columns={0:"y", "generated0":"linnea"}, inplace=True)
     performance_profiles_data.to_csv("performance_profile.csv", na_rep="NaN")
 

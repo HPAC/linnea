@@ -41,7 +41,7 @@ if __name__ == '__main__':
             print("No directory", dir)
 
     results = read_results(number_of_experiments, dirs)
-    results.to_csv("linnea_generation.csv")
+    results.to_csv("linnea_generation.csv", na_rep="NaN")
 
     # we have to do something about missing data here
 
@@ -49,12 +49,20 @@ if __name__ == '__main__':
     nodes_count = nodes_count.unstack([1, 2]) # use fill_value=... for missing data
     nodes_count.columns = new_columns
     # nodes_count.index.name = None
-    nodes_count.to_csv("generation_nodes_count.csv")
+    nodes_count.to_csv("generation_nodes_count.csv", na_rep="NaN")
     # print(nodes_count)
 
     generation_time = results.drop(columns=["std", "min", "max", "nodes", "solution"])
     generation_time = generation_time.unstack([1, 2]) # use fill_value=... for missing data
     generation_time.columns = new_columns
     # generation_time.index.name = None
-    generation_time.to_csv("generation_time.csv")
+    generation_time.to_csv("generation_time.csv", na_rep="NaN")
     # print(generation_time)
+
+    generation_time_renamed = generation_time.rename(mapper=lambda name: name + "_time", axis='columns')
+    nodes_count_renamed = nodes_count.rename(mapper=lambda name: name + "_nodes", axis='columns')
+
+    # all_names = ["constructive_merging_time", "constructive_no_merging_time", "exhaustive_merging_time", "exhaustive_no_merging_time", "constructive_merging_nodes", "constructive_no_merging_nodes", "exhaustive_merging_nodes", "exhaustive_no_merging_nodes"]
+    nodes_and_time = pd.concat([generation_time_renamed, nodes_count_renamed], axis=1)
+    # print(nodes_and_time)
+    nodes_and_time.to_csv("generation_all.csv", na_rep="NaN")
