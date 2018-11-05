@@ -27,7 +27,7 @@ def operand_sizes():
         # square
         n = operand_size()
         sizes = (n, n)
-    elif rand > 0.3:
+    elif rand > 0.10:
         # rectangular
         n = operand_size()
         m = operand_size()
@@ -178,17 +178,17 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
                 weights = [1, 2]
             elif parent is ae.Plus:
                 operators = [ae.Times, ae.Inverse]
-                weights = [3, 1]
+                weights = [4, 1]
             elif parent is ae.Inverse:
                 operators = [ae.Times, ae.Plus]
-                weights = [1, 1]    
+                weights = [3, 1]    
             elif parent is None:
                 operators = [ae.Times, ae.Plus, ae.Inverse]
-                weights = [3, 3, 1]
+                weights = [5, 3, 1]
         else:
             # operators = [ae.Times, ae.Plus, ae.Transpose]
             operators = [ae.Times, ae.Plus]
-            weights = [1, 1]
+            weights = [2, 1]
 
 
         operator = random.choices(operators, weights)[0]
