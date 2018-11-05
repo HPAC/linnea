@@ -17,8 +17,8 @@ class Example01():
 
         # least squares
 
-        n = 1500
-        m = 1000
+        n = 2500
+        m = 500
 
         X = Matrix("X", (n, m))
         X.set_property(properties.INPUT)
@@ -39,8 +39,8 @@ class Example02():
 
         # generalized least squares
 
-        n = 1500
-        m = 1000
+        n = 2500
+        m = 500
 
         S = Matrix("S", (n, n))
         S.set_property(properties.SPD)
@@ -66,7 +66,7 @@ class Example03():
 
         # optimization problem 1
 
-        n = 1500
+        n = 2000
         m = 1000
 
         A = Matrix("A", (m, n))
@@ -111,7 +111,7 @@ class Example04():
 
         # optimization problem 2
 
-        n = 1500
+        n = 2000
         m = 1000
 
         A = Matrix("A", (m, n))
@@ -168,7 +168,9 @@ class Example04():
 
 
 class Example05():
-    def __init__(self, N = 1000):
+    def __init__(self):
+
+        N = 2000
 
         # signal processing
 
@@ -217,9 +219,9 @@ class Example06():
 
         # inversion of lower triangular matrix
 
-        n = 1000
-        m = 1000
-        k = 1000
+        n = 2000
+        m = 200
+        k = 2000
 
         L00 = Matrix("L00", (n, n), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
         L11 = Matrix("L11", (m, m), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR, properties.INPUT])
@@ -277,9 +279,11 @@ class Example07():
 
         # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition 1
 
-        N = 1000
-        msd = 1000
-        nsd = 1000
+        N = 200
+        msd = 1000 # p*nsd, p < 1 (percentage)
+        nsd = 5000
+
+        # TODO size
 
         minus1 = ConstantScalar(-1.0)
 
@@ -311,20 +315,20 @@ class Example08():
 
         # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition 2
 
-        N = 1000
-        msd = 1000
-        nsd = 1000
+        N = 200
+        m = 1000 # p*nsd, p < 1 (percentage)
+        n = 5000
 
         minus1 = ConstantScalar(-1.0)
 
         B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
-        H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (msd, msd), properties = [properties.SPD, properties.INPUT])
+        H = Matrix("H", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (m, m), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
-        Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+        Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
+        Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
+        dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK, properties.OUTPUT])
 
         self.eqns = Equations(
                         Equal(dX,
@@ -342,21 +346,21 @@ class Example09():
 
         # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition 3
 
-        N = 1000
-        msd = 1000
-        nsd = 1000
+        N = 200
+        m = 1000 # p*nsd, p < 1 (percentage)
+        n = 5000
 
         minus1 = ConstantScalar(-1.0)
 
         B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
-        H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (msd, msd), properties = [properties.SPD, properties.INPUT])
+        H = Matrix("H", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
+        R = Matrix("R", (m, m), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
-        Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        X = Matrix("X", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
-        dX = Matrix("dX", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+        Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
+        X = Matrix("X", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
+        Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
+        dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK, properties.OUTPUT])
 
         self.eqns = Equations(
                         Equal(dX,
@@ -375,7 +379,7 @@ class Example10():
 
         # image restoration 1
 
-        n = 1500
+        n = 5000
         m = 1000
 
         minus1 = ConstantScalar(-1.0)
@@ -448,7 +452,7 @@ class Example11():
 
         # image restoration 2
 
-        n = 1500
+        n = 5000
         m = 1000
 
         minus1 = ConstantScalar(-1.0)
@@ -668,8 +672,8 @@ class Example14():
         # randomized matrix inversion 3
 
         # q << n
-        n = 4000
-        q = 400
+        n = 5000
+        q = 500
 
         W = Matrix("W", (n, n))
         W.set_property(properties.SPD)
@@ -692,12 +696,12 @@ class Example14():
         LambdaOut = Matrix("LambdaOut", (n, n))
         LambdaOut.set_property(properties.OUTPUT)
 
-        OmegaIn = Matrix("OmegaIn", (n, n))
-        OmegaIn.set_property(properties.FULL_RANK)
-        OmegaIn.set_property(properties.INPUT)
+        ThetaIn = Matrix("ThetaIn", (n, n))
+        ThetaIn.set_property(properties.FULL_RANK)
+        ThetaIn.set_property(properties.INPUT)
 
-        OmegaOut = Matrix("OmegaOut", (n, n))
-        OmegaOut.set_property(properties.OUTPUT)
+        ThetaOut = Matrix("ThetaOut", (n, n))
+        ThetaOut.set_property(properties.OUTPUT)
 
         MkIn = Matrix("MkIn", (n, n))
         MkIn.set_property(properties.FULL_RANK)
@@ -720,16 +724,16 @@ class Example14():
 
         self.eqns = Equations(
                         Equal(LambdaOut, Times(S, Inverse(Times(Transpose(S), A, W, A, S)), Transpose(S))),
-                        Equal(OmegaOut, Times(LambdaIn, A, W)),
+                        Equal(ThetaOut, Times(LambdaIn, A, W)),
                         Equal(MkOut, Plus(Times(Xin, A), Times(minus1, I))),
                         Equal(Xout,
                             Plus(Xin,
-                                Times(minus1, MkIn, OmegaIn),
-                                Times(minus1, Transpose(Times(MkIn, OmegaIn))),
+                                Times(minus1, MkIn, ThetaIn),
+                                Times(minus1, Transpose(Times(MkIn, ThetaIn))),
                                 Times(
-                                    Transpose(OmegaIn),
+                                    Transpose(ThetaIn),
                                     Plus(Times(A, Xin, A), Times(minus1, A)),
-                                    OmegaIn
+                                    ThetaIn
                                     )
                                 )
                             )
@@ -889,8 +893,8 @@ class Example18():
 
         # tikhonov regularization 1
 
-        n = 1500
-        m = 1000
+        n = 3000
+        m = 50
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(m, m)
@@ -913,8 +917,8 @@ class Example19():
 
         # tikhonov regularization 2
 
-        n = 1500
-        m = 1000
+        n = 3000
+        m = 50
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(m, m)
@@ -937,8 +941,8 @@ class Example20():
 
         # tikhonov regularization 3
 
-        n = 1500
-        m = 1000
+        n = 3000
+        m = 50
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
         P = Matrix("P", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
@@ -962,8 +966,8 @@ class Example21():
 
         # tikhonov regularization 4
 
-        n = 1500
-        m = 1000
+        n = 3000
+        m = 50
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
         P = Matrix("P", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
@@ -992,6 +996,8 @@ class Example22():
 
         n = 1500
         m = 1000
+
+        # TODO
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
@@ -1077,7 +1083,6 @@ class Example25():
     def __init__(self):
 
         # Kalman filter
-
 
         n = 1000
         m = 1000
