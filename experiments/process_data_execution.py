@@ -123,12 +123,13 @@ if __name__ == '__main__':
     execution_time = read_results(args.experiment, number_of_experiments, [0, 1]) # [0, 3] for min 
     
     execution_time.to_csv("execution_time.csv", na_rep="NaN")
+    execution_time.dropna().to_csv("execution_time_clean.csv")
 
     performance_profiles_data = to_performance_profiles_data(execution_time.drop(columns=["algorithm0c"]))
     # performance_profiles_data.rename(columns={0:"y", "generated0":"linnea"}, inplace=True)
     performance_profiles_data.to_csv("performance_profile.csv", na_rep="NaN")
 
-    speedup_data = to_speedup_data(execution_time, "algorithm0c")
+    speedup_data = to_speedup_data(execution_time, "algorithm0e")
     speedup_data.to_csv("speedup.csv", na_rep="NaN")
 
     mean_speedup = to_mean_speedup(speedup_data)
@@ -136,7 +137,7 @@ if __name__ == '__main__':
 
     # print(mean_speedup)
 
-    speedup_over_linnea = compare_to_fastest(execution_time, "algorithm0c")
+    speedup_over_linnea = compare_to_fastest(execution_time, "algorithm0e")
     speedup_over_linnea.to_csv("speedup_over_linnea.csv", na_rep="NaN")
     # print(check_std_dev())
     

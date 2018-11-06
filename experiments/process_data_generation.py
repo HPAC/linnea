@@ -50,6 +50,7 @@ if __name__ == '__main__':
     nodes_count.columns = new_columns
     # nodes_count.index.name = None
     nodes_count.to_csv("generation_nodes_count.csv", na_rep="NaN")
+    nodes_count.dropna().to_csv("generation_nodes_count_clean.csv")
     # print(nodes_count)
 
     generation_time = results.drop(columns=["std", "min", "max", "nodes", "solution"])
@@ -57,6 +58,7 @@ if __name__ == '__main__':
     generation_time.columns = new_columns
     # generation_time.index.name = None
     generation_time.to_csv("generation_time.csv", na_rep="NaN")
+    generation_time.dropna().to_csv("generation_time_clean.csv")
     # print(generation_time)
 
     generation_time_renamed = generation_time.rename(mapper=lambda name: name + "_time", axis='columns')
@@ -66,3 +68,4 @@ if __name__ == '__main__':
     nodes_and_time = pd.concat([generation_time_renamed, nodes_count_renamed], axis=1)
     # print(nodes_and_time)
     nodes_and_time.to_csv("generation_all.csv", na_rep="NaN")
+    nodes_and_time.dropna().to_csv("generation_all_clean.csv")
