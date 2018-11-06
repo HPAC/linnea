@@ -450,7 +450,8 @@ def is_explicit_inversion(matrix_chain):
             first = next(iterator)
         except StopIteration:
             return False
-        return all(first.factorization_labels == rest.factorization_labels for rest in iterator)
+        # with "first.factorization_labels and" we make sure that first.factorization_labels is not the empty set
+        return first.factorization_labels and all(first.factorization_labels == rest.factorization_labels for rest in iterator)
     else:
         return False
 
