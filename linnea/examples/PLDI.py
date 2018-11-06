@@ -994,8 +994,8 @@ class Example22():
 
         # linear MMSE estimator 1
 
-        n = 1500
-        m = 1000
+        n = 2000
+        m = 1500
 
         # TODO
 
@@ -1024,8 +1024,8 @@ class Example23():
 
         # linear MMSE estimator 2
 
-        n = 1500
-        m = 1000
+        n = 2000
+        m = 1500
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
@@ -1053,8 +1053,8 @@ class Example24():
 
         # linear MMSE estimator 3
 
-        n = 1500
-        m = 1000
+        n = 2000
+        m = 1500
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         Kin = Matrix("Kin", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
@@ -1084,8 +1084,8 @@ class Example25():
 
         # Kalman filter
 
-        n = 1000
-        m = 1000
+        n = 400
+        m = 400
         minus1 = ConstantScalar(-1.0)
 
         Kk_O = Matrix("Kk_O", (n, m), properties = [properties.FULL_RANK, properties.OUTPUT])
