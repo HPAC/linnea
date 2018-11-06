@@ -23,7 +23,7 @@ def operand_size():
 
 def operand_sizes():
     rand = random.random()
-    if rand > 0.6:
+    if rand > 0.5:
         # square
         n = operand_size()
         sizes = (n, n)
@@ -76,10 +76,10 @@ def matrix_chain_sizes(first, last, length, nonsingular=False):
     sizes = [first]
     for i in range(length-1):
         rand = random.random()
-        if rand > 0.65: # 0.6 <= rand < 0.95:
+        if rand > 0.5: # 0.6 <= rand < 0.95:
             # square
             next_size = sizes[i]
-        elif rand > 0.55: # 0.95 <= rand:
+        elif rand > 0.4: # 0.95 <= rand:
             # vector
             next_size = 1
         else:
@@ -146,7 +146,7 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
                     if parent is ae.Plus:
                         weights = [2, 1]
                     else:
-                        weights = [1, 2]
+                        weights = [1, 3]
 
                     operator = random.choices(operators, weights)[0]
 
@@ -175,7 +175,7 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
             """
             if parent is ae.Times:
                 operators = [ae.Plus, ae.Inverse]
-                weights = [1, 2]
+                weights = [1, 4]
             elif parent is ae.Plus:
                 operators = [ae.Times, ae.Inverse]
                 weights = [4, 1]
@@ -188,7 +188,7 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
         else:
             # operators = [ae.Times, ae.Plus, ae.Transpose]
             operators = [ae.Times, ae.Plus]
-            weights = [2, 1]
+            weights = [3, 1]
 
 
         operator = random.choices(operators, weights)[0]
