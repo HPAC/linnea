@@ -515,8 +515,14 @@ class GraphNodeBase():
         current_node = self
         current_path = path
         while current_path.predecessor:
+            # if there are multiple edges between the current and next node, we select the cheapest one
+            optimal_successor_idx = None
+            cost = math.inf
+            for idx, (node, label) in enumerate(zip(current_path.predecessor.successors, current_path.predecessor.edge_labels)):
+                if node == current_node and label.cost < cost:
+                    optimal_successor_idx = idx
             idx = current_path.predecessor.successors.index(current_node)
-            _path.append(idx)
+            _path.append(optimal_successor_idx)
             current_node = current_path.predecessor
             current_path = current_node.k_shortest_paths[current_path.k_prime]
 
