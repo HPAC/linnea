@@ -500,8 +500,8 @@ WD1 = matchpy.Wildcard.dot("WD1")
 WD2 = matchpy.Wildcard.dot("WD2")
 WS1 = matchpy.Wildcard.star("WS1")
 WS2 = matchpy.Wildcard.star("WS2")
-PS1 = PropertyConstraint("WD1", set([properties.MATRIX]))
-PS2 = PropertyConstraint("WD2", set([properties.MATRIX]))
+PS1 = matchpy.CustomConstraint(lambda WD1: WD1.has_property(properties.MATRIX) or WD1.has_property(properties.VECTOR))
+PS2 = matchpy.CustomConstraint(lambda WD2: WD2.has_property(properties.MATRIX) or WD2.has_property(properties.VECTOR))
 notInv = matchpy.CustomConstraint(lambda WD2: not is_inverse(WD2))
 
 linsolveL = matchpy.ReplacementRule(
