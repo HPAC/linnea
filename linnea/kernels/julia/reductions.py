@@ -1344,7 +1344,7 @@ diaginv = KernelDescription(
 
 A = Matrix("A", (m, n))
 B = Matrix("B", (n, m))
-cf = lambda d: 0
+cf = lambda d: 1
 
 transpose = KernelDescription(
     ExpressionKV(
