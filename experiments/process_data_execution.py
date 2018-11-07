@@ -36,6 +36,7 @@ def to_performance_profiles_data(time_data):
 
 def to_speedup_data(time_data, reference):
     speedup_data = time_data.apply(lambda row: row/row[reference], axis=1)
+    speedup_data["mean"] = speedup_data.apply(lambda row: row.mean(), axis=1)
     return speedup_data
 
 
