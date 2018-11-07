@@ -338,8 +338,11 @@ class Memory():
                     self.lookup[operand.name] = location
                     if storage_format is StorageFormat.as_overwritten:
                         self.storage_format[operand.name] = self.storage_format[overwriting.name]
-                    elif storage_format is StorageFormat.symmetric_triangular_out and not self.storage_format[overwriting.name] < StorageFormat.symmetric_triangular_out:
-                        self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
+                    elif storage_format is StorageFormat.symmetric_triangular_out:
+                        if self.storage_format[overwriting.name] < StorageFormat.symmetric_triangular_out:
+                            self.storage_format[operand.name] = self.storage_format[overwriting.name]
+                        else:
+                            self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
                     else:
                         self.storage_format[operand.name] = storage_format
 
@@ -373,8 +376,11 @@ class Memory():
 
                     if storage_format is StorageFormat.as_overwritten:
                         self.storage_format[operand.name] = self.storage_format[overwriting.name]
-                    elif storage_format is StorageFormat.symmetric_triangular_out and not self.storage_format[overwriting.name] < StorageFormat.symmetric_triangular_out:
-                        self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
+                    elif storage_format is StorageFormat.symmetric_triangular_out:
+                        if self.storage_format[overwriting.name] < StorageFormat.symmetric_triangular_out:
+                            self.storage_format[operand.name] = self.storage_format[overwriting.name]
+                        else:
+                            self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
                     else:
                         self.storage_format[operand.name] = storage_format
 
