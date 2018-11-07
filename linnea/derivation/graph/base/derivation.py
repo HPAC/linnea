@@ -154,12 +154,12 @@ class DerivationGraphBase(base.GraphBase):
             if node.metric is None:
                 node.metric = node.equations.metric()
             try:
-                min = mins[node.metric[0]]
+                min, cost = mins[node.metric[0]]
             except KeyError:
-                mins[node.metric[0]] = node.metric[1]
+                mins[node.metric[0]] = (node.metric[1], node.accumulated_cost)
             else:
                 if min > node.metric[1]:
-                    mins[node.metric[0]] = node.metric[1]
+                    mins[node.metric[0]] = (node.metric[1], node.accumulated_cost)
 
         return mins
 
@@ -225,8 +225,8 @@ class DerivationGraphBase(base.GraphBase):
 
         pruned_nodes = []
         for node in self.active_nodes:
-            min = mins[node.metric[0]]
-            if node.metric[1] > (min + 4) and not node.successors:
+            min, cost = mins[node.metric[0]]
+            if node.metric[1] > (min + 3) and node.accumulated_cost > cost and not node.successors:
                 pruned_nodes.append(node)
 
         for node in pruned_nodes:
