@@ -260,6 +260,24 @@ class Memory():
                 input_operand, storage_format = input
                 if isinstance(input_operand, Constant):
 
+                    # This solves a problem related to the syrk kernel. Usually,
+                    # for constants we simply use the storage format that is
+                    # expected as input. If C in syrk is the identity matrix,
+                    # this causes a problem. The expected input storage format
+                    # is symmetric_triangular, which is not a real storage
+                    # format, but a supertype of symmetric_lower_triangular and
+                    # symmetric_upper_triangular. For syrk, this causes a
+                    # problem because the output storage format of C is chosen
+                    # based on the input format. In general, the problem is that
+                    # there are some "artificial" storage formats to get a nice
+                    # hierarchy of compatible formats. Those formats can not be
+                    # used in the generated code. To solve the general problem,
+                    # we need a list of those properties, and a replacement for
+                    # each. Then the question is when to replace between
+                    # matching and code gen.
+                    if isinstance(input_operand, IdentityMatrix) and storage_format is StorageFormat.symmetric_triangular:
+                        storage_format = StorageFormat.full
+
                     if _output:
                         # If the constant is passed as an argument that is
                         # overwritten, it has to be placed in a new memory
@@ -339,7 +357,7 @@ class Memory():
                     if storage_format is StorageFormat.as_overwritten:
                         self.storage_format[operand.name] = self.storage_format[overwriting.name]
                     elif storage_format is StorageFormat.symmetric_triangular_out:
-                        if self.storage_format[overwriting.name] < StorageFormat.symmetric_triangular_out:
+                        if self.storage_format[overwriting.name] is StorageFormat.symmetric_lower_triangular or self.storage_format[overwriting.name] is StorageFormat.symmetric_upper_triangular:
                             self.storage_format[operand.name] = self.storage_format[overwriting.name]
                         else:
                             self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
@@ -377,7 +395,7 @@ class Memory():
                     if storage_format is StorageFormat.as_overwritten:
                         self.storage_format[operand.name] = self.storage_format[overwriting.name]
                     elif storage_format is StorageFormat.symmetric_triangular_out:
-                        if self.storage_format[overwriting.name] < StorageFormat.symmetric_triangular_out:
+                        if self.storage_format[overwriting.name] is StorageFormat.symmetric_lower_triangular or self.storage_format[overwriting.name] is StorageFormat.symmetric_upper_triangular:
                             self.storage_format[operand.name] = self.storage_format[overwriting.name]
                         else:
                             self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
