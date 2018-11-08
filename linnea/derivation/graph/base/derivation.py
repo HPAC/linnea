@@ -226,7 +226,7 @@ class DerivationGraphBase(base.GraphBase):
         pruned_nodes = []
         for node in self.active_nodes:
             min, cost = mins[node.metric[0]]
-            if node.metric[1] > (min + 3) and node.accumulated_cost > cost and not node.successors:
+            if node.metric[1] > (min + 2) and node.accumulated_cost > cost and not node.successors:
                 pruned_nodes.append(node)
 
         for node in pruned_nodes:
