@@ -75,6 +75,11 @@ def generate(example, name, strategy):
     else:
         raise NotImplementedError()
 
+    linnea.config.clear_all()
+    if hasattr(example, "init"):
+        # calls initialization that have to be done before each repetition
+        example.init()
+
     print(example.eqns)
 
     graph = DerivationGraph(example.eqns)
