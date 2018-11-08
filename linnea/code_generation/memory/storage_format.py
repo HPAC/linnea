@@ -84,6 +84,9 @@ triangular # requirement only
 class MissingStorageFormatConversion(Exception):
     pass
 
+class IncompatibleStorageFormats(Exception):
+    pass
+
 def select_storage_format_conversion(source_format, target_format, conversion_dict):
     """Selects a suitable storage format converions.
 

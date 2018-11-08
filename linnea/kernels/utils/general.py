@@ -4,7 +4,7 @@ from ... import config
 
 from ...code_generation.utils import MatchedKernel
 from ...code_generation.memory import memory as memory_module
-
+from ...code_generation.memory import storage_format as sf
 
 import matchpy
 
@@ -231,10 +231,19 @@ class StorageFormatArgument(Argument):
         except KeyError:
             raise memory_module.OperandNotInMemory()
 
-        if self.storage_format <= storage_format:
-            replacement = self.values[0]
-        else:
+        # The problem here is the following: At the moment, this function will
+        # be called before storage format conversion will be generated. As a
+        # result, storage_format might have a value that does not make sense for
+        # symmetric matrices. To fix this, one could make this a
+        # "late argument". Right now, this "fix" works because
+        # symmetric_upper_triangular is (almost?) never used.
+        if storage_format is sf.StorageFormat.symmetric_upper_triangular:
+        # if not self.storage_format <= storage_format:
             replacement = self.values[1]
+        else: #elif self.storage_format <= storage_format:
+            replacement = self.values[0]
+        # else:
+        #     raise sf.IncompatibleStorageFormats()
 
         if config.c:
             return None, "".join(["\"", replacement, "\""])
