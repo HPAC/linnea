@@ -16,7 +16,13 @@ def read_results(number_of_experiments, dirs):
 
     return pd.concat(data)
 
+def time_accumulated(time_data):
+    time_mean = pd.DataFrame(time_data.mean(), columns=["mean"])
+    time_min = pd.DataFrame(time_data.min(), columns=["min"])
+    time_max = pd.DataFrame(time_data.max(), columns=["max"])
     
+    accumulated = pd.concat([time_mean, time_min, time_max], axis=1)
+    return accumulated
 
 if __name__ == '__main__':
 
@@ -60,6 +66,9 @@ if __name__ == '__main__':
     generation_time.to_csv("generation_time.csv", na_rep="NaN")
     generation_time.dropna().to_csv("generation_time_clean.csv")
     # print(generation_time)
+
+    mean_generation_time = time_accumulated(generation_time)
+    mean_generation_time.to_csv("generation_time_accumulated.csv")
 
     generation_time_renamed = generation_time.rename(mapper=lambda name: name + "_time", axis='columns')
     nodes_count_renamed = nodes_count.rename(mapper=lambda name: name + "_nodes", axis='columns')

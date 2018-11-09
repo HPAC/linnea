@@ -132,6 +132,7 @@ if __name__ == '__main__':
 
     speedup_data = to_speedup_data(execution_time, "algorithm0e")
     speedup_data.to_csv("speedup.csv", na_rep="NaN")
+    speedup_data.dropna().to_csv("speedup_clean.csv")
 
     mean_speedup = to_mean_speedup(speedup_data)
     mean_speedup.to_csv("mean_speedup.csv", na_rep="NaN")
