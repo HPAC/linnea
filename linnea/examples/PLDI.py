@@ -280,16 +280,16 @@ class Example07():
         # local assimilation for parallel ensemble Kalman filter based on modified Cholesky decomposition 1
 
         N = 200
-        msd = 1000 # p*nsd, p < 1 (percentage)
-        nsd = 5000
+        msd = 2000 # p*nsd, p < 1 (percentage)
+        nsd = 2000
 
-        # TODO size
+        # TODO there is a dimension mismatch here for msd != nsd
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
+        B = Matrix("B", (nsd, nsd), properties = [properties.SPD, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
-        H = Matrix("H", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
+        H = Matrix("H", (msd, nsd), properties = [properties.FULL_RANK, properties.INPUT])
         R = Matrix("R", (msd, msd), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
@@ -321,9 +321,9 @@ class Example08():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
+        B = Matrix("B", (n, n), properties = [properties.SPD, properties.INPUT])
         # B is a covariance matrix (symmetric positive semi-definite)
-        H = Matrix("H", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
+        H = Matrix("H", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
         R = Matrix("R", (m, m), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
@@ -352,9 +352,7 @@ class Example09():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (N, N), properties = [properties.SPD, properties.INPUT])
-        # B is a covariance matrix (symmetric positive semi-definite)
-        H = Matrix("H", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
+        H = Matrix("H", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
         R = Matrix("R", (m, m), properties = [properties.SPD, properties.INPUT])
         # R is a covariance matrix (symmetric positive semi-definite)
         Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
