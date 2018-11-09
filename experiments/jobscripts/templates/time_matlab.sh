@@ -9,7 +9,7 @@
 {exclusive}
 
 module load MISC
-module load matlab/2018a
+module load matlab/2018b
 
 cd ${{HOME}}/linnea/results
 mkdir -p {name}/execution/matlab

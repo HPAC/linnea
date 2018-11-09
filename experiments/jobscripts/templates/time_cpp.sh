@@ -8,6 +8,7 @@
 #BSUB -R {model}
 {exclusive}
 
+module switch intel intel/18.0
 module load gcc/7
 
 cd ${{HOME}}/linnea/results

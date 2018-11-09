@@ -15,6 +15,7 @@ python3 ${{HOME}}/linnea/linnea/experiments/experiments.py generate_code {name} 
 
 if {compile}; then
     module load cmake/3.10.1
+    module switch intel intel/18.0
     module load gcc/7
 
     cd ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Cpp
