@@ -330,6 +330,9 @@ class Example08():
         Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
         dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK, properties.OUTPUT])
 
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H)), {properties.SPD})
+        self.init()
+
         self.eqns = Equations(
                         Equal(dX,
                             Times(
@@ -359,6 +362,9 @@ class Example09():
         X = Matrix("X", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
         dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK, properties.OUTPUT])
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(R, Times(H, X, Transpose(Times(H, X)))), {properties.SPD})
+        self.init()
 
         self.eqns = Equations(
                         Equal(dX,
@@ -1032,6 +1038,9 @@ class Example23():
         x = Vector("x", (n, 1), properties = [properties.INPUT])
         xout = Vector("xout", (n, 1), properties = [properties.OUTPUT])
         minus1 = ConstantScalar(-1.0)
+
+        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), Inverse(Cz), A), Inverse(Cx)), {properties.SPD})
+        self.init()
 
         self.eqns = Equations(
                         Equal(xout,
