@@ -1022,7 +1022,10 @@ class Inverse(Operator):
     def to_cpp_expression(self, lib, recommended=False):
         template_str = None
         if self.operand.has_property(properties.SCALAR):
-            template_str = "1/({0})"
+            if lib is CppLibrary.Eigen and any(not subexpr.has_property(properties.SCALAR) for subexpr, _ in self.preorder_iter()):
+                template_str = "({0}).inverse()"
+            else:
+                template_str = "1.0/({0})"
         else:
             if lib is CppLibrary.Armadillo:
                 template_str = "({0}).i()"
