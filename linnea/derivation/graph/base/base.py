@@ -229,7 +229,7 @@ class GraphBase():
 
         terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
         if not terminal_nodes:
-            raise StopIteration()
+            return
         terminal_nodes.sort(key=operator.attrgetter("accumulated_cost"))
 
         """
@@ -266,7 +266,7 @@ class GraphBase():
             except StopIteration:
                 del gens[0]
                 if not gens:
-                    raise StopIteration()
+                    return
             else:
                 gens[0][0] = next_path
 
@@ -275,7 +275,7 @@ class GraphBase():
             if len(gens) > 1 and gens[0][0][1] > gens[1][0][1]:
                 gens.sort(key=lambda x: x[0][1])
 
-        raise StopIteration()
+        return
 
 
     def DS_merge_nodes(self):
@@ -494,7 +494,7 @@ class GraphNodeBase():
             try:
                 path = self.REA_next_path(k)
             except PathDoesNotExist:
-                raise StopIteration()
+                return
             else:
                 k += 1
                 yield self.retrieve_path(path)
