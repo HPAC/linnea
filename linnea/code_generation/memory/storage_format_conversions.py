@@ -17,7 +17,14 @@ out_of_place_conversions = [
         sf.StorageFormat.diagonal_vector,
         sf.StorageFormat.full,
         # utils.CodeTemplate("$output = diagm($input)\n")
-        utils.CodeTemplate("$output = zeros($type, $m, $n)\nfor i = 1:min($m, $n); $output[i, i] = $input[i]; end\n")
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            $output = zeros($type, $m, $n)
+            for i = 1:min($m, $n);
+                $output[i, i] = $input[i];
+            end;
+            """
+            ))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.symmetric_lower_triangular,
@@ -47,7 +54,7 @@ out_of_place_conversions = [
             $output = [1:length($input);]
             @inbounds for i in 1:length($input)
                 $output[i], $output[$input[i]] = $output[$input[i]], $output[i];
-            end
+            end;
             """
             ))
         ),
@@ -114,7 +121,15 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.svdfact_S,
         sf.StorageFormat.full,
-        utils.CodeTemplate("$output = zeros($type, $m, $n)\nd = $input.S\nfor i = 1:min($m, $n); $output[i, i] = d[i]; end\n")
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            $output = zeros($type, $m, $n)
+            d = $input.S
+            for i = 1:min($m, $n);
+                $output[i, i] = d[i];
+            end\n
+            """
+            ))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.svdfact_V,
@@ -137,22 +152,48 @@ in_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.upper_triangular_udiag,
         sf.StorageFormat.full,
-        utils.CodeTemplate("triu!($op, 1)\nfor i = 1:min(size($op)...); $op[i,i] = one($type); end\n")
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            triu!($op, 1)
+            for i = 1:min(size($op)...);
+                $op[i,i] = one($type);
+            end;
+            """
+            ))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.lower_triangular_udiag,
         sf.StorageFormat.full,
-        utils.CodeTemplate("tril!($op, -1)\nfor i = 1:min(size($op)...); $op[i,i] = one($type); end\n")
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            tril!($op, -1)
+            for i = 1:min(size($op)...);
+                $op[i,i] = one($type);
+            end;
+            """
+            ))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.symmetric_upper_triangular,
         sf.StorageFormat.full,
-        utils.CodeTemplate("for i = 1:$n-1; $op[i+1:$n,i] = $op[i,i+1:$n]; end;\n")
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            for i = 1:$n-1;
+                $op[i+1:$n,i] = $op[i,i+1:$n];
+            end;
+            """
+            ))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.symmetric_lower_triangular,
         sf.StorageFormat.full,
-        utils.CodeTemplate("for i = 1:$n-1; $op[i,i+1:$n] = $op[i+1:$n,i]; end;\n")
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            for i = 1:$n-1;
+                $op[i,i+1:$n] = $op[i+1:$n,i];
+            end;
+            """
+            ))
         ),
     ]
 

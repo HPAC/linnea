@@ -18,6 +18,8 @@ from ...algebra.expression import Times, Plus, \
                                   ConstantScalar, \
                                   Scalar, Vector, Matrix
 
+import textwrap
+
 n = 10
 m = 20
 k = 30
@@ -258,7 +260,12 @@ ger_alt = KernelDescription(
     "",
     # "@inbounds for i = 1:size($y, 1); @inbounds for j = 1:size($x, 1); $A[j, i] = $alpha*$x[j]*$y[i]; end; end;", # faster with current Julia version
     # # If A is not allocated, use "$A = zeros($type, ($M, $N))\n"
-    "fill!($A, 0.0)\nger!($alpha, $x, $y, $A)",
+    textwrap.dedent(
+        """\
+        fill!($A, 0.0)
+        ger!($alpha, $x, $y, $A)\
+        """
+        ),
     "",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
@@ -312,7 +319,12 @@ syr_alt = KernelDescription(
     cf, # cost function
     "",
     # If A is not allocated, use "$A = zeros($type, ($M, $N))\n"
-    "fill!($A, 0.0)\nsyr!('L', $alpha, $x, $A)",
+    textwrap.dedent(
+        """\
+        fill!($A, 0.0)
+        syr!('L', $alpha, $x, $A)\
+        """
+        ),
     "",
     [SizeArgument("M", x, "rows")], # Argument objects
     )
@@ -890,7 +902,13 @@ posvr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "$B = $B'\nLinearAlgebra.LAPACK.posv!('L', $A, $B)\n$B = $B'",
+    textwrap.dedent(
+        """\
+        $B = $B'
+        LinearAlgebra.LAPACK.posv!('L', $A, $B)
+        $B = $B'\
+        """
+        ),
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
@@ -962,7 +980,13 @@ sysvr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "$B = $B'\nLinearAlgebra.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
+    textwrap.dedent(
+        """\
+        $B = $B'
+        LinearAlgebra.LAPACK.sysv!('L', $A, $B)
+        $B = $B'\
+        """
+        ),
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
@@ -1240,7 +1264,12 @@ gesv_vec = KernelDescription(
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "($A, ipiv, info) = LinearAlgebra.LAPACK.getrf!($A)\nLinearAlgebra.LAPACK.getrs!($transA, $A, ipiv, $x)",
+    textwrap.dedent(
+        """\
+        ($A, ipiv, info) = LinearAlgebra.LAPACK.getrf!($A)
+        LinearAlgebra.LAPACK.getrs!($transA, $A, ipiv, $x)\
+        """
+        ),
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -1358,9 +1387,7 @@ transpose = KernelDescription(
     cf, # cost function
     "",
     # $B = Array{$type}($N, $M)
-    """\
-    transpose!($B, $A)\
-    """,
+    """transpose!($B, $A)""",
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", A, "columns")], # Argument objects
@@ -1482,7 +1509,16 @@ diagdiagmul = KernelDescription(
     OutputOperand(C, StorageFormat.diagonal_vector), # return value
     cf, # cost function
     "",
-    "for i = 1:min(length($A), length($B)); $C[i] = $A[i] * $B[i]; end; if max(length($A), length($B)) < length($C) $C[min(length($A), length($B))+1:end] = 0; end;",
+    textwrap.dedent(
+        """\
+        for i = 1:min(length($A), length($B));
+            $C[i] = $A[i] * $B[i];
+        end;
+        if max(length($A), length($B)) < length($C)
+            $C[min(length($A), length($B))+1:end] = 0;
+        end;\
+        """
+        ),
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("K", A, "columns"),
@@ -1518,7 +1554,13 @@ diagdiagsolve = KernelDescription(
     OutputOperand(B, StorageFormat.diagonal_vector), # return value
     cf, # cost function
     "",
-    "for i = 1:length($B); $B[i] /= $A[i]; end;",
+    textwrap.dedent(
+        """\
+        for i = 1:length($B);
+            $B[i] /= $A[i];
+        end;\
+        """
+        ),
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1552,7 +1594,16 @@ diagsmr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "x = 1 ./$A; for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= x[i]; end; end;", # faster with current Julia version
+    textwrap.dedent(
+        """\
+        x = 1 ./$A;
+        for i = 1:size($B, 2);
+            for j=1:size($B, 1);
+                $B[j,i] *= x[i];
+            end;
+        end;\
+        """
+        ), # faster with current Julia version
     # "for i = 1:size($B, 2); $B[:,i] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
@@ -1587,7 +1638,16 @@ diagsml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "x = 1 ./$A; for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= x[i]; end; end;", # faster with current Julia version
+    textwrap.dedent(
+        """\
+        x = 1 ./$A;
+        for j=1:size($B, 2);
+            for i = 1:size($B, 1);
+                $B[i,j] *= x[i];
+            end;
+        end;\
+        """
+        ), # faster with current Julia version
     # "for i = 1:size($B, 1); $B[i,:] /= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
@@ -1655,7 +1715,15 @@ diagmmr = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "for i = 1:size($B, 2); for j=1:size($B, 1); $B[j,i] *= $A[i]; end; end;", # faster with current Julia version
+    textwrap.dedent(
+        """\
+        for i = 1:size($B, 2);
+            for j=1:size($B, 1);
+                $B[j,i] *= $A[i];
+            end;
+        end;\
+        """
+        ), # faster with current Julia version
     # "for i = 1:size($B, 2); $B[:,i] *= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
@@ -1692,7 +1760,15 @@ diagmml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "for j=1:size($B, 2); for i = 1:size($B, 1); $B[i,j] *= $A[i]; end; end;", # faster with current Julia version
+    textwrap.dedent(
+        """\
+        for j=1:size($B, 2);
+            for i = 1:size($B, 1);
+                $B[i,j] *= $A[i];
+            end;
+        end;\
+        """
+        ), # faster with current Julia version
     # "for i = 1:size($B, 1); $B[i,:] *= $A[i]; end;",
     "",
     [SizeArgument("M", A, "rows"),
