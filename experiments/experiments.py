@@ -198,10 +198,10 @@ def main():
     if args.jobindex == 0:
         job_examples = []
         for idx, example in enumerate(examples, 1):
-            name = "{}{}".format(args.experiment, idx)
+            name = "{}{:03}".format(args.experiment, idx)
             job_examples.append(JobExample(example, name))
     else:
-        name = "{}{}".format(args.experiment, args.jobindex)
+        name = "{}{:03}".format(args.experiment, args.jobindex)
         job_examples = [JobExample(examples[args.jobindex-1], name)]
 
 
@@ -239,9 +239,9 @@ def main():
         col_index = pd.Index(["mean", "std", "min", "max", "nodes", "solution"])
 
         if args.jobindex == 0:
-            output_file = "linnea_generation.csv"
+            output_file = "generation.csv"
         else:
-            output_file = "linnea_generation{}.csv".format(args.jobindex)
+            output_file = "generation{:03}.csv".format(args.jobindex)
 
         data = []
         for example, name in job_examples:

@@ -17,7 +17,7 @@ def read_results_generation(experiment, number_of_experiments):
     data = []
     for dir in dirs:
         for jobindex in range(1, number_of_experiments+1):
-            file_name = "{}/linnea_generation{}.csv".format(dir, jobindex)
+            file_name = "{}/generation{:03}.csv".format(dir, jobindex)
             if os.path.isfile(file_name):
                 data.append(pd.read_csv(file_name, index_col=[0, 1, 2]))
             else:
@@ -38,7 +38,7 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
     """
 
     # TODO move this into the loop below
-    example_names = ["{}{}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
+    example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
 
     language_dfs = []
     for language in ["cpp", "julia", "matlab"]:
