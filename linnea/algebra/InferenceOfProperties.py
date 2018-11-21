@@ -86,6 +86,21 @@ def isUnitDiagonal(node):
         return isUnitDiagonal(node.operand)
     return False
 
+def isPositive(node):
+    if isinstance(node, ae.Symbol):
+        return infer_property_symbol(node, properties.POSITIVE, isPositive)
+    if isinstance(node, ae.Plus):
+        return all(isPositive(term) for term in node.operands)
+    if isinstance(node, ae.Times):
+        return all(isPositive(term) for term in node.operands)
+    if isinstance(node, ae.Transpose):
+        return isPositive(node.operand)
+    if isinstance(node, ae.Inverse):
+        return isPositive(node.operand)
+    if isinstance(node, ae.InverseTranspose):
+        return isPositive(node.operand)
+    return False
+
 def isSymmetric(node):
     if isinstance(node, ae.Symbol):
         if infer_property_symbol(node, properties.SYMMETRIC, isSymmetric):
@@ -99,6 +114,24 @@ def isSymmetric(node):
     else:
         # TODO As a shortcut, test if square, test bandwidth?
         return node.transpose_of(node)
+
+
+def isSPSD(node):
+    if isinstance(node, ae.Symbol):
+        return infer_property_symbol(node, properties.SPSD, isSPSD)
+    if isinstance(node, ae.Plus):
+        return all(isSPSD(term) for term in node.operands)
+    if isinstance(node, ae.Times):
+        scalars, non_scalars = node.split_operands()
+        # if scalars is empty, this would lead to a cycle
+        if scalars and non_scalars and isPositive(ae.Times(*scalars)) and isSPSD(ae.Times(*non_scalars)):
+            return True
+        return property_DNs.SPSD_DN.is_match(node)
+    if isinstance(node, ae.Transpose):
+        return isSPSD(node.operand)
+    if isinstance(node, ae.Inverse):
+        return isSPSD(node.operand)
+    return False
 
 
 def isSPD(node):
@@ -117,6 +150,10 @@ def isSPD(node):
     if isinstance(node, ae.Plus):
         return all(isSPD(term) for term in node.operands)
     if isinstance(node, ae.Times): # related to "iif they commute" ... ?
+        scalars, non_scalars = node.split_operands()
+        # if scalars is empty, this would lead to a cycle
+        if scalars and non_scalars and isPositive(ae.Times(*scalars)) and isSPD(ae.Times(*non_scalars)):
+            return True
         return property_DNs.SPD_DN.is_match(node)
     if isinstance(node, ae.Transpose):
         return isSPD(node.operand)
@@ -414,7 +451,9 @@ property_to_function = {
     properties.LOWER_TRIANGULAR: isLowerTriangular,
     properties.UPPER_TRIANGULAR: isUpperTriangular,
     properties.UNIT_DIAGONAL: isUnitDiagonal,
+    properties.POSITIVE: isPositive,
     properties.SYMMETRIC: isSymmetric,
+    properties.SPSD: isSPSD,
     properties.SPD: isSPD,
     properties.NON_SINGULAR: isNonSingular,
     properties.ORTHOGONAL: isOrthogonal,
@@ -431,7 +470,6 @@ property_to_function = {
     properties.ORTHOGONAL_COLUMNS: isOrthogonalColumns,
     properties.ORTHOGONAL_ROWS: isOrthogonalRows,
     properties.PERMUTATION: isPermutation,
-    # properties.EXISTS_LU: isExistsLU,
     properties.ADMITS_FACTORIZATION: admitsFactorization,
     properties.FACTOR: isFactor,
     properties.CONSTANT: isConstant,

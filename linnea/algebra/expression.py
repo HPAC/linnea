@@ -1228,6 +1228,9 @@ class IdentityMatrix(ConstantMatrix):
         super().__init__("I", (rows, columns))
         self.set_property(properties.IDENTITY)
         self.set_property(properties.DIAGONAL)
+        if rows == columns:
+            self.set_property(properties.SPD)
+            self.set_property(properties.SYMMETRIC)
 
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
@@ -1278,6 +1281,8 @@ class ConstantScalar(Scalar, Constant):
         super().__init__(str(value))
         self.value = value
         self.set_property(properties.CONSTANT)
+        if value > 0:
+            self.set_property(properties.POSITIVE)
 
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)

@@ -4,43 +4,6 @@ from .. import utils
 
 @utils.PartiallyOrderedEnum
 class Property(enum.Enum):
-    # Input = enum.auto()
-    # Output = enum.auto()
-    # Auxiliary = enum.auto()
-    # #
-    # Scalar = enum.auto()
-    # Vector = enum.auto()
-    # Matrix = enum.auto()
-    # #
-    # Square = enum.auto()
-    # RowPanel = enum.auto()
-    # ColumnPanel = enum.auto()
-    # #
-    # Zero = enum.auto()
-    # Identity = enum.auto()
-    # Diagonal = enum.auto()
-    # Triangular = enum.auto()
-    # LowerTriangular = enum.auto()
-    # UpperTriangular = enum.auto()
-    # UnitDiagonal = enum.auto()
-    # #
-    # Symmetric = enum.auto()
-    # SPD = enum.auto()
-    # #
-    # NonSingular = enum.auto()
-    # Orthogonal = enum.auto()
-    # FullRank = enum.auto()
-    # #
-    # Unitary = enum.auto()
-    # Normal = enum.auto()
-    # Hermitian = enum.auto()
-    # #
-    # OrthogonalColumns = enum.auto() # for QR
-    # #
-    # Permutation = enum.auto()
-    # #
-    # AdmitsFactorization = enum.auto()
-
     INPUT = "Input"
     OUTPUT = "Output"
     AUXILIARY = "Auxiliary"
@@ -62,7 +25,10 @@ class Property(enum.Enum):
     UPPER_TRIANGULAR = "UpperTriangular"
     UNIT_DIAGONAL = "UnitDiagonal"
     #
+    POSITIVE = "Positive" # only for scalars
+    #
     SYMMETRIC = "Symmetric"
+    SPSD = "SPSD"
     SPD = "SPD"
     #
     NON_SINGULAR = "Non-singular"
@@ -86,17 +52,15 @@ class Property(enum.Enum):
         (ZERO, CONSTANT),
         (IDENTITY, CONSTANT),
         (IDENTITY, DIAGONAL),
-        # (IDENTITY, SYMMETRIC),
-        (IDENTITY, FULL_RANK),
-        # (IDENTITY, NON_SINGULAR),
+        (IDENTITY, FULL_RANK), # TODO check this
         (DIAGONAL, LOWER_TRIANGULAR),
         (DIAGONAL, UPPER_TRIANGULAR),
         (LOWER_TRIANGULAR, TRIANGULAR),
         (UPPER_TRIANGULAR, TRIANGULAR),
-        (SPD, SYMMETRIC),
+        (SPD, SPSD),
+        (SPSD, SYMMETRIC),
         (SYMMETRIC, SQUARE),
         (SPD, NON_SINGULAR),
-        # (SPD, FULL_RANK),
         (PERMUTATION, ORTHOGONAL),
         (ORTHOGONAL, SQUARE),
         (ORTHOGONAL, ORTHOGONAL_ROWS), # this can be used to simplify the simplify() function
@@ -104,8 +68,6 @@ class Property(enum.Enum):
         (ORTHOGONAL_ROWS, FULL_RANK),
         (ORTHOGONAL_COLUMNS, FULL_RANK),
         (ORTHOGONAL, NON_SINGULAR),
-        # (ORTHOGONAL_ROWS, NON_SINGULAR),
-        # (ORTHOGONAL_COLUMNS, NON_SINGULAR),
         (NON_SINGULAR, FULL_RANK)
     }
 
@@ -128,47 +90,6 @@ implications = dict()
 for p1, p2 in Property.__transitive_closure__:
     implications.setdefault(Property(p1), set()).add(Property(p2))
 
-# print(implications)
-
-# implications = {
-#     INPUT : [],
-#     OUTPUT : [],
-#     AUXILIARY : [],
-#     #
-#     SCALAR : [],
-#     VECTOR : [],
-#     MATRIX : [],
-#     #
-#     SQUARE       : [],
-#     ROW_PANEL    : [],
-#     COLUMN_PANEL : [],
-#     #
-#     ZERO : [],
-#     IDENTITY : [SQUARE, NON_SINGULAR, FULL_RANK, DIAGONAL],
-#     DIAGONAL : [TRIANGULAR, LOWER_TRIANGULAR, UPPER_TRIANGULAR],
-#     TRIANGULAR : [],
-#     LOWER_TRIANGULAR : [TRIANGULAR],
-#     UPPER_TRIANGULAR : [TRIANGULAR],
-#     UNIT_DIAGONAL : [], # TODO missing
-#     #
-#     SYMMETRIC : [SQUARE],
-#     SPD : [SQUARE, SYMMETRIC, NON_SINGULAR, FULL_RANK],
-#     #
-#     NON_SINGULAR : [FULL_RANK],
-#     ORTHOGONAL   : [SQUARE, NON_SINGULAR, FULL_RANK],
-#     FULL_RANK    : [], # TODO missing
-#     # EXISTS_LU    : [], # TODO missing
-#     #
-#     UNITARY      : [SQUARE, NORMAL, NON_SINGULAR, FULL_RANK],
-#     NORMAL       : [SQUARE],
-#     HERMITIAN    : [SQUARE, NORMAL],
-#     #
-#     ORTHOGONAL_COLUMNS : [], # TODO missing
-#     #
-#     PERMUTATION : [SQUARE, NON_SINGULAR, ORTHOGONAL, FULL_RANK],
-# }
-
-# # TODO this looks way too simple
 
 # mutually_exclusive = [
 #     set((Property.INPUT, Property.OUTPUT, Property.AUXILIARY)),
@@ -199,7 +120,9 @@ negative_implications = {
     Property.UPPER_TRIANGULAR : [],
     Property.UNIT_DIAGONAL : [], # TODO missing
     #
+    Property.POSITIVE : [],
     Property.SYMMETRIC : [Property.ROW_PANEL, Property.COLUMN_PANEL],
+    Property.SPSD : [Property.ROW_PANEL, Property.COLUMN_PANEL],
     Property.SPD : [Property.ROW_PANEL, Property.COLUMN_PANEL],
     #
     Property.NON_SINGULAR : [Property.ROW_PANEL, Property.COLUMN_PANEL],

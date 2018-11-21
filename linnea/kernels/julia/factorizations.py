@@ -35,7 +35,7 @@ cf = lambda d: (d["N"]**3)/3
 
 cholesky = FactorizationKernel(
     matchpy.Pattern(_A,
-                    matchpy.CustomConstraint(lambda _A: _A.has_property(properties.SPD))
+                    matchpy.CustomConstraint(lambda _A: _A.has_property(properties.SPSD))
                     ),
     [InputOperand(_A, StorageFormat.symmetric_triangular)],
     Times(_L, Transpose(_L)),
