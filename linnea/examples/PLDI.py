@@ -56,8 +56,6 @@ class Example02():
         y = Vector("y", (n, 1))
         y.set_property(properties.INPUT)
 
-        # clak.special_properties.add_expression(Times(Transpose(X), Inverse(S), X ), set([properties.SPD))
-
         self.eqns = Equations(Equal(z, Times(Inverse(Times(Transpose(X), Inverse(S), X ) ), Transpose(X), Inverse(S), y)))
 
 
@@ -287,11 +285,9 @@ class Example07():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (nsd, nsd), properties = [properties.SPD, properties.INPUT])
-        # B is a covariance matrix (symmetric positive semi-definite)
+        B = Matrix("B", (nsd, nsd), properties = [properties.SPSD, properties.INPUT]) # covariance matrix
         H = Matrix("H", (msd, nsd), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (msd, msd), properties = [properties.SPD, properties.INPUT])
-        # R is a covariance matrix (symmetric positive semi-definite)
+        R = Matrix("R", (msd, msd), properties = [properties.SPSD, properties.INPUT]) # covariance matrix
         Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xa = Matrix("Xa", (nsd, N), properties = [properties.FULL_RANK, properties.OUTPUT])
@@ -321,17 +317,12 @@ class Example08():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (n, n), properties = [properties.SPD, properties.INPUT])
-        # B is a covariance matrix (symmetric positive semi-definite)
+        B = Matrix("B", (n, n), properties = [properties.SPSD, properties.INPUT]) # covariance matrix
         H = Matrix("H", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (m, m), properties = [properties.SPD, properties.INPUT])
-        # R is a covariance matrix (symmetric positive semi-definite)
+        R = Matrix("R", (m, m), properties = [properties.SPSD, properties.INPUT]) # covariance matrix
         Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
         dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK, properties.OUTPUT])
-
-        self.init = lambda: derivation.special_properties.add_expression(Plus(Inverse(B), Times(Transpose(H), Inverse(R), H)), {properties.SPD})
-        self.init()
 
         self.eqns = Equations(
                         Equal(dX,
@@ -356,15 +347,11 @@ class Example09():
         minus1 = ConstantScalar(-1.0)
 
         H = Matrix("H", (m, n), properties = [properties.FULL_RANK, properties.INPUT])
-        R = Matrix("R", (m, m), properties = [properties.SPD, properties.INPUT])
-        # R is a covariance matrix (symmetric positive semi-definite)
+        R = Matrix("R", (m, m), properties = [properties.SPSD, properties.INPUT]) # covariance matrix
         Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK, properties.INPUT])
         X = Matrix("X", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
         Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK, properties.INPUT])
         dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK, properties.OUTPUT])
-
-        self.init = lambda: derivation.special_properties.add_expression(Plus(R, Times(H, X, Transpose(Times(H, X)))), {properties.SPD})
-        self.init()
 
         self.eqns = Equations(
                         Equal(dX,
@@ -387,8 +374,10 @@ class Example10():
         m = 1000
 
         minus1 = ConstantScalar(-1.0)
-        lambda_ = Scalar("lambda") # positive
-        sigma_ = Scalar("sigma_sq") # positive
+        lambda_ = Scalar("lambda")
+        lambda_.set_property(properties.POSITIVE)
+        sigma_ = Scalar("sigma_sq")
+        sigma_.set_property(properties.POSITIVE)
 
         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         I = IdentityMatrix(n, n)
@@ -398,19 +387,6 @@ class Example10():
         y = Vector("y", (m, 1), properties = [properties.INPUT])
         x = Vector("x", (n, 1), properties = [properties.OUTPUT])
 
-
-        self.init = lambda: derivation.special_properties.add_expression(Plus(
-                                        Times(
-                                            Transpose(H),
-                                            H
-                                        ),
-                                        Times(
-                                            lambda_,
-                                            sigma_,
-                                            I
-                                        )
-                                    ), {properties.SPD})
-        self.init()
 
         self.eqns = Equations(
                             Equal(
@@ -460,8 +436,10 @@ class Example11():
         m = 1000
 
         minus1 = ConstantScalar(-1.0)
-        lambda_ = Scalar("lambda") # positive
-        sigma_ = Scalar("sigma_sq") # positive
+        lambda_ = Scalar("lambda")
+        lambda_.set_property(properties.POSITIVE)
+        sigma_ = Scalar("sigma_sq")
+        sigma_.set_property(properties.POSITIVE)
 
         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
@@ -508,61 +486,6 @@ class Example11():
                             )
                         )
                     )
-
-
-# class Example12():
-#     def __init__(self):
-
-#         # image restoration 3
-
-#         n = 1500
-#         m = 1000
-
-#         minus1 = ConstantScalar(-1.0)
-#         lambda_ = Scalar("lambda") # positive
-#         sigma_ = Scalar("sigma_sq") # positive
-
-#         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-#         H_dag_I = Matrix("H_dag_I", (n, m), properties = [properties.FULL_RANK, properties.INPUT])
-#         H_dag_O = Matrix("H_dag_O", (n, m), properties = [properties.OUTPUT])
-#         I = IdentityMatrix(n, n)
-
-#         y_k = Vector("y_k", (n, 1), properties = [properties.OUTPUT])
-#         y = Vector("y", (m, 1), properties = [properties.INPUT])
-#         x = Vector("x", (n, 1), properties = [properties.INPUT])
-
-#         h_dag = Times(
-#                     Transpose(H),
-#                     Inverse(
-#                         Times(
-#                             H,
-#                             Transpose(H)
-#                         )
-#                     )
-#                 )
-
-#         self.eqns = Equations(
-#                         Equal(
-#                             y_k,
-#                             Plus(
-#                                 Times(
-#                                     h_dag,
-#                                     y
-#                                 ),
-#                                 Times(
-#                                     Plus(
-#                                         I,
-#                                         Times(
-#                                             minus1,
-#                                             h_dag,
-#                                             H
-#                                         )
-#                                     ),
-#                                     x
-#                                 )
-#                             )
-#                         )
-#                     )
 
 
 class Example12():
@@ -870,6 +793,7 @@ class Example17():
         In = IdentityMatrix(n, n)
         Il = IdentityMatrix(l, l)
         lambda_ = Scalar("lambda")
+        lambda_.set_property(properties.POSITIVE)
         minus1 = ConstantScalar(-1.0)
 
         self.eqns = Equations(
@@ -901,13 +825,9 @@ class Example18():
         m = 50
 
         A = Matrix("A", (n, m), properties = [properties.INPUT, properties.FULL_RANK])
-        I = IdentityMatrix(m, m)
         Gamma = Matrix("Gamma", (m , m), properties = [properties.INPUT, properties.FULL_RANK])
         b = Vector("b", (n, 1), properties = [properties.INPUT])
         x = Vector("x", (m, 1), properties = [properties.OUTPUT])
-
-        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(Transpose(Gamma), Gamma)), {properties.SPD})
-        self.init()
 
         self.eqns = Equations(
                             Equal(x,
@@ -929,9 +849,7 @@ class Example19():
         b = Vector("b", (n, 1), properties = [properties.INPUT])
         x = Vector("x", (m, 1), properties = [properties.OUTPUT])
         alpha = Scalar("alpha_sq")
-
-        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), A), Times(alpha, I)), {properties.SPD})
-        self.init()
+        alpha.set_property(properties.POSITIVE)
 
         self.eqns = Equations(
                             Equal(x,
@@ -1001,8 +919,6 @@ class Example22():
         n = 2000
         m = 1500
 
-        # TODO
-
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
         Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
         Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
@@ -1032,15 +948,12 @@ class Example23():
         m = 1500
 
         A = Matrix("A", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.SPD]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
+        Cx = Matrix("Cx", (n, n), properties = [properties.INPUT, properties.SPSD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [properties.INPUT, properties.SPSD]) # covariance matrix
         y = Vector("y", (m, 1), properties = [properties.INPUT])
         x = Vector("x", (n, 1), properties = [properties.INPUT])
         xout = Vector("xout", (n, 1), properties = [properties.OUTPUT])
         minus1 = ConstantScalar(-1.0)
-
-        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(Transpose(A), Inverse(Cz), A), Inverse(Cx)), {properties.SPD})
-        self.init()
 
         self.eqns = Equations(
                         Equal(xout,
@@ -1100,15 +1013,12 @@ class Example25():
         P_b = Matrix("P_b", (n, n), properties = [properties.INPUT, properties.SPD])
         P_a = Matrix("P_a", (n, n), properties = [properties.OUTPUT])
         H = Matrix("H", (m, n), properties = [properties.INPUT, properties.FULL_RANK])
-        R = Matrix("R", (m, m), properties = [properties.INPUT, properties.SPD]) # covariance matrix
+        R = Matrix("R", (m, m), properties = [properties.INPUT, properties.SPSD]) # covariance matrix
         I = IdentityMatrix(n, n)
 
         x_a = Vector("x_a", (n, 1), properties = [properties.OUTPUT])
         x_b = Vector("x_b", (n, 1), properties = [properties.INPUT])
         zk = Vector("zk", (m, 1), properties = [properties.INPUT])
-
-        self.init = lambda: derivation.special_properties.add_expression(Plus(Times(H, P_b, Transpose(H)), R), {properties.SPD})
-        self.init()
 
         self.eqns = Equations(
                             Equal(
