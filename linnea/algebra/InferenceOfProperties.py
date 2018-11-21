@@ -122,11 +122,7 @@ def isSPSD(node):
     if isinstance(node, ae.Plus):
         return all(isSPSD(term) for term in node.operands)
     if isinstance(node, ae.Times):
-        scalars, non_scalars = node.split_operands()
-        # if scalars is empty, this would lead to a cycle
-        if scalars and non_scalars and isPositive(ae.Times(*scalars)) and isSPSD(ae.Times(*non_scalars)):
-            return True
-        return property_DNs.SPSD_DN.is_match(node)
+        return isSPSDTimes(node)
     if isinstance(node, ae.Transpose):
         return isSPSD(node.operand)
     if isinstance(node, ae.Inverse):
@@ -134,32 +130,55 @@ def isSPSD(node):
     return False
 
 
+def isSPSDTimes(expr):
+    scalars, non_scalars = expr.split_operands()
+    if scalars and not isPositive(ae.Times(*scalars)):
+        return False
+    length = len(non_scalars)
+    if length == 1:
+        return isSPSD(non_scalars[0])
+    elif length % 2 == 0:
+        left = ae.Times(*non_scalars[:length//2])
+        right = ae.Times(*non_scalars[length//2:])
+        return left.transpose_of(right)
+    else:
+        left = ae.Times(*non_scalars[:length//2])
+        right = ae.Times(*non_scalars[length//2+1:])
+        middle = non_scalars[length//2]
+        return isSPSD(middle) and left.transpose_of(right)
+
+
 def isSPD(node):
-    """
-    TODO missing
-    S + alpha I: If S is SPD and alpha is positive, the expression is SPD.
-    What is missing: alpha I is currently not SPD. I should be SPD, for alpha,
-    we need the property positive. A product is positive if all operands
-    are positive, I is positive.
-    Alterantively: In a sum, there is at least one SPD matrix and all the others
-    are positive diagonal matrices. But positive and diagonal implies SPD.
-    """
-    # print(node)
     if isinstance(node, ae.Symbol):
         return infer_property_symbol(node, properties.SPD, isSPD)
     if isinstance(node, ae.Plus):
         return all(isSPD(term) for term in node.operands)
     if isinstance(node, ae.Times): # related to "iif they commute" ... ?
-        scalars, non_scalars = node.split_operands()
-        # if scalars is empty, this would lead to a cycle
-        if scalars and non_scalars and isPositive(ae.Times(*scalars)) and isSPD(ae.Times(*non_scalars)):
-            return True
-        return property_DNs.SPD_DN.is_match(node)
+        return isSPDTimes(node)
     if isinstance(node, ae.Transpose):
         return isSPD(node.operand)
     if isinstance(node, ae.Inverse):
         return isSPD(node.operand)
     return False
+
+
+def isSPDTimes(expr):
+    scalars, non_scalars = expr.split_operands()
+    if scalars and not isPositive(ae.Times(*scalars)):
+        return False
+    length = len(non_scalars)
+    if length == 1:
+        return isSPD(non_scalars[0])
+    elif length % 2 == 0:
+        left = ae.Times(*non_scalars[:length//2])
+        right = ae.Times(*non_scalars[length//2:])
+        return left.columns >= left.rows and isFullRank(left) and left.transpose_of(right)
+    else:
+        left = ae.Times(*non_scalars[:length//2])
+        right = ae.Times(*non_scalars[length//2+1:])
+        middle = non_scalars[length//2]
+        return left.columns >= left.rows and isFullRank(left) and isSPD(middle) and left.transpose_of(right)
+
 
 def isNonSingular(node):
     if isinstance(node, ae.Symbol):
