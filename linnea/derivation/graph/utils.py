@@ -490,12 +490,9 @@ def is_simple_summand(expr):
 def _is_simple_summand(expr):
     if isinstance(expr, Symbol):
         return True
-    elif isinstance(expr, Transpose) and isinstance(expr.operand, Symbol):
-        return True
-    elif isinstance(expr, ConjugateTranspose) and isinstance(expr.operand, Symbol):
-        return True
     else:
-        return False
+        # is_transpose cannot be used here because it includes inverse
+        return isinstance(expr, (Transpose, ConjugateTranspose)) and isinstance(expr.operand, Symbol)
 
 def is_simple_times(expr):
     """Test if expr is sufficiently simple for matrix chain rule."""
@@ -505,13 +502,10 @@ def _is_simple_times(expr):
     # TODO what is missing?
     if isinstance(expr, Symbol):
         return True
-    elif isinstance(expr, Transpose) and isinstance(expr.operand, Symbol):
+    # order is important here because is_transpose includes invers
+    elif is_inverse(expr) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION):
         return True
-    elif isinstance(expr, ConjugateTranspose) and isinstance(expr.operand, Symbol):
-        return True
-    elif isinstance(expr, Inverse) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION):
-        return True
-    elif isinstance(expr, InverseTranspose) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION):
+    elif is_transpose(expr) and isinstance(expr.operand, Symbol):
         return True
     else:
         return False
