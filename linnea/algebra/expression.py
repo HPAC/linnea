@@ -709,6 +709,14 @@ class LinSolveL(Operator):
         return (self.operands[0].size[1], self.operands[1].size[1])
 
     @property
+    def rows(self):
+        return self.operands[0].size[1]
+
+    @property
+    def columns(self):
+        return self.operands[1].size[1]
+
+    @property
     def bandwidth(self):
         # It's ok for this to be slow, it's only used to generate code for experiments.
         op1, op2 = self.operands
@@ -767,6 +775,14 @@ class LinSolveR(Operator):
     @property
     def size(self):
         return (self.operands[0].size[0], self.operands[1].size[0])
+
+    @property
+    def rows(self):
+        return self.operands[0].size[0]
+
+    @property
+    def columns(self):
+        return self.operands[1].size[0]
 
     @property
     def bandwidth(self):
