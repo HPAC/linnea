@@ -1,7 +1,6 @@
 from ...algebra.expression import Operator, Symbol
 from ...algebra.transformations import simplify
 from ...algebra.representations import to_SOP
-from ...algebra.consistency import check_consistency
 from ...algebra.validity import check_validity
 from ...algebra.properties import Property as properties
 
@@ -13,7 +12,7 @@ from .utils import generate_variants, \
                    DS_step, \
                    is_blocked
 
-from .. import special_properties
+from .. import special_properties # TODO why is this necessary here?
 
 import operator
 import matchpy
@@ -50,22 +49,15 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
         check_validity(self.root.equations)
         self.root.equations = self.root.equations.to_normalform()
-        for eqn_idx, equation in enumerate(self.root.equations):
-            for node, pos in equation.rhs.preorder_iter():
-                # I think it's not necessary to store properties both for
-                # expr and Inverse(expr) if expr is SPD. Think about that. 
-                if not (isinstance(node, Operator) and node.arity is matchpy.Arity.unary):
-                    if node.has_property(properties.SPD):
-                        special_properties.add_expression(node, [properties.SPD])
 
-            # TODO check_consistency for Equations?
-            check_consistency(equation)
+        self.init_temporaries(self.root.equations)
 
         self.root.metric = self.root.equations.metric()
 
         # for testing and debugging
         trace = []
 
+        terminal_nodes = []
         new_nodes_per_iteration = 0
 
         for i in range(iteration_limit):

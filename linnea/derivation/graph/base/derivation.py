@@ -11,6 +11,7 @@ from ....algebra.transformations import simplify
 from ....algebra.representations import to_SOP
 from ....algebra.properties import Property as properties
 from ....algebra.equations import Equations
+from ....algebra.consistency import check_consistency
 from ....utils import powerset
 
 import matchpy
@@ -19,6 +20,7 @@ import copy
 import operator
 import os.path
 
+from ... import special_properties
 from ... import tricks
 from ... import CSEs
 from ... import matrix_chain_solver as mcs
@@ -478,14 +480,36 @@ class DerivationGraphBase(base.GraphBase):
                         equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
                 
                 equations_copy = Equations(*equations_list)
-                equations_copy = equations_copy.to_normalform()
-                equations_copy.set_equivalent(equations)               
+                equations_copy = equations_copy.simplify()
+                equations_copy.set_equivalent(equations)
+                equations_copy = equations_copy.to_SOP()
 
                 transformed_expressions.append((equations_copy, matched_kernels))
 
 
         return transformed_expressions, found_symbol_occurrence
 
+
+    def init_temporaries(self, equations):
+
+        seen_before = set()
+        operands_to_factor = find_operands_to_factor(equations)
+        for equations_var in generate_variants(equations):
+            for equation in equations_var:
+                for inv_expr, pos in find_explicit_symbol_inverse(equation.rhs):
+                    if inv_expr not in seen_before:
+                        special_properties.add_expression(inv_expr, [])
+                        seen_before.add(inv_expr)
+                for expr, pos in equation.rhs.preorder_iter():
+                    # if isinstance(expr, Times) and any(is_inverse(operand) and (not isinstance(operand.operand, Symbol) or operand.operand in operands_to_factor) for operand in expr.operands):
+                    if (isinstance(expr, Times) and any(is_inverse(operand) and operand.operand in operands_to_factor for operand in expr.operands)) or (is_inverse(expr) and not isinstance(expr.operand, Symbol)):
+                        # TODO is it dangerous to add inv(expr) here? It becomes explicit inversion, even if it originally wasn't.
+                        if expr not in seen_before:
+                            special_properties.add_expression(expr, [])
+                            seen_before.add(expr)
+
+            # TODO check_consistency for Equations?
+            check_consistency(equation)
 
 class DerivationGraphNode(base.GraphNodeBase):
 

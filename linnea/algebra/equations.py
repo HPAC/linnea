@@ -64,6 +64,12 @@ class Equations():
             equations.append(equation)
         return Equations(*equations)
 
+    def simplify(self):
+        return Equations(*[at.simplify(equation) for equation in self.equations])
+
+    def to_SOP(self):
+        return Equations(*[ar.to_SOP(equation) for equation in self.equations])
+
     def to_normalform(self):
         return Equations(*[ar.to_SOP(at.simplify(ar.to_SOP(equation))) for equation in self.equations])
 
