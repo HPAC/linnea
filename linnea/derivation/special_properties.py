@@ -31,9 +31,7 @@ def add_expression(expr, _properties):
     graph.derivation()
 
     for node in graph.nodes:
-        # TODO equations[0] doesn't make any sense. Because of tricks, new
-        # equations can be added.
-        expr = node.equations[0].rhs
+        expr = node.equations[-1].rhs
         tmp = temporaries.create_tmp(expr, True, _properties=_properties)
         # generate tmp here
     # print(temporaries._table_of_temporaries)
