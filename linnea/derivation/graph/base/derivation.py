@@ -482,7 +482,7 @@ class DerivationGraphBase(base.GraphBase):
                 equations_copy = Equations(*equations_list)
                 equations_copy = equations_copy.simplify()
                 equations_copy.set_equivalent(equations)
-                equations_copy = equations_copy.to_SOP()
+                equations_copy = equations_copy.to_SOP().simplify()
 
                 transformed_expressions.append((equations_copy, matched_kernels))
 
