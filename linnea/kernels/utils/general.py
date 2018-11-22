@@ -382,7 +382,7 @@ class PropertyTuple(tuple):
         return "PT(" + self._content_str() + ")"
 
     def __repr__(self):
-        return "PropertyTuple{0}".format(repr(self))
+        return "PropertyTuple({0})".format(self._content_str())
  
     def __lt__(self, other):
         """Extension of le_property_sets to tuples of property sets.
