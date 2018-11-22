@@ -14,11 +14,12 @@ cd ${{HOME}}/linnea/results/
 mkdir -p {name}/execution/julia
 cd {name}/execution/julia
 
-if [ -f ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Julia/runner.jl ]; then
-    # echo "File found!: ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Julia/runner.jl"
-    {julia_path} ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Julia/runner.jl
+runner=$(printf "${{HOME}}/linnea/output/{name}%03d/Julia/runner.jl" $LSB_JOBINDEX)
+
+if [ -f $runner ]; then
+    {julia_path} $runner
 else
-    echo "File not found: ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Julia/runner.jl"
+    echo "File not found: $runner"
 fi
 
 exit

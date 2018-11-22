@@ -11,14 +11,16 @@
 module load python/3.6.0
 
 source ${{HOME}}/linnea/linnea_venv/bin/activate
-python3 ${{HOME}}/linnea/linnea/experiments/experiments.py generate_code {name} -j=${{LSB_JOBINDEX}} -{strategy}
+python3 ${{HOME}}/linnea/linnea/experiments/experiments.py generate_code {name} -j=$LSB_JOBINDEX -{strategy}
 
 if {compile}; then
     module load cmake/3.10.1
     module switch intel intel/18.0
     module load gcc/7
 
-    cd ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Cpp
+    expname=$(printf "{name}%03d" $LSB_JOBINDEX)
+
+    cd ${{HOME}}/linnea/output/${{expname}}/Cpp
     mkdir -p build
     cd build
     rm -rf *

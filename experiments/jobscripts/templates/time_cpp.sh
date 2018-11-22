@@ -15,10 +15,13 @@ cd ${{HOME}}/linnea/results
 mkdir -p {name}/execution/cpp
 cd {name}/execution/cpp
 
-if [ -f ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Cpp/build/{name}${{LSB_JOBINDEX}} ]; then
-    ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Cpp/build/{name}${{LSB_JOBINDEX}}
+expname=$(printf "{name}%03d" $LSB_JOBINDEX)
+runner="${{HOME}}/linnea/output/${{expname}}/Cpp/build/${{expname}}"
+
+if [ -f $runner ]; then
+    $runner
 else
-    echo "File not found: ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Cpp/build/{name}${{LSB_JOBINDEX}}"
+    echo "File not found: $runner"
 fi
 
 exit

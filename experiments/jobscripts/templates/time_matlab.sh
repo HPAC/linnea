@@ -16,18 +16,21 @@ mkdir -p {name}/execution/matlab
 cd {name}/execution/matlab
 
 mkdir -p logs
-export MATLAB_LOG_DIR=${{HOME}}/linnea/results/execution/run_${{LSB_JOBID}}/logs
+export MATLAB_LOG_DIR=${{HOME}}/linnea/results/execution/matlab/logs
 export MATLABPATH=${{HOME}}/repositories/MatrixGeneratorMatlab
 
-if [ -f ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Matlab/runner.m ]; then
+exppath=$(printf "${{HOME}}/linnea/output/{name}%03d/Matlab" $LSB_JOBINDEX)
+runner="${{exppath}}/runner.m"
+
+if [ -f $runner ]; then
     # it is not possible to run runner.m directly here because of how importing in Matlab works.
     matlab -singleCompThread -nodisplay -nodesktop -nosplash -logfile matlab.log <<EOF
-    addpath('${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Matlab/');
+    addpath('${{exppath}}');
     runner;
     quit();
 EOF
 else
-    echo "File not found: ${{HOME}}/linnea/output/{name}${{LSB_JOBINDEX}}/Matlab/runner.m"
+    echo "File not found: $runner"
 fi
 
 exit
