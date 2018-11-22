@@ -4548,3 +4548,29 @@ class Example156():
         self.eqns = Equations(
                             Equal(X, Times(Inverse(A), B, Transpose(C))),
                             )
+
+class Example157():
+    def __init__(self):
+
+        # TAGS
+        # simple, diagonal, sum
+
+        n = 10
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.INPUT)
+        A.set_property(properties.DIAGONAL)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.INPUT)
+        B.set_property(properties.DIAGONAL)
+
+        alpha = Scalar("alpha")
+
+        I = IdentityMatrix(n, n)
+
+        X = Matrix("X", (n, n))
+        X.set_property(properties.OUTPUT)
+
+
+        self.eqns = Equations(Equal(X, Plus(Times(alpha, I), B)))
