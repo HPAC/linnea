@@ -13,6 +13,7 @@ operands_mapping_julia = {properties.SYMMETRIC: "Shape.Symmetric",
                           properties.LOWER_TRIANGULAR: "Shape.LowerTriangular",
                           properties.UPPER_TRIANGULAR: "Shape.UpperTriangular",
                           properties.SPD: "Properties.SPD",
+                          properties.SPSD: "Properties.SPD", # TODO does this make sense?
                           properties.ORTHOGONAL: "Properties.Orthogonal"
                          }
 
@@ -21,6 +22,7 @@ operands_mapping_matlab = {properties.SYMMETRIC: "Shape.Symmetric()",
                           properties.LOWER_TRIANGULAR: "Shape.LowerTriangular()",
                           properties.UPPER_TRIANGULAR: "Shape.UpperTriangular()",
                           properties.SPD: "Properties.SPD()",
+                          properties.SPSD: "Properties.SPD()", # TODO does this make sense?
                           properties.ORTHOGONAL: "Properties.Orthogonal()"
                          }
 
@@ -29,6 +31,7 @@ operands_mapping_cpp = {properties.SYMMETRIC: "generator::shape::self_adjoint{}"
                         properties.LOWER_TRIANGULAR: "generator::shape::lower_triangular{}",
                         properties.UPPER_TRIANGULAR: "generator::shape::upper_triangular{}",
                         properties.SPD: "generator::property::spd{}",
+                        properties.SPSD: "generator::property::spd{}", # TODO does this make sense?
                         properties.ORTHOGONAL: "generator::property::orthogonal{}"
                         }
 
@@ -93,7 +96,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
 
         property_replacements = []
         for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR,
-                     properties.UPPER_TRIANGULAR, properties.SPD, properties.ORTHOGONAL]:
+                     properties.UPPER_TRIANGULAR, properties.SPD, properties.SPSD, properties.ORTHOGONAL]:
             if prop in operand.properties:
                 property_replacements.append(map_operand(language, prop))
         if not any((prop in operand.properties) for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR, properties.UPPER_TRIANGULAR]):
@@ -102,7 +105,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
             elif language == config.Language.Matlab:
                 property_replacements.append("Shape.General()")
 
-        if not properties.SPD in operand.properties and not properties.ORTHOGONAL in operand.properties:
+        if not properties.SPD in operand.properties and not properties.SPSD in operand.properties and not properties.ORTHOGONAL in operand.properties:
             if properties.DIAGONAL in operand.properties:
                 property_replacements.append(random_operand(10, 11))
             elif properties.LOWER_TRIANGULAR in operand.properties:
