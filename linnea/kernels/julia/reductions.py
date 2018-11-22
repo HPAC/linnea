@@ -1807,6 +1807,71 @@ diagmv = KernelDescription(
     [KernelType.identity, KernelType.transpose]
     )
 
+# diag + diag
+
+A = Matrix("A", (m, n))
+A.set_property(properties.DIAGONAL)
+B = Matrix("B", (m, n))
+B.set_property(properties.DIAGONAL)
+alpha = Scalar("alpha")
+cf = lambda d: min(d["M"], d["N"])
+
+diagdiagadd = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Plus(Times(alpha, A), B)}),
+    [
+        DefaultValueKV(alpha, [ConstantScalar(1.0)]),
+    ],
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(A, StorageFormat.diagonal_vector),
+     InputOperand(B, StorageFormat.diagonal_vector)
+    ],
+    OutputOperand(B, StorageFormat.diagonal_vector), # return value
+    cf, # cost function
+    "",
+    "axpy!($alpha, $A, $B) # diagonal matrices",
+    "",
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
+    )
+
+
+# diag + full
+
+A = Matrix("A", (m, n))
+A.set_property(properties.DIAGONAL)
+B = Matrix("B", (m, n))
+alpha = Scalar("alpha")
+cf = lambda d: min(d["M"], d["N"])
+
+diagfulladd = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Plus(Times(alpha, A), B)}),
+    [
+        DefaultValueKV(alpha, [ConstantScalar(1.0)]),
+    ],
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(A, StorageFormat.diagonal_vector),
+     InputOperand(B, StorageFormat.full)
+    ],
+    OutputOperand(B, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    textwrap.dedent(
+        """\
+        d = $A;
+        for i=1:length(d)
+            $B[i, i] += $alpha*d[i];
+        end;\
+        """
+        ), # the variable d is used here to make sure that the identity matrix is no created inside the loop
+    "",
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
+    )
+
 
 # permutation * matrix
 
