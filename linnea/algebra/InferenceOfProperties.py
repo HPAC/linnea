@@ -135,7 +135,9 @@ def isSPSDTimes(expr):
     if scalars and not isPositive(ae.Times(*scalars)):
         return False
     length = len(non_scalars)
-    if length == 1:
+    if length == 0:
+        return False
+    elif length == 1:
         return isSPSD(non_scalars[0])
     elif length % 2 == 0:
         left = ae.Times(*non_scalars[:length//2])
@@ -167,7 +169,9 @@ def isSPDTimes(expr):
     if scalars and not isPositive(ae.Times(*scalars)):
         return False
     length = len(non_scalars)
-    if length == 1:
+    if length == 0:
+        return False
+    elif length == 1:
         return isSPD(non_scalars[0])
     elif length % 2 == 0:
         left = ae.Times(*non_scalars[:length//2])
