@@ -169,15 +169,22 @@ def time_accumulated(time_data):
 
 
 def get_column_names(experiment):
+
     if experiment == "combined":
-        return ["constructive_merging", "constructive_no_merging", "exhaustive_merging", "exhaustive_no_merging"]
+        experiments = ["random", "pldi"]
+    else:    
+        experiments = [experiment]
 
     # TODO this code also appears in "read_results_generation"    
     new_columns = []
-    for dir, col in zip(["c_m", "c_nm", "e_m", "e_nm"], ["constructive_merging", "constructive_no_merging", "exhaustive_merging", "exhaustive_no_merging"]):
-        path = os.path.join(experiment, "generation", dir)
-        if os.path.exists(path):
-            new_columns.append(col)
+    for exp in experiments:
+        for dir, col in zip(["c_m", "c_nm", "e_m", "e_nm"], ["constructive_merging", "constructive_no_merging", "exhaustive_merging", "exhaustive_no_merging"]):
+            if col in new_columns:
+                continue
+            path = os.path.join(exp, "generation", dir)
+            if os.path.exists(path):
+                new_columns.append(col)
+
     return new_columns
 
 
