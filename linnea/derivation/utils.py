@@ -3,9 +3,9 @@ import matchpy
 import math
 
 def apply_kernel_with_context(expr, many_to_one_matcher):
-    """Applies one kernel to an expressions.
+    """Applies the optimal kernel to an expressions.
 
-    This function applies the first matching kernel of the many_to_one_matcher
+    This function applies the optimal matching kernel of the many_to_one_matcher
     to expr and returns the replacement, as well as the matched kernel.
 
     The functions only searches for matches at the root of expr, and it expects
@@ -25,7 +25,16 @@ def apply_kernel_with_context(expr, many_to_one_matcher):
         instead of the matched kernel, None is returned.
     """
 
+    optimal_match = (None, None)
+    min_cost = math.inf
+
     for kernel, substitution in many_to_one_matcher.match(expr):
+        cost = kernel.cost(substitution)
+        if cost < min_cost:
+            optimal_match = (kernel, substitution)
+
+    kernel, substitution = optimal_match
+    if kernel:
         matched_kernel = kernel.set_match(substitution, True)
         expr = matched_kernel.replacement
         return expr, matched_kernel
