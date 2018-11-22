@@ -19,6 +19,8 @@ def isInput(expr):
         return isInput(expr.operand)
     if isinstance(expr, ae.Inverse):
         return isInput(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
+        return isInput(expr.operand)
     # [TODO] Double check!!!
     return False
 
@@ -33,6 +35,8 @@ def isOutput(expr):
     if isinstance(expr, ae.Transpose):
         return isOutput(expr.operand)
     if isinstance(expr, ae.Inverse):
+        return isOutput(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
         return isOutput(expr.operand)
     return False
 
@@ -51,6 +55,8 @@ def isIdentity(expr):
     if isinstance(expr, ae.Transpose):
         return isIdentity(expr.operand)
     if isinstance(expr, ae.Inverse):
+        return isIdentity(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
         return isIdentity(expr.operand)
     return False
 
@@ -83,6 +89,8 @@ def isUnitDiagonal(expr):
     if isinstance(expr, ae.Transpose):
         return isUnitDiagonal(expr.operand)
     if isinstance(expr, ae.Inverse): # TODO triangular?
+        return isUnitDiagonal(expr.operand)
+    if isinstance(expr, ae.InverseTranspose): # TODO triangular?
         return isUnitDiagonal(expr.operand)
     return False
 
@@ -127,6 +135,8 @@ def isSPSD(expr):
         return isSPSD(expr.operand)
     if isinstance(expr, ae.Inverse):
         return isSPSD(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
+        return isSPSD(expr.operand)
     return False
 
 
@@ -160,6 +170,8 @@ def isSPD(expr):
     if isinstance(expr, ae.Transpose):
         return isSPD(expr.operand)
     if isinstance(expr, ae.Inverse):
+        return isSPD(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
         return isSPD(expr.operand)
     return False
 
@@ -212,6 +224,8 @@ def isOrthogonal(expr):
     if isinstance(expr, ae.Transpose):
         return isOrthogonal(expr.operand)
     if isinstance(expr, ae.Inverse):
+        return isOrthogonal(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
         return isOrthogonal(expr.operand)
     return False
 
@@ -324,6 +338,8 @@ def isPermutation(expr):
     if isinstance(expr, ae.Transpose):
         return isPermutation(expr.operand)
     if isinstance(expr, ae.Inverse):
+        return isPermutation(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
         return isPermutation(expr.operand)
     return False
 
