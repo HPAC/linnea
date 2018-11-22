@@ -502,7 +502,8 @@ WS1 = matchpy.Wildcard.star("WS1")
 WS2 = matchpy.Wildcard.star("WS2")
 PS1 = matchpy.CustomConstraint(lambda WD1: WD1.has_property(properties.MATRIX) or WD1.has_property(properties.VECTOR))
 PS2 = matchpy.CustomConstraint(lambda WD2: WD2.has_property(properties.MATRIX) or WD2.has_property(properties.VECTOR))
-notInv = matchpy.CustomConstraint(lambda WD2: not is_inverse(WD2))
+notInv1 = matchpy.CustomConstraint(lambda WD1: not is_inverse(WD1))
+notInv2 = matchpy.CustomConstraint(lambda WD2: not is_inverse(WD2))
 
 linsolveL = matchpy.ReplacementRule(
     matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2),
@@ -515,7 +516,7 @@ linsolveLT = matchpy.ReplacementRule(
     )
 
 linsolveR = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2),
+    matchpy.Pattern(Times(WS1, WD1, Inverse(WD2), WS2), PS1, PS2),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, WD2), *WS2)
     )
 
@@ -525,22 +526,22 @@ linsolveRT = matchpy.ReplacementRule(
     )
 
 linsolveLnI = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2, notInv),
+    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2, notInv2),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(WD1, WD2), *WS2)
     )
 
 linsolveLTnI = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, InverseTranspose(WD1), WD2, WS2), PS1, PS2, notInv),
+    matchpy.Pattern(Times(WS1, InverseTranspose(WD1), WD2, WS2), PS1, PS2, notInv2),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveL(Transpose(WD1), WD2), *WS2)
     )
 
 linsolveRnI = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, Inverse(WD1), WD2, WS2), PS1, PS2, notInv),
+    matchpy.Pattern(Times(WS1, WD1, Inverse(WD2), WS2), PS1, PS2, notInv1),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, WD2), *WS2)
     )
 
 linsolveRTnI = matchpy.ReplacementRule(
-    matchpy.Pattern(Times(WS1, WD1, InverseTranspose(WD2), WS2), PS1, PS2, notInv),
+    matchpy.Pattern(Times(WS1, WD1, InverseTranspose(WD2), WS2), PS1, PS2, notInv1),
     lambda WS1, WD1, WD2, WS2: Times(*WS1, LinSolveR(WD1, Transpose(WD2)), *WS2)
     )
 
