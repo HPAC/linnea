@@ -52,7 +52,7 @@ class Property(enum.Enum):
         (ZERO, CONSTANT),
         (IDENTITY, CONSTANT),
         (IDENTITY, DIAGONAL),
-        (IDENTITY, FULL_RANK), # TODO check this
+        (IDENTITY, FULL_RANK),
         (DIAGONAL, LOWER_TRIANGULAR),
         (DIAGONAL, UPPER_TRIANGULAR),
         (LOWER_TRIANGULAR, TRIANGULAR),
