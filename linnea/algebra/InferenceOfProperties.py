@@ -7,126 +7,126 @@ from .. import temporaries
 
 from . import property_DNs
 
-def isInput(node):
+def isInput(expr):
     # isinstance?
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.INPUT, isInput)
-    if isinstance(node, ae.Plus):
-        return all(isInput(term) for term in node.operands)
-    if isinstance(node, ae.Times):
-        return all(isInput(factor) for factor in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isInput(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isInput(node.operand)
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.INPUT, isInput)
+    if isinstance(expr, ae.Plus):
+        return all(isInput(term) for term in expr.operands)
+    if isinstance(expr, ae.Times):
+        return all(isInput(factor) for factor in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isInput(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isInput(expr.operand)
     # [TODO] Double check!!!
     return False
 
 
-def isOutput(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.INPUT, isOutput)
-    if isinstance(node, ae.Plus):
-        return any(isOutput(term) for term in node.operands)
-    if isinstance(node, ae.Times):
-        return any(isOutput(factor) for factor in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isOutput(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isOutput(node.operand)
+def isOutput(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.INPUT, isOutput)
+    if isinstance(expr, ae.Plus):
+        return any(isOutput(term) for term in expr.operands)
+    if isinstance(expr, ae.Times):
+        return any(isOutput(factor) for factor in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isOutput(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isOutput(expr.operand)
     return False
 
-def isAuxiliary(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.AUXILIARY, isAuxiliary)
+def isAuxiliary(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.AUXILIARY, isAuxiliary)
     return False
 
-def isIdentity(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.IDENTITY, isIdentity)
-    if isinstance(node, ae.Plus):
+def isIdentity(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.IDENTITY, isIdentity)
+    if isinstance(expr, ae.Plus):
         return False
-    if isinstance(node, ae.Times):
-        return all(isIdentity(factor) for factor in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isIdentity(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isIdentity(node.operand)
+    if isinstance(expr, ae.Times):
+        return all(isIdentity(factor) for factor in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isIdentity(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isIdentity(expr.operand)
     return False
 
-def isConstant(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.CONSTANT, isConstant)
-    if isinstance(node, ae.Operator):
-        return all(isConstant(operand) for operand in node.operands)
+def isConstant(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.CONSTANT, isConstant)
+    if isinstance(expr, ae.Operator):
+        return all(isConstant(operand) for operand in expr.operands)
 
-def isFactor(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.FACTOR, isFactor)
-    if isinstance(node, ae.Transpose):
-        return isFactor(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isFactor(node.operand)
-    if isinstance(node, ae.InverseTranspose):
-        return isFactor(node.operand)
+def isFactor(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.FACTOR, isFactor)
+    if isinstance(expr, ae.Transpose):
+        return isFactor(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isFactor(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
+        return isFactor(expr.operand)
     return False
 
-def isUnitDiagonal(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.UNIT_DIAGONAL, isUnitDiagonal)
-    if isinstance(node, ae.Plus):
+def isUnitDiagonal(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.UNIT_DIAGONAL, isUnitDiagonal)
+    if isinstance(expr, ae.Plus):
         return False
-    if isinstance(node, ae.Times): # TODO Should check triangular as well?
-        return all(isUnitDiagonal(factor) for factor in node.operands) and \
-                (all(isLowerTriangular(factor) for factor in node.operands) or
-                 all(isUpperTriangular(factor) for factor in node.operands))
-    if isinstance(node, ae.Transpose):
-        return isUnitDiagonal(node.operand)
-    if isinstance(node, ae.Inverse): # TODO triangular?
-        return isUnitDiagonal(node.operand)
+    if isinstance(expr, ae.Times): # TODO Should check triangular as well?
+        return all(isUnitDiagonal(factor) for factor in expr.operands) and \
+                (all(isLowerTriangular(factor) for factor in expr.operands) or
+                 all(isUpperTriangular(factor) for factor in expr.operands))
+    if isinstance(expr, ae.Transpose):
+        return isUnitDiagonal(expr.operand)
+    if isinstance(expr, ae.Inverse): # TODO triangular?
+        return isUnitDiagonal(expr.operand)
     return False
 
-def isPositive(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.POSITIVE, isPositive)
-    if isinstance(node, ae.Plus):
-        return all(isPositive(term) for term in node.operands)
-    if isinstance(node, ae.Times):
-        return all(isPositive(term) for term in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isPositive(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isPositive(node.operand)
-    if isinstance(node, ae.InverseTranspose):
-        return isPositive(node.operand)
+def isPositive(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.POSITIVE, isPositive)
+    if isinstance(expr, ae.Plus):
+        return all(isPositive(term) for term in expr.operands)
+    if isinstance(expr, ae.Times):
+        return all(isPositive(term) for term in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isPositive(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isPositive(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
+        return isPositive(expr.operand)
     return False
 
-def isSymmetric(node):
-    if isinstance(node, ae.Symbol):
-        if infer_property_symbol(node, properties.SYMMETRIC, isSymmetric):
+def isSymmetric(expr):
+    if isinstance(expr, ae.Symbol):
+        if infer_property_symbol(expr, properties.SYMMETRIC, isSymmetric):
             return True
-        # if node is not symmetric (stored in false_properties), the two test below are still executed. Can this be avoided? Is it necessary? 
-        elif isSquare(node) and isDiagonalB(node):
-            node.properties.add(properties.SYMMETRIC)
+        # if expr is not symmetric (stored in false_properties), the two test below are still executed. Can this be avoided? Is it necessary? 
+        elif isSquare(expr) and isDiagonalB(expr):
+            expr.properties.add(properties.SYMMETRIC)
             return True
         else:
             return False
     else:
         # TODO As a shortcut, test if square, test bandwidth?
-        return node.transpose_of(node)
+        return expr.transpose_of(expr)
 
 
-def isSPSD(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.SPSD, isSPSD)
-    if isinstance(node, ae.Plus):
-        return all(isSPSD(term) for term in node.operands)
-    if isinstance(node, ae.Times):
-        return isSPSDTimes(node)
-    if isinstance(node, ae.Transpose):
-        return isSPSD(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isSPSD(node.operand)
+def isSPSD(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.SPSD, isSPSD)
+    if isinstance(expr, ae.Plus):
+        return all(isSPSD(term) for term in expr.operands)
+    if isinstance(expr, ae.Times):
+        return isSPSDTimes(expr)
+    if isinstance(expr, ae.Transpose):
+        return isSPSD(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isSPSD(expr.operand)
     return False
 
 
@@ -148,17 +148,17 @@ def isSPSDTimes(expr):
         return isSPSD(middle) and left.transpose_of(right)
 
 
-def isSPD(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.SPD, isSPD)
-    if isinstance(node, ae.Plus):
-        return all(isSPD(term) for term in node.operands)
-    if isinstance(node, ae.Times): # related to "iif they commute" ... ?
-        return isSPDTimes(node)
-    if isinstance(node, ae.Transpose):
-        return isSPD(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isSPD(node.operand)
+def isSPD(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.SPD, isSPD)
+    if isinstance(expr, ae.Plus):
+        return all(isSPD(term) for term in expr.operands)
+    if isinstance(expr, ae.Times): # related to "iif they commute" ... ?
+        return isSPDTimes(expr)
+    if isinstance(expr, ae.Transpose):
+        return isSPD(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isSPD(expr.operand)
     return False
 
 
@@ -180,64 +180,64 @@ def isSPDTimes(expr):
         return left.columns >= left.rows and isFullRank(left) and isSPD(middle) and left.transpose_of(right)
 
 
-def isNonSingular(node):
-    if isinstance(node, ae.Symbol):
-        # if infer_property_symbol(node, properties.SQUARE, isSquare) and infer_property_symbol(node, properties.FULL_RANK, isFullRank):
-        if isSquare(node) and isFullRank(node):
-            node.properties.add(properties.NON_SINGULAR)
+def isNonSingular(expr):
+    if isinstance(expr, ae.Symbol):
+        # if infer_property_symbol(expr, properties.SQUARE, isSquare) and infer_property_symbol(expr, properties.FULL_RANK, isFullRank):
+        if isSquare(expr) and isFullRank(expr):
+            expr.properties.add(properties.NON_SINGULAR)
             return True
         else:
-            return infer_property_symbol(node, properties.NON_SINGULAR, isNonSingular)
-    if isinstance(node, ae.Times):
-        return all(isNonSingular(factor) for factor in node.operands)
-    if isinstance(node, ae.Plus): # ?
-        return all(isNonSingular(operand) for operand in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isNonSingular(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isNonSingular(node.operand)
-    if isinstance(node, ae.InverseTranspose):
-        return isNonSingular(node.operand)
+            return infer_property_symbol(expr, properties.NON_SINGULAR, isNonSingular)
+    if isinstance(expr, ae.Times):
+        return all(isNonSingular(factor) for factor in expr.operands)
+    if isinstance(expr, ae.Plus): # ?
+        return all(isNonSingular(operand) for operand in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isNonSingular(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isNonSingular(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
+        return isNonSingular(expr.operand)
     return False
 
-def isOrthogonal(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.ORTHOGONAL, isOrthogonal)
-    if isinstance(node, ae.Times):
-        return all(isOrthogonal(factor) for factor in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isOrthogonal(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isOrthogonal(node.operand)
+def isOrthogonal(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.ORTHOGONAL, isOrthogonal)
+    if isinstance(expr, ae.Times):
+        return all(isOrthogonal(factor) for factor in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isOrthogonal(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isOrthogonal(expr.operand)
     return False
 
-def isOrthogonalColumns(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.ORTHOGONAL_COLUMNS, isOrthogonalColumns)
-    if isinstance(node, ae.Transpose):
-        return isOrthogonalColumns(node.operand)
+def isOrthogonalColumns(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.ORTHOGONAL_COLUMNS, isOrthogonalColumns)
+    if isinstance(expr, ae.Transpose):
+        return isOrthogonalColumns(expr.operand)
     return False
 
-def isOrthogonalRows(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.ORTHOGONAL_ROWS, isOrthogonalRows)
-    if isinstance(node, ae.Transpose):
-        return isOrthogonalRows(node.operand)
+def isOrthogonalRows(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.ORTHOGONAL_ROWS, isOrthogonalRows)
+    if isinstance(expr, ae.Transpose):
+        return isOrthogonalRows(expr.operand)
     return False
 
-def isFullRank(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.FULL_RANK, isFullRank)
-    if isinstance(node, ae.Times):
-        return all(isFullRank(factor) for factor in node.operands) and is_full_rank_product(node)
-    if isinstance(node, ae.Plus):
-        return all(isFullRank(operand) for operand in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isFullRank(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isFullRank(node.operand)
-    if isinstance(node, ae.InverseTranspose):
-        return isFullRank(node.operand)
+def isFullRank(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.FULL_RANK, isFullRank)
+    if isinstance(expr, ae.Times):
+        return all(isFullRank(factor) for factor in expr.operands) and is_full_rank_product(expr)
+    if isinstance(expr, ae.Plus):
+        return all(isFullRank(operand) for operand in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isFullRank(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isFullRank(expr.operand)
+    if isinstance(expr, ae.InverseTranspose):
+        return isFullRank(expr.operand)
     return False
 
 def is_full_rank_product(expr):
@@ -261,11 +261,11 @@ def is_full_rank_product(expr):
 def isSquare(expr):
     return infer_property_test_function(expr, properties.SQUARE, isSquareTF)
 
-def isSquareTF(node):
-    if isinstance(node, ae.Scalar):
+def isSquareTF(expr):
+    if isinstance(expr, ae.Scalar):
         return False
     else:
-        size = node.size
+        size = expr.size
         if size[0] == size[1]:
             return True
         else:
@@ -274,11 +274,11 @@ def isSquareTF(node):
 def isColumnPanel(expr):
     return infer_property_test_function(expr, properties.COLUMN_PANEL, isColumnPanelTF)
 
-def isColumnPanelTF(node):
-    if isinstance(node, ae.Scalar):
+def isColumnPanelTF(expr):
+    if isinstance(expr, ae.Scalar):
         return False
     else:
-        size = node.size
+        size = expr.size
         if size[0] > size[1]:
             return True
         else:
@@ -287,53 +287,53 @@ def isColumnPanelTF(node):
 def isRowPanel(expr):
     return infer_property_test_function(expr, properties.ROW_PANEL, isRowPanelTF)
 
-def isRowPanelTF(node):
-    if isinstance(node, ae.Scalar):
+def isRowPanelTF(expr):
+    if isinstance(expr, ae.Scalar):
         return False
     else:
-        size = node.size
+        size = expr.size
         if size[0] < size[1]:
             return True
         else:
             return False
 
-def isUnitary(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.UNITARY, isUnitary)
+def isUnitary(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.UNITARY, isUnitary)
     return False
         
-def isNormal(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.NORMAL, isNormal)
+def isNormal(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.NORMAL, isNormal)
     return False
         
-def isHermitian(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.HERMITIAN, isHermitian)
+def isHermitian(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.HERMITIAN, isHermitian)
     return False
         
-def isPermutation(node):
-    if isinstance(node, ae.Symbol):
-        return infer_property_symbol(node, properties.PERMUTATION, isPermutation)
-    if isinstance(node, ae.Times):
-        return all(isPermutation(factor) for factor in node.operands)
-    if isinstance(node, ae.Transpose):
-        return isPermutation(node.operand)
-    if isinstance(node, ae.Inverse):
-        return isPermutation(node.operand)
+def isPermutation(expr):
+    if isinstance(expr, ae.Symbol):
+        return infer_property_symbol(expr, properties.PERMUTATION, isPermutation)
+    if isinstance(expr, ae.Times):
+        return all(isPermutation(factor) for factor in expr.operands)
+    if isinstance(expr, ae.Transpose):
+        return isPermutation(expr.operand)
+    if isinstance(expr, ae.Inverse):
+        return isPermutation(expr.operand)
     return False
 
 def admitsFactorization(expr):
     return infer_property_test_function(expr, properties.ADMITS_FACTORIZATION, admitsFactorizationTF)
 
-def admitsFactorizationTF(node):
-    return not (isDiagonalB(node) or isTriangularB(node) or isOrthogonal(node) or isOrthogonalColumns(node) or isOrthogonalRows(node) or isPermutation(node))
+def admitsFactorizationTF(expr):
+    return not (isDiagonalB(expr) or isTriangularB(expr) or isOrthogonal(expr) or isOrthogonalColumns(expr) or isOrthogonalRows(expr) or isPermutation(expr))
 
 def isScalar(expr):
     return infer_property_test_function(expr, properties.SCALAR, isScalarTF)
 
-def isScalarTF(node):
-    size = node.size
+def isScalarTF(expr):
+    size = expr.size
     if size[0] == 1 and size[1] == 1:
         return True
     else:
@@ -342,8 +342,8 @@ def isScalarTF(node):
 def isVector(expr):
     return infer_property_test_function(expr, properties.VECTOR, isVectorTF)
 
-def isVectorTF(node):
-    rows, columns = node.size
+def isVectorTF(expr):
+    rows, columns = expr.size
     if (rows == 1 and columns != 1) or (rows != 1 and columns == 1):
         return True
     else:
@@ -352,8 +352,8 @@ def isVectorTF(node):
 def isMatrix(expr):
     return infer_property_test_function(expr, properties.MATRIX, isMatrixTF)
 
-def isMatrixTF(node):
-    size = node.size
+def isMatrixTF(expr):
+    size = expr.size
     if size[0] != 1 and size[1] != 1:
         return True
     else:
@@ -362,8 +362,8 @@ def isMatrixTF(node):
 def isLowerTriangular(expr):
     return infer_property_test_function(expr, properties.LOWER_TRIANGULAR, isLowerTriangularB)
 
-def isLowerTriangularB(node):
-    lb, ub = node.bandwidth
+def isLowerTriangularB(expr):
+    lb, ub = expr.bandwidth
     if ub <= 0:
         return True
     else:
@@ -372,8 +372,8 @@ def isLowerTriangularB(node):
 def isUpperTriangular(expr):
     return infer_property_test_function(expr, properties.UPPER_TRIANGULAR, isUpperTriangularB)
 
-def isUpperTriangularB(node):
-    lb, ub = node.bandwidth
+def isUpperTriangularB(expr):
+    lb, ub = expr.bandwidth
     if lb <= 0:
         return True
     else:
@@ -382,8 +382,8 @@ def isUpperTriangularB(node):
 def isTriangular(expr):
     return infer_property_test_function(expr, properties.TRIANGULAR, isTriangularB)
 
-def isTriangularB(node):
-    lb, ub = node.bandwidth
+def isTriangularB(expr):
+    lb, ub = expr.bandwidth
     if lb <= 0 or ub <= 0:
         return True
     else:
@@ -392,8 +392,8 @@ def isTriangularB(node):
 def isDiagonal(expr):
     return infer_property_test_function(expr, properties.DIAGONAL, isDiagonalB)
 
-def isDiagonalB(node):
-    lb, ub = node.bandwidth
+def isDiagonalB(expr):
+    lb, ub = expr.bandwidth
     if lb == 0 and ub == 0:
         return True
     else:
@@ -402,11 +402,11 @@ def isDiagonalB(node):
 def isZero(expr):
     return infer_property_test_function(expr, properties.ZERO, isZeroB)
 
-def isZeroB(node):
+def isZeroB(expr):
     # Careful. Unless the bandwidth of the Zero matrix is set to something
     # appropriate (e.g. (0, -1)), this is not a property that purely depends
     # on bandwidth.
-    lb, ub = node.bandwidth
+    lb, ub = expr.bandwidth
     if lb + ub + 1 <= 0:
         return True
     else:
