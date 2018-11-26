@@ -201,6 +201,7 @@ axpy = KernelDescription(
     "",
     [SizeArgument("N", x, "rows"),
      SizeArgument("M", x, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 ###############
@@ -1442,6 +1443,7 @@ matrix_sum = KernelDescription(
     "",
     [SizeArgument("N", A, "columns"),
      SizeArgument("M", A, "rows")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 # scalar * diagonal
@@ -1870,6 +1872,7 @@ diagfulladd = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
+    [KernelType.identity, KernelType.transpose]
     )
 
 

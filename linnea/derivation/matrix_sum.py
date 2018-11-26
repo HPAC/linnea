@@ -119,8 +119,7 @@ def decompose_sum(expr):
     # Note: For addition, we decided to only use a binary kernel, no
     #       variadic addition.
 
-    while not isinstance(expr, Symbol):
-
+    while isinstance(expr, Plus):
         expr, matched_kernel = apply_kernel_with_context(expr, collections_module.addition_kernel_MA)
         if matched_kernel:
             matched_kernels.append(matched_kernel)
