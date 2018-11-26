@@ -5,8 +5,6 @@ from .properties import Property as properties
 from .properties import implications, negative_implications
 from .. import temporaries
 
-from . import property_DNs
-
 def isInput(expr):
     # isinstance?
     if isinstance(expr, ae.Symbol):

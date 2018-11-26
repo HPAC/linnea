@@ -208,8 +208,8 @@ def set_graph_style(style):
     graph_style = style
 
 def init():
-    from .algebra import property_DNs
-    property_DNs._init()
+    pass
+    # TODO This function used to do something, but right now it's not needed anymore. Remove?
 
 def clear_all():
     from linnea import temporaries
