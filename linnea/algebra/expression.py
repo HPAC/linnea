@@ -5,7 +5,7 @@ import itertools
 
 from . import InferenceOfProperties
 from .properties import Property as properties
-from .properties import implications
+from .properties import implications, PropertyError
 from . import utils
 
 from .. import config
@@ -380,7 +380,6 @@ class Operator(matchpy.Operation, Expression):
             out = operand.to_dot(out)
         return out
 
-
 class Symbol(matchpy.Symbol, Expression):
     """docstring for Symbol"""
     def __init__(self, name, size, indices, properties = []):
@@ -410,6 +409,8 @@ class Symbol(matchpy.Symbol, Expression):
             return
         elif prop == properties.MATRIX:
             return
+        elif prop == properties.POSITIVE and isinstance(self, (Vector, Matrix)):
+            raise PropertyError("Property 'positive' is only defined for scalars.")
 
         self.properties.add(prop)
         self.properties.update(implications.get(prop, tuple()))

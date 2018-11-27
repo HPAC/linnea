@@ -2,6 +2,9 @@ import enum
 
 from .. import utils
 
+class PropertyError(Exception):
+    pass
+
 @utils.PartiallyOrderedEnum
 class Property(enum.Enum):
     INPUT = "Input"
