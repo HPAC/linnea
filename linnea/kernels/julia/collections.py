@@ -48,6 +48,8 @@ diagmv = list(reductions.diagmv.generate_kernels())
 diagscal = list(reductions.diagscal.generate_kernels())
 diagdiagadd = list(reductions.diagdiagadd.generate_kernels())
 diagfulladd = list(reductions.diagfulladd.generate_kernels())
+invscal = list(reductions.invscal.generate_kernels())
+invlascl = list(reductions.invlascl.generate_kernels())
 # direct solvers (so far for matrix chain paper only. Problem: They overwrite A and B, which can not be expressed at the moment)
 posv = list(reductions.posv.generate_kernels())
 posvr = list(reductions.posvr.generate_kernels())
@@ -105,6 +107,8 @@ reductions = list(itertools.chain(
                 diagmv,
                 diagdiagadd,
                 diagfulladd,
+                invscal,
+                invlascl,
                 # posv,
                 # posvr,
                 # sysv,

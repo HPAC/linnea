@@ -231,7 +231,6 @@ ger = KernelDescription(
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
     "",
-    # "@inbounds for i = 1:size($y, 1); @inbounds for j = 1:size($x, 1); $A[j, i] = $alpha*$x[j]*$y[i]; end; end;", # faster with current Julia version
     "ger!($alpha, $x, $y, $A)",
     "",
     [SizeArgument("M", x, "rows"),
@@ -259,8 +258,7 @@ ger_alt = KernelDescription(
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
     "",
-    # "@inbounds for i = 1:size($y, 1); @inbounds for j = 1:size($x, 1); $A[j, i] = $alpha*$x[j]*$y[i]; end; end;", # faster with current Julia version
-    # # If A is not allocated, use "$A = zeros($type, ($M, $N))\n"
+    # "$A = $alpha*$x*transpose($y)", # doesn't seem to make much of a difference with Julia 1.1 dev
     textwrap.dedent(
         """\
         fill!($A, 0.0)
@@ -1345,6 +1343,55 @@ gesv_vec = KernelDescription(
 
 #################
 #################
+
+# inv(scalar) * vector
+
+x = Vector("x", (n, 1))
+alpha = Scalar("alpha")
+cf = lambda d: d["N"]
+
+invscal = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Inverse(alpha), x)}
+    ),
+    [], # variants
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(x, StorageFormat.full)
+    ],
+    OutputOperand(x, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$x ./= $alpha",
+    "",
+    [SizeArgument("N", x, "rows")], # Argument objects
+    [KernelType.identity, KernelType.scaling]
+    )
+
+# inv(scalar) * matrix
+
+X = Matrix("X", (m, n))
+alpha = Scalar("alpha")
+cf = lambda d: d["M"]*d["N"]
+
+invlascl = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(Inverse(alpha), X)}
+    ),
+    [], # variants
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(X, StorageFormat.full),
+    ],
+    OutputOperand(X, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$X ./= $alpha",
+    "",
+    [SizeArgument("M", X, "rows"),
+     SizeArgument("N", X, "columns")], # Argument objects
+     [KernelType.identity, KernelType.scaling]
+    )
 
 # diaginv (diagonal matrix inversion)
 
