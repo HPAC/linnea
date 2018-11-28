@@ -1603,13 +1603,7 @@ diagdiagsolve = KernelDescription(
     OutputOperand(B, StorageFormat.diagonal_vector), # return value
     cf, # cost function
     "",
-    textwrap.dedent(
-        """\
-        for i = 1:length($B);
-            $B[i] /= $A[i];
-        end;\
-        """
-        ),
+    "$B ./= $A;",
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1645,15 +1639,11 @@ diagsmr = KernelDescription(
     "",
     textwrap.dedent(
         """\
-        x = 1 ./$A;
-        for i = 1:size($B, 2);
-            for j=1:size($B, 1);
-                $B[j,i] *= x[i];
-            end;
+        @views for i = 1:size($B, 2);
+            $B[:,i] ./= $A[i];
         end;\
         """
-        ), # faster with current Julia version
-    # "for i = 1:size($B, 2); $B[:,i] /= $A[i]; end;",
+        ),
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1687,17 +1677,7 @@ diagsml = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    textwrap.dedent(
-        """\
-        x = 1 ./$A;
-        for j=1:size($B, 2);
-            for i = 1:size($B, 1);
-                $B[i,j] *= x[i];
-            end;
-        end;\
-        """
-        ), # faster with current Julia version
-    # "for i = 1:size($B, 1); $B[i,:] /= $A[i]; end;",
+    "$B ./= $A;",
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
