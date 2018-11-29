@@ -4549,6 +4549,7 @@ class Example156():
                             Equal(X, Times(Inverse(A), B, Transpose(C))),
                             )
 
+
 class Example157():
     def __init__(self):
 
@@ -4574,3 +4575,33 @@ class Example157():
 
 
         self.eqns = Equations(Equal(X, Plus(Times(alpha, I), B)))
+
+
+class Example158():
+    def __init__(self):
+
+        # TAGS
+        # complex inverse
+
+        n1 = 100
+        n2 = 100
+        # n2 = 50
+
+        A = Matrix("A", (n1, n2))
+        A.set_property(properties.INPUT)
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n2, n1))
+        B.set_property(properties.INPUT)
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n1, n1))
+        C.set_property(properties.INPUT)
+
+        X = Matrix("X", (n1, n1))
+        X.set_property(properties.OUTPUT)
+
+        self.eqns = Equations(
+                        Equal(X, Times(Inverse(Times(A, B)), C))
+                        # Equal(X, Inverse(Times(A, B)))
+                        )
