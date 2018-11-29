@@ -2,7 +2,8 @@ from . import base
 
 from ..utils import generate_variants, find_operands_to_factor, \
                     find_occurrences, InverseType, group_occurrences, \
-                    DS_step, find_explicit_symbol_inverse, is_inverse
+                    DS_step, find_explicit_symbol_inverse, is_inverse, \
+                    find_blocking_products
 
 from ....algebra.expression import Symbol, ConstantScalar, \
                                    Operator, Plus, Times, Equal, Transpose
@@ -423,6 +424,8 @@ class DerivationGraphBase(base.GraphBase):
         # find all occurrences
         all_occurrences = list(find_occurrences(equations, operands_to_factor))
 
+        blocking_products = list(find_blocking_products(equations, operands_to_factor))
+
         # Removing groups (summands) which do not contain any inverted occurrences.
         candidate_occurrences = []
         for oc_group in group_occurrences(all_occurrences):
@@ -446,7 +449,7 @@ class DerivationGraphBase(base.GraphBase):
         for ops_subset in powerset(ops_may_factor):
 
             factor_ops = ops_must_factor.union(ops_subset)
-            if not factor_ops:
+            if not factor_ops or factor_ops in blocking_products:
                 continue
 
             factorizations_candidates = []

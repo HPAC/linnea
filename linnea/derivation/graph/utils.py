@@ -72,6 +72,7 @@ class DS_step(Enum):
 # TODO currently, type is not used, so it could be removed
 Occurrence = namedtuple('Occurrence', ['eqn_idx', 'position', 'operand', 'type', 'group', 'symbol'])
 
+
 def find_operands_to_factor(equations):
     """Finds all operands to factor.
 
@@ -103,6 +104,7 @@ def find_operands_to_factor(equations):
 
     return operands_to_factor
 
+
 def find_occurrences(equations, operands_to_factor):
     """Finds all occurrences of operands that have to be factored.
 
@@ -133,6 +135,7 @@ def find_occurrences(equations, operands_to_factor):
             # for grouping, we also need the eqn_idx
             yield Occurrence(eqn_idx, *res)
 
+
 def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, position=(), group=None, symbol=False, predecessor=None):
 
     if isinstance(expr, Symbol):
@@ -154,6 +157,29 @@ def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, posit
             new_group = new_position
         yield from _find_occurrences(operand, operands_to_factor, inv_type, new_position, new_group, symbol, expr)
 
+
+def find_blocking_products(equations, operands_to_factor):
+    """Identifies sets of operands likely to lead to dead ends when factored.
+
+    In many cases, when all operands in a product are factored, the resulting
+    expression can not be computed anymore and becomes a dead end. The purpose
+    of this function is to identify such products.
+    """
+
+    for equation in equations:
+        for expr, pos in equation.rhs.preorder_iter():
+            if isinstance(expr, Times) and all(isinstance(operand, Symbol) or ((is_inverse(operand) or is_transpose(operand)) and isinstance(operand.operand, Symbol)) for operand in expr.operands):
+                ops = set()
+                for op in expr.operands:
+                    if isinstance(op, Symbol):
+                        ops.add(op)
+                    else:
+                        ops.add(op.operand)
+                # We can't remove cases with one operand only because of (X^T X)^-1 X^T y, where QR does lead to a solution.
+                if len(ops) > 1 and ops <= operands_to_factor:
+                    yield set(op.name for op in ops)
+                
+
 def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
 
     if is_inverse(expr) and isinstance(expr.operand, Symbol) and not isinstance(predecessor, Times):
@@ -164,6 +190,7 @@ def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
             new_position = position + (n,)
             yield from find_explicit_symbol_inverse(operand, new_position, expr)
 
+
 def group_occurrences(occurrences):
     # group symbol inverses by eqn_idx, inverse group, operand
     occurrences = sorted(occurrences, key=grouping_keyfunc)
@@ -173,12 +200,14 @@ def group_occurrences(occurrences):
         occurrences_grouped.append(list(group))
     return occurrences_grouped
 
+
 def grouping_keyfunc(oc):
     # eqn_idx, operand, group
     if oc.group is None:
         return (oc.eqn_idx, oc.operand, [])
     else:
         return (oc.eqn_idx, oc.operand, oc.group)
+
 
 # @profile
 def generate_variants(equations, eqn_idx=None):
@@ -313,6 +342,7 @@ def process_next(equation):
     # (1,) = position of right-hand side
     return ((1,), ExpressionType.none, OperationType.none)
 
+
 def process_next_simple(expression, position=()):
     """Finds a subexpression to process next in the derivation.
 
@@ -342,6 +372,7 @@ def process_next_simple(expression, position=()):
     # () = position of root
     return ((), OperationType.none)
 
+
 def process_next_generator(expr, position=()):
     """ Yields subexpressions to process next.
 
@@ -366,6 +397,7 @@ def process_next_generator(expr, position=()):
             new_position = position + (n,)
             yield from process_next_generator(operand, new_position)
     yield (expr, position)
+
 
 def inverse_type(expr):
     """Infers the ExpressionType of the inverse expr."""
@@ -404,6 +436,7 @@ def inverse_type(expr):
         # When we end up here, we know that there are no operands to factor in
         # this compund inverse.
         return (ExpressionType.compound_inverse_no_factor, op_type)
+
 
 def identify_inverses_eqns(equations):
     """Identifies an innermost inverse in equations."""
@@ -455,6 +488,7 @@ def is_explicit_inversion(matrix_chain):
     else:
         return False
 
+
 def is_dead_end(equations, factored_operands):
     for equation in equations:
         for expr, _ in equation.rhs.preorder_iter():
@@ -463,6 +497,7 @@ def is_dead_end(equations, factored_operands):
             if isinstance(expr, Times) and is_blocked(expr) and not is_explicit_inversion(expr):
                 return True
     return False
+
 
 def is_scalar(expr):
     """Tests if expr only consists of scalars.
@@ -474,10 +509,12 @@ def is_scalar(expr):
     """
     return all(e.has_property(properties.SCALAR) for e in expr.iterate_preorder())
 
+
 def is_simple_plus(expr):
     if isinstance(expr, Symbol):
         return False
     return len(expr.operands)>1 and all(is_simple_summand(operand) for operand in expr.operands)
+
 
 def is_simple_summand(expr):
     if _is_simple_summand(expr):
@@ -487,6 +524,7 @@ def is_simple_summand(expr):
     else:
         return False
 
+
 def _is_simple_summand(expr):
     if isinstance(expr, Symbol):
         return True
@@ -494,9 +532,11 @@ def _is_simple_summand(expr):
         # is_transpose cannot be used here because it includes inverse
         return isinstance(expr, (Transpose, ConjugateTranspose)) and isinstance(expr.operand, Symbol)
 
+
 def is_simple_times(expr):
-    """Test if expr is sufficiently simple for matrix chain rule."""
+    """Test if expr is sufficiently simple for matrix chain algorithm."""
     return len(expr.operands)>1 and all([_is_simple_times(operand) for operand in expr.operands])
+
 
 def _is_simple_times(expr):
     # TODO what is missing?
@@ -509,6 +549,7 @@ def _is_simple_times(expr):
         return True
     else:
         return False
+
 
 def inverse_positions(expr, position=[]):
     """Returns positions of all inverses (including InverseTranspose, …).
