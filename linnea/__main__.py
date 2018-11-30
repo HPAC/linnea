@@ -24,7 +24,7 @@ def main():
     parser.add_argument("--no-code", dest="code", action="store_const", const=True, help="disable code generation")
     parser.add_argument("--no-merging", dest="merging", action="store_const", const=True, help="disable merging branches in the graph")
     parser.add_argument("-o", "--output", help="name of the output")
-    parser.add_argument("--pseudocode", action="store_const", const=True, help="generate pseudocode")
+    parser.add_argument("--derivation", action="store_const", const=True, help="generate description of the derivation")
     group.add_argument("--silent", action="store_const", const=True, help="suppress non-error messages")
     parser.add_argument("--solution-nodes-limit", help="limit for the number of solution nodes")
     parser.add_argument("-s", "--strategy", choices=["constructive", "exhaustive"], help="specify derivation strategy")
@@ -61,8 +61,8 @@ def main():
         config.set_output_name(os.path.splitext(os.path.basename(args.input))[0])
     if args.output_path is not None:
         config.set_output_path(args.output_path)
-    if args.pseudocode is not None:
-        config.set_generate_pseudocode(args.pseudocode)
+    if args.derivation is not None:
+        config.set_generate_derivation(args.derivation)
     if args.silent is not None:
         config.set_verbosity(0)
     if args.solution_nodes_limit is not None:
@@ -125,7 +125,7 @@ def main():
         print(":".join(str(t) for t in trace))
 
     graph.write_output(code=config.generate_code,
-                       pseudocode=config.generate_pseudocode,
+                       derivation=config.generate_derivation,
                        output_name=config.output_name,
                        experiment_code=config.generate_experiments,
                        algorithms_limit=config.algorithms_limit,

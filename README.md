@@ -65,7 +65,7 @@ The list of commandline options is available via `linnea -h`.
 
 ### Output
 
-As output, Linnea generates a directory structure that may contain code and pseudocode files, as well a file containing a description of the derivation graph, the primary datastructure used by Linnea. Which files are generated can be set as options. Likewise, the location of the output can be specified. By default, it is the current directory.
+As output, Linnea generates a directory structure that contains code files, as well a file containing a description of the derivation graph, the primary datastructure used by Linnea. Which files are generated can be set as options. Likewise, the location of the output can be specified. By default, it is the current directory.
 
 For the linear system from the previous examples, the following code will be generated:
 
@@ -111,7 +111,7 @@ There are the following options (those are the names used in Python, the command
 
 * `graph_style` Style of the derivation graph. Either `full`, `simple`, or `minimal`. The default is `full`. Only applies if `generate_graph` is set to `True`.
 
-* `generate_pseudocode` Whether or not to generate pseudocode algorithms. The default is `false`.
+* `generate_derivation` Whether or not to generate a description of how the algorithms were derived. The default is `false`.
 
 * `generate_code` Whether or not to generate the actual code of the algorithms. The default is `true`.
 

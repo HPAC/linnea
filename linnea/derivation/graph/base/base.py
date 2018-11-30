@@ -342,6 +342,7 @@ class GraphNodeBase():
         self.successors = []
         self.edge_labels = []
         self.predecessors = []
+        self.original_equations = []
         self.metric = None
         self.accumulated_cost = 0
         self.level = None
@@ -381,21 +382,20 @@ class GraphNodeBase():
     def get_payload(self):
         raise NotImplementedError()
 
-    def set_labeled_edge(self, target, label):
+    def set_labeled_edge(self, target, label, original_equations):
         self.successors.append(target)
         self.edge_labels.append(label)
+        self.original_equations.append(original_equations)
         # add self to predecessors of target node
         target.predecessors.append(self)
         target.accumulated_cost = label.cost + self.accumulated_cost
         # print("set", target.id, self.id, target.accumulated_cost, label.cost, self.accumulated_cost)
 
     def remove_edge(self, target):
-        # if target not in self.successors:
-        #     # raise exception
-        #     pass
         idx = self.successors.index(target)
         self.successors.pop(idx)
         self.edge_labels.pop(idx)
+        self.original_equations.pop(idx)
 
     def merge(self, other):
         """Merges node self with other
@@ -411,6 +411,7 @@ class GraphNodeBase():
             if successor.optimal_path_predecessor is other:
                 successor.optimal_path_predecessor = self
         self.edge_labels.extend(other.edge_labels)
+        self.original_equations.extend(other.original_equations)
         self.applied_DS_steps.update(other.applied_DS_steps)
         self.factored_operands.update(other.factored_operands)
         self.update_cost(other.accumulated_cost, other.optimal_path_predecessor)

@@ -23,7 +23,7 @@ class ExpressionGraphBase(base.GraphBase):
             new_node = ExpressionGraphNode(expression, predecessor)
             self.nodes.append(new_node)
             new_nodes.append(new_node)
-            predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels))
+            predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), None)
         return new_nodes
 
 

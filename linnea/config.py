@@ -76,7 +76,7 @@ merging_branches = False
 dead_ends = False
 algorithms_limit = -1
 generate_graph = False
-generate_pseudocode = False
+generate_derivation = False
 generate_code = False
 generate_experiments = False
 strategy = None
@@ -167,9 +167,9 @@ def set_output_path(path):
     if not os.path.exists(output_path):
         raise DirectoryDoesNotExist(output_path)
 
-def set_generate_pseudocode(generate):
-    global generate_pseudocode
-    generate_pseudocode = generate
+def set_generate_derivation(generate):
+    global generate_derivation
+    generate_derivation = generate
 
 def set_generate_code(generate):
     global generate_code
@@ -226,7 +226,7 @@ set_merging_branches(True)
 set_dead_ends(True)
 set_algorithms_limit(100)
 set_generate_graph(False)
-set_generate_pseudocode(False)
+set_generate_derivation(False)
 set_generate_code(True)
 set_generate_experiments(False)
 set_strategy(Strategy.constructive)

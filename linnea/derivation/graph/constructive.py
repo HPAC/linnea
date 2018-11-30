@@ -196,10 +196,10 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
             transformed = self.TR_kernels(node.equations)
 
-            for equations, edge_label in transformed:
+            for equations, edge_label, original_equations in transformed:
                 equations = equations.remove_identities()
 
-                new_nodes.extend(self.create_nodes(node, (equations, edge_label)))
+                new_nodes.extend(self.create_nodes(node, (equations, edge_label, original_equations)))
 
             # Active node stops being active.
             # If no transformations were applied, it's a dead end.

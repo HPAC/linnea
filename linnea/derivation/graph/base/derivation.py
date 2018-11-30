@@ -59,15 +59,15 @@ class DerivationGraphBase(base.GraphBase):
         if factored_operands:
             _factored_operands = _factored_operands.union(factored_operands)
 
-        for equations, matched_kernels in description:
+        for equations, matched_kernels, original_equations in description:
             new_node = DerivationGraphNode(equations, predecessor, _factored_operands.copy())
             self.nodes.append(new_node)
             new_nodes.append(new_node)
-            predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels))
+            predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
         return new_nodes
 
 
-    def write_output(self, code=True, pseudocode=False, output_name="tmp", experiment_code=False, algorithms_limit=1, graph=False, graph_style=config.GraphStyle.full, subdir_name="generated", algorithm_name="algorithm{}"):
+    def write_output(self, code=True, derivation=False, output_name="tmp", experiment_code=False, algorithms_limit=1, graph=False, graph_style=config.GraphStyle.full, subdir_name="generated", algorithm_name="algorithm{}"):
 
         if not config.output_path:
             raise config.OutputPathNotSet("Unable to write output: output_path not set.")
@@ -85,7 +85,7 @@ class DerivationGraphBase(base.GraphBase):
         #    print("No algorithm generated for this example")
         #    return False
 
-        if code or pseudocode or experiment_code:
+        if code or derivation or experiment_code:
             directory_name = os.path.join(config.output_path, output_name)
             if not os.path.exists(directory_name):
                 os.makedirs(directory_name)
@@ -93,31 +93,32 @@ class DerivationGraphBase(base.GraphBase):
                 # Removing existing algorithm files
                 algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name)
                 cgu.remove_files(algorithms_dir_name)
-                pseudocode_dir_name = os.path.join(directory_name, config.language.name, "pseudocode")
-                cgu.remove_files(pseudocode_dir_name)
+                derivation_dir_name = os.path.join(directory_name, config.language.name, "derivation")
+                cgu.remove_files(derivation_dir_name)
 
-        if code or pseudocode:
+        if code or derivation:
             for n, (path, cost) in enumerate(paths):
             
-                matched_kernels = []
+                kernels_and_equations = []
                 current_node = self.root
                 for idx in path:
                     edge_label = current_node.edge_labels[idx]
-                    matched_kernels.extend(edge_label.matched_kernels)
+                    kernels_and_equations.append(current_node.original_equations[idx])
+                    kernels_and_equations.extend(edge_label.matched_kernels)
                     current_node = current_node.successors[idx]
 
-                algorithm = cgu.Algorithm(self.input, current_node.equations, matched_kernels, cost)
+                algorithm = cgu.Algorithm(self.input, current_node.equations, kernels_and_equations, cost)
 
                 if code:
                     cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
 
-                if pseudocode:
-                    file_name = os.path.join(config.output_path, output_name, config.language.name, "pseudocode", "algorithm{}.txt".format(n))
+                if derivation:
+                    file_name = os.path.join(config.output_path, output_name, config.language.name, "derivation", "algorithm{}.txt".format(n))
                     directory_name = os.path.dirname(file_name)
                     if not os.path.exists(directory_name):
                         os.makedirs(directory_name)
                     output_file = open(file_name, "wt")
-                    output_file.write(algorithm.pseudocode())
+                    output_file.write(algorithm.derivation())
                     output_file.close()
 
         if experiment_code:
@@ -272,7 +273,7 @@ class DerivationGraphBase(base.GraphBase):
 
         temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
         
-        return [(equations_copy, matched_kernels)]
+        return [(equations_copy, matched_kernels, equations)]
 
 
     def TR_addition(self, equations, eqn_idx, initial_pos):
@@ -286,7 +287,7 @@ class DerivationGraphBase(base.GraphBase):
         equations_copy = equations.set(eqn_idx, new_equation)
         equations_copy = equations_copy.to_normalform()
 
-        return [(equations_copy, matched_kernels)]
+        return [(equations_copy, matched_kernels, equations)]
 
 
     def TR_CSE_replacement(self, equations):
@@ -294,7 +295,7 @@ class DerivationGraphBase(base.GraphBase):
         transformed_expressions = []
 
         for new_equations in CSEs.find_CSEs(equations):
-            transformed_expressions.append((new_equations, ()))
+            transformed_expressions.append((new_equations, (), equations))
 
         return transformed_expressions
 
@@ -322,7 +323,7 @@ class DerivationGraphBase(base.GraphBase):
                 equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))
                 equations_copy = equations_copy.to_normalform()
 
-                transformed_expressions.append((equations_copy, (matched_kernel,)))
+                transformed_expressions.append((equations_copy, (matched_kernel,), equations))
 
         return transformed_expressions
 
@@ -487,7 +488,7 @@ class DerivationGraphBase(base.GraphBase):
                 equations_copy.set_equivalent(equations)
                 equations_copy = equations_copy.to_SOP().simplify()
 
-                transformed_expressions.append((equations_copy, matched_kernels))
+                transformed_expressions.append((equations_copy, matched_kernels, equations))
 
 
         return transformed_expressions, found_symbol_occurrence

@@ -21,7 +21,7 @@ if __name__ == "__main__":
                      dead_ends=True)
 
     graph.write_output(code=True,
-                       pseudocode=False,
+                       derivation=False,
                        output_name="tmp",
                        experiment_code=False,
                        algorithms_limit=100,

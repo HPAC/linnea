@@ -49,7 +49,7 @@ def measure(example, name, strategy, merge, reps=10):
                             merging=merge,
                             dead_ends=True)
         graph.write_output(code=True,
-                           pseudocode=False,
+                           derivation=False,
                            output_name=name,
                            experiment_code=False,
                            algorithms_limit=1,
@@ -89,7 +89,7 @@ def generate(example, name, strategy):
                         merging=True,
                         dead_ends=True)
     graph.write_output(code=True,
-                       pseudocode=False,
+                       derivation=False,
                        output_name=name,
                        experiment_code=False,
                        algorithms_limit=1,

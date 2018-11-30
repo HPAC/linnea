@@ -33,8 +33,8 @@ class Algorithm():
             dervation. They only consist of quations of the form
             Symbol = Symbol. Is used for the mapping of temporaries to output
             operands.
-        matched_kernels (list): List of MatchedKernel objects, representing the
-            operations of the algorithm.
+        kernels_and_equations (list): List of MatchedKernel and Equation
+            objects, representing the algorithm (and its derivation).
         cost (int): The cost of the entire algorithm.
         memory (Memory): A Memory object, which is used to translate the
             algorithm to code.
@@ -49,12 +49,13 @@ class Algorithm():
             may be generated multiple times even though they are only needed
             once, such as definitions of constant arguments.
     """
-    def __init__(self, initial_equations, final_equations, matched_kernels, cost):
+    def __init__(self, initial_equations, final_equations, kernels_and_equations, cost):
 
         # super(Algorithm, self).__init__()
         self.initial_equations = initial_equations
         self.final_equations = final_equations
-        self.matched_kernels = matched_kernels
+        self.matched_kernels = [keq for keq in kernels_and_equations if isinstance(keq, MatchedKernel)]
+        self.kernels_and_equations = kernels_and_equations
         self.cost = cost
 
         self.memory = None
@@ -260,7 +261,7 @@ class Algorithm():
         return "".join(lines_list)
 
 
-    def _matched_kernel_to_pseudocode(self, matched_kernel):
+    def _matched_kernel_to_derivation(self, matched_kernel):
         """Generates pseudocode for a signle MatchedKernel objects.
 
         Args:
@@ -273,24 +274,27 @@ class Algorithm():
         Returns:
             string: Pseudocode.
         """
-        return "{0:<30}# {1:.3g}\n".format(str(matched_kernel.operation), matched_kernel.cost)
+        return "{0:<30}# {1:.3g}".format(str(matched_kernel.operation), matched_kernel.cost)
 
-    def pseudocode(self):
-        """Translated the algorithm to pseudocode.
+    def derivation(self):
+        """Generates a description of how the algorithm was found.
         
         Returns:
-            string: Pseudocode.
+            string: Derivation.
         """
         code_list = []
 
-        code_list.append("# cost {:.3g}\n".format(self.cost))
+        code_list.append("# cost {:.3g}".format(self.cost))
 
-        for matched_kernel in self.matched_kernels:
-            code_list.append(self._matched_kernel_to_pseudocode(matched_kernel))
+        for kernel_or_equations in self.kernels_and_equations:
+            if isinstance(kernel_or_equations, MatchedKernel):
+                code_list.append(self._matched_kernel_to_derivation(kernel_or_equations))
+            else:
+                code_list.append(str(kernel_or_equations))
 
         code_list.append(str(self.final_equations))
 
-        return "".join(code_list)
+        return "\n\n".join(code_list)
 
     def remove_duplicate_lines(self, lines, known_lines):
         """Removes all strings from lines that are in known_lines.
