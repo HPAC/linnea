@@ -14,20 +14,22 @@ def load_config():
         with open(config_file) as jsonfile:
             data = json.load(jsonfile)
 
-            data_time = dict()
-            for key, value in data["time"].items():
-                if key == "exclusive":
-                    if value:
-                        data_time["exclusive"] = "#BSUB -x                     # exclusive access"
-                    else:
-                        data_time["exclusive"] = ""
+            data_time = data['time']
+            data_generate = data['generate']
+
+            if 'exclusive' in data_time.keys():
+                if data_time['exclusive']:
+                    data_time['exclusive'] = '#BSUB -x                     # exclusive access'
                 else:
-                    data_time[key] = value
+                    data_time['exclusive'] = ''
     else:
         print("'jobscripts/config.json' not found.")
         exit()
 
-    return data["generate"], data_time
+    data_time = {**data_time, **data['path']}
+    data_generate = {**data_generate, **data['path']}
+
+    return data_generate, data_time
 
 def time_generation_script(replacement):
 

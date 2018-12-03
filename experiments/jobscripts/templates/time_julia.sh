@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #BSUB -J "linnea_time_julia[1-{jobs}]" # job name
-#BSUB -o "linnea/results/{name}/execution/julia/cout.txt" # job output
+#BSUB -o "{linnea_results_path}/{name}/execution/julia/cout.txt" # job output
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB
 #BSUB -P {group}
@@ -10,14 +10,14 @@
 
 module load gcc/7
 
-cd ${{HOME}}/linnea/results/
+cd {linnea_results_path}/
 mkdir -p {name}/execution/julia
 cd {name}/execution/julia
 
-runner=$(printf "${{HOME}}/linnea/output/{name}%03d/Julia/runner.jl" $LSB_JOBINDEX)
+runner=$(printf "{linnea_code_path}/{name}%03d/Julia/runner.jl" $LSB_JOBINDEX)
 
 if [ -f $runner ]; then
-    {julia_path} $runner
+    {linnea_julia_path}/julia $runner
 else
     echo "File not found: $runner"
 fi
