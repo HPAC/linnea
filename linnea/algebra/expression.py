@@ -751,13 +751,13 @@ class LinSolveL(Operator):
             raise NotImplementedError()
 
     def to_matlab_expression(self, recommended=False):
-        return "({0}\{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
+        return "(({0})\{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
 
     def to_julia_expression(self, recommended=False):
-        return "({0}\{1})".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+        return "(({0})\{1})".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
 
     def __str__(self):
-        return "({0}\{1})".format(*self.operands)
+        return "(({0})\{1})".format(*self.operands)
 
 
 class LinSolveR(Operator):
@@ -795,13 +795,13 @@ class LinSolveR(Operator):
         NotImplementedError()
 
     def to_matlab_expression(self, recommended=False):
-        return "({0}/{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
+        return "({0}/({1}))".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
 
     def to_julia_expression(self, recommended=False):
-        return "({0}/{1})".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+        return "({0}/({1}))".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
 
     def __str__(self):
-        return "({0}/{1})".format(*self.operands)
+        return "({0}/({1}))".format(*self.operands)
 
 
 class Identity(Operator):
