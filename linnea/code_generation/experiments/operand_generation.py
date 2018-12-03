@@ -96,9 +96,11 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
 
         property_replacements = []
         for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR,
-                     properties.UPPER_TRIANGULAR, properties.SPD, properties.SPSD, properties.ORTHOGONAL]:
+                     properties.UPPER_TRIANGULAR, properties.ORTHOGONAL]:
             if prop in operand.properties:
                 property_replacements.append(map_operand(language, prop))
+        if properties.SPD in operand.properties or properties.SPSD in operand.properties:
+            property_replacements.append(map_operand(language, properties.SPD))
         if not any((prop in operand.properties) for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR, properties.UPPER_TRIANGULAR]):
             if language == config.Language.Julia:
                 property_replacements.append("Shape.General")
