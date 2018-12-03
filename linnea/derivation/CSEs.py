@@ -873,26 +873,6 @@ if __name__ == "__main__":
     # from linnea.derivation.graph.matrix_chain_derivation import DerivationGraph
 
     import linnea.examples.examples
-    import linnea.examples.lamp_paper.examples
-
-    # example = linnea.examples.lamp_paper.examples.Common_Subexpr_7_2_3()
-    # example = linnea.examples.lamp_paper.examples.Overlap_Common_Subexpr_7_2_4()
-    # example = linnea.examples.lamp_paper.examples.Matrix_Chain_7_2_6()
-    # example = linnea.examples.lamp_paper.examples.Generalized_LeastSquares_7_1_3()
-    # example = linnea.examples.lamp_paper.examples.Rewrite_Distributivity_7_2_5_1()
-    # example = linnea.examples.lamp_paper.examples.LMMSE_7_1_2() # TODO exhaustive: eigen trick is not applied?
-    # example = linnea.examples.lamp_paper.examples.LeastSquares_7_1_1()
-    # example = linnea.examples.lamp_paper.examples.Simplification_7_2_12()
-    # example = linnea.examples.lamp_paper.examples.Simplification_7_2_11()
-    # example = linnea.examples.lamp_paper.examples.Tikhonov_7_1_14() # TODO exhaustive: eigen trick is not applied because of dead ends?
-    # example = linnea.examples.lamp_paper.examples.EnsembleKalmanFilter_7_1_9_1() # large number of solutions
-    # example = linnea.examples.lamp_paper.examples.EnsembleKalmanFilter_7_1_9_2()
-    # example = linnea.examples.lamp_paper.examples.Common_Subexpr_7_2_2()
-    # example = linnea.examples.lamp_paper.examples.CDMA_7_1_15() # set_equivalent_upwards makes a big difference for number of nodes here
-    # example = linnea.examples.lamp_paper.examples.Local_Assimilation_Kalman_7_1_7() # TODO problem with storage format (constructive)
-    # example = linnea.examples.lamp_paper.examples.ImageRestoration_7_1_13_1() # TODO POS problem? CSE problem
-    # example = linnea.examples.lamp_paper.examples.ImageRestoration_7_1_13_2() 
-    # example = linnea.examples.lamp_paper.examples.ImageRestoration_7_1_13_2(single=True) # all_algorithms is expensive here with exhaustive and dead_ends=False
 
     # CSE example
 
