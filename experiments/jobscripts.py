@@ -26,6 +26,8 @@ def load_config():
         print("'config.json' not found.")
         exit()
 
+    data['path'] = {k: os.path.expandvars(v) for k, v in data['path'].items()}
+
     data_time = {**data_time, **data['path']}
     data_generate = {**data_generate, **data['path']}
 

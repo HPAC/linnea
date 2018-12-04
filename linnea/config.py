@@ -249,7 +249,7 @@ def load_config():
             # print(json.load(jsonfile).items())
             data = json.load(jsonfile)
             data_main = data['main']
-            data_path = data['path']
+            data_path = {k: os.path.expandvars(v) for k, v in data['path'].items()}
             for key, value in {**data_main, **data_path}.items():
                 if key == 'language':
                     set_language(Language[value])
