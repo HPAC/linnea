@@ -16,6 +16,6 @@ source {linnea_virtualenv_path}/bin/activate
 cd {linnea_results_path}
 mkdir -p {name}/generation/{strategy_name}
 cd {name}/generation/{strategy_name}
-python3 {linnea_src_path}/linnea/experiments/experiments.py time_generation {name} -j=$LSB_JOBINDEX -r=1 -{strategy} -m={merging}
+python3 {linnea_src_path}/experiments/experiments.py time_generation {name} -j=$LSB_JOBINDEX -r=1 -{strategy} -m={merging}
 
 exit

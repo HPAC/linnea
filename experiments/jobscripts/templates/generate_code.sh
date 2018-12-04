@@ -11,7 +11,7 @@
 module load python/3.6.0
 
 source {linnea_virtualenv_path}/bin/activate
-python3 {linnea_src_path}/linnea/experiments/experiments.py generate_code {name} -j=$LSB_JOBINDEX -{strategy}
+python3 {linnea_src_path}/experiments/experiments.py generate_code {name} -j=$LSB_JOBINDEX -{strategy}
 
 if {compile}; then
     module load cmake/3.10.1
