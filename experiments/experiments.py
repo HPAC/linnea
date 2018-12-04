@@ -2,8 +2,6 @@ import pandas as pd
 import time
 import numpy
 import itertools
-import sys
-import math
 import argparse
 import collections
 import random
@@ -19,7 +17,6 @@ import linnea.examples.PLDI as PLDI
 from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
 from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 from linnea.code_generation.experiments import operand_generation, runner, reference_code
-from linnea.code_generation import utils as cgu
 
 from random_expressions import generate_equation
 from jobscripts import generate_scripts

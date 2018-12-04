@@ -1,37 +1,8 @@
 import pkg_resources
-import json
 import os.path
 import os
 import itertools
-
-# this causes a problem because it tries to read the config.json in the current directory.
-# from linnea.config import Strategy
-
-def load_config():
-
-    config_file = "jobscripts/config.json"
-    if os.path.exists(config_file):
-        with open(config_file) as jsonfile:
-            data = json.load(jsonfile)
-
-            data_time = data['experiments']['time']
-            data_generate = data['experiments']['generate']
-
-            if 'exclusive' in data_time.keys():
-                if data_time['exclusive']:
-                    data_time['exclusive'] = '#BSUB -x                     # exclusive access'
-                else:
-                    data_time['exclusive'] = ''
-    else:
-        print("'config.json' not found.")
-        exit()
-
-    data['path'] = {k: os.path.expandvars(v) for k, v in data['path'].items()}
-
-    data_time = {**data_time, **data['path']}
-    data_generate = {**data_generate, **data['path']}
-
-    return data_generate, data_time
+import linnea.config
 
 def time_generation_script(replacement):
 
@@ -107,20 +78,19 @@ def generate_code_scripts(replacement):
 
 def generate_scripts(experiment, number_of_experiments):
 
-    replacement_generate, replacement_time = load_config()
+    conf_main, conf_experiments = linnea.config.load_config()
 
-    replacement_generate["jobs"] = number_of_experiments
-    replacement_time["jobs"] = number_of_experiments
-    replacement_generate["name"] = experiment
-    replacement_time["name"] = experiment
+    for k in conf_experiments.keys():
+        conf_experiments[k]['jobs'] = number_of_experiments
+        conf_experiments[k]['name'] = experiment
 
-    dirname = "{}/{}/".format(replacement_generate['linnea_jobscripts_path'], experiment)
+    dirname = "{}/{}/".format(conf_main['linnea_jobscripts_path'], experiment)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    time_generation_script(replacement_time)
-    time_execution_scripts(replacement_time)
-    generate_code_scripts(replacement_generate)
+    time_generation_script(conf_experiments['time'])
+    time_execution_scripts(conf_experiments['time'])
+    generate_code_scripts(conf_experiments['generate'])
 
 
 if __name__ == '__main__':

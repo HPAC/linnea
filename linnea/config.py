@@ -4,7 +4,8 @@ import os.path
 import json
 import math
 
-_CONFIG_FILE = 'config.json'
+_LOCAL_CONFIG_FILE = 'config.json'
+_GLOBAL_CONFIG_FILE = os.path.expandvars('$HOME/.linnea.config.json')
 
 class LanguageNotSet(Exception):
     pass
@@ -163,7 +164,7 @@ def set_output_name(name):
 
 def set_output_path(path):
     global output_path
-    output_path = os.path.abspath(os.path.expanduser(path))
+    output_path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
     if not os.path.exists(output_path):
         raise DirectoryDoesNotExist(output_path)
 
@@ -240,17 +241,29 @@ set_graph_style(GraphStyle.full)
 
 
 def load_config():
-    if os.path.exists(_CONFIG_FILE):
-        # print(os.getcwd())
-        # print(os.path.dirname(os.path.abspath(_CONFIG_FILE)))
-        with open(_CONFIG_FILE) as jsonfile:
+
+    config_file= ''
+    if os.path.exists(_LOCAL_CONFIG_FILE):
+        config_file= _LOCAL_CONFIG_FILE
+    elif os.path.exists(_GLOBAL_CONFIG_FILE):
+        config_file = _GLOBAL_CONFIG_FILE
+
+    if config_file:
+        with open(config_file) as jsonfile:
             settings = globals()
-            # print(json.load(jsonfile))
-            # print(json.load(jsonfile).items())
-            data = json.load(jsonfile)
-            data_main = data['main']
-            data_path = {k: os.path.expandvars(v) for k, v in data['path'].items()}
-            for key, value in {**data_main, **data_path}.items():
+
+            configuration = json.load(jsonfile)
+
+            # make sure all paths are properly expanded
+            configuration['path'] = {k: os.path.expandvars(v) for k, v in configuration['path'].items()}
+
+            # create a configuration dictionary for normal use and the experiments
+            configuration['main'] = {**configuration['main'], **configuration['path']}
+            configuration['experiments']['time'] = {**configuration['experiments']['time'], **configuration['path']}
+            configuration['experiments']['generate'] = {**configuration['experiments']['generate'], **configuration['path']}
+
+            # set up configuration for normal use
+            for key, value in configuration['main'].items():
                 if key == 'language':
                     set_language(Language[value])
                 elif key == 'c_data_type':
@@ -271,5 +284,15 @@ def load_config():
                     settings[key] = value
                 else:
                     raise KeyError('Unknown setting: {}'.format(key))
+
+            # set up configuration for experiments
+            if 'exclusive' in configuration['experiments']['time'].keys():
+                if configuration['experiments']['time']['exclusive']:
+                    configuration['experiments']['time']['exclusive'] = '#BSUB -x                     # exclusive access'
+                else:
+                    configuration['experiments']['time']['exclusive'] = ''
+
+            return configuration['main'], configuration['experiments']
+
 
 load_config()
