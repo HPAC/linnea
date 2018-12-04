@@ -25,21 +25,6 @@ class LanguageOptionNotImplemented(Exception):
 class DirectoryDoesNotExist(Exception):
     pass
 
-c = False
-julia = False
-matlab = False
-
-float = False
-double = False
-
-float32 = False
-float64 = False
-
-data_type_string = None
-blas_data_type_prefix = None
-filename_extension = None
-comment = None
-
 class CDataType(enum.Enum):
     float = 0
     double = 1
@@ -70,6 +55,21 @@ class GraphStyle(enum.Enum):
 
 # defining variables
 
+c = False
+julia = False
+matlab = False
+
+float = False
+double = False
+
+float32 = False
+float64 = False
+
+data_type_string = None
+blas_data_type_prefix = None
+filename_extension = None
+comment = None
+
 language = None
 output_path = None
 output_name = None
@@ -86,16 +86,15 @@ solution_nodes_limit = -1
 iteration_limit = -1
 graph_style = None
 experiment_configuration = dict()
-linnea_install_path = '$HOME/Linnea'
-linnea_src_path = '$HOME/Linnea/src/linnea'
-linnea_lib_path = '$HOME/Linnea/lib'
-linnea_output_path = '$HOME/Linnea/output'
-linnea_results_path = '$HOME/Linnea/output/results'
-linnea_jobscripts_path = '$HOME/Linnea/output/jobscripts'
-linnea_code_path = '$HOME/Linnea/output/code'
-linnea_virtualenv_path = '$HOME/Linnea/linnea.venv'
-linnea_julia_path = '$HOME/Linnea/src/julia'
-linnea_job_log_path = '$HOME/Linnea/output/job_logs'
+
+linnea_src_path = None
+linnea_lib_path = None
+linnea_output_path = None
+linnea_results_path = None
+linnea_jobscripts_path = None
+linnea_code_path = None
+linnea_virtualenv_path = None
+linnea_julia_path = None
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -174,10 +173,11 @@ def set_output_name(name):
     output_name = name
 
 def set_output_path(path):
+    print("WARNING: variable 'output_path' is deprecated. Please use 'linnea_code_path' to specify the code output dir.")
     global output_path
-    output_path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+    global linnea_code_path
+    output_path = create_path(path)
+    linnea_code_path = create_path(path)
 
 def set_generate_derivation(generate):
     global generate_derivation
@@ -229,6 +229,54 @@ def clear_all():
     temporaries.clear()
     partitioning.clear()
 
+def create_path(path):
+
+    path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+def check_path(path):
+
+    path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
+    if not os.path.exists(path):
+        raise DirectoryDoesNotExist
+    else:
+        return path
+
+def set_linnea_src_path(path):
+    global linnea_src_path
+    linnea_src_path = check_path(path)
+
+def set_linnea_lib_path(path):
+    global linnea_lib_path
+    linnea_lib_path = check_path(path)
+
+def set_linnea_virtualenv_path(path):
+    global linnea_virtualenv_path
+    linnea_virtualenv_path = check_path(path)
+
+def set_linnea_julia_path(path):
+    global linnea_julia_path
+    linnea_julia_path = check_path(path)
+
+def set_linnea_output_path(path):
+    global linnea_output_path
+    linnea_output_path = create_path(path)
+
+def set_linnea_results_path(path):
+    global linnea_results_path
+    linnea_results_path = create_path(path)
+
+def set_linnea_jobscripts_path(path):
+    global linnea_jobscripts_path
+    linnea_jobscripts_path = create_path(path)
+
+def set_linnea_code_path(path):
+    global output_path
+    global linnea_code_path
+    linnea_code_path = create_path(path)
+    output_path = create_path(path)
 
 # setting default values
 
@@ -248,6 +296,14 @@ set_solution_nodes_limit(math.inf)
 set_iteration_limit(100)
 set_graph_style(GraphStyle.full)
 
+set_linnea_src_path('$HOME/Linnea/src/linnea')
+set_linnea_lib_path('$HOME/Linnea/lib')
+set_linnea_output_path('$HOME/Linnea/output')
+set_linnea_results_path('$HOME/Linnea/output/results')
+set_linnea_jobscripts_path('$HOME/Linnea/output/jobscripts')
+set_linnea_code_path('.')
+set_linnea_virtualenv_path('$HOME/Linnea/linnea.venv')
+set_linnea_julia_path('$HOME/Linnea/src/julia')
 
 def load_config():
 
@@ -264,14 +320,6 @@ def load_config():
 
             configuration = json.load(jsonfile)
 
-            # make sure all paths are properly expanded
-            configuration['path'] = {k: os.path.expandvars(v) for k, v in configuration['path'].items()}
-
-            # create a configuration dictionary for normal use and the experiments
-            configuration['main'] = {**configuration['main'], **configuration['path']}
-            configuration['experiments']['time'] = {**configuration['experiments']['time'], **configuration['path']}
-            configuration['experiments']['generate'] = {**configuration['experiments']['generate'], **configuration['path']}
-
             # set up configuration for normal use
             for key, value in configuration['main'].items():
                 if key == 'language':
@@ -282,8 +330,24 @@ def load_config():
                     set_data_type(JuliaDataType[value])
                 elif key == 'strategy':
                     set_strategy(Strategy[value])
-                elif key == 'linnea_code_path':
+                elif key == 'output_path':
                     set_output_path(value)
+                elif key == 'linnea_src_path':
+                    set_linnea_src_path(value)
+                elif key == 'linnea_lib_path':
+                    set_linnea_lib_path(value)
+                elif key == 'linnea_output_path':
+                    set_linnea_output_path(value)
+                elif key == 'linnea_results_path':
+                    set_linnea_results_path(value)
+                elif key == 'linnea_jobscripts_path':
+                    set_linnea_jobscripts_path(value)
+                elif key == 'linnea_code_path':
+                    set_linnea_code_path(value)
+                elif key == 'linnea_virtualenv_path':
+                    set_linnea_virtualenv_path(value)
+                elif key == 'linnea_julia_path':
+                    set_linnea_julia_path(value)
                 elif key == 'solution_nodes_limit':
                     set_solution_nodes_limit(value)
                 elif key == 'iteration_limit':
@@ -296,7 +360,10 @@ def load_config():
                     error_msg = 'Unknown setting: {}'.format(key)
                     raise KeyError(error_msg)
 
-            # set up configuration for experiments
+            # create a configuration dictionaries for experiments
+            configuration['experiments']['time'] = {**configuration['main'], **configuration['experiments']['time']}
+            configuration['experiments']['generate'] = {**configuration['main'], **configuration['experiments']['generate']}
+
             if 'exclusive' in configuration['experiments']['time'].keys():
                 if configuration['experiments']['time']['exclusive']:
                     configuration['experiments']['time']['exclusive'] = '#BSUB -x                     # exclusive access'
