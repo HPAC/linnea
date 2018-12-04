@@ -24,7 +24,7 @@ if {compile}; then
     mkdir -p build
     cd build
     rm -rf *
-    cmake -DCMAKE_PREFIX_PATH={linnea_lib_path}/MatrixGeneratorCpp/ ..
+    cmake -DCMAKE_PREFIX_PATH={linnea_lib_path}/ ..
     make
 fi
 
