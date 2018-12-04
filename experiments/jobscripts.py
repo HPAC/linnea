@@ -14,8 +14,8 @@ def load_config():
         with open(config_file) as jsonfile:
             data = json.load(jsonfile)
 
-            data_time = data['time']
-            data_generate = data['generate']
+            data_time = data['experiments']['time']
+            data_generate = data['experiments']['generate']
 
             if 'exclusive' in data_time.keys():
                 if data_time['exclusive']:
@@ -23,7 +23,7 @@ def load_config():
                 else:
                     data_time['exclusive'] = ''
     else:
-        print("'jobscripts/config.json' not found.")
+        print("'config.json' not found.")
         exit()
 
     data_time = {**data_time, **data['path']}
@@ -62,7 +62,8 @@ def time_generation_script(replacement):
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
-        file_name = "jobscripts/{}/{}.sh".format(replacement_copy["name"], "_".join(file_name_parts))
+        file_name = "{}/{}/{}.sh".format(replacement_copy['linnea_jobscripts_path'], replacement_copy["name"],
+                                         "_".join(file_name_parts))
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
@@ -74,7 +75,7 @@ def time_execution_scripts(replacement):
         template_path = "jobscripts/templates/time_{}.sh".format(language)
         template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-        file_name = "jobscripts/{}/time_{}.sh".format(replacement["name"], language)
+        file_name = "{}/{}/time_{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], language)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement))
@@ -95,7 +96,8 @@ def generate_code_scripts(replacement):
         else:
             replacement_copy["compile"] = "false"
 
-        file_name = "jobscripts/{}/generate_code_{}.sh".format(replacement_copy["name"], strategy)
+        file_name = "{}/{}/generate_code_{}.sh".format(replacement_copy['linnea_jobscripts_path'],
+                                                       replacement_copy["name"], strategy)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
@@ -110,7 +112,7 @@ def generate_scripts(experiment, number_of_experiments):
     replacement_generate["name"] = experiment
     replacement_time["name"] = experiment
 
-    dirname = "jobscripts/{}/".format(experiment)
+    dirname = "{}/{}/".format(replacement_generate['linnea_jobscripts_path'], experiment)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 

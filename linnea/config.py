@@ -247,7 +247,10 @@ def load_config():
             settings = globals()
             # print(json.load(jsonfile))
             # print(json.load(jsonfile).items())
-            for key, value in json.load(jsonfile).items():
+            data = json.load(jsonfile)
+            data_main = data['main']
+            data_path = data['path']
+            for key, value in {**data_main, **data_path}.items():
                 if key == 'language':
                     set_language(Language[value])
                 elif key == 'c_data_type':
@@ -256,13 +259,13 @@ def load_config():
                     set_data_type(JuliaDataType[value])
                 elif key == 'strategy':
                     set_strategy(Strategy[value])
-                elif key == "output_path":
+                elif key == 'linnea_code_path':
                     set_output_path(value)
-                elif key == "solution_nodes_limit":
+                elif key == 'solution_nodes_limit':
                     set_solution_nodes_limit(value)
-                elif key == "iteration_limit":
+                elif key == 'iteration_limit':
                     set_iteration_limit(value)
-                elif key == "graph_style":
+                elif key == 'graph_style':
                     set_graph_style(GraphStyle[value])
                 elif key in settings and not key.startswith('_'):
                     settings[key] = value

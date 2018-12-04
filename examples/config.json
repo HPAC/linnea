@@ -1,5 +1,6 @@
 {
-    "output_path": ".",
+  "main":
+  {
     "language": "Julia",
     "julia_data_type": "Float64",  
     "merging_branches": true,
@@ -13,4 +14,18 @@
     "generate_experiments": false,
     "verbosity": 1,
     "graph_style": "full"
+  },
+    "path":
+    {
+        "linnea_install_path":      "$HOME/Linnea",
+        "linnea_src_path":          "$HOME/Linnea/src/linnea",
+        "linnea_lib_path":          "$HOME/Linnea/lib",
+        "linnea_output_path":       "$HOME/Linnea/output",
+        "linnea_results_path":      "$HOME/Linnea/output/results",
+        "linnea_jobscripts_path":   "$HOME/Linnea/output/jobscripts",
+        "linnea_code_path":         "$HOME/Linnea/output/code",
+        "linnea_virtualenv_path":   "$HOME/Linnea/linnea.venv",
+        "linnea_julia_path":        "$HOME/Linnea/src/julia",
+        "linnea_job_log_path":      "$HOME/Linnea/output/job_logs"
+    }
 }
