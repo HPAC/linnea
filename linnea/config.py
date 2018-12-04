@@ -85,6 +85,17 @@ verbosity = -1
 solution_nodes_limit = -1
 iteration_limit = -1
 graph_style = None
+experiment_configuration = dict()
+linnea_install_path = '$HOME/Linnea'
+linnea_src_path = '$HOME/Linnea/src/linnea'
+linnea_lib_path = '$HOME/Linnea/lib'
+linnea_output_path = '$HOME/Linnea/output'
+linnea_results_path = '$HOME/Linnea/output/results'
+linnea_jobscripts_path = '$HOME/Linnea/output/jobscripts'
+linnea_code_path = '$HOME/Linnea/output/code'
+linnea_virtualenv_path = '$HOME/Linnea/linnea.venv'
+linnea_julia_path = '$HOME/Linnea/src/julia'
+linnea_job_log_path = '$HOME/Linnea/output/job_logs'
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -166,7 +177,7 @@ def set_output_path(path):
     global output_path
     output_path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
     if not os.path.exists(output_path):
-        raise DirectoryDoesNotExist(output_path)
+        os.makedirs(output_path)
 
 def set_generate_derivation(generate):
     global generate_derivation
@@ -231,9 +242,7 @@ set_generate_derivation(False)
 set_generate_code(True)
 set_generate_experiments(False)
 set_strategy(Strategy.constructive)
-set_output_path(".")
-# the default for output_name is the name of the input file, which is not know here
-# output_name = None
+set_output_path('.')
 set_verbosity(1)
 set_solution_nodes_limit(math.inf)
 set_iteration_limit(100)
@@ -242,6 +251,7 @@ set_graph_style(GraphStyle.full)
 
 def load_config():
 
+    global experiment_configuration
     config_file= ''
     if os.path.exists(_LOCAL_CONFIG_FILE):
         config_file= _LOCAL_CONFIG_FILE
@@ -283,7 +293,8 @@ def load_config():
                 elif key in settings and not key.startswith('_'):
                     settings[key] = value
                 else:
-                    raise KeyError('Unknown setting: {}'.format(key))
+                    error_msg = 'Unknown setting: {}'.format(key)
+                    raise KeyError(error_msg)
 
             # set up configuration for experiments
             if 'exclusive' in configuration['experiments']['time'].keys():
@@ -292,7 +303,6 @@ def load_config():
                 else:
                     configuration['experiments']['time']['exclusive'] = ''
 
-            return configuration['main'], configuration['experiments']
-
+            experiment_configuration = configuration['experiments']
 
 load_config()

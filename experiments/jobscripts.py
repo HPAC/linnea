@@ -2,7 +2,7 @@ import pkg_resources
 import os.path
 import os
 import itertools
-import linnea.config
+from linnea import config
 
 def time_generation_script(replacement):
 
@@ -78,19 +78,19 @@ def generate_code_scripts(replacement):
 
 def generate_scripts(experiment, number_of_experiments):
 
-    conf_main, conf_experiments = linnea.config.load_config()
+    experiment_configuration = config.experiment_configuration
 
-    for k in conf_experiments.keys():
-        conf_experiments[k]['jobs'] = number_of_experiments
-        conf_experiments[k]['name'] = experiment
+    for k in experiment_configuration.keys():
+        experiment_configuration[k]['jobs'] = number_of_experiments
+        experiment_configuration[k]['name'] = experiment
 
-    dirname = "{}/{}/".format(conf_main['linnea_jobscripts_path'], experiment)
+    dirname = "{}/{}/".format(experiment_configuration['time']['linnea_jobscripts_path'], experiment)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    time_generation_script(conf_experiments['time'])
-    time_execution_scripts(conf_experiments['time'])
-    generate_code_scripts(conf_experiments['generate'])
+    time_generation_script(experiment_configuration['time'])
+    time_execution_scripts(experiment_configuration['time'])
+    generate_code_scripts(experiment_configuration['generate'])
 
 
 if __name__ == '__main__':
