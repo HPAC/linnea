@@ -20,7 +20,7 @@ if {compile}; then
 
     expname=$(printf "{name}%03d" $LSB_JOBINDEX)
 
-    cd {linnea_code_path}/${{expname}}/Cpp
+    cd {output_code_path}/${{expname}}/Cpp
     mkdir -p build
     cd build
     rm -rf *

@@ -14,7 +14,7 @@ cd {linnea_results_path}/
 mkdir -p {name}/execution/julia
 cd {name}/execution/julia
 
-runner=$(printf "{linnea_code_path}/{name}%03d/Julia/runner.jl" $LSB_JOBINDEX)
+runner=$(printf "{output_code_path}/{name}%03d/Julia/runner.jl" $LSB_JOBINDEX)
 
 if [ -f $runner ]; then
     {linnea_julia_path}/julia $runner

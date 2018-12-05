@@ -16,6 +16,16 @@
             "model": "model==Haswell_EP",
             "exclusive": false,
             "repetitions": 1
+        },
+        "path":
+        {
+            "linnea_src_path":          "$HOME/Linnea/src/linnea",
+            "linnea_lib_path":          "$HOME/Linnea/lib",
+            "linnea_output_path":       "$HOME/Linnea/output",
+            "linnea_results_path":      "$HOME/Linnea/output/results",
+            "linnea_jobscripts_path":   "$HOME/Linnea/output/jobscripts",
+            "linnea_virtualenv_path":   "$HOME/Linnea/linnea.venv",
+            "linnea_julia_path":        "$HOME/Linnea/src/julia"
         }
     },
     "main":
@@ -33,13 +43,6 @@
         "generate_experiments": false,
         "verbosity": 1,
         "graph_style": "full",
-        "linnea_src_path":          "$HOME/Linnea/src/linnea",
-        "linnea_lib_path":          "$HOME/Linnea/lib",
-        "linnea_output_path":       "$HOME/Linnea/output",
-        "linnea_results_path":      "$HOME/Linnea/output/results",
-        "linnea_jobscripts_path":   "$HOME/Linnea/output/jobscripts",
-        "linnea_code_path":         ".",
-        "linnea_virtualenv_path":   "$HOME/Linnea/linnea.venv",
-        "linnea_julia_path":        "$HOME/Linnea/src/julia",
+        "output_code_path": "."
     }
 }

@@ -19,7 +19,7 @@ mkdir -p logs
 export MATLAB_LOG_DIR={linnea_results_path}/execution/matlab/logs
 export MATLABPATH={linnea_lib_path}/MatrixGeneratorMatlab
 
-exppath=$(printf "{linnea_code_path}/{name}%03d/Matlab" $LSB_JOBINDEX)
+exppath=$(printf "{output_code_path}/{name}%03d/Matlab" $LSB_JOBINDEX)
 runner="${{exppath}}/runner.m"
 
 if [ -f $runner ]; then

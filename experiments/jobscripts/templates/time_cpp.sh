@@ -16,7 +16,7 @@ mkdir -p {name}/execution/cpp
 cd {name}/execution/cpp
 
 expname=$(printf "{name}%03d" $LSB_JOBINDEX)
-runner="{linnea_code_path}/${{expname}}/Cpp/build/${{expname}}"
+runner="{output_code_path}/${{expname}}/Cpp/build/${{expname}}"
 
 if [ -f $runner ]; then
     $runner

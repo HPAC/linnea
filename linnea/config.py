@@ -71,7 +71,6 @@ filename_extension = None
 comment = None
 
 language = None
-output_path = None
 output_name = None
 merging_branches = False
 dead_ends = False
@@ -86,15 +85,7 @@ solution_nodes_limit = -1
 iteration_limit = -1
 graph_style = None
 experiment_configuration = dict()
-
-linnea_src_path = None
-linnea_lib_path = None
-linnea_output_path = None
-linnea_results_path = None
-linnea_jobscripts_path = None
-linnea_code_path = None
-linnea_virtualenv_path = None
-linnea_julia_path = None
+output_code_path = None
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -172,13 +163,6 @@ def set_output_name(name):
     global output_name
     output_name = name
 
-def set_output_path(path):
-    print("WARNING: variable 'output_path' is deprecated. Please use 'linnea_code_path' to specify the code output dir.")
-    global output_path
-    global linnea_code_path
-    output_path = create_path(path)
-    linnea_code_path = create_path(path)
-
 def set_generate_derivation(generate):
     global generate_derivation
     generate_derivation = generate
@@ -244,39 +228,9 @@ def check_path(path):
     else:
         return path
 
-def set_linnea_src_path(path):
-    global linnea_src_path
-    linnea_src_path = check_path(path)
-
-def set_linnea_lib_path(path):
-    global linnea_lib_path
-    linnea_lib_path = check_path(path)
-
-def set_linnea_virtualenv_path(path):
-    global linnea_virtualenv_path
-    linnea_virtualenv_path = check_path(path)
-
-def set_linnea_julia_path(path):
-    global linnea_julia_path
-    linnea_julia_path = check_path(path)
-
-def set_linnea_output_path(path):
-    global linnea_output_path
-    linnea_output_path = create_path(path)
-
-def set_linnea_results_path(path):
-    global linnea_results_path
-    linnea_results_path = create_path(path)
-
-def set_linnea_jobscripts_path(path):
-    global linnea_jobscripts_path
-    linnea_jobscripts_path = create_path(path)
-
-def set_linnea_code_path(path):
-    global output_path
-    global linnea_code_path
-    linnea_code_path = create_path(path)
-    output_path = create_path(path)
+def set_output_code_path(path):
+    global output_code_path
+    output_code_path = create_path(path)
 
 # setting default values
 
@@ -290,20 +244,11 @@ set_generate_derivation(False)
 set_generate_code(True)
 set_generate_experiments(False)
 set_strategy(Strategy.constructive)
-set_output_path('.')
+set_output_code_path('.')
 set_verbosity(1)
 set_solution_nodes_limit(math.inf)
 set_iteration_limit(100)
 set_graph_style(GraphStyle.full)
-
-set_linnea_src_path('$HOME/Linnea/src/linnea')
-set_linnea_lib_path('$HOME/Linnea/lib')
-set_linnea_output_path('$HOME/Linnea/output')
-set_linnea_results_path('$HOME/Linnea/output/results')
-set_linnea_jobscripts_path('$HOME/Linnea/output/jobscripts')
-set_linnea_code_path('.')
-set_linnea_virtualenv_path('$HOME/Linnea/linnea.venv')
-set_linnea_julia_path('$HOME/Linnea/src/julia')
 
 def load_config():
 
@@ -331,23 +276,10 @@ def load_config():
                 elif key == 'strategy':
                     set_strategy(Strategy[value])
                 elif key == 'output_path':
-                    set_output_path(value)
-                elif key == 'linnea_src_path':
-                    set_linnea_src_path(value)
-                elif key == 'linnea_lib_path':
-                    set_linnea_lib_path(value)
-                elif key == 'linnea_output_path':
-                    set_linnea_output_path(value)
-                elif key == 'linnea_results_path':
-                    set_linnea_results_path(value)
-                elif key == 'linnea_jobscripts_path':
-                    set_linnea_jobscripts_path(value)
-                elif key == 'linnea_code_path':
-                    set_linnea_code_path(value)
-                elif key == 'linnea_virtualenv_path':
-                    set_linnea_virtualenv_path(value)
-                elif key == 'linnea_julia_path':
-                    set_linnea_julia_path(value)
+                    print("WARNING: 'output_path' is deprecated. Please, use 'output_code_path'.")
+                    set_output_code_path(value)
+                elif key == 'output_code_path':
+                    set_output_code_path(value)
                 elif key == 'solution_nodes_limit':
                     set_solution_nodes_limit(value)
                 elif key == 'iteration_limit':
@@ -360,16 +292,32 @@ def load_config():
                     error_msg = 'Unknown setting: {}'.format(key)
                     raise KeyError(error_msg)
 
-            # create a configuration dictionaries for experiments
-            configuration['experiments']['time'] = {**configuration['main'], **configuration['experiments']['time']}
-            configuration['experiments']['generate'] = {**configuration['main'], **configuration['experiments']['generate']}
+            if 'experiments' in configuration.keys():
 
-            if 'exclusive' in configuration['experiments']['time'].keys():
-                if configuration['experiments']['time']['exclusive']:
-                    configuration['experiments']['time']['exclusive'] = '#BSUB -x                     # exclusive access'
-                else:
-                    configuration['experiments']['time']['exclusive'] = ''
+                # create a configuration dictionaries for experiments
+                for key, value in configuration['experiments']['path'].items():
+                    if key in ['linnea_src_path', 'linnea_lib_path', 'linnea_julia_path', 'linnea_virtualenv_path']:
+                        configuration['experiments']['path'][key] = check_path(value)
+                    elif key in ['linnea_output_path', 'linnea_results_path', 'linnea_jobscripts_path']:
+                        configuration['experiments']['path'][key] = create_path(value)
+                    else:
+                        error_msg = 'Unknown setting: {}'.format(key)
+                        raise KeyError(error_msg)
 
-            experiment_configuration = configuration['experiments']
+                if 'exclusive' in configuration['experiments']['time'].keys():
+                    if configuration['experiments']['time']['exclusive']:
+                        configuration['experiments']['time']['exclusive'] = '#BSUB -x                     # exclusive access'
+                    else:
+                        configuration['experiments']['time']['exclusive'] = ''
+
+                configuration['experiments']['time'] = {**configuration['main'],
+                                                        **configuration['experiments']['path'],
+                                                        **configuration['experiments']['time']}
+                configuration['experiments']['generate'] = {**configuration['main'],
+                                                            **configuration['experiments']['path'],
+                                                            **configuration['experiments']['generate']}
+
+                experiment_configuration = configuration['experiments']
+
 
 load_config()
