@@ -4,8 +4,8 @@ import os.path
 import json
 import math
 
-_LOCAL_CONFIG_FILE = 'config.json'
-_GLOBAL_CONFIG_FILE = os.path.expandvars('$HOME/.linnea.config.json')
+_LOCAL_CONFIG_FILE = 'linnea_config.json'
+_GLOBAL_CONFIG_FILE = os.path.expandvars('$HOME/linnea_config.json')
 
 class LanguageNotSet(Exception):
     pass

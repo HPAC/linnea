@@ -87,7 +87,7 @@ end
 
 ### Options
 
-Linnea offers a number of options which can be set through `linnea.config` in Python or as commandline options for the commandline tool. Alternatively, all options can also be specified in a `config.json` file (see `examples`) which has to be located in the same directory where Linnea is run. Both commandline options and `linnea.config` options override what is specified in `config.json`. As a fallback, reasonable default values are used.
+Linnea offers a number of options which can be set through `linnea.config` in Python or as commandline options for the commandline tool. Alternatively, all options can also be specified in a `linnea_config.json` file (see `examples`) which has to be located in the same directory where Linnea is run, or at the user's `$HOME` folder. Both commandline options and `linnea.config` options override what is specified in `linnea_config.json`. As a fallback, reasonable default values are used.
 
 There are the following options (those are the names used in Python, the commandline options have slightly different names. See `linnea -h`):
 
