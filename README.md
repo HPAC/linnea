@@ -91,7 +91,7 @@ Linnea offers a number of options which can be set through `linnea.config` in Py
 
 There are the following options (those are the names used in Python, the commandline options have slightly different names. See `linnea -h`):
 
-* `output_path` The output of Linnea will be stored in this directory. The default is the current directory.
+* `output_code_path` The output of Linnea will be stored in this directory. The default is the current directory.
 
 * `output_name` Linnea creates a new directory that contains all output files. This is the name of this directory. The default is `tmp`.
 
