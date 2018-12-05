@@ -135,7 +135,7 @@ def run(save_output=False):
 
     output = []
 
-    traces_file_path = os.path.join(config.output_path, config.language.name, 'example_traces.txt')
+    traces_file_path = os.path.join(config.output_code_path, config.language.name, 'example_traces.txt')
     if save_output:
         traces_file = open(traces_file_path, "w")
     else:

@@ -30,7 +30,7 @@ def runner_to_file(output_name, language, algorithms=[]):
     else:
         raise config.LanguageOptionNotImplemented()
 
-    file_path = os.path.join(config.output_path, output_name, language.name, file_name)
+    file_path = os.path.join(config.output_code_path, output_name, language.name, file_name)
     output_file = open(file_path, "wt", encoding='utf-8')
     inclusions = []
     tmp_results = []
@@ -69,7 +69,7 @@ def generate_cmake_script(output_name):
 
     file_name = "CMakeLists.txt"
     script_template = utils.get_template(file_name, config.Language.Cpp)
-    file_path = os.path.join(config.output_path, output_name, config.Language.Cpp.name, file_name)
+    file_path = os.path.join(config.output_code_path, output_name, config.Language.Cpp.name, file_name)
     output_file = open(file_path, "wt")
     output_file.write(script_template.format(output_name))
     output_file.close()

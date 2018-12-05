@@ -90,7 +90,7 @@ class GraphBase():
 
 
     def write_graph(self, output_name, style, file_name="graph"):
-        file_path = os.path.join(config.output_path, output_name, config.language.name, "{}.gv".format(file_name))
+        file_path = os.path.join(config.output_code_path, output_name, config.language.name, "{}.gv".format(file_name))
         directory_name = os.path.dirname(file_path)
         if not os.path.exists(directory_name):
             os.makedirs(directory_name)

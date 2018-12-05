@@ -69,8 +69,8 @@ class DerivationGraphBase(base.GraphBase):
 
     def write_output(self, code=True, derivation=False, output_name="tmp", experiment_code=False, algorithms_limit=1, graph=False, graph_style=config.GraphStyle.full, subdir_name="generated", algorithm_name="algorithm{}"):
 
-        if not config.output_path:
-            raise config.OutputPathNotSet("Unable to write output: output_path not set.")
+        if not config.output_code_path:
+            raise config.OutputPathNotSet("Unable to write output: output_code_path not set.")
 
         if graph:
             self.write_graph(output_name, graph_style)
@@ -86,7 +86,7 @@ class DerivationGraphBase(base.GraphBase):
         #    return False
 
         if code or derivation or experiment_code:
-            directory_name = os.path.join(config.output_path, output_name)
+            directory_name = os.path.join(config.output_code_path, output_name)
             if not os.path.exists(directory_name):
                 os.makedirs(directory_name)
             else:
@@ -113,7 +113,7 @@ class DerivationGraphBase(base.GraphBase):
                     cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
 
                 if derivation:
-                    file_name = os.path.join(config.output_path, output_name, config.language.name, "derivation", "algorithm{}.txt".format(n))
+                    file_name = os.path.join(config.output_code_path, output_name, config.language.name, "derivation", "algorithm{}.txt".format(n))
                     directory_name = os.path.dirname(file_name)
                     if not os.path.exists(directory_name):
                         os.makedirs(directory_name)

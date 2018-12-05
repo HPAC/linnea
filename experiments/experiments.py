@@ -233,7 +233,7 @@ def main():
                 # runner should only include files that actually exists
                 existing_algorithms = []
                 for subdir_name, algorithm_name in [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]:
-                    file_path = os.path.join(linnea.config.output_path, name, Language.Julia.name, subdir_name, algorithm_name + ".jl")
+                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, subdir_name, algorithm_name + ".jl")
                     if os.path.exists(file_path):
                         existing_algorithms.append((subdir_name, algorithm_name))
                 

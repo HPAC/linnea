@@ -89,7 +89,6 @@ iteration_limit = -1
 graph_style = None
 experiment_configuration = dict()
 output_code_path = None
-output_path = None
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -233,9 +232,8 @@ def check_path(path):
         return path
 
 def set_output_code_path(path):
-    global output_code_path, output_path
+    global output_code_path
     output_code_path = create_path(path)
-    output_path = create_path(path)
 
 # setting default values
 
@@ -282,9 +280,6 @@ def load_config():
                     set_data_type(JuliaDataType[value])
                 elif key == 'strategy':
                     set_strategy(Strategy[value])
-                elif key == 'output_path':
-                    print("WARNING: 'output_path' is deprecated. Please, use 'output_code_path'.")
-                    set_output_code_path(value)
                 elif key == 'output_code_path':
                     set_output_code_path(value)
                 elif key == 'solution_nodes_limit':
