@@ -315,11 +315,11 @@ def load_config():
                     else:
                         configuration['experiments']['time']['exclusive'] = ''
 
-                configuration['experiments']['time'] = {**configuration['main'],
-                                                        **configuration['experiments']['path'],
+                configuration['experiments']['path']['output_code_path'] = output_code_path
+
+                configuration['experiments']['time'] = {**configuration['experiments']['path'],
                                                         **configuration['experiments']['time']}
-                configuration['experiments']['generate'] = {**configuration['main'],
-                                                            **configuration['experiments']['path'],
+                configuration['experiments']['generate'] = {**configuration['experiments']['path'],
                                                             **configuration['experiments']['generate']}
 
                 experiment_configuration = configuration['experiments']
