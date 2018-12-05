@@ -2,6 +2,10 @@
 import argparse
 import os
 import operator
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(name)-2s: %(levelname)-2s %(message)s')
 
 from . import config
 

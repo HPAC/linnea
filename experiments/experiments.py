@@ -6,6 +6,10 @@ import argparse
 import collections
 import random
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(name)-2s: %(levelname)-2s %(message)s')
 
 import linnea.config
 

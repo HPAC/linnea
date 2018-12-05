@@ -3,6 +3,9 @@ import importlib
 import os.path
 import json
 import math
+import logging
+
+logger = logging.getLogger('config')
 
 _LOCAL_CONFIG_FILE = 'linnea_config.json'
 _GLOBAL_CONFIG_FILE = os.path.expandvars('$HOME/linnea_config.json')
@@ -253,6 +256,7 @@ set_graph_style(GraphStyle.full)
 def load_config():
 
     global experiment_configuration
+
     config_file= ''
     if os.path.exists(_LOCAL_CONFIG_FILE):
         config_file= _LOCAL_CONFIG_FILE
@@ -260,6 +264,7 @@ def load_config():
         config_file = _GLOBAL_CONFIG_FILE
 
     if config_file:
+        logger.info('Found config file: {}'.format(config_file))
         with open(config_file) as jsonfile:
             settings = globals()
 
@@ -318,6 +323,8 @@ def load_config():
                                                             **configuration['experiments']['generate']}
 
                 experiment_configuration = configuration['experiments']
+    else:
+        logger.info('No config file found. Using default settings.')
 
 
 load_config()
