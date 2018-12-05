@@ -89,6 +89,7 @@ iteration_limit = -1
 graph_style = None
 experiment_configuration = dict()
 output_code_path = None
+output_path = None
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -232,8 +233,9 @@ def check_path(path):
         return path
 
 def set_output_code_path(path):
-    global output_code_path
+    global output_code_path, output_path
     output_code_path = create_path(path)
+    output_path = create_path(path)
 
 # setting default values
 
