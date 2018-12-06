@@ -109,6 +109,7 @@ def main():
     parser.add_argument("-c", "--constructive", action="store_true", help="Use constructive strategy.")
     parser.add_argument("-e", "--exhaustive", action="store_true", help="Use exhaustive strategy.")
     parser.add_argument("-f", "--reference", action="store_true", help="Generate reference code.")
+    parser.add_argument("-l", "--config", type=str, default=None, help="Specify configuration file.")
     args = parser.parse_args()
 
     PLDI_examples = [
@@ -148,6 +149,9 @@ def main():
 
     # TODO write parameters (repetitions) to file
     # TODO write description of experiment (name, operand sizes, equations) to file
+
+    if args.config:
+        linnea.config.load_config(config_file=args.config)
 
     if args.experiment == "random":
         examples = rand_exprs
