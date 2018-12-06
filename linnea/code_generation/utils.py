@@ -452,7 +452,7 @@ class MatchedKernel():
 def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input, output,
                       language = config.language,
                       file_extension = config.filename_extension):
-    file_name = os.path.join(config.output_path, output_name, language.name, subdir_name,
+    file_name = os.path.join(config.output_code_path, output_name, language.name, subdir_name,
                              "".join([algorithm_name, file_extension]))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):

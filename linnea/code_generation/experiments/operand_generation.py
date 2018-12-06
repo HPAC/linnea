@@ -73,7 +73,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
         raise config.LanguageOptionNotImplemented()
 
 
-    file_path = os.path.join(config.output_path, output_name, language.name, file_name)
+    file_path = os.path.join(config.output_code_path, output_name, language.name, file_name)
     directory_name = os.path.dirname(file_path)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)

@@ -2,6 +2,10 @@
 import argparse
 import os
 import operator
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(name)-2s: %(levelname)-2s %(message)s')
 
 from . import config
 
@@ -13,7 +17,7 @@ def main():
     parser = argparse.ArgumentParser(prog="linnea")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("input", help="input file")
-    parser.add_argument("output_path", nargs="?", help="relative path to the output directory; defaults to the current directory")
+    parser.add_argument("output_code_path", nargs="?", help="relative path to the output directory; defaults to the current directory")
     parser.add_argument("--algorithms-limit", type=int, help="maximum number of generated algorithms")
     parser.add_argument("-d", "--data-type", choices=["Float32", "Float64"], help="data type used in the generated code")
     parser.add_argument("--no-dead-ends", dest="dead_ends", action="store_const", const=True, help="disable dead end detection")
@@ -35,8 +39,8 @@ def main():
     # config is used to make sure that the values from config.json are also considered.
     # print(parser.args)
 
-    if args.output_path is not None:
-        config.set_output_path(args.output_path)
+    if args.output_code_path is not None:
+        config.set_output_code_path(args.output_code_path)
     if args.algorithms_limit is not None:
         config.set_algorithms_limit(args.algorithms_limit)
     if args.data_type is not None:
@@ -59,8 +63,6 @@ def main():
         config.set_output_name(args.output)
     else:
         config.set_output_name(os.path.splitext(os.path.basename(args.input))[0])
-    if args.output_path is not None:
-        config.set_output_path(args.output_path)
     if args.derivation is not None:
         config.set_generate_derivation(args.derivation)
     if args.silent is not None:

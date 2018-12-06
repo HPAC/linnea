@@ -8,9 +8,9 @@ def generate_reference_code(output_name, equations):
     input_str = ", ".join([operand.name for operand in input])
     output_str = ", ".join([operand.name for operand in output])
 
-    utils.remove_files(os.path.join(config.output_path, output_name, config.Language.Julia.name, "reference"))
-    utils.remove_files(os.path.join(config.output_path, output_name, config.Language.Cpp.name, "reference"))
-    utils.remove_files(os.path.join(config.output_path, output_name, config.Language.Matlab.name, "reference"))
+    utils.remove_files(os.path.join(config.output_code_path, output_name, config.Language.Julia.name, "reference"))
+    utils.remove_files(os.path.join(config.output_code_path, output_name, config.Language.Cpp.name, "reference"))
+    utils.remove_files(os.path.join(config.output_code_path, output_name, config.Language.Matlab.name, "reference"))
 
     utils.algorithm_to_file(output_name, "reference", "naive_eigen",
                         equations.to_cpp_expression(config.CppLibrary.Eigen),

@@ -2,12 +2,14 @@ import pandas as pd
 import time
 import numpy
 import itertools
-import sys
-import math
 import argparse
 import collections
 import random
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(name)-2s: %(levelname)-2s %(message)s')
 
 import linnea.config
 
@@ -19,7 +21,6 @@ import linnea.examples.PLDI as PLDI
 from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
 from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 from linnea.code_generation.experiments import operand_generation, runner, reference_code
-from linnea.code_generation import utils as cgu
 
 from random_expressions import generate_equation
 from jobscripts import generate_scripts
@@ -232,7 +233,7 @@ def main():
                 # runner should only include files that actually exists
                 existing_algorithms = []
                 for subdir_name, algorithm_name in [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]:
-                    file_path = os.path.join(linnea.config.output_path, name, Language.Julia.name, subdir_name, algorithm_name + ".jl")
+                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, subdir_name, algorithm_name + ".jl")
                     if os.path.exists(file_path):
                         existing_algorithms.append((subdir_name, algorithm_name))
                 

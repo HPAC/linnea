@@ -3,8 +3,12 @@ import importlib
 import os.path
 import json
 import math
+import logging
 
-_CONFIG_FILE = 'config.json'
+logger = logging.getLogger('config')
+
+_LOCAL_CONFIG_FILE = 'linnea_config.json'
+_GLOBAL_CONFIG_FILE = os.path.expandvars('$HOME/linnea_config.json')
 
 class LanguageNotSet(Exception):
     pass
@@ -23,21 +27,6 @@ class LanguageOptionNotImplemented(Exception):
 
 class DirectoryDoesNotExist(Exception):
     pass
-
-c = False
-julia = False
-matlab = False
-
-float = False
-double = False
-
-float32 = False
-float64 = False
-
-data_type_string = None
-blas_data_type_prefix = None
-filename_extension = None
-comment = None
 
 class CDataType(enum.Enum):
     float = 0
@@ -69,8 +58,22 @@ class GraphStyle(enum.Enum):
 
 # defining variables
 
+c = False
+julia = False
+matlab = False
+
+float = False
+double = False
+
+float32 = False
+float64 = False
+
+data_type_string = None
+blas_data_type_prefix = None
+filename_extension = None
+comment = None
+
 language = None
-output_path = None
 output_name = None
 merging_branches = False
 dead_ends = False
@@ -84,6 +87,8 @@ verbosity = -1
 solution_nodes_limit = -1
 iteration_limit = -1
 graph_style = None
+experiment_configuration = dict()
+output_code_path = None
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -161,12 +166,6 @@ def set_output_name(name):
     global output_name
     output_name = name
 
-def set_output_path(path):
-    global output_path
-    output_path = os.path.abspath(os.path.expanduser(path))
-    if not os.path.exists(output_path):
-        raise DirectoryDoesNotExist(output_path)
-
 def set_generate_derivation(generate):
     global generate_derivation
     generate_derivation = generate
@@ -217,6 +216,24 @@ def clear_all():
     temporaries.clear()
     partitioning.clear()
 
+def create_path(path):
+
+    path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+def check_path(path):
+
+    path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
+    if not os.path.exists(path):
+        raise DirectoryDoesNotExist
+    else:
+        return path
+
+def set_output_code_path(path):
+    global output_code_path
+    output_code_path = create_path(path)
 
 # setting default values
 
@@ -230,24 +247,31 @@ set_generate_derivation(False)
 set_generate_code(True)
 set_generate_experiments(False)
 set_strategy(Strategy.constructive)
-set_output_path(".")
-# the default for output_name is the name of the input file, which is not know here
-# output_name = None
+set_output_code_path('.')
 set_verbosity(1)
 set_solution_nodes_limit(math.inf)
 set_iteration_limit(100)
 set_graph_style(GraphStyle.full)
 
-
 def load_config():
-    if os.path.exists(_CONFIG_FILE):
-        # print(os.getcwd())
-        # print(os.path.dirname(os.path.abspath(_CONFIG_FILE)))
-        with open(_CONFIG_FILE) as jsonfile:
+
+    global experiment_configuration
+
+    config_file= ''
+    if os.path.exists(_LOCAL_CONFIG_FILE):
+        config_file= _LOCAL_CONFIG_FILE
+    elif os.path.exists(_GLOBAL_CONFIG_FILE):
+        config_file = _GLOBAL_CONFIG_FILE
+
+    if config_file:
+        logger.info('Found config file: {}'.format(config_file))
+        with open(config_file) as jsonfile:
             settings = globals()
-            # print(json.load(jsonfile))
-            # print(json.load(jsonfile).items())
-            for key, value in json.load(jsonfile).items():
+
+            configuration = json.load(jsonfile)
+
+            # set up configuration for normal use
+            for key, value in configuration['main'].items():
                 if key == 'language':
                     set_language(Language[value])
                 elif key == 'c_data_type':
@@ -256,17 +280,48 @@ def load_config():
                     set_data_type(JuliaDataType[value])
                 elif key == 'strategy':
                     set_strategy(Strategy[value])
-                elif key == "output_path":
-                    set_output_path(value)
-                elif key == "solution_nodes_limit":
+                elif key == 'output_code_path':
+                    set_output_code_path(value)
+                elif key == 'solution_nodes_limit':
                     set_solution_nodes_limit(value)
-                elif key == "iteration_limit":
+                elif key == 'iteration_limit':
                     set_iteration_limit(value)
-                elif key == "graph_style":
+                elif key == 'graph_style':
                     set_graph_style(GraphStyle[value])
                 elif key in settings and not key.startswith('_'):
                     settings[key] = value
                 else:
-                    raise KeyError('Unknown setting: {}'.format(key))
+                    error_msg = 'Unknown setting: {}'.format(key)
+                    raise KeyError(error_msg)
+
+            if 'experiments' in configuration.keys():
+
+                # create a configuration dictionaries for experiments
+                for key, value in configuration['experiments']['path'].items():
+                    if key in ['linnea_src_path', 'linnea_lib_path', 'linnea_julia_path', 'linnea_virtualenv_path']:
+                        configuration['experiments']['path'][key] = check_path(value)
+                    elif key in ['linnea_output_path', 'linnea_results_path', 'linnea_jobscripts_path']:
+                        configuration['experiments']['path'][key] = create_path(value)
+                    else:
+                        error_msg = 'Unknown setting: {}'.format(key)
+                        raise KeyError(error_msg)
+
+                if 'exclusive' in configuration['experiments']['time'].keys():
+                    if configuration['experiments']['time']['exclusive']:
+                        configuration['experiments']['time']['exclusive'] = '#BSUB -x                     # exclusive access'
+                    else:
+                        configuration['experiments']['time']['exclusive'] = ''
+
+                configuration['experiments']['path']['output_code_path'] = output_code_path
+
+                configuration['experiments']['time'] = {**configuration['experiments']['path'],
+                                                        **configuration['experiments']['time']}
+                configuration['experiments']['generate'] = {**configuration['experiments']['path'],
+                                                            **configuration['experiments']['generate']}
+
+                experiment_configuration = configuration['experiments']
+    else:
+        logger.info('No config file found. Using default settings.')
+
 
 load_config()
