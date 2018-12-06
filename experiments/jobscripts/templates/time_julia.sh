@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#BSUB -J "linnea_time_julia[1-{jobs}]" # job name
+#BSUB -J "time_julia_{name}[1-{jobs}]" # job name
 #BSUB -o "{linnea_results_path}/{name}/execution/julia/cout.txt" # job output
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB

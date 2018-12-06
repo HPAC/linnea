@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#BSUB -J "linnea_time_matlab[1-{jobs}]" # job name
+#BSUB -J "time_matlab_{name}[1-{jobs}]" # job name
 #BSUB -o "{linnea_results_path}/{name}/execution/matlab/cout.txt" # job output
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB

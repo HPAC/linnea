@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#BSUB -J "linnea_gen[1-{jobs}]" # job name
+#BSUB -J "gen_{strategy}_{name}[1-{jobs}]" # job name
 #BSUB -o "{output_code_path}/cout_{name}.txt" # job output
 #BSUB -W {time}:00            # limits in hours:minutes
 #BSUB -M {memory}            # memory in MB
