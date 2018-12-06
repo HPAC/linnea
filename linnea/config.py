@@ -253,15 +253,20 @@ set_solution_nodes_limit(math.inf)
 set_iteration_limit(100)
 set_graph_style(GraphStyle.full)
 
-def load_config():
+def load_config(config_file=''):
 
     global experiment_configuration
 
-    config_file= ''
-    if os.path.exists(_LOCAL_CONFIG_FILE):
-        config_file= _LOCAL_CONFIG_FILE
-    elif os.path.exists(_GLOBAL_CONFIG_FILE):
-        config_file = _GLOBAL_CONFIG_FILE
+    if config_file:
+        config_file = os.path.expandvars(config_file)
+        if not os.path.exists(config_file):
+            msg = "Specified config file '{}' not found.".format(config_file)
+            raise FileNotFoundError(msg)
+    else:
+        if os.path.exists(_LOCAL_CONFIG_FILE):
+            config_file= _LOCAL_CONFIG_FILE
+        elif os.path.exists(_GLOBAL_CONFIG_FILE):
+            config_file = _GLOBAL_CONFIG_FILE
 
     if config_file:
         logger.info('Found config file: {}'.format(config_file))
