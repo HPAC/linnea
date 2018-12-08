@@ -58,25 +58,7 @@ def to_SOP(expr):
         return type(expr)(*map(to_SOP, expr.operands))
     else:
         return expr
- 
-    # elif isinstance(expr, ae.Plus):
-    #     # to_SOP may transform Times to Plus. Thus, if there is
-    #     # Plus(… Times() …), it has to be checked if the Times was transformed
-    #     # into a Plus, so it is flattened immediately.
-    #     new_operands = []
-    #     for operand in expr.operands:
-    #         operand_SOP = to_SOP(operand)
-    #         if isinstance(operand_SOP, ae.Plus):
-    #             new_operands.extend(operand_SOP.operands)
-    #         else:
-    #             new_operands.append(operand_SOP)
-    #     expr.operands = new_operands
-    #     return expr
-    # elif not isinstance(expr, ae.Symbol):
-    #     expr.operands = [to_SOP(operand) for operand in expr.operands]
-    #     return expr
-    # else:
-    #     return expr
+
 
 def _sequence_intersection(sequences):
     """Computes all intersections of all sequences.
@@ -176,12 +158,6 @@ def to_POS(expr, side="l"):
     For a sum of products, if a non-scalar is factored out, all scalars that
     show up in all those products are factored out as well.
 
-    IMPORTANT: This function modifies expr. Since it is possible that the
-    outermost operator changes, it is possible that the variable originally
-    passed to this function points to a wrong node in the expression tree.
-    To avoid any problems, use this fuction as follows:
-
-    expr = to_SOP(expr)
     """
 
     if side == "l":
