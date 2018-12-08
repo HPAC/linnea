@@ -168,7 +168,7 @@ class Equations():
         for equation in self.equations:
             # look at rhs
             for node, pos in equation.rhs.preorder_iter():
-                if isinstance(node, ae.Symbol) and not node.has_property(properties.ZERO) and not node.has_property(properties.IDENTITY):
+                if isinstance(node, ae.Symbol) and not node.has_property(properties.CONSTANT):
                     seen_before.add(node.name)
                     if node.name in replacements:
                         equation.rhs.set_successor(pos, replacements[node.name])
