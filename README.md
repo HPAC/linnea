@@ -28,15 +28,10 @@ At the moment, Linnea is primarily a Python module. An example script for how to
 n = 1000
 
 L = Matrix("L", (n, n))
-L.set_property(properties.INPUT)
 L.set_property(properties.LOWER_TRIANGULAR)
 L.set_property(properties.FULL_RANK)
-
 x = Vector("x", (n, 1))
-x.set_property(properties.INPUT)
-
 y = Vector("y", (n, 1))
-y.set_property(properties.OUTPUT)
 
 input = Equations(Equal(y, Times(Inverse(L), x)))
 ```

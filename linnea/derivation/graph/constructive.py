@@ -21,50 +21,11 @@ import math
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
-    # def prune_functionXX(self, nodes):
-    #     return nodes
-
-    def prune_function00(self, nodes):
-        return nodes
-
-    def prune_function01(self, nodes):
-        nodes.sort(key=operator.attrgetter("accumulated_cost"))
-        width = math.ceil(len(nodes)*0.5)
-        return nodes[:width]
-
-    def prune_function02(self, nodes):
-
-        def _f(level):
-            if level < 4:
-                return 1
-            else:
-                return 0.3
-
-        nodes.sort(key=operator.attrgetter("accumulated_cost"))
-        width = math.ceil(len(nodes)*_f(self.level_counter))
-        return nodes[:width]
-
     def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True, dead_ends=True):
-
-        # init_partitiong and delete_partitioning is only done for performance
-        # reasons. The additional attribute "partitioning" makes copying a lot
-        # more expensive.
-        # TODO this should by unnecessary by now
-
-        # for equation in self.root.equations:
-        #     equation.init_partitioning()
-
-        # self.root.equations.apply_partitioning()
-
-        # for equation in self.root.equations:
-        #     equation.delete_partitioning()
-
-        # change order with partitioning?
-        # self.root.equations.resolve_dependencies()
-        # self.root.equations.replace_auxiliaries()
 
         check_validity(self.root.equations)
         self.root.equations = self.root.equations.to_normalform()
+        self.root.equations.infer_lhs_properties()
 
         self.init_temporaries(self.root.equations)
 

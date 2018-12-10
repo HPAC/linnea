@@ -28,27 +28,10 @@ collections_module = config.import_collections()
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True, dead_ends=True):
-        # TODO default values?
-
-        # init_partitiong and delete_partitioning is only done for performance
-        # reasons. The additional attribute "partitioning" makes copying a lot
-        # more expensive.
-        # TODO this should by unnecessary by now
-
-        # for equation in self.root.equations:
-        #     equation.init_partitioning()
-
-        # self.root.equations.apply_partitioning()
-
-        # for equation in self.root.equations:
-        #     equation.delete_partitioning()
-
-        # change order with partitioning?
-        # self.root.equations.resolve_dependencies()
-        # self.root.equations.replace_auxiliaries()
 
         check_validity(self.root.equations)
         self.root.equations = self.root.equations.to_normalform()
+        self.root.equations.infer_lhs_properties()
 
         self.init_temporaries(self.root.equations)
 

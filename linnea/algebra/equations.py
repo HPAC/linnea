@@ -204,6 +204,15 @@ class Equations():
         self.equations = [matchpy.replace_all(equation, replacement_rules) for equation in self.equations]
 
 
+    def infer_lhs_properties(self):
+        output_operands = set()
+        for equation in self.equations:
+            operand = equation.lhs
+            for property in properties:
+                if equation.rhs.has_property(property):
+                    operand.set_property(property)
+
+
     def _copy_symbol(self, symbol):
         """Creates a copy of symbol with a unique name"""
         new_symbol = None

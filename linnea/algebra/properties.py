@@ -7,8 +7,6 @@ class PropertyError(Exception):
 
 @utils.PartiallyOrderedEnum
 class Property(enum.Enum):
-    INPUT = "Input"
-    OUTPUT = "Output"
     AUXILIARY = "Auxiliary"
     #
     SCALAR = "Scalar"
@@ -83,9 +81,6 @@ class Property(enum.Enum):
 #         Diagonal -> Triangular
 # RHS has to be list of properties
 
-# TODO what about "negative" implications?
-#   Square -> not RowPanel
-
 # TODO what about coobinations of properties?
 #   lower and upper triangular -> diagonal
 
@@ -93,18 +88,8 @@ implications = dict()
 for p1, p2 in Property.__transitive_closure__:
     implications.setdefault(Property(p1), set()).add(Property(p2))
 
-
-# mutually_exclusive = [
-#     set((Property.INPUT, Property.OUTPUT, Property.AUXILIARY)),
-#     set((Property.MATRIX, Property.VECTOR. Property.SCALAR)),
-#     set((Property.SQUARE, Property.ROW_PANEL, Property.COLUMN_PANEL)),
-#     set((Property.IDENTITY, Property.ZERO)),
-# ]
-
 negative_implications = {
-    Property.INPUT : [Property.OUTPUT, Property.AUXILIARY],
-    Property.OUTPUT : [Property.INPUT, Property.AUXILIARY],
-    Property.AUXILIARY : [Property.INPUT, Property.OUTPUT],
+    Property.AUXILIARY : [],
     #
     Property.SCALAR : [Property.VECTOR, Property.MATRIX],
     Property.VECTOR : [Property.SCALAR, Property.MATRIX],

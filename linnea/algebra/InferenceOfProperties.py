@@ -5,39 +5,6 @@ from .properties import Property as properties
 from .properties import implications, negative_implications
 from .. import temporaries
 
-def isInput(expr):
-    # isinstance?
-    if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.INPUT, isInput)
-    if isinstance(expr, ae.Plus):
-        return all(isInput(term) for term in expr.operands)
-    if isinstance(expr, ae.Times):
-        return all(isInput(factor) for factor in expr.operands)
-    if isinstance(expr, ae.Transpose):
-        return isInput(expr.operand)
-    if isinstance(expr, ae.Inverse):
-        return isInput(expr.operand)
-    if isinstance(expr, ae.InverseTranspose):
-        return isInput(expr.operand)
-    # [TODO] Double check!!!
-    return False
-
-
-def isOutput(expr):
-    if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.INPUT, isOutput)
-    if isinstance(expr, ae.Plus):
-        return any(isOutput(term) for term in expr.operands)
-    if isinstance(expr, ae.Times):
-        return any(isOutput(factor) for factor in expr.operands)
-    if isinstance(expr, ae.Transpose):
-        return isOutput(expr.operand)
-    if isinstance(expr, ae.Inverse):
-        return isOutput(expr.operand)
-    if isinstance(expr, ae.InverseTranspose):
-        return isOutput(expr.operand)
-    return False
-
 def isAuxiliary(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, properties.AUXILIARY, isAuxiliary)
@@ -478,8 +445,6 @@ def infer_property_symbol(expr, prop, test_func):
 
 
 property_to_function = {
-    properties.INPUT: isInput,
-    properties.OUTPUT: isOutput,
     properties.AUXILIARY: isAuxiliary,
     properties.ZERO: isZero,
     properties.IDENTITY: isIdentity,
