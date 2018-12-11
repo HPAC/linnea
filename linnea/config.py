@@ -227,7 +227,7 @@ def check_path(path):
 
     path = os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
     if not os.path.exists(path):
-        raise DirectoryDoesNotExist
+        raise DirectoryDoesNotExist(path)
     else:
         return path
 
