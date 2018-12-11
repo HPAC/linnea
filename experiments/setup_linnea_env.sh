@@ -68,7 +68,7 @@ git clone https://github.com/HPAC/linnea.git $SRC_DIR/linnea
 
 echo "Installing Julia" 
     cd $SRC_DIR/julia 
-    git checkout v1.0.1 
+    git checkout 1c6f89f04a1ee4eba8380419a2b01426e84f52aa # Julia 1.1.0-DEV.468 from October 17, 2018
     echo "USE_INTEL_MKL = 1" > $SRC_DIR/julia/Make.user 
     make -j 1
     ./julia -e "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/HPAC/MatrixGenerator.jl.git\", rev=\"master\"))" 
