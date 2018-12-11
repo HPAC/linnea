@@ -165,28 +165,19 @@ class Memory():
         self.lookup = dict() # Operand name (str): MemoryLocation
         self.storage_format = dict() # Operand name (str): set of properties (StorageFormat)
 
-        # Creating MemoryLocations for all operands in expression and
+        # Creating MemoryLocations for all input operands and
         # initializing self.lookup and self.references.
 
-        for equation in eqns:
-            for _expr, _ in equation.rhs.preorder_iter():
-                if isinstance(_expr, Symbol) and not isinstance(_expr, Constant):
-                    try:
-                        mem_loc = self.lookup[_expr.name]
-                    except KeyError:
-                        mem_loc = MemoryLocation(_expr, StorageFormat.full)
-                        mem_loc.content.append(_expr)
-                        self.locations.append(mem_loc)
-                        self.lookup[_expr.name] = mem_loc
-                        # self.references[_expr.name] = 1
-                        self.storage_format[_expr.name] = StorageFormat.full
-                        # if _expr.has_property(properties.SYMMETRIC):
-                        #     # TODO this is an assumption
-                        #     self.storage_format[_expr.name].add(StorageFormat.lower_triangular)
-                    else:
-                        # self.references[_expr.name] += 1
-                        pass
-                        # TODO is it necessary to do something here?
+        input, _ = eqns.input_output()
+        for operand in input:
+            try:
+                mem_loc = self.lookup[operand.name]
+            except KeyError:
+                mem_loc = MemoryLocation(operand, StorageFormat.full)
+                mem_loc.content.append(operand)
+                self.locations.append(mem_loc)
+                self.lookup[operand.name] = mem_loc
+                self.storage_format[operand.name] = StorageFormat.full
 
     # TODO do I really need this?
     def has_property(self, operand, memory_property):

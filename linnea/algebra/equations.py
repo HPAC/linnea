@@ -95,14 +95,19 @@ class Equations():
     def remove_identities(self):
         """Removes equations where both sides are temporaries.
 
-        There are two different cases. If both sides of an equation are the
-        same, it can simply be removed.
+        There are three different cases.
 
-        If both sides are different, all occurrences of the temporary on the
-        left-hand side in the other equations are replaced by the temporary on
-        the right-hand side. This is necessary to ensure that code generation
-        still works. This case can happen when setting equivalent expressions
-        does not work perfectly.
+        If both sides of an equation are the same, it can simply be removed.
+
+        If both sides are different temporaries, all occurrences of the
+        temporary on the left-hand side in the other equations are replaced by
+        the temporary on the right-hand side. This is necessary to ensure that
+        code generation still works. This case can happen when setting
+        equivalent expressions does not work perfectly.
+
+        If the operand on the left-hand side is an intermediate, and the one on
+        the right hand side is a temporary, all occurrences of the intermediate
+        will be replace with the temporary.
 
         Replacing the temporary in the other equations only works if the
         temporary that is replaced is not part of any computation yet.
@@ -117,11 +122,14 @@ class Equations():
         remove = []
         replace_eqns = []
         equations = list(self.equations)
-        for n, equation in enumerate(self.equations):
-            if (equation.lhs.name in temporaries._equivalent_expressions 
-                    and equation.rhs.name in temporaries._equivalent_expressions):
-                remove.append(n)
-                if equation.lhs != equation.rhs:
+        for n, equation in enumerate(equations):
+            if equation.rhs.name in temporaries._equivalent_expressions:
+                if equation.lhs.name in temporaries._equivalent_expressions:
+                    remove.append(n)
+                    if equation.lhs != equation.rhs:
+                        replace_eqns.append(equation)
+                else:
+                    # TODO it would be better to only do this if the operand is known to be an intermediate.
                     replace_eqns.append(equation)
 
         for idx in reversed(remove):
@@ -129,10 +137,20 @@ class Equations():
 
         for replace_eqn in replace_eqns:
             rule = matchpy.ReplacementRule(matchpy.Pattern(replace_eqn.lhs), lambda: replace_eqn.rhs)
-            equations = [matchpy.replace_all(equation, (rule,)) for equation in equations]
+            equations_replaced = []
+            for equation in equations:
+                equations_replaced.append(ae.Equal(equation.lhs, matchpy.replace_all(equation.rhs, (rule,))))
+            equations = equations_replaced
 
         # TODO do we want to manipulate the table of temporaries here?
         return Equations(*equations)
+
+    def replace_intermediates(self):
+        candidates = []
+        for equation in self.equations:
+            if (equation.rhs.name in temporaries._equivalent_expressions
+                and not equation.lhs.name in temporaries._equivalent_expressions):
+                candidates.append(equation)
 
     def apply_partitioning(self):
         change = True
@@ -250,7 +268,7 @@ class Equations():
         for equation in self.equations:
             output.append(equation.lhs)
             for expr, _ in equation.rhs.preorder_iter():
-                if isinstance(expr, ae.Symbol) and not isinstance(expr, ae.Constant) and not expr in seen_before:
+                if isinstance(expr, ae.Symbol) and not isinstance(expr, ae.Constant) and not expr in seen_before and not expr in output:
                     input.append(expr)
                     seen_before.add(expr)
         return input, output
