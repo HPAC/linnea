@@ -490,8 +490,10 @@ class Example12():
         Lambda.set_property(properties.SYMMETRIC)
         Lambda.set_property(properties.FULL_RANK)
 
-        X = Matrix("X", (n, n))
-        X.set_property(properties.FULL_RANK)
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.FULL_RANK)
+
+        Xout = Matrix("Xout", (n, n))
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
@@ -499,11 +501,11 @@ class Example12():
         self.eqns = Equations(
                         Equal(Lambda,
                                 Times(S, Inverse(Times(Transpose(S), A, W, Transpose(A), S)), Transpose(S))),
-                        Equal(X,
-                            Plus(X,
+                        Equal(Xout,
+                            Plus(Xin,
                                 Times(
                                     W, Transpose(A), Lambda,
-                                    Plus(I, Times(minus1, A, X))
+                                    Plus(I, Times(minus1, A, Xin))
                                     )
                                 )
                             )
@@ -531,8 +533,10 @@ class Example13():
         Lambda.set_property(properties.SYMMETRIC)
         Lambda.set_property(properties.FULL_RANK)
 
-        X = Matrix("X", (n, n))
-        X.set_property(properties.FULL_RANK)
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.FULL_RANK)
+
+        Xout = Matrix("Xout", (n, n))
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
@@ -540,10 +544,10 @@ class Example13():
         self.eqns = Equations(
                         Equal(Lambda,
                             Times(S, Inverse(Times(Transpose(S), Transpose(A), W, A, S)), Transpose(S))),
-                        Equal(X,
-                            Plus(X,
+                        Equal(Xout,
+                            Plus(Xin,
                                 Times(
-                                    Plus(I, Times(minus1, X, Transpose(A))),
+                                    Plus(I, Times(minus1, Xin, Transpose(A))),
                                     Lambda, Transpose(A), W
                                     )
                                 )
@@ -622,9 +626,12 @@ class Example15():
         A.set_property(properties.SPD)
         A.set_property(properties.FULL_RANK)
 
-        X = Matrix("X", (n, n))
-        X.set_property(properties.SYMMETRIC)
-        X.set_property(properties.FULL_RANK)
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.SYMMETRIC)
+        Xin.set_property(properties.FULL_RANK)
+
+        Xout = Matrix("Xout", (n, n))
+        Xout.set_property(properties.FULL_RANK)
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
@@ -632,12 +639,12 @@ class Example15():
         subexpr = Times(S, Inverse(Times(Transpose(S), A, S)), Transpose(S))
 
         self.eqns = Equations(
-                        Equal(X,
+                        Equal(Xout,
                             Plus(
                                 subexpr,
                                 Times(
                                     Plus(I, Times(minus1, subexpr, A)),
-                                    X,
+                                    Xin,
                                     Plus(I, Times(minus1, A, subexpr))
                                     )
                                 )
@@ -662,8 +669,11 @@ class Example16():
         A = Matrix("A", (m, n))
         A.set_property(properties.FULL_RANK)
 
-        B = Matrix("B", (n, n))
-        B.set_property(properties.SPD)
+        Bin = Matrix("Bin", (n, n))
+        Bin.set_property(properties.SPD)
+
+        Bout = Matrix("Bout", (n, n))
+        Bout.set_property(properties.SPD)
 
         In = IdentityMatrix(n, n)
         Il = IdentityMatrix(l, l)
@@ -672,19 +682,19 @@ class Example16():
         kminus1 = Plus(k, minus1)
 
         self.eqns = Equations(
-                        Equal(B,
+                        Equal(Bout,
                             Times(
                                 Times(k, Inverse(kminus1)),
-                                B,
+                                Bin,
                                 Plus(
                                     In,
                                     Times(
                                         minus1, Transpose(A), Wk,
                                         Inverse(Plus(
                                             Times(kminus1, Il),
-                                            Times(Transpose(Wk), A, B, Transpose(A), Wk)
+                                            Times(Transpose(Wk), A, Bin, Transpose(A), Wk)
                                             )),
-                                        Transpose(Wk), A, B
+                                        Transpose(Wk), A, Bin
                                         )
                                     )
                                 )
