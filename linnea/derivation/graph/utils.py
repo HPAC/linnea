@@ -16,6 +16,7 @@ from collections import namedtuple, deque
 
 from enum import Enum, unique
 
+
 import copy
 import itertools
 import operator
@@ -237,13 +238,12 @@ def generate_variants(equations, eqn_idx=None):
     # TODO what about combinations of POS and undistribute inverse?
     # try all combinations? yes, but only if the same equations are concerned
 
-    variants = set([equations])
+    yielded_variants = set([equations])
+    yield equations
 
-    eqn_indices = None
-    if eqn_idx is not None:
+    eqn_indices = range(len(equations))
+    if eqn_idx:
         eqn_indices = [eqn_idx]
-    else:
-        eqn_indices = range(len(equations))
 
     undist_inv_candidates = set()
     for _eqn_idx in eqn_indices:
@@ -266,7 +266,11 @@ def generate_variants(equations, eqn_idx=None):
                 new_equation = undistribute_inverse(new_equation)
             new_equations.append(new_equation)
 
-        variants.add(aeq.Equations(*new_equations))
+        temp_eqn = aeq.Equations(*new_equations)
+        if temp_eqn not in yielded_variants:
+            yielded_variants.add(temp_eqn)
+            yield temp_eqn
+
 
     # TODO combine this with the other loop
     POS_candidates = set()
@@ -280,23 +284,30 @@ def generate_variants(equations, eqn_idx=None):
                         break
 
     if POS_candidates:
+
         new_equations_left = []
-        new_equations_right = []
         for _eqn_idx, equation in enumerate(equations):
             new_equation_left = equation
-            new_equation_right = equation
             if _eqn_idx in POS_candidates:
                 new_equation_left = to_POS(new_equation_left, "l")
-                new_equation_right = to_POS(new_equation_right, "r")
             new_equations_left.append(new_equation_left)
+
+        temp_eqns = aeq.Equations(*new_equations_left)
+        if temp_eqns not in yielded_variants:
+            yielded_variants.add(temp_eqns)
+            yield temp_eqns
+
+        new_equations_right = []
+        for _eqn_idx, equation in enumerate(equations):
+            new_equation_right = equation
+            if _eqn_idx in POS_candidates:
+                new_equation_right = to_POS(new_equation_right, "r")
             new_equations_right.append(new_equation_right)
 
-        variants.add(aeq.Equations(*new_equations_left))
-        variants.add(aeq.Equations(*new_equations_right))
-
-    # Sorted is used here to avoid non-determinism between different runs.
-    # Mostly to make debugging easier.
-    return sorted(variants)
+        temp_eqns = aeq.Equations(*new_equations_right)
+        if temp_eqns not in yielded_variants:
+            yielded_variants.add(temp_eqns)
+            yield temp_eqns
 
 
 def process_next(equation):
