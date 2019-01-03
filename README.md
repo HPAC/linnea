@@ -47,9 +47,9 @@ When installing Linnea via `pip`, the commandline tool `linnea` is installed. As
 ```
 n = 1000
 
-Matrix L(n, n) <Input, LowerTriangular, FullRank>
-ColumnVector x(n) <Input>
-ColumnVector y(n) <Output>
+Matrix L(n, n) <LowerTriangular, FullRank>
+ColumnVector x(n) <>
+ColumnVector y(n) <>
 
 y = inv(L)*x
 ```
@@ -65,8 +65,8 @@ As output, Linnea generates a directory structure that contains code files, as w
 For the linear system from the previous examples, the following code will be generated:
 
 ```julia
-using Base.LinAlg.BLAS
-using Base.LinAlg
+using LinearAlgebra.BLAS
+using LinearAlgebra
 
 function algorithm0(ml0, ml1)
     # cost 1e+06
