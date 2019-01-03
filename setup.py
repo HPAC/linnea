@@ -12,6 +12,7 @@ setup(name="linnea",
     python_requires=">=3.6",
     install_requires=[
         "matchpy >= 0.3",
+        "tatsu >= 4.3"
     ],
     entry_points = {
         "console_scripts": ["linnea=linnea.__main__:main"],

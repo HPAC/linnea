@@ -84,7 +84,7 @@ def main():
 
     if args.example is None:
         with open(args.input, "r" ) as input_file:
-            from grako.model import ModelBuilderSemantics
+            from tatsu.model import ModelBuilderSemantics
             from .frontend.AST_translation import LinneaWalker
             from .frontend.parser import LinneaParser
 

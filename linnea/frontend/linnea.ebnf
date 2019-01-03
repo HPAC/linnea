@@ -17,13 +17,12 @@ equations = { @+:equation } ;
 var_declaration::Size = name:identifier "=" ~ value:integer ;
 
 symbol_declaration = scalar | row_vector | column_vector | matrix | identity_matrix ;
-scalar::Scalar = "Scalar" ~ name:identifier "<" iotype:io ">";
-row_vector::RowVector = "RowVector" ~ name:identifier dims:dim_vector "<" iotype:io { "," properties+:properties } ">";
-column_vector::ColumnVector = "ColumnVector" ~ name:identifier dims:dim_vector "<" iotype:io { "," properties+:properties } ">";
-matrix::Matrix = "Matrix" ~ name:identifier dims:dim_matrix "<" iotype:io { "," properties+:properties } ">";
+scalar::Scalar = "Scalar" ~ name:identifier "<" ','%{ properties+:properties }* ">";
+row_vector::RowVector = "RowVector" ~ name:identifier dims:dim_vector "<" ','%{ properties+:properties }* ">";
+column_vector::ColumnVector = "ColumnVector" ~ name:identifier dims:dim_vector "<" ','%{ properties+:properties }* ">";
+matrix::Matrix = "Matrix" ~ name:identifier dims:dim_matrix "<" ','%{ properties+:properties }* ">";
 identity_matrix::IdentityMatrix = "IdentityMatrix" ~ name:identifier dims:dim_matrix;
 
-io = "Input" | "Output" | "InOut" | "Intermediate";
 dim_vector = "(" length:identifier ")";
 dim_matrix = "(" rows:identifier "," columns:identifier ")";
 properties =
@@ -31,7 +30,8 @@ properties =
         | @:"RowPanel"          | @:"Diagonal"          | @:"Tridiagonal"
         | @:"Banded"            | @:"LowerTriangular"   | @:"UpperTriangular"
         | @:"UnitDiagonal"      | @:"Symmetric"         | @:"Hessenberg"
-        | @:"Orthogonal"        | @:"FullRank"          | @:"Non-singular" ;
+        | @:"Orthogonal"        | @:"FullRank"          | @:"Non-singular"
+        | @:"Positive" ;
 
 equation::Equation = lhs:symbol "=" ~ rhs:expression ;
 

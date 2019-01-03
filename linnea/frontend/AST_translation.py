@@ -1,4 +1,4 @@
-from grako.walkers import NodeWalker
+from tatsu.walkers import NodeWalker
 
 from ..algebra import expression as ae
 from ..algebra.equations import Equations
