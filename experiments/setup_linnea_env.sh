@@ -97,12 +97,12 @@ echo "Installing MatrixGeneratorCpp"
     make install 
 
 echo "Creating Linnea virtual environment" 
-    python3.6 -m pip install virtualenv --user 
-    python3.6 -m virtualenv $VENV --always-copy 
+    python3.6 -m venv $VENV
 
 echo "Installing Linnea in the virtual environment" 
     source $VENV/bin/activate 
     cd $SRC_DIR/linnea 
+    pip install --upgrade pip setuptools
     pip install -e . 
     deactivate 
 
