@@ -212,27 +212,32 @@ def grouping_keyfunc(oc):
 
 # @profile
 def generate_variants(equations, eqn_idx=None):
-    """Generates "product of sums" variants of equations.
+    """Generates UI (Undistribute Inverse) and POS (Product Of Sums) variants of equations.
 
-    This function generates some "product of sums" variants of the given
-    equations and returns all unique ones, including the one that was passed to
-    this function as an argument.
+    This function yields some variants of the given equations and returns all unique ones in the following order:
+        1. Equations as passed to the function as an argument
+        2. UI variant
+        3. POS variant (left first)
+        4. POS variant (right first)
 
-    The optional argument eqn_idx can be used to specify that variants are
-    generated for only one single equation.
-    """
+    For each type of variant, first a list of equation indices where it can be applied are calculated.
 
-    """
-    Ideas:
-    - for each type of variant, first find list of eqn_idx where it (potentially)
-      can be applied.
-      (if eqn_idx is given as argument, only work with that equation. This is
-       probably what we want most of the time, except for CSE, because they
-       operate on all equations)
-    - if it's not empty, generate variants.
-    for eqn_idx in indices:
-        do something
-    - put results into set to avoid duplicates
+    The optional argument eqn_idx can be used to specify that variants are generated for a specific list of elements
+    in equations.
+
+    Parameters
+    ----------
+    equations : linnea.algebra.equations.Equations object
+        Contains the set of equations to be processed.
+
+    eqn_idx : int
+        Index of specific element in equations object to work on. If None, all elements are used.
+
+    Yields
+    ------
+    linnea.algebra.equations.Equations object
+        Contains the initial version of equations with variants applied to them.
+
     """
 
     # TODO what about combinations of POS and undistribute inverse?
