@@ -271,7 +271,7 @@ class DerivationGraphBase(base.GraphBase):
 
         temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
         
-        return [(equations_copy, matched_kernels, equations)]
+        yield (equations_copy, matched_kernels, equations)
 
 
     def TR_addition(self, equations, eqn_idx, initial_pos):
@@ -285,7 +285,7 @@ class DerivationGraphBase(base.GraphBase):
         equations_copy = equations.set(eqn_idx, new_equation)
         equations_copy = equations_copy.to_normalform()
 
-        return [(equations_copy, matched_kernels, equations)]
+        yield (equations_copy, matched_kernels, equations)
 
 
     def TR_CSE_replacement(self, equations):
