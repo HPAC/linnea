@@ -186,16 +186,15 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                     pos, op_type = process_next_simple(eqns_variant[eqn_idx])
 
                     if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
-                        for matrix_chain in self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True):
-                            yield matrix_chain
+                        yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True)
                     else:
+                        # yield_from can't be used in this case, because we need to know if a reduction was yielded
                         reduction_yielded = False
                         for reduction in self.TR_reductions(eqns_variant, eqn_idx, (1,)):
                             reduction_yielded = True
                             yield reduction
                         if not reduction_yielded:
-                            for unary_kernel in self.TR_unary_kernels(eqns_variant, eqn_idx, (1,)):
-                                yield unary_kernel
+                            yield from self.TR_unary_kernels(eqns_variant, eqn_idx, (1,))
 
                 break
 
