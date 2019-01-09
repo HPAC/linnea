@@ -188,9 +188,9 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                     if op_type == OperationType.times:
                         expr = eqns_variant[eqn_idx][pos]
-                        yield self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr))
+                        yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr))
                     elif op_type == OperationType.plus:
-                        yield self.TR_addition(eqns_variant, eqn_idx, pos)
+                        yield from self.TR_addition(eqns_variant, eqn_idx, pos)
                     elif op_type == OperationType.none:
-                        yield self.TR_unary_kernels(eqns_variant, eqn_idx, pos)
+                        yield from self.TR_unary_kernels(eqns_variant, eqn_idx, pos)
                 break
