@@ -222,21 +222,17 @@ def generate_variants(equations, eqn_idx=None):
 
     For each type of variant, first a list of equation indices where it can be applied are calculated.
 
-    The optional argument eqn_idx can be used to specify that variants are generated for a specific list of elements
+    The optional argument eqn_idx can be used to specify that variants are generated for a specific element
     in equations.
 
-    Parameters
-    ----------
-    equations : linnea.algebra.equations.Equations object
-        Contains the set of equations to be processed.
+    Args:
+        equations (linnea.algebra.equations.Equations): Contains the set of equations to be processed.
 
-    eqn_idx : int
-        Index of specific element in equations object to work on. If None, all elements are used.
+        eqn_idx (int, optional): Index of specific element in equations object to work on.
+            If None, all elements are used.
 
-    Yields
-    ------
-    linnea.algebra.equations.Equations object
-        Contains the initial version of equations with variants applied to them.
+    Yields:
+        linnea.algebra.equations.Equations: Contains the initial version of equations with variants applied to them.
 
     """
 
