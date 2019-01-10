@@ -775,6 +775,25 @@ def indentify_subexpression_types(subexprs):
     
     return return_types
 
+def sort_keyfunc(CSE):
+    """Keyfunction for sorting CSEs.
+
+    As a sorting key for a common subexpression, this function returns a tuple
+    of two elements, containing:
+    - The overall number of symbols replaced, i.e. the number of occurrences
+      times the number of symbols (operands) per occurrence.
+    - The number of occurrences (to break ties).
+
+    Returns:
+        (int, int)
+    """
+    number_of_symbols = 0
+    for expr, _ in CSE[0].expr.preorder_iter():
+        if isinstance(expr, Symbol):
+            number_of_symbols += 1
+
+    return (len(CSE)*number_of_symbols, len(CSE))
+
 def find_CSEs(equations):
     """Finds and replaces common subexpressions in equations.
 
@@ -812,8 +831,10 @@ def find_CSEs(equations):
                 subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.none)
                 CSE_detector.add_subexpression(subexpr)
 
-    # CSE_detector.print_self()
-    for CSE in CSE_detector.CSEs():
+    CSEs = list(CSE_detector.CSEs())
+    CSEs.sort(key=sort_keyfunc, reverse=True)
+
+    for CSE in CSEs:
         # print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in CSE])
 
         CSE_as_dict = dict()
