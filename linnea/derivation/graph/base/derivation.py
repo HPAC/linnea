@@ -260,7 +260,7 @@ class DerivationGraphBase(base.GraphBase):
         try:
             msc = mcs.MatrixChainSolver(equations[eqn_idx][initial_pos], explicit_inversion)
         except mcs.MatrixChainNotComputable:
-            return []
+            return
 
         replacement = msc.tmp
         matched_kernels = msc.matched_kernels
