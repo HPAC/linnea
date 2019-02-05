@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
-#BSUB -J "time_gen_{name}[1-{jobs}]" # job name
-#BSUB -o "{linnea_results_path}/{name}/generation/{strategy_name}/cout.txt" # job output
-#BSUB -W {time}:00            # limits in hours:minutes
-#BSUB -M {memory}            # memory in MB
-#BSUB -P {group}
-#BSUB -R {model}
+#{directive} {flag_jobname} "time_gen_{name}{lsf_arrayjob}"
+{slurm_arrayjob}
+#{directive} {flag_output} "{linnea_results_path}/{name}/generation/{strategy_name}/cout.txt"
+#{directive} {flag_time} {time}
+#{directive} {flag_memory}{memory}
+#{directive} {flag_group} {group}
+#{directive} {flag_model} {model}
 {exclusive}
 
-echo $(printf "{name}%03d" $LSB_JOBINDEX)
+echo $(printf "{name}%03d" ${var_array_idx})
 
 module load python/3.6.0
 
@@ -16,6 +17,6 @@ source {linnea_virtualenv_path}/bin/activate
 cd {linnea_results_path}
 mkdir -p {name}/generation/{strategy_name}
 cd {name}/generation/{strategy_name}
-python3 {linnea_src_path}/experiments/experiments.py time_generation {name} -j=$LSB_JOBINDEX -r=1 -{strategy} -m={merging}
+python3 {linnea_src_path}/experiments/experiments.py time_generation {name} -j=${var_array_idx} -r=1 -{strategy} -m={merging}
 
 exit

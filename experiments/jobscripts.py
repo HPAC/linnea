@@ -75,14 +75,56 @@ def generate_code_scripts(replacement):
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
 
+scheduler_vars = {
+    "LSF":
+        {
+        "directive":           "BSUB",
+        "flag_jobname":        "-J",
+        "flag_output":         "-o",
+        "flag_time":           "-W",
+        "flag_memory":         "-M ",
+        "flag_group":          "-P",
+        "flag_model":          "-R",
+        "flag_exclusive":      "-x",
+        "var_array_idx":       "LSB_JOBINDEX" 
+        },
+    "SLURM":
+        {
+        "directive":            "SBATCH",
+        "flag_jobname":         "-J",
+        "flag_output":          "-o",
+        "flag_time":            "-t",
+        "flag_memory":          "--mem=",
+        "flag_group":           "-A",
+        "flag_model":           "-C",
+        "flag_exclusive":       "--exclusive",
+        "var_array_idx":        "SLURM_ARRAY_TASK_ID"
+        }
+    }
 
 def generate_scripts(experiment, number_of_experiments):
 
     experiment_configuration = config.experiment_configuration
 
-    for k in experiment_configuration.keys():
-        experiment_configuration[k]['jobs'] = number_of_experiments
+    scheduler = experiment_configuration["scheduler"]
+
+    if experiment_configuration["time"]["exclusive"]:
+        experiment_configuration["time"]["exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
+
+    for k in ["time", "generate"]:
+        if scheduler == "LSF":
+            experiment_configuration[k]["lsf_arrayjob"] = "[1-{}]".format(number_of_experiments)
+            experiment_configuration[k]["slurm_arrayjob"] = ""
+        elif scheduler == "SLURM":
+            experiment_configuration[k]["lsf_arrayjob"] = ""
+            experiment_configuration[k]["slurm_arrayjob"] = "#SBATCH --array=1-{}".format(number_of_experiments)
+        else:
+            pass # TODO throw exception?
+
+        # experiment_configuration[k]['jobs'] = number_of_experiments
         experiment_configuration[k]['name'] = experiment
+        experiment_configuration[k].update(scheduler_vars[scheduler])
+
 
     dirname = "{}/{}/".format(experiment_configuration['time']['linnea_jobscripts_path'], experiment)
     if not os.path.exists(dirname):
@@ -91,7 +133,6 @@ def generate_scripts(experiment, number_of_experiments):
     time_generation_script(experiment_configuration['time'])
     time_execution_scripts(experiment_configuration['time'])
     generate_code_scripts(experiment_configuration['generate'])
-
 
 if __name__ == '__main__':
     generate_scripts()

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-#BSUB -J "time_matlab_{name}[1-{jobs}]" # job name
-#BSUB -o "{linnea_results_path}/{name}/execution/matlab/cout.txt" # job output
-#BSUB -W {time}:00            # limits in hours:minutes
-#BSUB -M {memory}            # memory in MB
-#BSUB -P {group}
-#BSUB -R {model}
+#{directive} {flag_jobname} "time_matlab_{name}{lsf_arrayjob}"
+{slurm_arrayjob}
+#{directive} {flag_output} "{linnea_results_path}/{name}/execution/matlab/cout.txt"
+#{directive} {flag_time} {time}
+#{directive} {flag_memory}{memory}
+#{directive} {flag_group} {group}
+#{directive} {flag_model} {model}
 {exclusive}
 
 module load MISC
@@ -19,7 +20,7 @@ mkdir -p logs
 export MATLAB_LOG_DIR={linnea_results_path}/execution/matlab/logs
 export MATLABPATH={linnea_lib_path}/MatrixGeneratorMatlab
 
-exppath=$(printf "{output_code_path}/{name}%03d/Matlab" $LSB_JOBINDEX)
+exppath=$(printf "{output_code_path}/{name}%03d/Matlab" ${var_array_idx})
 runner="${{exppath}}/runner.m"
 
 if [ -f $runner ]; then

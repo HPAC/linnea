@@ -1,0 +1,49 @@
+{
+    "experiments":
+    {
+        "scheduler": "SLURM",
+        "generate":
+        {
+            "time": "2:00:00",
+            "memory": "4000M",
+            "group": "aices2",
+            "model": "model==Haswell_EP"
+        },
+        "time":
+        {
+            "time": "2:00:00",
+            "memory": "4000M",
+            "group": "aices2",
+            "model": "model==Haswell_EP",
+            "exclusive": false,
+            "repetitions": 1
+        },
+        "path":
+        {
+            "linnea_src_path":          "$HOME/Linnea/src/linnea",
+            "linnea_lib_path":          "$HOME/Linnea/lib",
+            "linnea_output_path":       "$HOME/Linnea/output",
+            "linnea_results_path":      "$HOME/Linnea/output/results",
+            "linnea_jobscripts_path":   "$HOME/Linnea/output/jobscripts",
+            "linnea_virtualenv_path":   "$HOME/Linnea/linnea.venv",
+            "linnea_julia_path":        "$HOME/Linnea/src/julia"
+        }
+    },
+    "main":
+    {
+        "language": "Julia",
+        "julia_data_type": "Float64",
+        "merging_branches": true,
+        "dead_ends": true,
+        "algorithms_limit": 100,
+        "strategy": "constructive",
+        "output_name": "tmp",
+        "generate_graph": false,
+        "generate_derivation": false,
+        "generate_code": true,
+        "generate_experiments": false,
+        "verbosity": 1,
+        "graph_style": "full",
+        "output_code_path": "."
+    }
+}
