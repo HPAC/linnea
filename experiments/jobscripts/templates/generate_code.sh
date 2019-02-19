@@ -2,7 +2,7 @@
 
 #{directive} {flag_jobname} "gen_{strategy}_{name}{lsf_arrayjob}"
 {slurm_arrayjob}
-#{directive} {flag_output} "{output_code_path}/cout_{name}.txt"
+#{directive} {flag_output} "{linnea_output_path}/logs/gen_{strategy}_{name}{string_array_idx}.txt"
 #{directive} {flag_time} {time}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_group} {group}

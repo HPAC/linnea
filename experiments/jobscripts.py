@@ -80,7 +80,7 @@ scheduler_vars = {
         {
         "directive":            "BSUB",
         "flag_jobname":         "-J",
-        "flag_output":          "-o",
+        "flag_output":          "-oo",
         "flag_time":            "-W",
         "flag_memory":          "-M ",
         "flag_group":           "-P",
