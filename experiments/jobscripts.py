@@ -110,7 +110,9 @@ def generate_scripts(experiment, number_of_experiments):
 
     if experiment_configuration["time"]["exclusive"]:
         experiment_configuration["time"]["spec_exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
-
+    else:
+        experiment_configuration["time"]["spec_exclusive"] = ""
+        
     for mode in ["time", "generate"]:
         if scheduler == "LSF":
             experiment_configuration[mode]["lsf_arrayjob"] = "[1-{}]".format(number_of_experiments)
