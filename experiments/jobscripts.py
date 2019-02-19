@@ -112,7 +112,7 @@ def generate_scripts(experiment, number_of_experiments):
         experiment_configuration["time"]["spec_exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
     else:
         experiment_configuration["time"]["spec_exclusive"] = ""
-        
+
     for mode in ["time", "generate"]:
         if scheduler == "LSF":
             experiment_configuration[mode]["lsf_arrayjob"] = "[1-{}]".format(number_of_experiments)
@@ -127,16 +127,18 @@ def generate_scripts(experiment, number_of_experiments):
 
         # experiment_configuration[mode]['jobs'] = number_of_experiments
         experiment_configuration[mode]['name'] = experiment
-        experiment_configuration[mode].update(scheduler_vars[scheduler])
 
 
-    dirname = "{}/{}/".format(experiment_configuration['time']['linnea_jobscripts_path'], experiment)
+    dirname = "{}/{}/".format(experiment_configuration['path']['linnea_jobscripts_path'], experiment)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    time_generation_script(experiment_configuration['time'])
-    time_execution_scripts(experiment_configuration['time'])
-    generate_code_scripts(experiment_configuration['generate'])
+    time_configuration = {**experiment_configuration['time'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
+    generate_configuration = {**experiment_configuration['generate'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
+
+    time_generation_script(time_configuration)
+    time_execution_scripts(time_configuration)
+    generate_code_scripts(generate_configuration)
 
 if __name__ == '__main__':
     generate_scripts()

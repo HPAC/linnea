@@ -311,12 +311,8 @@ def load_config(config_file=''):
                         error_msg = 'Unknown setting: {}'.format(key)
                         raise KeyError(error_msg)
 
-                configuration['experiments']['path']['output_code_path'] = output_code_path
 
-                configuration['experiments']['time'] = {**configuration['experiments']['path'],
-                                                        **configuration['experiments']['time']}
-                configuration['experiments']['generate'] = {**configuration['experiments']['path'],
-                                                            **configuration['experiments']['generate']}
+                configuration['experiments']['path']['output_code_path'] = output_code_path
 
                 experiment_configuration = configuration['experiments']
     else:

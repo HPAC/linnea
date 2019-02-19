@@ -2,6 +2,13 @@
     "experiments":
     {
         "scheduler": "SLURM",
+        "version":
+        {
+            "cmake_version": "3.13.2",
+            "intel_version": "18.0",
+            "gcc_version": "8",
+            "python_version": "3.6.0"
+        },
         "generate":
         {
             "time": "2:00:00",

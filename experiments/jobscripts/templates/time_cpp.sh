@@ -9,8 +9,8 @@
 {spec_model}
 {spec_exclusive}
 
-module switch intel intel/18.0
-module load gcc/7
+module switch intel intel/{intel_version}
+module load gcc/{gcc_version}
 
 cd {linnea_results_path}
 mkdir -p {name}/execution/cpp

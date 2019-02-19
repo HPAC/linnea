@@ -9,7 +9,7 @@
 {spec_model}
 {spec_exclusive}
 
-module load gcc/7
+module load gcc/{gcc_version}
 
 cd {linnea_results_path}/
 mkdir -p {name}/execution/julia

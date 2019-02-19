@@ -2,6 +2,13 @@
     "experiments":
     {
         "scheduler": "LSF",
+        "version":
+        {
+            "cmake_version": "3.10.1",
+            "intel_version": "18.0",
+            "gcc_version": "7",
+            "python_version": "3.6.0"
+        },
         "generate":
         {
             "time": "2:00",

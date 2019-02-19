@@ -9,15 +9,15 @@
 {spec_model}
 
 
-module load python/3.6.0
+module load python/{python_version}
 
 source {linnea_virtualenv_path}/bin/activate
 python3 {linnea_src_path}/experiments/experiments.py generate_code {name} -j=${var_array_idx} -{strategy}
 
 if {compile}; then
-    module load cmake/3.10.1
-    module switch intel intel/18.0
-    module load gcc/7
+    module load cmake/{cmake_version}
+    module switch intel intel/{intel_version}
+    module load gcc/{gcc_version}
 
     expname=$(printf "{name}%03d" ${var_array_idx})
 
