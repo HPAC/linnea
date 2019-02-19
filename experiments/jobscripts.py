@@ -109,21 +109,23 @@ def generate_scripts(experiment, number_of_experiments):
     scheduler = experiment_configuration["scheduler"]
 
     if experiment_configuration["time"]["exclusive"]:
-        experiment_configuration["time"]["exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
+        experiment_configuration["time"]["spec_exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
 
-    for k in ["time", "generate"]:
+    for mode in ["time", "generate"]:
         if scheduler == "LSF":
-            experiment_configuration[k]["lsf_arrayjob"] = "[1-{}]".format(number_of_experiments)
-            experiment_configuration[k]["slurm_arrayjob"] = ""
+            experiment_configuration[mode]["lsf_arrayjob"] = "[1-{}]".format(number_of_experiments)
+            experiment_configuration[mode]["slurm_arrayjob"] = ""
+            experiment_configuration[mode]["spec_model"] = "#BSUB -R {model}".format(**experiment_configuration[mode])
         elif scheduler == "SLURM":
-            experiment_configuration[k]["lsf_arrayjob"] = ""
-            experiment_configuration[k]["slurm_arrayjob"] = "#SBATCH --array=1-{}".format(number_of_experiments)
+            experiment_configuration[mode]["lsf_arrayjob"] = ""
+            experiment_configuration[mode]["slurm_arrayjob"] = "#SBATCH --array=1-{}".format(number_of_experiments)
+            experiment_configuration[mode]["spec_model"] = ""
         else:
             pass # TODO throw exception?
 
-        # experiment_configuration[k]['jobs'] = number_of_experiments
-        experiment_configuration[k]['name'] = experiment
-        experiment_configuration[k].update(scheduler_vars[scheduler])
+        # experiment_configuration[mode]['jobs'] = number_of_experiments
+        experiment_configuration[mode]['name'] = experiment
+        experiment_configuration[mode].update(scheduler_vars[scheduler])
 
 
     dirname = "{}/{}/".format(experiment_configuration['time']['linnea_jobscripts_path'], experiment)

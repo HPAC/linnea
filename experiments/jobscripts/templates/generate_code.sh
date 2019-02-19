@@ -6,7 +6,7 @@
 #{directive} {flag_time} {time}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_group} {group}
-#{directive} {flag_model} {model}
+{spec_model}
 
 
 module load python/3.6.0
