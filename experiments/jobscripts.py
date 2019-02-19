@@ -78,15 +78,16 @@ def generate_code_scripts(replacement):
 scheduler_vars = {
     "LSF":
         {
-        "directive":           "BSUB",
-        "flag_jobname":        "-J",
-        "flag_output":         "-o",
-        "flag_time":           "-W",
-        "flag_memory":         "-M ",
-        "flag_group":          "-P",
-        "flag_model":          "-R",
-        "flag_exclusive":      "-x",
-        "var_array_idx":       "LSB_JOBINDEX" 
+        "directive":            "BSUB",
+        "flag_jobname":         "-J",
+        "flag_output":          "-o",
+        "flag_time":            "-W",
+        "flag_memory":          "-M ",
+        "flag_group":           "-P",
+        "flag_model":           "-R",
+        "flag_exclusive":       "-x",
+        "var_array_idx":        "LSB_JOBINDEX",
+        "string_array_idx":     "%I"
         },
     "SLURM":
         {
@@ -98,7 +99,8 @@ scheduler_vars = {
         "flag_group":           "-A",
         "flag_model":           "-C",
         "flag_exclusive":       "--exclusive",
-        "var_array_idx":        "SLURM_ARRAY_TASK_ID"
+        "var_array_idx":        "SLURM_ARRAY_TASK_ID",
+        "string_array_idx":     "%a"
         }
     }
 
