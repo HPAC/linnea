@@ -3,7 +3,7 @@
 #{directive} {flag_jobname} "time_cpp_{name}{lsf_arrayjob}"
 {slurm_arrayjob}
 #{directive} {flag_output} "{linnea_output_path}/logs/time_cpp_{name}{string_array_idx}.txt"
-#{directive} {flag_time} {time}
+#{directive} {flag_time} {time_execution}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_group} {group}
 {spec_model}

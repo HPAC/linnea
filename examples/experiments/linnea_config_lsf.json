@@ -18,7 +18,8 @@
         },
         "time":
         {
-            "time": "2:00",
+            "time_generation": "2:00",
+            "time_execution": "3:00",
             "memory": "4000",
             "group": "aices2",
             "model": "model==Haswell_EP",

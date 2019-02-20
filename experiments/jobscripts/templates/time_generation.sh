@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-#{directive} {flag_jobname} "time_gen_{name}{lsf_arrayjob}"
+#{directive} {flag_jobname} "time_gen_{strategy_name}_{name}{lsf_arrayjob}"
 {slurm_arrayjob}
-#{directive} {flag_output} "{linnea_output_path}/logs/time_gen_{name}{string_array_idx}.txt"
-#{directive} {flag_time} {time}
+#{directive} {flag_output} "{linnea_output_path}/logs/time_gen_{strategy_name}_{name}{string_array_idx}.txt"
+#{directive} {flag_time} {time_generation}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_group} {group}
 {spec_model}

@@ -18,7 +18,8 @@
         },
         "time":
         {
-            "time": "2:00:00",
+            "time_generation": "2:00:00",
+            "time_execution": "3:00:00",
             "memory": "4000M",
             "group": " ",
             "model": "skx8160",

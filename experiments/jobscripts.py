@@ -16,22 +16,12 @@ def time_generation_script(replacement):
 
         file_name_parts.append(strategy)
         replacement_copy["strategy"] = strategy
-        # TODO there is some redundancy here
         if merging:
             replacement_copy["strategy_name"] = strategy + "_m"
-        else:
-            replacement_copy["strategy_name"] = strategy + "_nm"
-        # if strategy is Strategy.constructive:
-        #     file_name_parts.append("c")
-        #     replacement_copy["strategy"] = "c"
-        # elif strategy is Strategy.exhaustive:
-        #     file_name_parts.append("e")
-        #     replacement_copy["strategy"] = "e"
-
-        if merging:
             file_name_parts.append("m")
             replacement_copy["merging"] = "true"
         else:
+            replacement_copy["strategy_name"] = strategy + "_nm"
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
@@ -127,7 +117,6 @@ def generate_scripts(experiment, number_of_experiments):
         else:
             pass # TODO throw exception?
 
-        # experiment_configuration[mode]['jobs'] = number_of_experiments
         experiment_configuration[mode]['name'] = experiment
 
 
