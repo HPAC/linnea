@@ -1,12 +1,12 @@
 n = 100
 
-Matrix A(n, n) <Input>
-Matrix B(n, n) <Input, SPD>
-Matrix C(n, n) <Input>
-Matrix D(n, n) <Input>
+Matrix A(n, n) <>
+Matrix B(n, n) <SPD>
+Matrix C(n, n) <>
+Matrix D(n, n) <>
 
-Matrix X(n, n) <Output>
-Matrix Y(n, n) <Output>
+Matrix X(n, n) <>
+Matrix Y(n, n) <>
 
 X = A*inv(trans(B))*C
 Y = inv(B)*trans(A)*D

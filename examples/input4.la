@@ -1,9 +1,9 @@
 n = 1500
 m = 1000
 
-Matrix X(n, m) <Input, FullRank>
-Matrix M(n, n) <Input, SPD>
-ColumnVector y(n) <Input>
-ColumnVector b(m) <Output>
+Matrix X(n, m) <FullRank>
+Matrix M(n, n) <SPD>
+ColumnVector y(n) <>
+ColumnVector b(m) <>
 
 b = inv(trans(X)*inv(M)*X)*trans(X)*inv(M)*y
