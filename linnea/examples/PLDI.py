@@ -584,9 +584,11 @@ class Example14():
         Mk = Matrix("Mk", (n, n))
         Mk.set_property(properties.FULL_RANK)
 
-        X = Matrix("X", (n, n))
-        X.set_property(properties.SYMMETRIC)
-        X.set_property(properties.FULL_RANK)
+        Xin = Matrix("Xin", (n, n))
+        Xin.set_property(properties.SYMMETRIC)
+        Xin.set_property(properties.FULL_RANK)
+
+        Xout = Matrix("Xout", (n, n))
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
@@ -595,14 +597,14 @@ class Example14():
         self.eqns = Equations(
                         Equal(Lambda, Times(S, Inverse(Times(Transpose(S), A, W, A, S)), Transpose(S))),
                         Equal(Theta, Times(Lambda, A, W)),
-                        Equal(Mk, Plus(Times(X, A), Times(minus1, I))),
-                        Equal(X,
-                            Plus(X,
+                        Equal(Mk, Plus(Times(Xin, A), Times(minus1, I))),
+                        Equal(Xout,
+                            Plus(Xin,
                                 Times(minus1, Mk, Theta),
                                 Times(minus1, Transpose(Times(Mk, Theta))),
                                 Times(
                                     Transpose(Theta),
-                                    Plus(Times(A, X, A), Times(minus1, A)),
+                                    Plus(Times(A, Xin, A), Times(minus1, A)),
                                     Theta
                                     )
                                 )
@@ -910,23 +912,24 @@ class Example24():
 
         A = Matrix("A", (m, n), properties = [properties.FULL_RANK])
         K = Matrix("K", (n, m), properties = [properties.FULL_RANK])
-        C = Matrix("C", (n, n), properties = [properties.SPD]) # covariance matrix
+        Cin = Matrix("Cin", (n, n), properties = [properties.SPD]) # covariance matrix
         Cz = Matrix("Cz", (m, m), properties = [properties.SPD]) # covariance matrix
         y = Vector("y", (m, 1))
         x = Vector("x", (n, 1))
 
         xout = Vector("xout", (n, 1))
+        Cout = Matrix("Cout", (n, n)) # covariance matrix
 
         minus1 = ConstantScalar(-1.0)
         I = IdentityMatrix(n, n)
 
         self.eqns = Equations(
                         Equal(K, 
-                            Times(C, Transpose(A), Inverse(Plus(Times(A, C, Transpose(A)), Cz)))),
+                            Times(Cin, Transpose(A), Inverse(Plus(Times(A, Cin, Transpose(A)), Cz)))),
                         Equal(xout,
                             Plus(x, Times(K, Plus(y, Times(minus1, A, x))))),
-                        Equal(C, 
-                            Times(Plus(I, Times(minus1, K, A)), C))
+                        Equal(Cout, 
+                            Times(Plus(I, Times(minus1, K, A)), Cin))
             )
 
 class Example25():
