@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 
-#BSUB -J "time_julia_{name}[1-{jobs}]" # job name
-#BSUB -o "{linnea_results_path}/{name}/execution/julia/cout.txt" # job output
-#BSUB -W {time}:00            # limits in hours:minutes
-#BSUB -M {memory}            # memory in MB
-#BSUB -P {group}
-#BSUB -R {model}
-{exclusive}
+#{directive} {flag_jobname} "time_julia_{name}{lsf_arrayjob}"
+{slurm_arrayjob}
+#{directive} {flag_output} "{linnea_output_path}/logs/time_julia_{name}{string_array_idx}.txt"
+#{directive} {flag_time} {time_execution}
+#{directive} {flag_memory}{memory}
+#{directive} {flag_group} {group}
+{spec_model}
+{spec_exclusive}
 
-module load gcc/7
+module load gcc/{gcc_version}
 
 cd {linnea_results_path}/
 mkdir -p {name}/execution/julia
 cd {name}/execution/julia
 
-runner=$(printf "{output_code_path}/{name}%03d/Julia/runner.jl" $LSB_JOBINDEX)
+runner=$(printf "{output_code_path}/{name}%03d/Julia/runner.jl" ${var_array_idx})
 
 if [ -f $runner ]; then
     {linnea_julia_path}/julia $runner

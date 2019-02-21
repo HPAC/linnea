@@ -311,18 +311,8 @@ def load_config(config_file=''):
                         error_msg = 'Unknown setting: {}'.format(key)
                         raise KeyError(error_msg)
 
-                if 'exclusive' in configuration['experiments']['time'].keys():
-                    if configuration['experiments']['time']['exclusive']:
-                        configuration['experiments']['time']['exclusive'] = '#BSUB -x                     # exclusive access'
-                    else:
-                        configuration['experiments']['time']['exclusive'] = ''
 
                 configuration['experiments']['path']['output_code_path'] = output_code_path
-
-                configuration['experiments']['time'] = {**configuration['experiments']['path'],
-                                                        **configuration['experiments']['time']}
-                configuration['experiments']['generate'] = {**configuration['experiments']['path'],
-                                                            **configuration['experiments']['generate']}
 
                 experiment_configuration = configuration['experiments']
     else:

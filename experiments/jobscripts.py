@@ -16,22 +16,12 @@ def time_generation_script(replacement):
 
         file_name_parts.append(strategy)
         replacement_copy["strategy"] = strategy
-        # TODO there is some redundancy here
         if merging:
             replacement_copy["strategy_name"] = strategy + "_m"
-        else:
-            replacement_copy["strategy_name"] = strategy + "_nm"
-        # if strategy is Strategy.constructive:
-        #     file_name_parts.append("c")
-        #     replacement_copy["strategy"] = "c"
-        # elif strategy is Strategy.exhaustive:
-        #     file_name_parts.append("e")
-        #     replacement_copy["strategy"] = "e"
-
-        if merging:
             file_name_parts.append("m")
             replacement_copy["merging"] = "true"
         else:
+            replacement_copy["strategy_name"] = strategy + "_nm"
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
@@ -75,23 +65,71 @@ def generate_code_scripts(replacement):
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
 
+scheduler_vars = {
+    "LSF":
+        {
+        "directive":            "BSUB",
+        "flag_jobname":         "-J",
+        "flag_output":          "-oo",
+        "flag_time":            "-W",
+        "flag_memory":          "-M ",
+        "flag_group":           "-P",
+        "flag_model":           "-R",
+        "flag_exclusive":       "-x",
+        "var_array_idx":        "LSB_JOBINDEX",
+        "string_array_idx":     "%I"
+        },
+    "SLURM":
+        {
+        "directive":            "SBATCH",
+        "flag_jobname":         "-J",
+        "flag_output":          "-o",
+        "flag_time":            "-t",
+        "flag_memory":          "--mem=",
+        "flag_group":           "-A",
+        "flag_model":           "-C",
+        "flag_exclusive":       "--exclusive",
+        "var_array_idx":        "SLURM_ARRAY_TASK_ID",
+        "string_array_idx":     "%a"
+        }
+    }
 
 def generate_scripts(experiment, number_of_experiments):
 
     experiment_configuration = config.experiment_configuration
 
-    for k in experiment_configuration.keys():
-        experiment_configuration[k]['jobs'] = number_of_experiments
-        experiment_configuration[k]['name'] = experiment
+    scheduler = experiment_configuration["scheduler"]
 
-    dirname = "{}/{}/".format(experiment_configuration['time']['linnea_jobscripts_path'], experiment)
+    if experiment_configuration["time"]["exclusive"]:
+        experiment_configuration["time"]["spec_exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
+    else:
+        experiment_configuration["time"]["spec_exclusive"] = ""
+
+    for mode in ["time", "generate"]:
+        if scheduler == "LSF":
+            experiment_configuration[mode]["lsf_arrayjob"] = "[1-{}]".format(number_of_experiments)
+            experiment_configuration[mode]["slurm_arrayjob"] = ""
+            experiment_configuration[mode]["spec_model"] = "#BSUB -R {model}".format(**experiment_configuration[mode])
+        elif scheduler == "SLURM":
+            experiment_configuration[mode]["lsf_arrayjob"] = ""
+            experiment_configuration[mode]["slurm_arrayjob"] = "#SBATCH --array=1-{}".format(number_of_experiments)
+            experiment_configuration[mode]["spec_model"] = ""
+        else:
+            pass # TODO throw exception?
+
+        experiment_configuration[mode]['name'] = experiment
+
+
+    dirname = "{}/{}/".format(experiment_configuration['path']['linnea_jobscripts_path'], experiment)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    time_generation_script(experiment_configuration['time'])
-    time_execution_scripts(experiment_configuration['time'])
-    generate_code_scripts(experiment_configuration['generate'])
+    time_configuration = {**experiment_configuration['time'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
+    generate_configuration = {**experiment_configuration['generate'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
 
+    time_generation_script(time_configuration)
+    time_execution_scripts(time_configuration)
+    generate_code_scripts(generate_configuration)
 
 if __name__ == '__main__':
     generate_scripts()
