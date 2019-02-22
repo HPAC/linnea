@@ -125,8 +125,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         self.print_DS("Solution nodes:", len(terminal_nodes))
         self.print_DS("Number of nodes:", len(self.nodes))
 
+        data = self.root.equations.get_data()
+        self.print("Data: {}".format(data))
         if terminal_nodes:
-            self.print("Best solution: {:.3g}".format(min(map(operator.attrgetter("accumulated_cost"), terminal_nodes))))
+            _, cost = self.shortest_path()
+            self.print("Best solution: {:.3g}".format(cost))
+            self.print("Intensity: {:.3g}".format(cost/data))
 
         # if self.verbose
         #     from ... import temporaries

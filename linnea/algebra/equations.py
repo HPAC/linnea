@@ -73,6 +73,32 @@ class Equations():
     def to_normalform(self):
         return Equations(*[ar.to_SOP(at.simplify(ar.to_SOP(equation))) for equation in self.equations])
 
+    def get_data(self):
+        """Counts the number of floating point values for calculating intensity.
+
+        
+        """
+
+        operands_lhs = set()
+        operands_rhs = set()
+        for equation in self.equations:
+            operands_lhs.update(op for op, _ in equation.lhs.preorder_iter() if isinstance(op, ae.Symbol))
+            operands_rhs.update(op for op, _ in equation.rhs.preorder_iter() if isinstance(op, ae.Symbol))
+        
+        all_data = 0
+        for operands in (operands_lhs, operands_rhs):
+            data = 0
+            for operand in operands:
+                rows, cols = operand.size
+                if not operand.has_property(properties.CONSTANT):
+                    if operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.TRIANGULAR):
+                        data += rows * cols/2
+                    elif operand.has_property(properties.DIAGONAL):
+                        data += min(rows, cols)
+            all_data += data
+       
+        return all_data
+
     def set_equivalent(self, equations_before):
         """Applies temporaries.set_equivalent() to all equations.
  

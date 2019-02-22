@@ -64,7 +64,7 @@ def measure(example, name, strategy, merge, reps=10):
             bool(graph.terminal_nodes())]
     return data
 
-def generate(example, name, strategy):
+def generate(experiment, example, name, strategy):
 
     if strategy is Strategy.constructive:
         DerivationGraph = CDGraph
@@ -97,6 +97,11 @@ def generate(example, name, strategy):
                        subdir_name=strategy.name,
                        algorithm_name=algorithm_name)
 
+    _, cost = graph.shortest_path()
+    data = example.eqns.get_data()
+    file_path = os.path.join(linnea.config.results_path, experiment, "intensity", name + "_intensity" + ".csv")
+    dframe = pd.DataFrame([[data, cost, cost/data]], index=[algorithm_name.format(0)], columns=["data", "cost", "intensity"])
+    dframe.to_csv(file_path)
 
 def main():
 
@@ -228,7 +233,7 @@ def main():
         for example, name in job_examples:
 
             for strategy in strategies:
-                generate(example, name, strategy)
+                generate(args.experiment, example, name, strategy)
 
             if args.reference:
                 reference_code.generate_reference_code(name, example.eqns)

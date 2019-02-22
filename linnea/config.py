@@ -89,6 +89,7 @@ iteration_limit = -1
 graph_style = None
 experiment_configuration = dict()
 output_code_path = None
+results_path = None
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
@@ -235,6 +236,10 @@ def set_output_code_path(path):
     global output_code_path
     output_code_path = create_path(path)
 
+def set_results_path(path):
+    global results_path
+    results_path = create_path(path)
+
 # setting default values
 
 set_language(Language.Julia)
@@ -307,10 +312,11 @@ def load_config(config_file=''):
                         configuration['experiments']['path'][key] = check_path(value)
                     elif key in ['linnea_output_path', 'linnea_results_path', 'linnea_jobscripts_path']:
                         configuration['experiments']['path'][key] = create_path(value)
+                        if key == 'linnea_results_path':
+                            set_results_path(value)
                     else:
                         error_msg = 'Unknown setting: {}'.format(key)
                         raise KeyError(error_msg)
-
 
                 configuration['experiments']['path']['output_code_path'] = output_code_path
 

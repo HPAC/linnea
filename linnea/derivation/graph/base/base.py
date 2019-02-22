@@ -129,30 +129,19 @@ class GraphBase():
                     stack.appendleft((successor, path_copy, cost + node.edge_labels[idx].cost))
 
 
-    def optimal_algorithm_path(self):
-        terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
-        if not terminal_nodes:
+    def shortest_path(self):
+        try:
+            path, cost = next(self.k_shortest_paths(1))
+        except StopIteration:
             return ([], math.inf)
-
-        terminal_nodes.sort(key=operator.attrgetter("accumulated_cost"))
-        # print([node.accumulated_cost for node in terminal_nodes])
-
-        current_node = terminal_nodes[0]
-        predecessor = current_node.optimal_path_predecessor
-        path = []
-        while predecessor:
-            idx = predecessor.successors.index(current_node)
-            path.append(idx)
-            current_node = predecessor
-            predecessor = current_node.optimal_path_predecessor
-
-        return (list(reversed(path)), terminal_nodes[0].accumulated_cost)
+        else:
+            return (path, cost)
 
 
     def optimal_algorithm(self):
         matched_kernels = []
         current_node = self.root
-        path, cost = self.optimal_algorithm_path()
+        path, cost = self.shortest_path()
         if path:
             for idx in path:
 
