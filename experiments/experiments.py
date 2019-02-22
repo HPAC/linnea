@@ -237,7 +237,7 @@ def main():
         linnea.config.set_verbosity(2)
 
         for strategy_str in strategy_strs:
-            dir = os.path.join(linnea.config.results_path, args.experiment, strategy_str, "intensity")
+            dir = os.path.join(linnea.config.results_path, args.experiment, "intensity", strategy_str)
             if not os.path.exists(dir):
                 os.makedirs(dir)
 
