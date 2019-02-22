@@ -66,12 +66,15 @@ def measure(example, name, strategy, merge, reps=10):
 
 def generate(experiment, example, name, strategy):
 
+    strategy_str = None 
     if strategy is Strategy.constructive:
         DerivationGraph = CDGraph
         algorithm_name = "algorithm{}c"
+        strategy_str = "c"
     elif strategy is Strategy.exhaustive:
         DerivationGraph = EDGraph
         algorithm_name = "algorithm{}e"
+        strategy_str = "e"
     else:
         raise NotImplementedError()
 
@@ -99,7 +102,7 @@ def generate(experiment, example, name, strategy):
 
     _, cost = graph.shortest_path()
     data = example.eqns.get_data()
-    file_path = os.path.join(linnea.config.results_path, experiment, "intensity", name + "_intensity" + ".csv")
+    file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity" + ".csv")
     dframe = pd.DataFrame([[data, cost, cost/data]], index=[algorithm_name.format(0)], columns=["data", "cost", "intensity"])
     dframe.to_csv(file_path)
 
@@ -180,12 +183,15 @@ def main():
 
     strategies = []
     algorithms = []
+    strategy_strs = []
     if args.constructive:
         strategies.append(Strategy.constructive)
         algorithms.append(("constructive", "algorithm0c"))
+        strategy_strs.append("c")
     if args.exhaustive:
         strategies.append(Strategy.exhaustive)
         algorithms.append(("exhaustive", "algorithm0e"))
+        strategy_strs.append("e")
 
     if args.mode == "time_generation":
 
@@ -230,9 +236,10 @@ def main():
 
         linnea.config.set_verbosity(2)
 
-        dir = os.path.join(linnea.config.results_path, args.experiment, "intensity")
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        for strategy_str in strategy_strs:
+            dir = os.path.join(linnea.config.results_path, args.experiment, strategy_str, "intensity")
+            if not os.path.exists(dir):
+                os.makedirs(dir)
 
         for example, name in job_examples:
 
