@@ -230,6 +230,10 @@ def main():
 
         linnea.config.set_verbosity(2)
 
+        dir = os.path.join(linnea.config.results_path, args.experiment, "intensity")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
         for example, name in job_examples:
 
             for strategy in strategies:
