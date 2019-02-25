@@ -240,7 +240,7 @@ def main():
         for strategy_str in strategy_strs:
             dir = os.path.join(linnea.config.results_path, args.experiment, "intensity", strategy_str)
             if not os.path.exists(dir):
-                os.makedirs(dir)
+                os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
 
         for example, name in job_examples:
 
