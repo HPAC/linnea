@@ -95,8 +95,10 @@ class Equations():
                         data += rows * cols/2
                     elif operand.has_property(properties.DIAGONAL):
                         data += min(rows, cols)
+                    else:
+                        data += rows * cols
             all_data += data
-       
+
         return all_data
 
     def set_equivalent(self, equations_before):
