@@ -66,6 +66,22 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
     return pd.concat(language_dfs, axis=1, sort=True)
 
 
+def read_intensity(experiment_name, number_of_experiments):
+    example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
+
+    file_dfs = []
+    for strategy in ["c", "e"]:
+        for example_name in example_names:
+            file_path = os.path.join(experiment_name, "intensity", strategy, "{}_intensity.csv".format(example_name))
+            if os.path.isfile(file_path):
+                df = pd.read_csv(file_path, index_col=[0, 1])
+                file_dfs.append(df)
+            else:
+                print("Missing file", file_path)
+
+    return pd.concat(file_dfs, sort=True)
+
+
 def to_performance_profiles_data(time_data):
 
     # normalize by fastest implementation
@@ -233,6 +249,15 @@ def process_data_generation(gen_results, experiment):
     nodes_and_time.to_csv("{}_generation_all.csv".format(experiment), na_rep="NaN")
     nodes_and_time.dropna().to_csv("{}_generation_all_clean.csv".format(experiment))
 
+def process_data_intensity(intensity_data, experiment):
+
+    intensity_data.to_csv("{}_intensity_all.csv".format(experiment), na_rep="NaN")
+
+    intensity_only = intensity_data.unstack(level=1).loc[:, ("intensity")]
+    intensity_only.to_csv("{}_intensity.csv".format(experiment), na_rep="NaN")
+
+    intensity_only_sorted = intensity_only.sort_values(by=["algorithm0e", "algorithm0c"])
+    intensity_only_sorted.to_csv("{}_intensity_sorted.csv".format(experiment), na_rep="NaN")
 
 if __name__ == '__main__':
 
@@ -242,6 +267,7 @@ if __name__ == '__main__':
 
     execution_time_all = []
     gen_results_all = []
+    intensity_data_all = []
     for experiment, n in experiments:
 
         # execution
@@ -254,6 +280,11 @@ if __name__ == '__main__':
         gen_results_all.append(gen_results)
         process_data_generation(gen_results, experiment)
 
+        # intensity
+        intensity_data = read_intensity(experiment, n)
+        intensity_data_all.append(intensity_data)
+        process_data_intensity(intensity_data, experiment)
+
     # execution combined
     execution_time_combined = pd.concat(execution_time_all)
     process_data_execution(execution_time_combined, "combined")
@@ -261,4 +292,8 @@ if __name__ == '__main__':
     # generation combined
     gen_results_combined = pd.concat(gen_results_all)
     process_data_generation(gen_results_combined, "combined")
+
+    # intensity combined
+    intensity_data_combined = pd.concat(intensity_data_all)
+    process_data_intensity(intensity_data_combined, "combined")
  
