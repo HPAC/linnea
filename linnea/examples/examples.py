@@ -3941,3 +3941,62 @@ class Example159():
                         Equal(Y, Times(Transpose(A), A)),
                         Equal(X, Times(Inverse(Y), C))
                         )
+
+
+class Example160():
+    def __init__(self):
+
+        # TAGS
+        # SAC
+
+        n = 5000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        D = Matrix("D", (n, n))
+        D.set_property(properties.FULL_RANK)
+
+        alpha = Scalar("alpha")
+
+        X = Matrix("X", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Plus(Transpose(A), B, Times(alpha, C), Transpose(D)))
+                        )
+
+
+class Example161():
+    def __init__(self):
+
+        # TAGS
+        # SAC
+
+        n = 5000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        # C = Matrix("C", (n, n))
+        # C.set_property(properties.FULL_RANK)
+
+        D = Matrix("D", (n, n))
+        D.set_property(properties.FULL_RANK)
+        D.set_property(properties.DIAGONAL)
+
+        alpha = Scalar("alpha")
+
+        X = Matrix("X", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Plus(A, Times(D, B)))
+                        )
