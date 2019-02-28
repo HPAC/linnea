@@ -92,7 +92,7 @@ def generate(experiment, example, name, strategy):
                         merging=True,
                         dead_ends=True)
     graph.write_output(code=True,
-                       derivation=False,
+                       derivation=True,
                        output_name=name,
                        experiment_code=False,
                        algorithms_limit=1,
