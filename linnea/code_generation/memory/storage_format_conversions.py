@@ -179,7 +179,7 @@ in_place_conversions = [
         utils.CodeTemplate(textwrap.dedent(
             """\
             for i = 1:$n-1;
-                $op[i+1:$n,i] = $op[i,i+1:$n];
+                view($op, i+1:$n, i)[:] = view($op, i, i+1:$n);
             end;
             """
             ))
@@ -190,7 +190,7 @@ in_place_conversions = [
         utils.CodeTemplate(textwrap.dedent(
             """\
             for i = 1:$n-1;
-                $op[i,i+1:$n] = $op[i+1:$n,i];
+                view($op, i, i+1:$n)[:] = view($op, i+1:$n, i);
             end;
             """
             ))
