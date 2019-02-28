@@ -91,10 +91,10 @@ class Equations():
             for operand in operands:
                 rows, cols = operand.size
                 if not operand.has_property(properties.CONSTANT):
-                    if operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.TRIANGULAR):
-                        data += rows * cols/2
-                    elif operand.has_property(properties.DIAGONAL):
+                    if operand.has_property(properties.DIAGONAL):
                         data += min(rows, cols)
+                    elif operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.TRIANGULAR):
+                        data += rows * cols/2
                     else:
                         data += rows * cols
             all_data += data
