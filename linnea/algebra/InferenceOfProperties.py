@@ -172,7 +172,7 @@ def isNonSingular(expr):
     if isinstance(expr, ae.Times):
         return all(isNonSingular(factor) for factor in expr.operands)
     if isinstance(expr, ae.Plus): # ?
-        return all(isNonSingular(operand) for operand in expr.operands)
+        return any(isNonSingular(operand) for operand in expr.operands)
     if isinstance(expr, ae.Transpose):
         return isNonSingular(expr.operand)
     if isinstance(expr, ae.Inverse):
@@ -214,7 +214,7 @@ def isFullRank(expr):
     if isinstance(expr, ae.Times):
         return all(isFullRank(factor) for factor in expr.operands) and is_full_rank_product(expr)
     if isinstance(expr, ae.Plus):
-        return all(isFullRank(operand) for operand in expr.operands)
+        return any(isFullRank(operand) for operand in expr.operands)
     if isinstance(expr, ae.Transpose):
         return isFullRank(expr.operand)
     if isinstance(expr, ae.Inverse):
