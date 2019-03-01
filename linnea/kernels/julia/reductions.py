@@ -1909,7 +1909,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: 0
+cf = lambda d: d["N"]
 
 pmm = KernelDescription(
     ExpressionKV(
@@ -1925,7 +1925,7 @@ pmm = KernelDescription(
     "",
     "$B = $A[$P,:]",
     "",
-    [SizeArgument("M", A, "columns")], # Argument objects
+    [SizeArgument("N", P, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -1936,7 +1936,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: 0
+cf = lambda d: d["N"]
 
 ptmm = KernelDescription(
     ExpressionKV(
@@ -1952,7 +1952,7 @@ ptmm = KernelDescription(
     "",
     "$B = $A[invperm($P),:]",
     "",
-    [SizeArgument("M", A, "columns")], # Argument objects
+    [SizeArgument("N", P, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -1963,7 +1963,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(properties.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: 0
+cf = lambda d: d["M"]
 
 mpm = KernelDescription(
     ExpressionKV(
@@ -1979,7 +1979,7 @@ mpm = KernelDescription(
     "",
     "$B = $A[:,invperm($P)]",
     "",
-    [SizeArgument("M", A, "columns")], # Argument objects
+    [SizeArgument("M", P, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -1990,7 +1990,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(properties.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: 0
+cf = lambda d: d["M"]
 
 mptm = KernelDescription(
     ExpressionKV(
@@ -2006,7 +2006,7 @@ mptm = KernelDescription(
     "",
     "$B = $A[:,$P]",
     "",
-    [SizeArgument("M", A, "columns")], # Argument objects
+    [SizeArgument("M", P, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -2016,7 +2016,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
-cf = lambda d: 0
+cf = lambda d: d["N"]
 
 pvm = KernelDescription(
     ExpressionKV(
@@ -2043,7 +2043,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
-cf = lambda d: 0
+cf = lambda d: d["N"]
 
 ptvm = KernelDescription(
     ExpressionKV(
