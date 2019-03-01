@@ -93,7 +93,7 @@ class DerivationGraphBase(base.GraphBase):
                 # Removing existing algorithm files
                 algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name)
                 cgu.remove_files(algorithms_dir_name)
-                derivation_dir_name = os.path.join(directory_name, config.language.name, "derivation")
+                derivation_dir_name = os.path.join(directory_name, config.language.name, subdir_name, "derivation")
                 cgu.remove_files(derivation_dir_name)
 
         if code or derivation:
@@ -113,13 +113,15 @@ class DerivationGraphBase(base.GraphBase):
                     cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
 
                 if derivation:
-                    file_name = os.path.join(config.output_code_path, output_name, config.language.name, "derivation", "algorithm{}.txt".format(n))
+                    file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", "algorithm{}.txt".format(n))
                     directory_name = os.path.dirname(file_name)
                     if not os.path.exists(directory_name):
                         os.makedirs(directory_name)
                     output_file = open(file_name, "wt")
                     output_file.write(algorithm.derivation())
                     output_file.close()
+                    if config.verbosity >= 2:
+                        print("Generate derivation file {}".format(file_name))
 
         if experiment_code:
 
