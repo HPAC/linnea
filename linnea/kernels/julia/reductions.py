@@ -1747,13 +1747,10 @@ diagmmr = KernelDescription(
     textwrap.dedent(
         """\
         for i = 1:size($B, 2);
-            for j=1:size($B, 1);
-                $B[j,i] *= $A[i];
-            end;
+            view($B, :, i)[:] .*= $A[i];
         end;\
         """
-        ), # faster with current Julia version
-    # "for i = 1:size($B, 2); $B[:,i] *= $A[i]; end;",
+        ),
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1791,14 +1788,11 @@ diagmml = KernelDescription(
     "",
     textwrap.dedent(
         """\
-        for j=1:size($B, 2);
-            for i = 1:size($B, 1);
-                $B[i,j] *= $A[i];
-            end;
+        for i = 1:size($B, 2);
+            view($B, :, i)[:] .*= $A;
         end;\
         """
-        ), # faster with current Julia version
-    # "for i = 1:size($B, 1); $B[i,:] *= $A[i]; end;",
+        ), # this has better spacial locality than view($B, i, :)[:] .*= $A[i];
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
