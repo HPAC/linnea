@@ -207,7 +207,6 @@ def get_column_names(experiment):
 def process_data_execution(execution_time, experiment, intensity_cols):
 
     execution_time_with_intensity = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
-    print(execution_time_with_intensity.head())
     execution_time_with_intensity.to_csv("{}_execution_time.csv".format(experiment), na_rep="NaN")
 
     execution_time.dropna().to_csv("{}_execution_time_clean.csv".format(experiment))
