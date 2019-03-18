@@ -204,15 +204,19 @@ def get_column_names(experiment):
     return new_columns
 
 
-def process_data_execution(execution_time, experiment):
+def process_data_execution(execution_time, experiment, intensity_cols):
 
-    execution_time.to_csv("{}_execution_time.csv".format(experiment), na_rep="NaN")
+    execution_time_with_intensity = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
+    print(execution_time_with_intensity.head())
+    execution_time_with_intensity.to_csv("{}_execution_time.csv".format(experiment), na_rep="NaN")
+
     execution_time.dropna().to_csv("{}_execution_time_clean.csv".format(experiment))
 
     performance_profiles_data = to_performance_profiles_data(performance_profiles_data_reduce(execution_time))
     performance_profiles_data.to_csv("{}_performance_profile.csv".format(experiment), na_rep="NaN")
     
     speedup_data = to_speedup_data(execution_time, speedup_reference)
+    speedup_data = pd.concat([speedup_data, intensity_cols], axis=1, sort=True)
     speedup_data.to_csv("{}_speedup.csv".format(experiment), na_rep="NaN")
     speedup_data.dropna().to_csv("{}_speedup_clean.csv".format(experiment))
 
@@ -259,6 +263,10 @@ def process_data_intensity(intensity_data, experiment):
     intensity_only_sorted = intensity_only.sort_values(by=["algorithm0e", "algorithm0c"])
     intensity_only_sorted.to_csv("{}_intensity_sorted.csv".format(experiment), na_rep="NaN")
 
+    intensity_only.rename(index=str, columns={"algorithm0e": "intensity_e", "algorithm0c": "intensity_c"}, inplace=True)
+
+    return intensity_only
+
 if __name__ == '__main__':
 
     experiments = [("random", 100), ("pldi", 25)]
@@ -270,30 +278,32 @@ if __name__ == '__main__':
     intensity_data_all = []
     for experiment, n in experiments:
 
+        # intensity
+        intensity_data = read_intensity(experiment, n)
+        intensity_data_all.append(intensity_data)
+        intensity_cols = process_data_intensity(intensity_data, experiment)
+
         # execution
         execution_time = read_results_execution(experiment, n, [0, 3]) # [0, 1] for stddev 
         execution_time_all.append(execution_time)
-        process_data_execution(execution_time, experiment)
+        process_data_execution(execution_time, experiment, intensity_cols)
 
         # generation
         gen_results = read_results_generation(experiment, n)
         gen_results_all.append(gen_results)
         process_data_generation(gen_results, experiment)
 
-        # intensity
-        intensity_data = read_intensity(experiment, n)
-        intensity_data_all.append(intensity_data)
-        process_data_intensity(intensity_data, experiment)
+    # intensity combined
+    intensity_data_combined = pd.concat(intensity_data_all)
+    intensity_cols = process_data_intensity(intensity_data_combined, "combined")
 
     # execution combined
     execution_time_combined = pd.concat(execution_time_all)
-    process_data_execution(execution_time_combined, "combined")
+    process_data_execution(execution_time_combined, "combined", intensity_cols)
 
     # generation combined
     gen_results_combined = pd.concat(gen_results_all)
     process_data_generation(gen_results_combined, "combined")
 
-    # intensity combined
-    intensity_data_combined = pd.concat(intensity_data_all)
-    process_data_intensity(intensity_data_combined, "combined")
+
  
