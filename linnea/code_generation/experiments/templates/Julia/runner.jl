@@ -22,7 +22,7 @@ result_recommended = collect(recommended(map(copy, matrices)...))
 
 
 @info("Running Benchmarks...")
-plotter = Benchmarker.Plot("julia_results_{3}.txt", ["algorithm"]);
+plotter = Benchmarker.Plot("julia_results_{3}", ["algorithm"]);
 {4}
 Benchmarker.add_data(plotter, ["naive_julia"], Benchmarker.measure(20, naive, matrices...) );
 Benchmarker.add_data(plotter, ["recommended_julia"], Benchmarker.measure(20, recommended, matrices...) );
