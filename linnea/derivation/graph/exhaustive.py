@@ -211,8 +211,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             for grouped_kernels in collections_module.reduction_MA.match(node).grouped():
 
                 kernel, substitution = select_optimal_match(grouped_kernels)
-                # print(kernel.signature, substitution)
-                # replacement
                 
                 matched_kernel = kernel.set_match(substitution, True, CSE_rules=False)
                 if is_blocked(matched_kernel.operation.rhs):
@@ -220,15 +218,10 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                 evaled_repl = matched_kernel.replacement
 
-                # replace node with modified expression
-
                 new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
-                
-                # deal with additional occurrences of the replaced subexpression
-                # common_subexp_rules = matched_kernel.CSE_rules
 
                 equations_copy = equations.set(eqn_idx, new_equation)
-                # equations_copy = equations_copy.replace_all(common_subexp_rules)
+                equations_copy = equations_copy.to_normalform()
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 
