@@ -12,6 +12,6 @@ recomd_mat = recommended_();
 %fprintf('Naive(0, 0): %f\\n', recomd_mat(1, 1));
 
 benchmarker = Benchmarker();
-benchmarker.benchmark('naive_matlab', 10, naive_);
-benchmarker.benchmark('recommended_matlab', 10, recommended_);
+benchmarker.benchmark('naive_matlab', 20, naive_);
+benchmarker.benchmark('recommended_matlab', 20, recommended_);
 benchmarker.save('matlab_results_{0}.txt');
