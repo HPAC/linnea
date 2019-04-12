@@ -59,6 +59,19 @@ out_of_place_conversions = [
             ))
         ),
     sf.StorageFormatConversion(
+        sf.StorageFormat.ipiv,
+        sf.StorageFormat.full,
+        utils.CodeTemplate(textwrap.dedent(
+            """\
+            tmp = [1:length($input);]
+            @inbounds for i in 1:length($input)
+                tmp[i], tmp[$input[i]] = tmp[$input[i]], tmp[i];
+            end;
+            $output = Array{$type}(I, $n, $n)[tmp,:]
+            """
+            ))
+        ),
+    sf.StorageFormatConversion(
         sf.StorageFormat.cholfact_L,
         sf.StorageFormat.full,
         utils.CodeTemplate("$output = convert(Array{$type, 2}, $input.L)\n")
