@@ -1,5 +1,7 @@
 import os.path
 import pandas as pd
+import math
+from statistics import median
 
 def read_results_generation(experiment, number_of_experiments):
     # what about missing data?
@@ -29,6 +31,15 @@ def read_results_generation(experiment, number_of_experiments):
         return None
 
 
+def ci_pos(n):
+    # z = 1.96 # 95%
+    z = 2.576 # 99%
+    # z = 3.291 # 99.9%
+    lower_pos = math.floor((n - z*math.sqrt(n))/2)
+    upper_pos = math.ceil(1 + (n + z*math.sqrt(n))/2)
+    return lower_pos-1, upper_pos-1
+
+
 def read_results_execution(experiment_name, number_of_experiments, usecols=range(0, 2)):
 
     """ TODO idea: Instead of usecols, use Enum an argument, which is maped to
@@ -41,6 +52,7 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
     example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
 
     language_dfs = []
+    # old
     for language in ["cpp", "julia", "matlab"]:
         path = os.path.join(experiment_name, "execution", language)
         if os.path.exists(path):
@@ -50,7 +62,6 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
                 if os.path.isfile(file_path):
                     df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, usecols=usecols, index_col=0)
                     df = df.transpose()
-                    # df.rename(index={"Time": example}, inplace=True)
                     # This works only when we extrace not more than one column
                     df.rename(mapper=lambda _: example, inplace=True)
                     file_dfs.append(df)
@@ -63,7 +74,45 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
         else:
             print("No results for", language)
 
-    return pd.concat(language_dfs, axis=1, sort=True)
+    # for language in ["cpp", "julia", "matlab"]:
+    language_dfs2 = []
+    for language in ["julia", "matlab"]:
+        # new
+        path = os.path.join(experiment_name, "execution", language)
+        if os.path.exists(path):
+            file_dfs2 = []
+            for example in example_names:
+                file_path = "{0}/{1}_results_{2}_timings.txt".format(path, language, example)
+                if os.path.isfile(file_path):
+                    # TODO what if rows have different lengths?
+                    if language == "matlab":
+                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, skiprows=1, header=None, index_col=0)
+                    else:
+                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, header=None, index_col=0)
+
+                    df_processed = pd.DataFrame()
+                    df_processed["min_time"] = df.min(axis=1)
+                    df_processed["median_time"] = df.median(axis=1)
+                    df_processed["mean_time"] = df.mean(axis=1)
+                    df_processed["ci_lower"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[0]], axis=1)
+                    df_processed["ci_upper"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[1]], axis=1)
+                    df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
+                    df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
+                    df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
+                    df_processed.index = pd.MultiIndex.from_product([[example], df.index.values], names=['example', 'implementation'])
+                    file_dfs2.append(df_processed)
+                else:
+                    print("Missing file", file_path)
+
+            df = pd.concat(file_dfs2, sort=True)
+            language_dfs2.append(df)
+        else:
+            print("No results for", language)
+
+    results = pd.concat(language_dfs, axis=1, sort=True)
+    results2 = pd.concat(language_dfs2, sort=True)
+
+    return results, results2
 
 
 def read_intensity(experiment_name, number_of_experiments):
@@ -144,6 +193,27 @@ def to_speedup_data(time_data, reference):
     return speedup_data
 
 
+def speedup_CI(time_data, implementation, reference):
+    imp_ci_lower = time_data["{}_ci_lower".format(implementation)]
+    imp_ci_upper = time_data["{}_ci_upper".format(implementation)]
+    ref_ci_lower = time_data["{}_ci_lower".format(reference)]
+    ref_ci_upper = time_data["{}_ci_upper".format(reference)]
+
+    if max(imp_ci_lower, ref_ci_lower) <= min(imp_ci_upper, ref_ci_upper):
+        # if CIs overlap, return 1
+        return 1.0
+    else:
+        return time_data["{}_median_time".format(implementation)]/time_data["{}_median_time".format(reference)]
+
+def to_speedup_data_CI(time_data):
+    df = pd.DataFrame()
+    reference = "algorithm0e"
+    for implementation in ["naive_julia", "recommended_julia", "naive_matlab", "recommended_matlab", "algorithm0c"]:
+        df[implementation] = time_data.apply(speedup_CI, axis=1, args=(implementation, reference))
+    df["intensity_e"] = time_data["intensity_e"]
+    df["intensity_c"] = time_data["intensity_c"]
+    return df
+
 def to_mean_speedup(speedup_data, drop_reference=None):
     speedup_mean = pd.DataFrame(speedup_data.mean())
     if drop_reference:
@@ -204,7 +274,17 @@ def get_column_names(experiment):
     return new_columns
 
 
-def process_data_execution(execution_time, experiment, intensity_cols):
+def process_data_execution(execution_time, execution_results, experiment, intensity_cols):
+
+    execution_results = execution_results.unstack()
+    execution_results = execution_results.reorder_levels([1, 0], axis=1)
+    execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
+    # print(execution_results.columns)
+    # print(execution_results.head())
+    execution_results = pd.concat([execution_results, intensity_cols], axis=1, sort=True)
+    execution_results.to_csv("{}_execution_results.csv".format(experiment), na_rep="NaN")
+    execution_results.dropna().to_csv("{}_execution_results_clean.csv".format(experiment), na_rep="NaN")
+    to_speedup_data_CI(execution_results.dropna()).to_csv("{}_speedup_CI.csv".format(experiment), na_rep="NaN")
 
     execution_time_with_intensity = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
     execution_time_with_intensity.to_csv("{}_execution_time.csv".format(experiment), na_rep="NaN")
@@ -275,6 +355,7 @@ if __name__ == '__main__':
     execution_time_all = []
     gen_results_all = []
     intensity_data_all = []
+    execution_results_all = []
     for experiment, n in experiments:
 
         # intensity
@@ -283,9 +364,16 @@ if __name__ == '__main__':
         intensity_cols = process_data_intensity(intensity_data, experiment)
 
         # execution
-        execution_time = read_results_execution(experiment, n, [0, 3]) # [0, 1] for stddev 
+        """
+        Once all languages write timings to file, change as follows:
+        execution_results = read_results_execution(experiment, n)
+        execution_time = process_data_execution(execution_results, experiment, intensity_cols)
         execution_time_all.append(execution_time)
-        process_data_execution(execution_time, experiment, intensity_cols)
+        """
+        execution_time, execution_results = read_results_execution(experiment, n, [0, 3])
+        execution_time_all.append(execution_time)
+        execution_results_all.append(execution_results)
+        process_data_execution(execution_time, execution_results, experiment, intensity_cols)
 
         # generation
         gen_results = read_results_generation(experiment, n)
@@ -298,7 +386,8 @@ if __name__ == '__main__':
 
     # execution combined
     execution_time_combined = pd.concat(execution_time_all)
-    process_data_execution(execution_time_combined, "combined", intensity_cols)
+    execution_results_combined = pd.concat(execution_results_all)
+    process_data_execution(execution_time_combined, execution_results_combined, "combined", intensity_cols)
 
     # generation combined
     gen_results_combined = pd.concat(gen_results_all)
