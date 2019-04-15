@@ -102,11 +102,15 @@ def generate(experiment, example, name, strategy):
                        subdir_name=strategy.name,
                        algorithm_name=algorithm_name)
 
-    _, cost = graph.shortest_path()
+    vals = []
     data = example.eqns.get_data()
+    for _, cost in graph.k_shortest_paths(algorithms):
+        vals.append([data, cost, cost/data])
+
+    mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(algorithms)]], names=("example", "algorithm"))
+    dframe = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
+
     file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity" + ".csv")
-    mindex = pd.MultiIndex.from_arrays([[name], [algorithm_name.format(0)]], names=("example", "algorithm"))
-    dframe = pd.DataFrame([[data, cost, cost/data]], index=mindex, columns=["data", "cost", "intensity"])
     dframe.to_csv(file_path)
 
 def main():
