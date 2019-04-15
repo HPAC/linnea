@@ -41,26 +41,35 @@ def time_execution_scripts(replacement):
         file_name = "{}/{}/time_{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], language)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
-            output_file.write(template_str.format(**replacement))
+            output_file.write(template_str.format(runner_name="runner", output_subdir=language, **replacement))
 
+def time_k_best_script(replacement):
+
+    template_path = "jobscripts/templates/time_julia.sh"
+    template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
+
+    file_name = "{}/{}/time_k_best.sh".format(replacement['linnea_jobscripts_path'], replacement["name"])
+    with open(file_name, "wt", encoding='utf-8') as output_file:
+        print("Writing", file_name)
+        output_file.write(template_str.format(runner_name="runner_k_best", output_subdir="k_best", **replacement))
 
 def generate_code_scripts(replacement):
 
     template_path = "jobscripts/templates/generate_code.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    for strategy in ["c", "e", "f"]:
+    for arg in ["c", "e", "f"]:
         replacement_copy = replacement.copy()
 
-        replacement_copy["strategy"] = strategy
+        replacement_copy["args"] = arg
 
-        if strategy == "f":
+        if arg == "f":
             replacement_copy["compile"] = "true"
         else:
             replacement_copy["compile"] = "false"
 
         file_name = "{}/{}/generate_code_{}.sh".format(replacement_copy['linnea_jobscripts_path'],
-                                                       replacement_copy["name"], strategy)
+                                                       replacement_copy["name"], arg)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
@@ -129,6 +138,7 @@ def generate_scripts(experiment, number_of_experiments):
 
     time_generation_script(time_configuration)
     time_execution_scripts(time_configuration)
+    time_k_best_script(time_configuration)
     generate_code_scripts(generate_configuration)
 
 if __name__ == '__main__':

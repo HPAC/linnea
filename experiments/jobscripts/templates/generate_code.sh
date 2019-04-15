@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-#{directive} {flag_jobname} "gen_{strategy}_{name}{lsf_arrayjob}"
+#{directive} {flag_jobname} "gen_{args}_{name}{lsf_arrayjob}"
 {slurm_arrayjob}
-#{directive} {flag_output} "{linnea_output_path}/logs/gen_{strategy}_{name}{string_array_idx}.txt"
+#{directive} {flag_output} "{linnea_output_path}/logs/gen_{args}_{name}{string_array_idx}.txt"
 #{directive} {flag_time} {time}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_group} {group}
@@ -12,7 +12,7 @@
 module load python/{python_version}
 
 source {linnea_virtualenv_path}/bin/activate
-python3 {linnea_src_path}/experiments/experiments.py generate_code {name} -j=${var_array_idx} -{strategy}
+python3 {linnea_src_path}/experiments/experiments.py generate_code {name} -j=${var_array_idx} -{args}
 
 if {compile}; then
     module load cmake/{cmake_version}
