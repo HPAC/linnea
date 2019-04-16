@@ -71,12 +71,12 @@ def generate(experiment, example, name, strategy):
         DerivationGraph = CDGraph
         algorithm_name = "algorithm{}c"
         strategy_str = "c"
-        algorithms = 1
+        max_algorithms = 1
     elif strategy is Strategy.exhaustive:
         DerivationGraph = EDGraph
         algorithm_name = "algorithm{}e"
         strategy_str = "e"
-        algorithms = 10
+        max_algorithms = 100
     else:
         raise NotImplementedError()
 
@@ -93,21 +93,21 @@ def generate(experiment, example, name, strategy):
                         iteration_limit=15,
                         merging=True,
                         dead_ends=True)
-    graph.write_output(code=True,
+    k = graph.write_output(code=True,
                        derivation=True,
                        output_name=name,
                        experiment_code=False,
-                       algorithms_limit=algorithms,
+                       algorithms_limit=max_algorithms,
                        graph=False,
                        subdir_name=strategy.name,
                        algorithm_name=algorithm_name)
 
     vals = []
     data = example.eqns.get_data()
-    for _, cost in graph.k_shortest_paths(algorithms):
+    for _, cost in graph.k_shortest_paths(k):
         vals.append([data, cost, cost/data])
 
-    mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(algorithms)]], names=("example", "algorithm"))
+    mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(k)]], names=("example", "algorithm"))
     dframe = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
 
     file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity" + ".csv")
@@ -270,7 +270,8 @@ def main():
 
                 # k best runner
                 existing_algorithms = []
-                for i in range(10):
+                # using the upper limit for k is sufficient because we test if files exist
+                for i in range(100):
                     algorithm_name = "algorithm{}e".format(i)
                     file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "exhaustive", algorithm_name + ".jl")
                     if os.path.exists(file_path):
