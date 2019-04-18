@@ -380,7 +380,7 @@ x = Vector("x", (n, 1))
 y = Vector("y", (m, 1))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: d["M"]**2
+cf = lambda d: 2*d["M"]**2
 
 symv = KernelDescription(
     ExpressionKV(
@@ -533,7 +533,7 @@ B = Matrix("B", (k, n))
 C = Matrix("C", (m, n))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: d["M"]*d["N"]*d["K"]
+cf = lambda d: 2*d["M"]*d["N"]*d["K"]
 """
 The names for the sizes in this cost function do not make a lot of sense.
 However, it is not possible to do something more consistent because of the
