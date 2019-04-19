@@ -112,6 +112,8 @@ def generate(experiment, example, name, strategy):
 
     file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity" + ".csv")
     dframe.to_csv(file_path)
+    if linnea.config.verbosity >= 2:
+        print("Generate intensity file {}".format(file_path))
 
 def main():
 
