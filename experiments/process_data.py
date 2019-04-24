@@ -4,7 +4,6 @@ import math
 from statistics import median
 
 def read_results_generation(experiment, number_of_experiments):
-    # what about missing data?
 
     dirs = []
     new_columns = []
@@ -16,17 +15,23 @@ def read_results_generation(experiment, number_of_experiments):
         else:
             print("No directory", path)
 
-    data = []
+    file_dfs = []
     for dir in dirs:
         for jobindex in range(1, number_of_experiments+1):
             file_name = "{}/generation{:03}.csv".format(dir, jobindex)
             if os.path.isfile(file_name):
-                data.append(pd.read_csv(file_name, index_col=[0, 1, 2]))
+                try:
+                    df = pd.read_csv(file_name, index_col=[0, 1, 2])
+                except pd.errors.EmptyDataError:
+                    print("Empty file", file_name)
+                else:
+                    file_dfs.append(df)
+                
             else:
                 print("Missing file", file_name)
 
-    if data:
-        return pd.concat(data)
+    if file_dfs:
+        return pd.concat(file_dfs)
     else:
         return None
 
@@ -60,14 +65,17 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
             for example in example_names:
                 file_path = "{0}/{1}_results_{2}.txt".format(path, language, example)
                 if os.path.isfile(file_path):
-                    df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, usecols=usecols, index_col=0)
-                    df = df.transpose()
-                    # This works only when we extrace not more than one column
-                    df.rename(mapper=lambda _: example, inplace=True)
-                    file_dfs.append(df)
+                    try:
+                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, usecols=usecols, index_col=0)
+                    except pd.errors.EmptyDataError:
+                        print("Empty file", file_path)
+                    else:
+                        df = df.transpose()
+                        # This works only when we extrace not more than one column
+                        df.rename(mapper=lambda _: example, inplace=True)
+                        file_dfs.append(df)
                 else:
                     print("Missing file", file_path)
-
 
             df = pd.concat(file_dfs, sort=True)
             language_dfs.append(df)
@@ -86,21 +94,26 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
                 if os.path.isfile(file_path):
                     # TODO what if rows have different lengths?
                     if language == "matlab":
-                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, skiprows=1, header=None, index_col=0)
+                        skiprows = 1
                     else:
-                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, header=None, index_col=0)
+                        skiprows = 0
 
-                    df_processed = pd.DataFrame()
-                    df_processed["min_time"] = df.min(axis=1)
-                    df_processed["median_time"] = df.median(axis=1)
-                    df_processed["mean_time"] = df.mean(axis=1)
-                    df_processed["ci_lower"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[0]], axis=1)
-                    df_processed["ci_upper"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[1]], axis=1)
-                    df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
-                    df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
-                    df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
-                    df_processed.index = pd.MultiIndex.from_product([[example], df.index.values], names=['example', 'implementation'])
-                    file_dfs2.append(df_processed)
+                    try:
+                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, skiprows=skiprows, header=None, index_col=0)
+                    except pd.errors.EmptyDataError:
+                        print("Empty file", file_path)
+                    else:
+                        df_processed = pd.DataFrame()
+                        df_processed["min_time"] = df.min(axis=1)
+                        df_processed["median_time"] = df.median(axis=1)
+                        df_processed["mean_time"] = df.mean(axis=1)
+                        df_processed["ci_lower"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[0]], axis=1)
+                        df_processed["ci_upper"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[1]], axis=1)
+                        df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
+                        df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
+                        df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
+                        df_processed.index = pd.MultiIndex.from_product([[example], df.index.values], names=['example', 'implementation'])
+                        file_dfs2.append(df_processed)
                 else:
                     print("Missing file", file_path)
 
@@ -123,8 +136,13 @@ def read_intensity(experiment_name, number_of_experiments):
         for example_name in example_names:
             file_path = os.path.join(experiment_name, "intensity", strategy, "{}_intensity.csv".format(example_name))
             if os.path.isfile(file_path):
-                df = pd.read_csv(file_path, index_col=[0, 1])
-                file_dfs.append(df)
+                try:
+                    df = pd.read_csv(file_path, index_col=[0, 1])
+                except pd.errors.EmptyDataError:
+                    print("Empty file", file_path)
+                else:
+                    file_dfs.append(df)
+                
             else:
                 print("Missing file", file_path)
 
@@ -385,7 +403,7 @@ if __name__ == '__main__':
     intensity_cols = process_data_intensity(intensity_data_combined, "combined")
 
     # execution combined
-    execution_time_combined = pd.concat(execution_time_all)
+    execution_time_combined = pd.concat(execution_time_all, sort=True)
     execution_results_combined = pd.concat(execution_results_all)
     process_data_execution(execution_time_combined, execution_results_combined, "combined", intensity_cols)
 
