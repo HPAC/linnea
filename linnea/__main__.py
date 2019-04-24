@@ -61,7 +61,7 @@ def main():
         config.set_merging_branches(args.merging)
     if args.output is not None:
         config.set_output_name(args.output)
-    else:
+    elif config.output_name is None: # input file name is only used for output if nothing is set in config file.
         config.set_output_name(os.path.splitext(os.path.basename(args.input))[0])
     if args.derivation is not None:
         config.set_generate_derivation(args.derivation)
