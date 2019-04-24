@@ -274,7 +274,7 @@ def load_config(config_file=''):
             config_file = _GLOBAL_CONFIG_FILE
 
     if config_file:
-        logger.info('Found config file: {}'.format(config_file))
+        logger.info('Found config file: {}'.format(os.path.abspath(config_file)))
         with open(config_file) as jsonfile:
             settings = globals()
 
