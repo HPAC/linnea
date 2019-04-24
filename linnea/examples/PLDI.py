@@ -680,8 +680,9 @@ class Example16():
         In = IdentityMatrix(n, n)
         Il = IdentityMatrix(l, l)
         k = Scalar("k")
+        k.set_property(properties.POSITIVE)
         minus1 = ConstantScalar(-1.0)
-        kminus1 = Plus(k, minus1)
+        kminus1 = Plus(k, minus1) # this is positive too, but using special_properties doesn't work
 
         self.eqns = Equations(
                         Equal(Bout,
