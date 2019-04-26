@@ -22,6 +22,7 @@ gemm = list(reductions.gemm.generate_kernels())
 trsm = list(reductions.trsm.generate_kernels())
 getri = list(reductions.getri.generate_kernels())
 trtri = list(reductions.trtri.generate_kernels())
+syinv = list(reductions.syinv.generate_kernels())
 diaginv = list(reductions.diaginv.generate_kernels())
 transpose = list(reductions.transpose.generate_kernels())
 transpose_vector = list(reductions.transpose_vector.generate_kernels())
@@ -151,7 +152,8 @@ unary_kernels = list(itertools.chain(
                 transpose,
                 transpose_vector,
                 transpose_perm,
-                scalar_inversion
+                scalar_inversion,
+                # syinv # this is horribly slow
             ))
 
 addition_kernels = list(itertools.chain(

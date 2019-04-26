@@ -4000,3 +4000,24 @@ class Example161():
         self.eqns = Equations(
                         Equal(X, Plus(A, Times(D, B)))
                         )
+
+
+class Example162():
+    def __init__(self):
+
+        # TAGS
+        # linear system, simple, ldlt
+
+        n = 2000
+        m = 10
+
+        A = Matrix("A", (n, m))
+
+        D = Matrix("D", (n, n))
+        D.set_property(properties.SYMMETRIC)
+        D.set_property(properties.FULL_RANK)
+
+        W = Matrix("W", (n, m))
+
+        self.eqns = Equations(Equal(W, Times(Inverse(D), A)))
+

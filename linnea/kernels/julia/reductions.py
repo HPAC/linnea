@@ -793,7 +793,6 @@ getri = KernelDescription(
 # trtri (triangular matrix inversion)
 
 A = Matrix("A", (n, n))
-B = Matrix("B", (n, n))
 A.set_property(properties.SQUARE)
 A.set_property(properties.TRIANGULAR)
 cf = lambda d: (d["N"]**3)/3
@@ -821,22 +820,36 @@ trtri = KernelDescription(
     [KernelType.identity, KernelType.transpose]
     )
 
-# trtri = KernelDescription(
-#     ExpressionKV(
-#         None,
-#         {None: Inverse(A)}
-#     ),
-#     [], # variants
-#     [InputOperand(A, StorageFormat.full),
-#     ],
-#     OutputOperand(B, StorageFormat.full), # return value
-#     cf, # cost function
-#     "",
-#     "$B = inv($A)",
-#     "",
-#     [SizeArgument("N", A, "rows")], # Argument objects
-#     [KernelType.identity, KernelType.transpose]
-#     )
+
+# symmetric matrix inversion)
+
+A = Matrix("A", (n, n))
+A.set_property(properties.SQUARE)
+A.set_property(properties.SYMMETRIC)
+cf = lambda d: (d["N"]**3)/3
+
+syinv = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Inverse(A)}
+    ),
+    [], # variants
+    [InputOperand(A, StorageFormat.symmetric_triangular),
+    ],
+    OutputOperand(A, StorageFormat.symmetric_triangular_out), # return value
+    cf, # cost function
+    "",
+    textwrap.dedent(
+        """\
+        ($A, ipiv, info) = LAPACK.sytrf!($uplo, $A)
+        LAPACK.sytri!($uplo, $A, ipiv)\
+        """
+        ),
+    "",
+    [SizeArgument("N", A, "rows"),
+     StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+    [KernelType.identity, KernelType.transpose]
+    )
 
 
 # POSV
@@ -925,7 +938,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
-alternative
+alternative. As a preliminary solution, we copy A.
+
 (A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
 LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
 TODO For whatever reason, sytrs is very slow. Investigate.
@@ -943,7 +957,13 @@ sysv = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "LinearAlgebra.LAPACK.sysv!('L', $A, $B)",
+    textwrap.dedent(
+        """\
+        tmp = Array{Float64}(undef, $M, $M)
+        blascopy!($M*$M, $A, 1, tmp, 1)
+        LinearAlgebra.LAPACK.sysv!('L', tmp, $B)\
+        """
+        ),
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -981,9 +1001,11 @@ sysvr = KernelDescription(
     "",
     textwrap.dedent(
         """\
-        $B = $B'
-        LinearAlgebra.LAPACK.sysv!('L', $A, $B)
-        $B = $B'\
+        $B = transpose($B)
+        tmp = Array{Float64}(undef, $M, $M)
+        blascopy!($M*$M, $A, 1, tmp, 1)
+        LinearAlgebra.LAPACK.sysv!('L', tmp, $B)
+        $B = transpose($B)\
         """
         ),
     "",
@@ -1193,7 +1215,13 @@ sysv_vec = KernelDescription(
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "LinearAlgebra.LAPACK.sysv!('L', $A, $x)",
+    textwrap.dedent(
+        """\
+        tmp = Array{Float64}(undef, $M, $M)
+        blascopy!($M*$M, $A, 1, tmp, 1)
+        LinearAlgebra.LAPACK.sysv!('L', tmp, $x)\
+        """
+        ),
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
