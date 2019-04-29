@@ -25,7 +25,7 @@ decltype(auto) call(Function && f, Tuple && t, std::index_sequence<I...>)
 int main(int argc, char ** argv)
 {{
     std::cout << "Test runner for algorithm {0}" << std::endl;
-    linalg_tests::basic_benchmarker<std::chrono::duration<float>> benchmark;
+    linalg_tests::basic_benchmarker benchmark;
     benchmark.set_cache_size(30 * 1024 * 1024);
     std::ofstream file("cpp_results_{0}_timings.txt");
     {{
