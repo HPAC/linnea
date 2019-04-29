@@ -40,58 +40,45 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         for i in range(iteration_limit):
 
             new_nodes_per_iteration = 0
+            all_new_nodes = []
+
 
             new_nodes = self.DS_tricks()
-            self.print_DS_numbered("Nodes added (tricks):", new_nodes, self.level_counter)
-            trace.append(new_nodes)
-            new_nodes_per_iteration += new_nodes
-
-            if merging and new_nodes:
-                merged_nodes = self.DS_merge_nodes()
-                self.print_DS("Nodes merged:", merged_nodes)
-                trace.append(merged_nodes)
+            all_new_nodes.extend(new_nodes)
+            # TODO could this be done better with logging?
+            self.print_DS_numbered("Nodes added (tricks):", len(new_nodes), self.level_counter)
+            trace.append(len(new_nodes))
+            new_nodes_per_iteration += len(new_nodes)
 
             new_nodes = self.DS_factorizations()
-            self.print_DS_numbered("Nodes added (fact):", new_nodes, self.level_counter)
-            trace.append(new_nodes)
-            new_nodes_per_iteration += new_nodes
-
-            if new_nodes:
-                if dead_ends:
-                    dead_nodes = self.DS_dead_ends()
-                    self.print_DS("Dead nodes:", dead_nodes)
-                    trace.append(dead_nodes)
-
-                if merging:
-                    merged_nodes = self.DS_merge_nodes()
-                    self.print_DS("Nodes merged:", merged_nodes)
-                    trace.append(merged_nodes)
+            all_new_nodes.extend(new_nodes)
+            self.print_DS_numbered("Nodes added (fact):", len(new_nodes), self.level_counter)
+            trace.append(len(new_nodes))
+            new_nodes_per_iteration += len(new_nodes)         
 
             new_nodes = self.DS_CSE_replacement()
-            self.print_DS_numbered("Nodes added (CSE):", new_nodes, self.level_counter)
-            trace.append(new_nodes)
-            new_nodes_per_iteration += new_nodes
-            
-            if merging and new_nodes:
-                merged_nodes = self.DS_merge_nodes()
-                self.print_DS("Nodes merged:", merged_nodes)
-                trace.append(merged_nodes)
+            all_new_nodes.extend(new_nodes)
+            self.print_DS_numbered("Nodes added (CSE):", len(new_nodes), self.level_counter)
+            trace.append(len(new_nodes))
+            new_nodes_per_iteration += len(new_nodes)         
 
             new_nodes = self.DS_kernels()
-            self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
-            trace.append(new_nodes)
-            new_nodes_per_iteration += new_nodes
+            all_new_nodes.extend(new_nodes)
+            self.print_DS_numbered("Nodes added (kernels):", len(new_nodes), self.level_counter)
+            trace.append(len(new_nodes))
+            new_nodes_per_iteration += len(new_nodes)
 
-            if new_nodes:
-                if dead_ends:
-                    dead_nodes = self.DS_dead_ends()
-                    self.print_DS("Dead nodes:", dead_nodes)
-                    trace.append(dead_nodes)
+            self.active_nodes = all_new_nodes
 
-                if merging:
-                    merged_nodes = self.DS_merge_nodes()
-                    self.print_DS("Nodes merged:", merged_nodes)
-                    trace.append(merged_nodes)
+            if dead_ends:
+                dead_nodes = self.DS_dead_ends()
+                self.print_DS("Dead nodes:", dead_nodes)
+                trace.append(dead_nodes)
+
+            if merging:
+                merged_nodes = self.DS_merge_nodes()
+                self.print_DS("Nodes merged:", merged_nodes)
+                trace.append(merged_nodes) 
 
             mins = self.metric_mins()
             #print(mins)
@@ -107,6 +94,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             elif not self.active_nodes or new_nodes_per_iteration == 0:
                 self.print("No further derivations possible.")
                 break
+
 
             # self.to_dot_file("counter")
             # print("Leaves", [node.id for node in self.active_nodes])
@@ -148,16 +136,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         inactive_nodes = []
 
         for node in self.active_nodes:
-            if DS_step.kernels in node.applied_DS_steps:
-                """Why exactly is this necessary? How is a state in the graph
-                reached where this is necessary? This may have to do with
-                leaving nodes active: As a results, it's possible to have
-                a node and it's successor be active at the same time.
-                """
-                inactive_nodes.append(node)
-                continue
-            else:
-                node.add_applied_step(DS_step.kernels)
 
             transformed = self.TR_kernels(node.equations)
 
@@ -171,12 +149,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             inactive_nodes.append(node)
                     
   
-        for node in inactive_nodes:
-            self.active_nodes.remove(node)
+        # for node in inactive_nodes:
+        #     self.active_nodes.remove(node)
 
-        self.add_active_nodes(new_nodes)
+        # self.add_active_nodes(new_nodes)
 
-        return len(new_nodes)
+        return new_nodes
 
 
     def TR_kernels(self, equations):

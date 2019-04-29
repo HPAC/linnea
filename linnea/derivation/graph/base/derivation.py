@@ -50,7 +50,7 @@ class DerivationGraphBase(base.GraphBase):
         self.nodes = [self.root]
 
 
-    def create_nodes(self, predecessor, *description, factored_operands=None):
+    def create_nodes(self, predecessor, *description, factored_operands=None, previous_DS_step=None):
         new_nodes = []
         # print(description)
         # if description:
@@ -60,7 +60,7 @@ class DerivationGraphBase(base.GraphBase):
             _factored_operands = _factored_operands.union(factored_operands)
 
         for equations, matched_kernels, original_equations in description:
-            new_node = DerivationGraphNode(equations, predecessor, _factored_operands.copy())
+            new_node = DerivationGraphNode(equations, predecessor, _factored_operands.copy(), previous_DS_step)
             self.nodes.append(new_node)
             new_nodes.append(new_node)
             predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
@@ -175,11 +175,6 @@ class DerivationGraphBase(base.GraphBase):
         new_nodes = []
 
         for node in self.active_nodes:
-            if DS_step.tricks in node.applied_DS_steps:
-                continue
-            else:
-                node.add_applied_step(DS_step.tricks)
-
             transformed = []
 
             for equations in generate_variants(node.equations):
@@ -187,9 +182,7 @@ class DerivationGraphBase(base.GraphBase):
 
             new_nodes.extend(self.create_nodes(node, *transformed))
 
-        self.add_active_nodes(new_nodes)
-
-        return len(new_nodes)
+        return new_nodes
 
     def DS_CSE_replacement(self):
         """Replaces common subexpression.
@@ -207,24 +200,15 @@ class DerivationGraphBase(base.GraphBase):
         for node in self.active_nodes:
             if DS_step.CSE in node.applied_DS_steps:
                 continue
-            else:
-                node.add_applied_step(DS_step.CSE)
 
             transformed = []
 
             for equations in generate_variants(node.equations):
                 transformed.extend(self.TR_CSE_replacement(equations))
 
-            new_nodes.extend(self.create_nodes(node, *transformed))
+            new_nodes.extend(self.create_nodes(node, *transformed, previous_DS_step=DS_step.CSE))
 
-        # We don't remove any active nodes here because for the derivation, we
-        # also want to continue with the original equations were no CSEs where
-        # replaced.
-
-        self.add_active_nodes(new_nodes)
-        # self.active_nodes.extend(new_nodes)
-
-        return len(new_nodes)
+        return new_nodes
 
     def DS_prune(self, mins):
         if self.active_nodes == [self.root]:
@@ -345,8 +329,8 @@ class DerivationGraphBase(base.GraphBase):
         for node in self.active_nodes:
             if DS_step.factorizations in node.applied_DS_steps:
                 continue
-            else:
-                node.add_applied_step(DS_step.factorizations)
+            # else:
+            #     node.add_applied_step(DS_step.factorizations)
 
             # find all matrices that need to factored
             operands_to_factor = find_operands_to_factor(node.equations)
@@ -381,8 +365,8 @@ class DerivationGraphBase(base.GraphBase):
                     found_symbol_inv_occurrence.append(_found_symbol_inv_occurrence)
                     transformed.extend(_transformed)
 
-                node.add_factored_operands(operands_to_factor)
-                new_nodes.extend(self.create_nodes(node, *transformed, factored_operands=operands_to_factor))
+                # node.add_factored_operands(operands_to_factor)
+                new_nodes.extend(self.create_nodes(node, *transformed, factored_operands=operands_to_factor, previous_DS_step=DS_step.factorizations))
 
                 # If there is at least one variant without symbol inverse, the
                 # current node stays active because it's possible to make
@@ -390,12 +374,12 @@ class DerivationGraphBase(base.GraphBase):
                 if all(found_symbol_inv_occurrence):
                     inactive_nodes.append(node)
         
-        for node in inactive_nodes:
-            self.active_nodes.remove(node)
+        # for node in inactive_nodes:
+        #     self.active_nodes.remove(node)
 
-        self.add_active_nodes(new_nodes)
+        # self.add_active_nodes(new_nodes)
 
-        return len(new_nodes)
+        return new_nodes
 
 
     def TR_factorizations(self, equations, operands_to_factor, factorization_dict):
@@ -522,8 +506,8 @@ class DerivationGraphNode(base.GraphNodeBase):
 
     _counter = 0
 
-    def __init__(self, equations=None, predecessor=None, factored_operands=None):
-        super().__init__(predecessor, factored_operands)
+    def __init__(self, equations=None, predecessor=None, factored_operands=None, previous_DS_step=None):
+        super().__init__(predecessor, factored_operands, previous_DS_step)
 
         # IDs for dot output
         self.id = DerivationGraphNode._counter

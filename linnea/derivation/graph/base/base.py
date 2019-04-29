@@ -326,7 +326,7 @@ class PathDoesNotExist(Exception):
 
 class GraphNodeBase():
 
-    def __init__(self, predecessor=None, factored_operands=None):
+    def __init__(self, predecessor=None, factored_operands=None, previous_DS_step=None):
 
         self.successors = []
         self.edge_labels = []
@@ -345,6 +345,8 @@ class GraphNodeBase():
             self.factored_operands = factored_operands
 
         self.applied_DS_steps = set()
+        if previous_DS_step:
+            self.add_applied_step(previous_DS_step)
 
         # contains REAPath objects
         self.k_shortest_paths = []
