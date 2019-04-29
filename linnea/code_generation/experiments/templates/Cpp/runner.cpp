@@ -27,6 +27,7 @@ int main(int argc, char ** argv)
     std::cout << "Test runner for algorithm {0}" << std::endl;
     linalg_tests::basic_benchmarker<std::chrono::duration<float>> benchmark;
     benchmark.set_cache_size(30 * 1024 * 1024);
+    std::ofstream file("cpp_results_{0}_timings.txt");
     {{
     generator::generator<library::arma, float_type> arma_gen{{100}};
     auto matrices = operand_generator(arma_gen);
@@ -37,10 +38,13 @@ int main(int argc, char ** argv)
     //std::cout << "Armadillo norm(naive-recom): " << arma::norm(res_naive - res_recomm) << std::endl;
     //std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
 
-    benchmark.run(20, [&]() {{
+    std::array<std::string, 1> labels_arma_n{{ {{"naive_armadillo"}} }};
+    benchmark.run(file, labels_arma_n, 20, [&]() {{
             call(naive_armadillo{{}}, matrices, Indices{{}});
             }});
-    benchmark.run(20, [&]() {{
+
+    std::array<std::string, 1> labels_arma_r{{ {{"recommended_armadillo"}} }};
+    benchmark.run(file, labels_arma_r, 20, [&]() {{
             call(recommended_armadillo{{}}, matrices, Indices{{}});
             }});
     }}
@@ -54,17 +58,16 @@ int main(int argc, char ** argv)
     //std::cout << "Eigen norm(naive-recom): " << (res_naive - res_recomm).norm() << std::endl;
     //std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
 
-    benchmark.run(20, [&]() {{
+    std::array<std::string, 1> labels_eigen_n{{ {{"naive_eigen"}} }};
+    benchmark.run(file, labels_eigen_n, 20, [&]() {{
             call(naive_eigen{{}}, matrices, Indices{{}});
             }});
-    benchmark.run(20, [&]() {{
+
+    std::array<std::string, 1> labels_eigen_r{{ {{"recommended_eigen"}} }};
+    benchmark.run(file, labels_eigen_r, 20, [&]() {{
             call(recommended_eigen{{}}, matrices, Indices{{}});
             }});
     }}
-
-    std::array<std::string, 5> labels{{ {{"naive_armadillo", "recommended_armadillo",
-        "naive_eigen", "recommended_eigen"}} }};
-    std::ofstream file("cpp_results_{0}.txt");
-    benchmark.output_results(file, labels);
+    
     file.close();
 }}
