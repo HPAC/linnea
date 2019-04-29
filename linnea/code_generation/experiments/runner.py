@@ -19,14 +19,17 @@ algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"
 
 
 
-def runner_to_file(output_name, language, algorithms=[]):
+def runner_to_file(runner_name, output_name, language, algorithms=[]):
 
     if language is config.Language.Julia:
-        file_name = "runner.jl"
+        file_name = "{}.jl".format(runner_name)
+        template_name = "runner.jl"
     elif language is config.Language.Cpp:
-        file_name = "runner.cpp"
+        file_name = "{}.cpp".format(runner_name)
+        template_name = "runner.cpp"
     elif language is config.Language.Matlab:
-        file_name = "runner.m"
+        file_name = "{}.m".format(runner_name)
+        template_name = "runner.m"
     else:
         raise config.LanguageOptionNotImplemented()
 
@@ -48,7 +51,7 @@ def runner_to_file(output_name, language, algorithms=[]):
         plots.append(plot_format.format(algorithm_name))
 
 
-    runner_template = utils.get_template(file_name, language)
+    runner_template = utils.get_template(template_name, language)
 
     if language == config.Language.Julia:
         runner_file = runner_template.format(
@@ -61,6 +64,8 @@ def runner_to_file(output_name, language, algorithms=[]):
     else:
         runner_file = runner_template.format(output_name)
 
+    if config.verbosity >= 2:
+        print("Generate runner file {}".format(file_path))
     output_file.write(runner_file)
     output_file.close()
 
@@ -77,7 +82,7 @@ def generate_cmake_script(output_name):
 
 def generate_runner(output_name, algorithms):
 
-    runner_to_file(output_name, algorithms=algorithms, language=config.Language.Julia)
-    runner_to_file(output_name, language=config.Language.Matlab)
-    runner_to_file(output_name, language=config.Language.Cpp)
+    runner_to_file("runner", output_name, algorithms=algorithms, language=config.Language.Julia)
+    runner_to_file("runner", output_name, language=config.Language.Matlab)
+    runner_to_file("runner", output_name, language=config.Language.Cpp)
     generate_cmake_script(output_name)

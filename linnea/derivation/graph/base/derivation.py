@@ -75,15 +75,17 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name, graph_style)
         
-        paths = list(self.k_shortest_paths(algorithms_limit))
+        paths = []
+        min_cost = self.shortest_path()[1]
+        for path, cost in self.k_shortest_paths(algorithms_limit):
+            if cost <= 1.5*min_cost:
+                paths.append((path, cost))
+            else:
+                break
 
         number_of_algorithms = len(paths)
         if config.verbosity >= 1:
             self.print("Number of algorithms: {}".format(number_of_algorithms))
-
-        #if number_of_algorithms == 0:
-        #    print("No algorithm generated for this example")
-        #    return False
 
         if code or derivation or experiment_code:
             directory_name = os.path.join(config.output_code_path, output_name)
@@ -132,8 +134,7 @@ class DerivationGraphBase(base.GraphBase):
             algorithms = [(subdir_name, algorithm_name.format(0))]
             runner.generate_runner(output_name, algorithms)
 
-
-        return True
+        return number_of_algorithms
 
     def optimal_algorithm_to_str(self):
         matched_kernels, cost, final_equations = self.optimal_algorithm()

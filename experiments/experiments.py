@@ -71,10 +71,12 @@ def generate(experiment, example, name, strategy):
         DerivationGraph = CDGraph
         algorithm_name = "algorithm{}c"
         strategy_str = "c"
+        max_algorithms = 1
     elif strategy is Strategy.exhaustive:
         DerivationGraph = EDGraph
         algorithm_name = "algorithm{}e"
         strategy_str = "e"
+        max_algorithms = 100
     else:
         raise NotImplementedError()
 
@@ -91,21 +93,27 @@ def generate(experiment, example, name, strategy):
                         iteration_limit=15,
                         merging=True,
                         dead_ends=True)
-    graph.write_output(code=True,
+    k = graph.write_output(code=True,
                        derivation=True,
                        output_name=name,
                        experiment_code=False,
-                       algorithms_limit=1,
+                       algorithms_limit=max_algorithms,
                        graph=False,
                        subdir_name=strategy.name,
                        algorithm_name=algorithm_name)
 
-    _, cost = graph.shortest_path()
+    vals = []
     data = example.eqns.get_data()
+    for _, cost in graph.k_shortest_paths(k):
+        vals.append([data, cost, cost/data])
+
+    mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(k)]], names=("example", "implementation"))
+    dframe = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
+
     file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity" + ".csv")
-    mindex = pd.MultiIndex.from_arrays([[name], [algorithm_name.format(0)]], names=("example", "algorithm"))
-    dframe = pd.DataFrame([[data, cost, cost/data]], index=mindex, columns=["data", "cost", "intensity"])
     dframe.to_csv(file_path)
+    if linnea.config.verbosity >= 2:
+        print("Generate intensity file {}".format(file_path))
 
 def main():
 
@@ -251,7 +259,9 @@ def main():
                 reference_code.generate_reference_code(name, example.eqns)
                 operand_generation.generate_operand_generator(name, example.eqns)
 
+
                 # runner should only include files that actually exists
+                # runner for comparing Julia, C++ and Matlab
                 existing_algorithms = []
                 for subdir_name, algorithm_name in [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]:
                     file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, subdir_name, algorithm_name + ".jl")
@@ -259,6 +269,17 @@ def main():
                         existing_algorithms.append((subdir_name, algorithm_name))
                 
                 runner.generate_runner(name, existing_algorithms)
+
+                # k best runner
+                existing_algorithms = []
+                # using the upper limit for k is sufficient because we test if files exist
+                for i in range(100):
+                    algorithm_name = "algorithm{}e".format(i)
+                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "exhaustive", algorithm_name + ".jl")
+                    if os.path.exists(file_path):
+                        existing_algorithms.append(("exhaustive", algorithm_name))
+
+                runner.runner_to_file("runner_k_best", name, algorithms=existing_algorithms, language=linnea.config.Language.Julia)
 
     elif args.mode == "jobscripts":
         generate_scripts(args.experiment, len(examples))

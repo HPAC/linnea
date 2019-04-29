@@ -113,6 +113,48 @@ def read_intensity(experiment_name, number_of_experiments):
     return pd.concat(file_dfs, sort=True)
 
 
+def read_results_k_best(experiment_name, number_of_experiments):
+
+    example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
+
+    path = os.path.join(experiment_name, "execution", "k_best")
+    file_dfs = []
+    file_dfs_raw = []
+    if os.path.exists(path):
+        for example in example_names:
+            file_path = "{0}/julia_results_{1}_timings.txt".format(path, example)
+            if os.path.isfile(file_path):
+                try:
+                    df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, header=None, index_col=0)
+                except pd.errors.EmptyDataError:
+                    print("Empty file", file_path)
+                else:
+                    # TODO put this into a function
+                    df_processed = pd.DataFrame()
+                    df_processed["min_time"] = df.min(axis=1)
+                    df_processed["median_time"] = df.median(axis=1)
+                    df_processed["mean_time"] = df.mean(axis=1)
+                    df_processed["ci_lower"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[0]], axis=1)
+                    df_processed["ci_upper"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[1]], axis=1)
+                    df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
+                    df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
+                    df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
+                    df_processed.index = pd.MultiIndex.from_product([[example], df.index.values], names=['example', 'implementation'])
+                    file_dfs.append(df_processed)
+
+                    file_dfs_raw.append(pd.DataFrame(df.drop(["naive_julia", "recommended_julia"], errors='ignore').stack().reset_index(drop=True), columns=[example]))
+            else:
+                print("Missing file", file_path)
+    else:
+        print("No results for k best experiment.")
+
+    df_raw = pd.concat(file_dfs_raw, axis=1)
+    df_raw.to_csv("{}_k_best_raw.csv".format(experiment), na_rep="NaN")
+
+    df = pd.concat(file_dfs, sort=True)
+    return df
+
+
 def to_performance_profiles_data(time_data):
 
     # normalize by fastest implementation
@@ -183,6 +225,7 @@ def speedup_CI(time_data, implementation, reference):
     else:
         return time_data["{}_median_time".format(implementation)]/time_data["{}_median_time".format(reference)]
 
+
 def to_speedup_data_CI(time_data):
     df = pd.DataFrame()
     reference = "algorithm0e"
@@ -191,6 +234,7 @@ def to_speedup_data_CI(time_data):
     df["intensity_e"] = time_data["intensity_e"]
     df["intensity_c"] = time_data["intensity_c"]
     return df
+
 
 def to_mean_speedup(speedup_data, drop_reference=None):
     speedup_mean = pd.DataFrame(speedup_data.mean())
@@ -284,6 +328,7 @@ def process_data_execution(execution_results, experiment, intensity_cols):
     speedup_over_linnea = compare_to_fastest(execution_time, speedup_reference)
     speedup_over_linnea.to_csv("{}_speedup_over_linnea.csv".format(experiment), na_rep="NaN")
 
+
 def process_data_generation(gen_results, experiment):
 
     gen_results.to_csv("{}_generation.csv".format(experiment), na_rep="NaN")
@@ -311,6 +356,7 @@ def process_data_generation(gen_results, experiment):
     nodes_and_time.to_csv("{}_generation_all.csv".format(experiment), na_rep="NaN")
     nodes_and_time.dropna().to_csv("{}_generation_all_clean.csv".format(experiment))
 
+
 def process_data_intensity(intensity_data, experiment):
 
     intensity_data.to_csv("{}_intensity_all.csv".format(experiment), na_rep="NaN")
@@ -325,7 +371,76 @@ def process_data_intensity(intensity_data, experiment):
     intensity_optimal["intensity_e"] = intensity_only["algorithm0e"]
     intensity_optimal["intensity_c"] = intensity_only["algorithm0c"]
 
-    return intensity_optimal, intensity_only
+    return intensity_optimal
+
+
+def process_data_k_best(k_best_data, intensity_data, experiment):
+
+    plain_data = pd.concat([k_best_data, intensity_data], axis=1, sort=True)
+    plain_data.drop(["algorithm0c", "naive_julia", "recommended_julia"], level=1, inplace=True)
+    plain_data.to_csv("{}_k_best.csv".format(experiment), na_rep="NaN")
+
+    for col in ["min_time", "min_time_rel", "median_time", "ci_upper_rel", "ci_lower_rel", "cost"]:
+        df = plain_data[col].unstack(0)
+        df.index = df.index.map(lambda x: int(x[9:][:-1]))
+        df.sort_index(inplace=True)
+        df.to_csv("{}_k_best_{}.csv".format(experiment, col), na_rep="NaN")
+
+    # stats algorithm0e
+    algorithm0e_stats = pd.DataFrame(plain_data.xs("algorithm0e", level=1))
+    algorithm0e_stats.dropna(inplace=True)
+
+    df = plain_data["min_time"].unstack(0)
+    algorithm0e_stats["k"] = df.count()
+
+    df = plain_data["cost"].unstack(0)
+    algorithm0e_stats["cost_cutoff"] = df.max()/df.min()
+    
+    algorithm0e_stats.to_csv("{}_stats_algorithm0e.csv".format(experiment), na_rep="NaN")
+
+    # stats for solution with smallest min time
+    min_time_stats = plain_data.loc[plain_data.groupby(level=0).min_time.idxmin().dropna()]
+    min_time_stats.reset_index(level=1, inplace=True)
+
+    min_time_stats["idx"] = min_time_stats.apply(lambda row: int(row["implementation"][9:][:-1]), axis=1)
+
+    del min_time_stats["ci_lower"]
+    del min_time_stats["ci_lower_rel"]
+    del min_time_stats["ci_upper"]
+    del min_time_stats["ci_upper_rel"]
+    del min_time_stats["min_time_rel"]
+
+    min_time_stats["slowdown"] = min_time_stats["min_time"]/algorithm0e_stats["min_time"]
+    min_time_stats["speedup"] = algorithm0e_stats["min_time"]/min_time_stats["min_time"]
+    min_time_stats["cost_rel"] = min_time_stats["cost"]/algorithm0e_stats["cost"]
+    min_time_stats["intensity_ref"] = algorithm0e_stats["intensity"]
+
+    min_time_stats.to_csv("{}_stats_min_time.csv".format(experiment), na_rep="NaN")
+
+    # stats for solution with smallest median time
+    median_time_stats = plain_data.loc[plain_data.groupby(level=0).median_time.idxmin().dropna()]
+    median_time_stats.reset_index(level=1, inplace=True)
+    median_time_stats["idx"] = median_time_stats.apply(lambda row: int(row["implementation"][9:][:-1]), axis=1)
+
+    median_time_stats["slowdown"] = median_time_stats["median_time"]/algorithm0e_stats["median_time"]
+    median_time_stats["speedup"] = algorithm0e_stats["median_time"]/median_time_stats["median_time"]
+    tmp = pd.DataFrame()
+    tmp["optimal_ci_lower"] = median_time_stats["ci_lower"]
+    tmp["optimal_ci_upper"] = median_time_stats["ci_upper"]
+    tmp["optimal_median_time"] = median_time_stats["median_time"]
+    tmp["algorithm0e_ci_lower"] = algorithm0e_stats["ci_lower"]
+    tmp["algorithm0e_ci_upper"] = algorithm0e_stats["ci_upper"]
+    tmp["algorithm0e_median_time"] = algorithm0e_stats["median_time"]
+    median_time_stats["slowdown_CI"] = tmp.apply(speedup_CI, axis=1, args=("optimal", "algorithm0e"))
+    median_time_stats["speedup_CI"] = tmp.apply(speedup_CI, axis=1, args=("algorithm0e", "optimal"))
+    median_time_stats["cost_rel"] = median_time_stats["cost"]/algorithm0e_stats["cost"]
+    median_time_stats["intensity_ref"] = algorithm0e_stats["intensity"]
+
+    median_time_stats.to_csv("{}_stats_median_time.csv".format(experiment), na_rep="NaN")
+
+    # TODO search for cases where speedup < 1  and cost_rel > 1
+    # median_time_stats.loc[(median_time_stats["speedup"] < 1.0) & (median_time_stats["cost_rel"] > 1.0)]
+
 
 if __name__ == '__main__':
 
@@ -336,13 +451,19 @@ if __name__ == '__main__':
     execution_time_all = []
     gen_results_all = []
     intensity_data_all = []
+    k_best_data_all = []
     execution_results_all = []
     for experiment, n in experiments:
 
         # intensity
         intensity_data = read_intensity(experiment, n)
         intensity_data_all.append(intensity_data)
-        intensity_cols, intensity_k_best = process_data_intensity(intensity_data, experiment)
+        intensity_cols = process_data_intensity(intensity_data, experiment)
+
+        # k best
+        k_best_data = read_results_k_best(experiment, n)
+        k_best_data_all.append(k_best_data)
+        process_data_k_best(k_best_data, intensity_data, experiment)
 
         # execution
         execution_results = read_results_execution(experiment, n)
@@ -356,7 +477,11 @@ if __name__ == '__main__':
 
     # intensity combined
     intensity_data_combined = pd.concat(intensity_data_all)
-    intensity_cols, intensity_k_best = process_data_intensity(intensity_data_combined, "combined")
+    intensity_cols = process_data_intensity(intensity_data_combined, "combined")
+
+    # k best
+    k_best_data_combined = pd.concat(k_best_data_all)
+    process_data_k_best(k_best_data_combined, intensity_data_combined, "combined")
 
     # execution combined
     execution_results_combined = pd.concat(execution_results_all, sort=True)
