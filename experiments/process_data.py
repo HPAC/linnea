@@ -45,50 +45,17 @@ def ci_pos(n):
     return lower_pos-1, upper_pos-1
 
 
-def read_results_execution(experiment_name, number_of_experiments, usecols=range(0, 2)):
-
-    """ TODO idea: Instead of usecols, use Enum an argument, which is maped to
-    columns. This can then also be used in df.rename()
-
-    What if we want more than one column?
-    """
+def read_results_execution(experiment_name, number_of_experiments):
 
     # TODO move this into the loop below
     example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
 
     language_dfs = []
-    # old
-    for language in ["cpp", "julia", "matlab"]:
-        path = os.path.join(experiment_name, "execution", language)
-        if os.path.exists(path):
-            file_dfs = []
-            for example in example_names:
-                file_path = "{0}/{1}_results_{2}.txt".format(path, language, example)
-                if os.path.isfile(file_path):
-                    try:
-                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, usecols=usecols, index_col=0)
-                    except pd.errors.EmptyDataError:
-                        print("Empty file", file_path)
-                    else:
-                        df = df.transpose()
-                        # This works only when we extrace not more than one column
-                        df.rename(mapper=lambda _: example, inplace=True)
-                        file_dfs.append(df)
-                else:
-                    print("Missing file", file_path)
-
-            df = pd.concat(file_dfs, sort=True)
-            language_dfs.append(df)
-        else:
-            print("No results for", language)
-
-    # for language in ["cpp", "julia", "matlab"]:
-    language_dfs2 = []
-    for language in ["julia", "matlab"]:
+    for language in ["julia", "matlab", "cpp"]:
         # new
         path = os.path.join(experiment_name, "execution", language)
         if os.path.exists(path):
-            file_dfs2 = []
+            file_dfs = []
             for example in example_names:
                 file_path = "{0}/{1}_results_{2}_timings.txt".format(path, language, example)
                 if os.path.isfile(file_path):
@@ -113,19 +80,16 @@ def read_results_execution(experiment_name, number_of_experiments, usecols=range
                         df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
                         df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
                         df_processed.index = pd.MultiIndex.from_product([[example], df.index.values], names=['example', 'implementation'])
-                        file_dfs2.append(df_processed)
+                        file_dfs.append(df_processed)
                 else:
                     print("Missing file", file_path)
 
-            df = pd.concat(file_dfs2, sort=True)
-            language_dfs2.append(df)
+            df = pd.concat(file_dfs, sort=True)
+            language_dfs.append(df)
         else:
             print("No results for", language)
 
-    results = pd.concat(language_dfs, axis=1, sort=True)
-    results2 = pd.concat(language_dfs2, sort=True)
-
-    return results, results2
+    return pd.concat(language_dfs, sort=True)
 
 
 def read_intensity(experiment_name, number_of_experiments):
@@ -190,17 +154,13 @@ def select_best(d1, d2):
 
 def performance_profiles_data_reduce(time_data):
 
-    # print(time_data)
-
     armadillo = time_data.apply(lambda row: select_best(row["naive_armadillo"], row["recommended_armadillo"]), axis=1)
     matlab = time_data.apply(lambda row: select_best(row["naive_matlab"], row["recommended_matlab"]), axis=1)
     julia = time_data.apply(lambda row: select_best(row["naive_julia"], row["recommended_julia"]), axis=1)
     eigen = time_data.apply(lambda row: select_best(row["naive_eigen"], row["recommended_eigen"]), axis=1)
-    # print(armadillo)
 
     res = pd.concat([time_data["algorithm0e"], armadillo, matlab, julia, eigen], axis=1)
     res.rename(columns={0: "armadillo", 1: "matlab", 2: "julia", 3: "eigen"}, inplace=True)
-    # print(res)
 
     return res
 
@@ -226,7 +186,7 @@ def speedup_CI(time_data, implementation, reference):
 def to_speedup_data_CI(time_data):
     df = pd.DataFrame()
     reference = "algorithm0e"
-    for implementation in ["naive_julia", "recommended_julia", "naive_matlab", "recommended_matlab", "algorithm0c"]:
+    for implementation in ["naive_julia", "recommended_julia", "naive_matlab", "recommended_matlab", "naive_eigen", "recommended_eigen", "naive_armadillo", "recommended_armadillo", "algorithm0c"]:
         df[implementation] = time_data.apply(speedup_CI, axis=1, args=(implementation, reference))
     df["intensity_e"] = time_data["intensity_e"]
     df["intensity_c"] = time_data["intensity_c"]
@@ -292,13 +252,14 @@ def get_column_names(experiment):
     return new_columns
 
 
-def process_data_execution(execution_time, execution_results, experiment, intensity_cols):
+def process_data_execution(execution_results, experiment, intensity_cols):
 
     execution_results = execution_results.unstack()
+
+    execution_time = execution_results["median_time"]
+
     execution_results = execution_results.reorder_levels([1, 0], axis=1)
     execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
-    # print(execution_results.columns)
-    # print(execution_results.head())
     execution_results = pd.concat([execution_results, intensity_cols], axis=1, sort=True)
     execution_results.to_csv("{}_execution_results.csv".format(experiment), na_rep="NaN")
     execution_results.dropna().to_csv("{}_execution_results_clean.csv".format(experiment), na_rep="NaN")
@@ -360,9 +321,11 @@ def process_data_intensity(intensity_data, experiment):
     intensity_only_sorted = intensity_only.sort_values(by=["algorithm0e", "algorithm0c"])
     intensity_only_sorted.to_csv("{}_intensity_sorted.csv".format(experiment), na_rep="NaN")
 
-    intensity_only.rename(index=str, columns={"algorithm0e": "intensity_e", "algorithm0c": "intensity_c"}, inplace=True)
+    intensity_optimal = pd.DataFrame()
+    intensity_optimal["intensity_e"] = intensity_only["algorithm0e"]
+    intensity_optimal["intensity_c"] = intensity_only["algorithm0c"]
 
-    return intensity_only
+    return intensity_optimal, intensity_only
 
 if __name__ == '__main__':
 
@@ -379,19 +342,12 @@ if __name__ == '__main__':
         # intensity
         intensity_data = read_intensity(experiment, n)
         intensity_data_all.append(intensity_data)
-        intensity_cols = process_data_intensity(intensity_data, experiment)
+        intensity_cols, intensity_k_best = process_data_intensity(intensity_data, experiment)
 
         # execution
-        """
-        Once all languages write timings to file, change as follows:
         execution_results = read_results_execution(experiment, n)
-        execution_time = process_data_execution(execution_results, experiment, intensity_cols)
-        execution_time_all.append(execution_time)
-        """
-        execution_time, execution_results = read_results_execution(experiment, n, [0, 3])
-        execution_time_all.append(execution_time)
         execution_results_all.append(execution_results)
-        process_data_execution(execution_time, execution_results, experiment, intensity_cols)
+        process_data_execution(execution_results, experiment, intensity_cols)
 
         # generation
         gen_results = read_results_generation(experiment, n)
@@ -400,12 +356,11 @@ if __name__ == '__main__':
 
     # intensity combined
     intensity_data_combined = pd.concat(intensity_data_all)
-    intensity_cols = process_data_intensity(intensity_data_combined, "combined")
+    intensity_cols, intensity_k_best = process_data_intensity(intensity_data_combined, "combined")
 
     # execution combined
-    execution_time_combined = pd.concat(execution_time_all, sort=True)
-    execution_results_combined = pd.concat(execution_results_all)
-    process_data_execution(execution_time_combined, execution_results_combined, "combined", intensity_cols)
+    execution_results_combined = pd.concat(execution_results_all, sort=True)
+    process_data_execution(execution_results_combined, "combined", intensity_cols)
 
     # generation combined
     gen_results_combined = pd.concat(gen_results_all)
