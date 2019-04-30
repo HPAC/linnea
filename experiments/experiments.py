@@ -17,7 +17,7 @@ linnea.config.init()
 
 from linnea.config import Strategy, Language
 import linnea.examples.examples
-import linnea.examples.PLDI as PLDI
+import linnea.examples.application as application
 from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
 from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
 from linnea.code_generation.experiments import operand_generation, runner, reference_code
@@ -119,7 +119,7 @@ def main():
 
     parser = argparse.ArgumentParser(prog="experiments")
     parser.add_argument("mode", choices=["time_generation", "generate_code", "jobscripts"])
-    parser.add_argument("experiment", choices=["random", "pldi"])
+    parser.add_argument("experiment", choices=["random", "application"])
     parser.add_argument("-m", "--merging", choices=["true", "false", "both"], default="true")
     parser.add_argument("-j", "--jobindex", help="Job index.", type=int, default=0)
     parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
@@ -129,32 +129,32 @@ def main():
     parser.add_argument("-l", "--config", type=str, default=None, help="Specify configuration file.")
     args = parser.parse_args()
 
-    PLDI_examples = [
-        PLDI.Example01(),
-        PLDI.Example02(),
-        PLDI.Example03(),
-        PLDI.Example04(),
-        PLDI.Example05(),
-        PLDI.Example06(),
-        PLDI.Example07(),
-        PLDI.Example08(),
-        PLDI.Example09(),
-        PLDI.Example10(),
-        PLDI.Example11(),
-        PLDI.Example12(),
-        PLDI.Example13(),
-        PLDI.Example14(),
-        PLDI.Example15(),
-        PLDI.Example16(),
-        PLDI.Example17(),
-        PLDI.Example18(),
-        PLDI.Example19(),
-        PLDI.Example20(),
-        PLDI.Example21(),
-        PLDI.Example22(),
-        PLDI.Example23(),
-        PLDI.Example24(),
-        PLDI.Example25(),
+    application_examples = [
+        application.Example01(),
+        application.Example02(),
+        application.Example03(),
+        application.Example04(),
+        application.Example05(),
+        application.Example06(),
+        application.Example07(),
+        application.Example08(),
+        application.Example09(),
+        application.Example10(),
+        application.Example11(),
+        application.Example12(),
+        application.Example13(),
+        application.Example14(),
+        application.Example15(),
+        application.Example16(),
+        application.Example17(),
+        application.Example18(),
+        application.Example19(),
+        application.Example20(),
+        application.Example21(),
+        application.Example22(),
+        application.Example23(),
+        application.Example24(),
+        application.Example25(),
     ]
 
     ExampleContainer = collections.namedtuple("ExampleContainer", ["eqns"])
@@ -172,8 +172,8 @@ def main():
 
     if args.experiment == "random":
         examples = rand_exprs
-    elif args.experiment == "pldi":
-        examples = PLDI_examples
+    elif args.experiment == "application":
+        examples = application_examples
     else:
         return
 

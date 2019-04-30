@@ -279,7 +279,7 @@ def time_accumulated(time_data):
 def get_column_names(experiment):
 
     if experiment == "combined":
-        experiments = ["random", "pldi"]
+        experiments = ["random", "application"]
     else:    
         experiments = [experiment]
 
@@ -444,7 +444,7 @@ def process_data_k_best(k_best_data, intensity_data, experiment):
 
 if __name__ == '__main__':
 
-    experiments = [("random", 100), ("pldi", 25)]
+    experiments = [("random", 100), ("application", 25)]
 
     speedup_reference = "algorithm0e"
 
