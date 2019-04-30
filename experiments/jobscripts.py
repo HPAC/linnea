@@ -96,7 +96,7 @@ scheduler_vars = {
         "flag_time":            "-t",
         "flag_memory":          "--mem=",
         "flag_group":           "-A",
-        "flag_model":           "-C",
+        "flag_model":           "-p",
         "flag_exclusive":       "--exclusive",
         "var_array_idx":        "SLURM_ARRAY_TASK_ID",
         "string_array_idx":     "%a"
