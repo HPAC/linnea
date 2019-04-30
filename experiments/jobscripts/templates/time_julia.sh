@@ -6,7 +6,7 @@
 #{directive} {flag_time} {time_execution}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_group} {group}
-{spec_model}
+#{directive} {flag_model} {model}
 {spec_exclusive}
 
 module load gcc/{gcc_version}

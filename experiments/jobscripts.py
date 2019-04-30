@@ -118,11 +118,9 @@ def generate_scripts(experiment, number_of_experiments):
         if scheduler == "LSF":
             experiment_configuration[mode]["lsf_arrayjob"] = "[1-{}]".format(number_of_experiments)
             experiment_configuration[mode]["slurm_arrayjob"] = ""
-            experiment_configuration[mode]["spec_model"] = "#BSUB -R {model}".format(**experiment_configuration[mode])
         elif scheduler == "SLURM":
             experiment_configuration[mode]["lsf_arrayjob"] = ""
             experiment_configuration[mode]["slurm_arrayjob"] = "#SBATCH --array=1-{}".format(number_of_experiments)
-            experiment_configuration[mode]["spec_model"] = ""
         else:
             pass # TODO throw exception?
 
