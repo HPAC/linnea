@@ -129,11 +129,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         Returns the number of new nodes.
         """
 
-        ###############
-        # Apply kernels.
-
         new_nodes = []
-        inactive_nodes = []
 
         for node in self.active_nodes:
 
@@ -143,16 +139,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 equations = equations.remove_identities()
 
                 new_nodes.extend(self.create_nodes(node, (equations, edge_label, original_equations)))
-
-            # Active node stops being active.
-            # If no transformations were applied, it's a dead end.
-            inactive_nodes.append(node)
-                    
-  
-        # for node in inactive_nodes:
-        #     self.active_nodes.remove(node)
-
-        # self.add_active_nodes(new_nodes)
 
         return new_nodes
 

@@ -192,9 +192,6 @@ class DerivationGraphBase(base.GraphBase):
         derivations as well.
         """
 
-        ###############
-        # Replace CSEs.
-
         new_nodes = []
 
         for node in self.active_nodes:
@@ -324,7 +321,6 @@ class DerivationGraphBase(base.GraphBase):
         """
 
         new_nodes = []
-        inactive_nodes = []
 
         for node in self.active_nodes:
             if DS_step.factorizations in node.applied_DS_steps:
@@ -361,23 +357,10 @@ class DerivationGraphBase(base.GraphBase):
 
                 found_symbol_inv_occurrence = []
                 for equations in generate_variants(node.equations):
-                    _transformed, _found_symbol_inv_occurrence = self.TR_factorizations(equations, operands_to_factor, factorization_dict)
-                    found_symbol_inv_occurrence.append(_found_symbol_inv_occurrence)
-                    transformed.extend(_transformed)
+                    transformed.extend(self.TR_factorizations(equations, operands_to_factor, factorization_dict))
 
                 # node.add_factored_operands(operands_to_factor)
                 new_nodes.extend(self.create_nodes(node, *transformed, factored_operands=operands_to_factor, previous_DS_step=DS_step.factorizations))
-
-                # If there is at least one variant without symbol inverse, the
-                # current node stays active because it's possible to make
-                # progress without factorizations
-                if all(found_symbol_inv_occurrence):
-                    inactive_nodes.append(node)
-        
-        # for node in inactive_nodes:
-        #     self.active_nodes.remove(node)
-
-        # self.add_active_nodes(new_nodes)
 
         return new_nodes
 
@@ -426,11 +409,9 @@ class DerivationGraphBase(base.GraphBase):
         # Symbols directely inside an inverse always have to be factored.
         ops_must_factor = set()
         ops_may_factor = set()
-        found_symbol_occurrence = False
         for op in ops:
             if any(oc.operand.name == op and oc.symbol for oc in candidate_occurrences):
                 ops_must_factor.add(op)
-                found_symbol_occurrence = True
             else:
                 ops_may_factor.add(op)
 
@@ -478,7 +459,7 @@ class DerivationGraphBase(base.GraphBase):
                 transformed_expressions.append((equations_copy, matched_kernels, equations))
 
 
-        return transformed_expressions, found_symbol_occurrence
+        return transformed_expressions
 
 
     def init_temporaries(self, equations):
