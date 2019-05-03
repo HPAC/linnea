@@ -52,7 +52,9 @@ class ExpressionType(Enum):
 class OperationType(Enum):
     plus = 1
     times = 2
-    none = 3
+    unary = 3
+    none = 4
+
 
 @unique
 class InverseType(Enum):
@@ -73,7 +75,7 @@ class DS_step(Enum):
 Occurrence = namedtuple('Occurrence', ['eqn_idx', 'position', 'operand', 'type', 'group', 'symbol'])
 
 
-def find_operands_to_factor(equations):
+def find_operands_to_factor(equations, eqn_idx=None):
     """Finds all operands to factor.
 
     Finds all operands that may require factorizations. Those are operands that
@@ -87,8 +89,15 @@ def find_operands_to_factor(equations):
     """
     # this is independent of variants (most likely)
 
+    eqn_indices = None
+    if eqn_idx is not None:
+        eqn_indices = [eqn_idx]
+    else:
+        eqn_indices = range(len(equations))
+
     operands_to_factor = set()
-    for equation in equations:
+    for _eqn_idx in eqn_indices:
+        equation = equations[_eqn_idx]
         for inv_expr, inv_pos in inverse_positions(equation.rhs, (1,)):
             for expr, pos in inv_expr.preorder_iter():
                 if isinstance(expr, Symbol) and expr.has_property(properties.ADMITS_FACTORIZATION):
@@ -98,7 +107,8 @@ def find_operands_to_factor(equations):
     tmp is not computed yet if there is an equation tmp = expr where expr is not
     a Symbol.
     """
-    for equation in equations:
+    for _eqn_idx in eqn_indices:
+        equation = equations[_eqn_idx]
         if equation.lhs in operands_to_factor and not isinstance(equation.rhs, Symbol):
             operands_to_factor.remove(equation.lhs)
 
@@ -343,7 +353,7 @@ def process_next(equation):
     return ((1,), ExpressionType.none, OperationType.none)
 
 
-def process_next_simple(expression, position=()):
+def process_next_simple(expression):
     """Finds a subexpression to process next in the derivation.
 
     This is a simplified verision of process_next(). The difference is that this
@@ -362,7 +372,10 @@ def process_next_simple(expression, position=()):
     - the operation type of that expression, if applicable (as OperationType)
     """
 
-    for node, pos in process_next_generator(expression, position):
+    if (is_inverse(expression.rhs) or is_transpose(expression.rhs)) and isinstance(expression.rhs.operand, Symbol):
+        return ((1,), OperationType.unary)    
+
+    for node, pos in process_next_generator(expression):
         # node = equation[pos]
         if isinstance(node, Plus) and is_simple_plus(node):
             return (pos, OperationType.plus)

@@ -11,7 +11,7 @@ from .utils import generate_variants, \
                    process_next, process_next_simple, \
                    OperationType, ExpressionType, \
                    is_explicit_inversion, \
-                   DS_step
+                   DS_step, find_operands_to_factor
 
 from .. import special_properties # TODO why is this necessary here?
 
@@ -171,7 +171,8 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                         transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr)))
                     elif op_type == OperationType.plus:
                         transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos))
-                    elif op_type == OperationType.none:
+                    elif op_type == OperationType.unary or (op_type == OperationType.none and not find_operands_to_factor(equations, eqn_idx)):
+                        # only use unary kernels if nothing else can be done
                         transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos))
 
                 break

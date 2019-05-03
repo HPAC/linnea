@@ -10,7 +10,7 @@ from .utils import generate_variants, \
                    OperationType, ExpressionType, \
                    is_explicit_inversion, \
                    DS_step, \
-                   is_blocked
+                   is_blocked, find_operands_to_factor
 
 from .. import special_properties # TODO why is this necessary here?
 
@@ -162,10 +162,13 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                     if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
                         transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True))
+                    elif op_type == OperationType.unary:
+                        transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos))
                     else:
                         te_reductions = self.TR_reductions(eqns_variant, eqn_idx, (1,))
                         transformed_expressions.extend(te_reductions)
-                        if not te_reductions:
+                        if not te_reductions and not find_operands_to_factor(equations, eqn_idx):
+                            # only use unary kernels if nothing else can be done
                             transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, (1,)))
 
                 break
