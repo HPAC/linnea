@@ -72,14 +72,14 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
 
         new_nodes = self.DS_kernels()
-        self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.level_counter)
+        self.print_DS_numbered("Nodes added (kernels):", new_nodes, self.step_counter)
         trace.append(new_nodes)
 
         terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
 
         if len(terminal_nodes) >= 0:
             new_nodes = self.DS_transposition()
-            self.print_DS_numbered("Nodes added (transposition):", new_nodes, self.level_counter)
+            self.print_DS_numbered("Nodes added (transposition):", new_nodes, self.step_counter)
             trace.append(new_nodes)
 
         terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))

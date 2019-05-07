@@ -60,38 +60,37 @@ class DerivationGraphBase(base.GraphBase):
         trace = []
 
         terminal_nodes = []
-        new_nodes_per_iteration = 0
+        self.step_counter = 1
 
         for i in range(iteration_limit):
 
             new_nodes_per_iteration = 0
             all_new_nodes = []
 
-
             new_nodes = self.DS_tricks()
             all_new_nodes.extend(new_nodes)
             # TODO could this be done better with logging?
-            self.print_DS_numbered("Nodes added (tricks):", len(new_nodes), self.level_counter)
+            self.print_DS_numbered("Nodes added (tricks):", len(new_nodes), self.step_counter)
             trace.append(len(new_nodes))
-            new_nodes_per_iteration += len(new_nodes)
+            self.step_counter += 1
 
             new_nodes = self.DS_factorizations()
             all_new_nodes.extend(new_nodes)
-            self.print_DS_numbered("Nodes added (fact):", len(new_nodes), self.level_counter)
+            self.print_DS_numbered("Nodes added (fact):", len(new_nodes), self.step_counter)
             trace.append(len(new_nodes))
-            new_nodes_per_iteration += len(new_nodes)         
+            self.step_counter += 1         
 
             new_nodes = self.DS_CSE_replacement()
             all_new_nodes.extend(new_nodes)
-            self.print_DS_numbered("Nodes added (CSE):", len(new_nodes), self.level_counter)
+            self.print_DS_numbered("Nodes added (CSE):", len(new_nodes), self.step_counter)
             trace.append(len(new_nodes))
-            new_nodes_per_iteration += len(new_nodes)         
+            self.step_counter += 1         
 
             new_nodes = self.DS_kernels()
             all_new_nodes.extend(new_nodes)
-            self.print_DS_numbered("Nodes added (kernels):", len(new_nodes), self.level_counter)
+            self.print_DS_numbered("Nodes added (kernels):", len(new_nodes), self.step_counter)
             trace.append(len(new_nodes))
-            new_nodes_per_iteration += len(new_nodes)
+            self.step_counter += 1
 
             self.active_nodes = all_new_nodes
 
@@ -116,7 +115,7 @@ class DerivationGraphBase(base.GraphBase):
             if len(terminal_nodes) >= solution_nodes_limit:
                 self.print("Specified number of algorithms found.")
                 break
-            elif not self.active_nodes or new_nodes_per_iteration == 0:
+            elif not self.active_nodes or not all_new_nodes:
                 self.print("No further derivations possible.")
                 break
 
@@ -160,6 +159,7 @@ class DerivationGraphBase(base.GraphBase):
 
         for equations, matched_kernels, original_equations in description:
             new_node = DerivationGraphNode(equations, predecessor, _factored_operands.copy(), previous_DS_step)
+            new_node.level = self.step_counter
             self.nodes.append(new_node)
             new_nodes.append(new_node)
             predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)

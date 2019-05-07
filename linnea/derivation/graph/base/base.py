@@ -21,7 +21,7 @@ class GraphBase():
 
     def __init__(self):
         super().__init__()
-        self.level_counter = -1
+        self.step_counter = -1
 
     def print(self, str):
         if config.verbosity >= 1:
@@ -57,9 +57,9 @@ class GraphBase():
                 pass
 
     def add_active_nodes(self, nodes):
-        self.level_counter += 1
+        self.step_counter += 1
         for node in nodes:
-            node.level = self.level_counter
+            node.level = self.step_counter
 
         self.active_nodes.extend(nodes)
 
