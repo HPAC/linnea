@@ -80,7 +80,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                 kernel, substitution = select_optimal_match(grouped_kernels)
                 
-                matched_kernel = kernel.set_match(substitution, True, CSE_rules=False)
+                matched_kernel = kernel.set_match(substitution, True)
                 if is_blocked(matched_kernel.operation.rhs):
                     continue
 

@@ -38,9 +38,9 @@ class FactorizationKernel(Kernel):
 
         # TODO for something like generalized schur decomposition, I potentially also need context
 
-    def set_match(self, match_dict, context, CSE_rules=False, set_equivalent=True, equiv_expr=None):
+    def set_match(self, match_dict, context, set_equivalent=True, equiv_expr=None):
 
-        matched_kernel = super().set_match(match_dict, CSE_rules)
+        matched_kernel = super().set_match(match_dict)
 
         #############
         # operation
@@ -98,26 +98,6 @@ class FactorizationKernel(Kernel):
                     "type_prefix": config.blas_data_type_prefix, # TODO this is language dependent
                     "work_id": hex(hash(self.signature))[-5:]
                     }
-
-        #############
-        # CSE rules
-
-        if CSE_rules:
-            _rules = [
-                (
-                    matchpy.Pattern(_input_expr),
-                    lambda **_: _output_expr
-                ),
-                (
-                    matchpy.Pattern(transpose(_input_expr)),
-                    lambda **_: transpose(_output_expr)
-                ),
-                (
-                    matchpy.Pattern(conjugate_transpose(_input_expr)),
-                    lambda **_: conjugate_transpose(_output_expr)
-                ),
-            ]
-            matched_kernel.CSE_rules = _rules
 
         return matched_kernel
 

@@ -446,7 +446,7 @@ class DerivationGraphBase(base.GraphBase):
 
                             # this is kind of stupid, there is only one match
                             for match_dict in matches:
-                                matched_kernel = kernel.set_match(match_dict, False, CSE_rules=False)
+                                matched_kernel = kernel.set_match(match_dict, False)
                                 factorization_dict.setdefault(operand.name, []).append(matched_kernel)
                             break
 

@@ -426,7 +426,7 @@ class MatchedKernel():
 
     _counter = 0
 
-    def __init__(self, CSE_rules=False):
+    def __init__(self):
         self.id = MatchedKernel._counter
         MatchedKernel._counter += 1
         
@@ -435,9 +435,6 @@ class MatchedKernel():
         self.replacement = None
         self.operation = None
         self.cost = 0 # TODO change this to None. Currently, it's necessary to make sums work.
-
-        if CSE_rules:
-            self.CSE_rules = None
 
         self.signature = None
         self.arguments = None
