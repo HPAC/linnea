@@ -225,10 +225,10 @@ def generate_variants(equations, eqn_idx=None):
     """Generates UI (Undistribute Inverse) and POS (Product Of Sums) variants of equations.
 
     This function yields some variants of the given equations and returns all unique ones in the following order:
-        1. Equations as passed to the function as an argument
-        2. UI variant
-        3. POS variant (left first)
-        4. POS variant (right first)
+        1. POS variant (left first)
+        2. POS variant (right first)
+        3. UI variant
+        4. Equations as passed to the function as an argument
 
     For each type of variant, first a list of equation indices where it can be applied are calculated.
 
@@ -249,12 +249,48 @@ def generate_variants(equations, eqn_idx=None):
     # TODO what about combinations of POS and undistribute inverse?
     # try all combinations? yes, but only if the same equations are concerned
 
-    yielded_variants = set([equations])
-    yield equations
+    yielded_variants = set()
 
     eqn_indices = range(len(equations))
     if eqn_idx:
         eqn_indices = [eqn_idx]
+
+    # TODO combine this with the other loop
+    POS_candidates = set()
+    for _eqn_idx in eqn_indices:
+        equation = equations[_eqn_idx]
+        for node, pos in equation.preorder_iter():
+            if isinstance(node, Plus):
+                for operand in node.operands:
+                    if isinstance(operand, Times):
+                        POS_candidates.add(_eqn_idx)
+                        break
+
+    if POS_candidates:
+        new_equations_left = []
+        for _eqn_idx, equation in enumerate(equations):
+            new_equation_left = equation
+            if _eqn_idx in POS_candidates:
+                new_equation_left = to_POS(new_equation_left, "l")
+            new_equations_left.append(new_equation_left)
+
+        temp_eqns = aeq.Equations(*new_equations_left)
+        if temp_eqns not in yielded_variants:
+            yielded_variants.add(temp_eqns)
+            yield temp_eqns
+
+        new_equations_right = []
+        for _eqn_idx, equation in enumerate(equations):
+            new_equation_right = equation
+            if _eqn_idx in POS_candidates:
+                new_equation_right = to_POS(new_equation_right, "r")
+            new_equations_right.append(new_equation_right)
+
+        temp_eqns = aeq.Equations(*new_equations_right)
+        if temp_eqns not in yielded_variants:
+            yielded_variants.add(temp_eqns)
+            yield temp_eqns
+
 
     undist_inv_candidates = set()
     for _eqn_idx in eqn_indices:
@@ -282,43 +318,9 @@ def generate_variants(equations, eqn_idx=None):
             yielded_variants.add(temp_eqn)
             yield temp_eqn
 
+    if equations not in yielded_variants:
+        yield equations
 
-    # TODO combine this with the other loop
-    POS_candidates = set()
-    for _eqn_idx in eqn_indices:
-        equation = equations[_eqn_idx]
-        for node, pos in equation.preorder_iter():
-            if isinstance(node, Plus):
-                for operand in node.operands:
-                    if isinstance(operand, Times):
-                        POS_candidates.add(_eqn_idx)
-                        break
-
-    if POS_candidates:
-
-        new_equations_left = []
-        for _eqn_idx, equation in enumerate(equations):
-            new_equation_left = equation
-            if _eqn_idx in POS_candidates:
-                new_equation_left = to_POS(new_equation_left, "l")
-            new_equations_left.append(new_equation_left)
-
-        temp_eqns = aeq.Equations(*new_equations_left)
-        if temp_eqns not in yielded_variants:
-            yielded_variants.add(temp_eqns)
-            yield temp_eqns
-
-        new_equations_right = []
-        for _eqn_idx, equation in enumerate(equations):
-            new_equation_right = equation
-            if _eqn_idx in POS_candidates:
-                new_equation_right = to_POS(new_equation_right, "r")
-            new_equations_right.append(new_equation_right)
-
-        temp_eqns = aeq.Equations(*new_equations_right)
-        if temp_eqns not in yielded_variants:
-            yielded_variants.add(temp_eqns)
-            yield temp_eqns
 
 
 def process_next(equation):
