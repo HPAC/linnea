@@ -33,8 +33,6 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def TR_kernels(self, equations):
 
-        transformed_expressions = []
-
         for eqn_idx, equation in enumerate(equations):
             if not isinstance(equation.rhs, ae.Symbol):
                 for eqns_variant in generate_variants(equations, eqn_idx):
@@ -42,13 +40,10 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                     if op_type == OperationType.times:
                         expr = eqns_variant[eqn_idx][pos]
-                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr)))
+                        yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr))
                     elif op_type == OperationType.plus:
-                        transformed_expressions.extend(self.TR_addition(eqns_variant, eqn_idx, pos))
-                    elif op_type == OperationType.unary or (op_type == OperationType.none and not find_operands_to_factor(equations, eqn_idx)):
+                        yield from self.TR_addition(eqns_variant, eqn_idx, pos)
+                    elif op_type == OperationType.none or (op_type == OperationType.none and not find_operands_to_factor(equations, eqn_idx)):
                         # only use unary kernels if nothing else can be done
-                        transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos))
-
+                        yield from self.TR_unary_kernels(eqns_variant, eqn_idx, pos)
                 break
-
-        return transformed_expressions

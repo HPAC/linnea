@@ -45,31 +45,26 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def TR_kernels(self, equations):
 
-        transformed_expressions = []
-
         for eqn_idx, equation in enumerate(equations):
             if not isinstance(equation.rhs, ae.Symbol):
                 for eqns_variant in generate_variants(equations, eqn_idx):
                     pos, op_type = process_next_simple(eqns_variant[eqn_idx])
 
                     if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
-                        transformed_expressions.extend(self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True))
-                    elif op_type == OperationType.unary:
-                        transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, pos))
+                        yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True)
                     else:
-                        te_reductions = self.TR_reductions(eqns_variant, eqn_idx, (1,))
-                        transformed_expressions.extend(te_reductions)
-                        if not te_reductions and not find_operands_to_factor(equations, eqn_idx):
+                        # yield_from can't be used in this case, because we need to know if a reduction was yielded
+                        reduction_yielded = False
+                        for reduction in self.TR_reductions(eqns_variant, eqn_idx, (1,)):
+                            reduction_yielded = True
+                            yield reduction
+                        if not reduction_yielded and not find_operands_to_factor(equations, eqn_idx):
                             # only use unary kernels if nothing else can be done
-                            transformed_expressions.extend(self.TR_unary_kernels(eqns_variant, eqn_idx, (1,)))
+                            yield from self.TR_unary_kernels(eqns_variant, eqn_idx, (1,))
 
                 break
 
-        return transformed_expressions
-
     def TR_reductions(self, equations, eqn_idx, initial_pos):
-
-        transformed_expressions = []
 
         initial_node = equations[eqn_idx][initial_pos]
 
@@ -93,6 +88,4 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 
-                transformed_expressions.append((equations_copy, (matched_kernel,), equations))
-
-        return transformed_expressions
+                yield (equations_copy, (matched_kernel,), equations)

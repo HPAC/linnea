@@ -325,19 +325,14 @@ class DerivationGraphBase(base.GraphBase):
 
     def TR_tricks(self, equations):
 
-        transformed_expressions = []
-
         for eqn_idx, equation in enumerate(equations):
             if not isinstance(equation.rhs, Symbol):
                 for expr, position in equation.rhs.preorder_iter():
                     for callback_func, substitution in tricks.trick_MA.match(expr):
-                        transformed_expressions.append(callback_func(substitution, equations, eqn_idx, position))
-                # Ensures that tricks are only applied to the first non-trivial
-                # equation. Without this break, unnecessary diamonds can appear
-                # in the derivation graph.
+                        yield callback_func(substitution, equations, eqn_idx, position)
+                # This break ensures that tricks are only applied to the first non-trivial equation.
+                # Without it, unnecessary diamonds can appear in the derivation graph.
                 break
-
-        return transformed_expressions
 
 
     def TR_matrix_chain(self, equations, eqn_idx, initial_pos, explicit_inversion=False):
@@ -345,7 +340,7 @@ class DerivationGraphBase(base.GraphBase):
         try:
             msc = mcs.MatrixChainSolver(equations[eqn_idx][initial_pos], explicit_inversion)
         except mcs.MatrixChainNotComputable:
-            return []
+            return
 
         replacement = msc.tmp
         matched_kernels = msc.matched_kernels
@@ -356,7 +351,7 @@ class DerivationGraphBase(base.GraphBase):
 
         temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
         
-        return [(equations_copy, matched_kernels, equations)]
+        yield (equations_copy, matched_kernels, equations)
 
 
     def TR_addition(self, equations, eqn_idx, initial_pos):
@@ -370,22 +365,16 @@ class DerivationGraphBase(base.GraphBase):
         equations_copy = equations.set(eqn_idx, new_equation)
         equations_copy = equations_copy.to_normalform()
 
-        return [(equations_copy, matched_kernels, equations)]
+        yield (equations_copy, matched_kernels, equations)
 
 
     def TR_CSE_replacement(self, equations):
 
-        transformed_expressions = []
-
         for new_equations in CSEs.find_CSEs(equations):
-            transformed_expressions.append((new_equations, (), equations))
-
-        return transformed_expressions
+            yield (new_equations, (), equations)
 
 
     def TR_unary_kernels(self, equations, eqn_idx, initial_pos):
-
-        transformed_expressions = []
 
         initial_node = equations[eqn_idx][initial_pos]
 
@@ -406,9 +395,7 @@ class DerivationGraphBase(base.GraphBase):
                 equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))
                 equations_copy = equations_copy.to_normalform()
 
-                transformed_expressions.append((equations_copy, (matched_kernel,), equations))
-
-        return transformed_expressions
+                yield (equations_copy, (matched_kernel,), equations)
 
 
     def DS_factorizations(self):
