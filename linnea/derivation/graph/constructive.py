@@ -27,17 +27,18 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def TR_kernels(self, equations):
 
-        for eqn_idx, equation in enumerate(equations):
-            if not isinstance(equation.rhs, ae.Symbol):
-                for eqns_variant in generate_variants(equations, eqn_idx):
-                    pos, op_type = process_next_simple(eqns_variant[eqn_idx])
+        equation, eqn_idx = equations.process_next()
+        if not equation:
+            return
+        for eqns_variant in generate_variants(equations, eqn_idx):
+            pos, op_type = process_next_simple(eqns_variant[eqn_idx])
 
-                    if op_type == OperationType.times:
-                        expr = eqns_variant[eqn_idx][pos]
-                        yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr))
-                    elif op_type == OperationType.plus:
-                        yield from self.TR_addition(eqns_variant, eqn_idx, pos)
-                    elif op_type == OperationType.none or (op_type == OperationType.none and not find_operands_to_factor(equations, eqn_idx)):
-                        # only use unary kernels if nothing else can be done
-                        yield from self.TR_unary_kernels(eqns_variant, eqn_idx, pos)
-                break
+            if op_type == OperationType.times:
+                expr = eqns_variant[eqn_idx][pos]
+                yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, is_explicit_inversion(expr))
+            elif op_type == OperationType.plus:
+                yield from self.TR_addition(eqns_variant, eqn_idx, pos)
+            elif op_type == OperationType.none or (op_type == OperationType.none and not find_operands_to_factor(equations, eqn_idx)):
+                # only use unary kernels if nothing else can be done
+                yield from self.TR_unary_kernels(eqns_variant, eqn_idx, pos)
+

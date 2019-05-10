@@ -36,24 +36,23 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def TR_kernels(self, equations):
 
-        for eqn_idx, equation in enumerate(equations):
-            if not isinstance(equation.rhs, ae.Symbol):
-                for eqns_variant in generate_variants(equations, eqn_idx):
-                    pos, op_type = process_next_simple(eqns_variant[eqn_idx])
+        equation, eqn_idx = equations.process_next()
+        if not equation:
+            return
+        for eqns_variant in generate_variants(equations, eqn_idx):
+            pos, op_type = process_next_simple(eqns_variant[eqn_idx])
 
-                    if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
-                        yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True)
-                    else:
-                        # yield_from can't be used in this case, because we need to know if a reduction was yielded
-                        reduction_yielded = False
-                        for reduction in self.TR_reductions(eqns_variant, eqn_idx, (1,)):
-                            reduction_yielded = True
-                            yield reduction
-                        if not reduction_yielded and not find_operands_to_factor(equations, eqn_idx):
-                            # only use unary kernels if nothing else can be done
-                            yield from self.TR_unary_kernels(eqns_variant, eqn_idx, (1,))
-
-                break
+            if op_type == OperationType.times and is_explicit_inversion(eqns_variant[eqn_idx][pos]):
+                yield from self.TR_matrix_chain(eqns_variant, eqn_idx, pos, True)
+            else:
+                # yield_from can't be used in this case, because we need to know if a reduction was yielded
+                reduction_yielded = False
+                for reduction in self.TR_reductions(eqns_variant, eqn_idx, (1,)):
+                    reduction_yielded = True
+                    yield reduction
+                if not reduction_yielded and not find_operands_to_factor(equations, eqn_idx):
+                    # only use unary kernels if nothing else can be done
+                    yield from self.TR_unary_kernels(eqns_variant, eqn_idx, (1,))
 
     def TR_reductions(self, equations, eqn_idx, initial_pos):
 

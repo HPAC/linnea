@@ -180,6 +180,12 @@ class Equations():
                 and not equation.lhs.name in temporaries._equivalent_expressions):
                 candidates.append(equation)
 
+    def process_next(self):
+        for eqn_idx, equation in enumerate(self.equations):
+            if not isinstance(equation.rhs, ae.Symbol):
+                return equation, eqn_idx
+        return None, -1
+
     def apply_partitioning(self):
         change = True
         # The partitioning can not be propagated per equation. If the same

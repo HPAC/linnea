@@ -325,14 +325,12 @@ class DerivationGraphBase(base.GraphBase):
 
     def TR_tricks(self, equations):
 
-        for eqn_idx, equation in enumerate(equations):
-            if not isinstance(equation.rhs, Symbol):
-                for expr, position in equation.rhs.preorder_iter():
-                    for callback_func, substitution in tricks.trick_MA.match(expr):
-                        yield callback_func(substitution, equations, eqn_idx, position)
-                # This break ensures that tricks are only applied to the first non-trivial equation.
-                # Without it, unnecessary diamonds can appear in the derivation graph.
-                break
+        equation, eqn_idx = equations.process_next()
+        if not equation:
+            return
+        for expr, position in equation.rhs.preorder_iter():
+            for callback_func, substitution in tricks.trick_MA.match(expr):
+                yield callback_func(substitution, equations, eqn_idx, position)
 
 
     def TR_matrix_chain(self, equations, eqn_idx, initial_pos, explicit_inversion=False):
