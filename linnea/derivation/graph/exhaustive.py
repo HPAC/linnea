@@ -24,21 +24,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
     def DS_kernels(self):
         """applies all kernels to all active nodes and creates new nodes
 
-        Returns the number of new nodes.
+
         """
 
-        ###############
-        # Apply kernels.
-
         new_nodes = []
-
         for node in self.active_nodes:
-
-            transformed = self.TR_kernels(node.equations)
-
-            for equations, edge_label, original_equations in transformed:
-                equations = equations.remove_identities()
-
+            for equations, edge_label, original_equations in self.TR_kernels(node.equations):
                 new_nodes.extend(self.create_nodes(node, (equations, edge_label, original_equations)))
 
         return new_nodes
@@ -84,7 +75,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                 new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
 
                 equations_copy = equations.set(eqn_idx, new_equation)
-                equations_copy = equations_copy.to_normalform()
+                equations_copy = equations_copy.to_normalform().remove_identities()
 
                 temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
 

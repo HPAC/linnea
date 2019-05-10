@@ -14,18 +14,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
     def DS_kernels(self):
         """applies all kernels to all active nodes and creates new nodes
 
-        Returns the number of new nodes.
+
         """
 
         new_nodes = []
-
         for node in self.active_nodes:
-
-            transformed = self.TR_kernels(node.equations)
-
-            for equations, edge_label, original_equations in transformed:
-                equations = equations.remove_identities()
-
+            for equations, edge_label, original_equations in self.TR_kernels(node.equations):
                 new_nodes.extend(self.create_nodes(node, (equations, edge_label, original_equations)))
 
         return new_nodes

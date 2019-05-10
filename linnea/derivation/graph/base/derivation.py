@@ -347,7 +347,7 @@ class DerivationGraphBase(base.GraphBase):
 
         new_equation = matchpy.replace(equations[eqn_idx], initial_pos, replacement)
         equations_copy = equations.set(eqn_idx, new_equation)
-        equations_copy = equations_copy.to_normalform()
+        equations_copy = equations_copy.to_normalform().remove_identities()
 
         temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
         
@@ -363,7 +363,7 @@ class DerivationGraphBase(base.GraphBase):
 
         new_equation = matchpy.replace(equations[eqn_idx], initial_pos, new_expr)
         equations_copy = equations.set(eqn_idx, new_equation)
-        equations_copy = equations_copy.to_normalform()
+        equations_copy = equations_copy.to_normalform().remove_identities()
 
         yield (equations_copy, matched_kernels, equations)
 
@@ -393,7 +393,7 @@ class DerivationGraphBase(base.GraphBase):
                 # replace node with modified expression
 
                 equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))
-                equations_copy = equations_copy.to_normalform()
+                equations_copy = equations_copy.to_normalform().remove_identities()
 
                 yield (equations_copy, (matched_kernel,), equations)
 
