@@ -94,7 +94,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
             for reduction in self.TR_reductions(equations, eqn_idx, (1,)):
                 reduction_yielded = True
                 yield reduction
-            if not reduction_yielded and not find_operands_to_factor(equations, eqn_idx):
+            if not reduction_yielded:
                 # only use unary kernels if nothing else can be done
                 yield from self.TR_unary_kernels(equations, eqn_idx, (1,))
 
