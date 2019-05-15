@@ -93,11 +93,11 @@ def generate(experiment, example, name, strategy):
                         merging=True,
                         dead_ends=True)
 
-    df = pd.DataFrame(trace_data, columns=["time", "cost"])
+    df = pd.DataFrame(trace, columns=["time", "cost"])
     file_path = os.path.join(linnea.config.results_path, experiment, "trace", name + "_trace.csv")
     df.to_csv(file_path)
     if linnea.config.verbosity >= 2:
-        print("Generate intensity file {}".format(file_path))
+        print("Generate trace file {}".format(file_path))
 
     k = graph.write_output(code=True,
                        derivation=True,
