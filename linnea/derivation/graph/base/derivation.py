@@ -3,7 +3,7 @@ from . import base
 from ..utils import generate_variants, find_operands_to_factor, \
                     find_occurrences, InverseType, group_occurrences, \
                     DS_step, find_explicit_symbol_inverse, is_inverse, \
-                    find_blocking_products
+                    find_blocking_products, is_dead_end, PriorityStack
 
 from ....algebra.expression import Symbol, Times
 
@@ -16,6 +16,7 @@ import matchpy
 import itertools
 import os.path
 import math
+import time
 
 from ... import special_properties
 from ... import tricks
@@ -46,7 +47,10 @@ class DerivationGraphBase(base.GraphBase):
         self.nodes = [self.root]
 
 
-    def derivation(self, solution_nodes_limit=math.inf, iteration_limit=100, merging=True, dead_ends=True):
+    def derivation(self, time_limit=60, merging=True, dead_ends=True):
+        
+        # TODO add argument for stopping as soon as first solution is found
+        # or use time_limit == 0?
 
         check_validity(self.root.equations)
         self.root.equations = self.root.equations.to_normalform()
@@ -54,77 +58,81 @@ class DerivationGraphBase(base.GraphBase):
 
         self.init_temporaries(self.root.equations)
 
-        self.root.metric = self.root.equations.metric()
+        self.root.generator = self.successor_generator(self.root)
 
-        # for testing and debugging
-        trace = []
+        p_stack = PriorityStack()
+        p_stack.put(0, self.root)
 
-        terminal_nodes = []
-        self.step_counter = 1
+        hashtable = dict()
+        t_start = time.perf_counter()
+        best_solution = math.inf
+        trace_data = []
 
-        for i in range(iteration_limit):
+        print_interval = 1
+        next_print = print_interval
 
-            new_nodes_per_iteration = 0
-            all_new_nodes = []
+        while not p_stack.empty():
+            prio, node = p_stack.get()
 
-            new_nodes = self.DS_tricks()
-            all_new_nodes.extend(new_nodes)
-            # TODO could this be done better with logging?
-            self.print_DS_numbered("Nodes added (tricks):", len(new_nodes), self.step_counter)
-            trace.append(len(new_nodes))
-            self.step_counter += 1
+            if node.accumulated_cost > best_solution:
+                # self.print("Branch pruned.")
+                node.labels.append("pruned")
+                continue
 
-            new_nodes = self.DS_factorizations()
-            all_new_nodes.extend(new_nodes)
-            self.print_DS_numbered("Nodes added (fact):", len(new_nodes), self.step_counter)
-            trace.append(len(new_nodes))
-            self.step_counter += 1         
+            if all(is_dead_end(equations, node.factored_operands) for equations in generate_variants(node.equations)):
+                # self.print("Dead node.")
+                node.labels.append("dead")
+                continue
+                
+            try:
+                new_node = next(node.generator)
+            except StopIteration:
+                pass
+            else:
+                try:
+                    existing_prio, existing_node = hashtable[new_node.equations]
+                except KeyError:
+                    hashtable[new_node.equations] = (0, new_node)
+                    new_node.generator = self.successor_generator(new_node)
+                    p_stack.put(0, new_node)
+                else:
+                    if existing_node.accumulated_cost > best_solution and new_node.accumulated_cost < best_solution:
+                        # this has to happen before merging because merging changes cost
+                        # doing this, the same node could be on the stack twice. Can this be a problem?
+                        # print("Node reactivated.")
+                        p_stack.put(existing_prio, existing_node)
+                    existing_node.merge(new_node)
+                    self.remove_nodes([new_node])
+                p_stack.put(prio+1, node)
+            
+            t_elapsed = time.perf_counter() - t_start
+            if t_elapsed > next_print:
+                self.print_DS("Nodes:", len(self.nodes))
+                next_print += print_interval
 
-            new_nodes = self.DS_CSE_replacement()
-            all_new_nodes.extend(new_nodes)
-            self.print_DS_numbered("Nodes added (CSE):", len(new_nodes), self.step_counter)
-            trace.append(len(new_nodes))
-            self.step_counter += 1         
-
-            new_nodes = self.DS_kernels()
-            all_new_nodes.extend(new_nodes)
-            self.print_DS_numbered("Nodes added (kernels):", len(new_nodes), self.step_counter)
-            trace.append(len(new_nodes))
-            self.step_counter += 1
-
-            self.active_nodes = all_new_nodes
-
-            if dead_ends:
-                dead_nodes = self.DS_dead_ends()
-                self.print_DS("Dead nodes:", dead_nodes)
-                trace.append(dead_nodes)
-
-            if merging:
-                merged_nodes = self.DS_merge_nodes()
-                self.print_DS("Nodes merged:", merged_nodes)
-                trace.append(merged_nodes) 
-
-            mins = self.metric_mins()
-            #print(mins)
-            pruned_nodes = self.DS_prune(mins)
-            self.print_DS("Nodes pruned:", pruned_nodes)
-            trace.append(pruned_nodes)
+            if t_elapsed > time_limit:
+                self.print("Time limit reached.")
+                break
 
             terminal_nodes = self.terminal_nodes()
-
-            if len(terminal_nodes) >= solution_nodes_limit:
-                self.print("Specified number of algorithms found.")
-                break
-            elif not self.active_nodes or not all_new_nodes:
-                self.print("No further derivations possible.")
-                break
-
-
-            # self.to_dot_file("counter")
-            # print("Leaves", [node.id for node in self.active_nodes])
-            # print("Nodes", [node.id for node in self.nodes])
+            if terminal_nodes:
+                for terminal_node in terminal_nodes:
+                    if terminal_node.accumulated_cost < best_solution:
+                        best_solution = terminal_node.accumulated_cost
+                        trace_data.append((t_elapsed, terminal_node.accumulated_cost))
+                        # print(t_elapsed)
+                        self.print("   {0:.<26}{1:.3g}".format("New solution", best_solution))
+                # break
         else:
-            self.print("Iteration limit reached.")
+            self.print("No further derivations possible.")
+                
+        # file_name = os.path.join(config.output_code_path, config.output_name, config.language.name, "dfs_trace.csv")
+        # with open(file_name, "wt", encoding='utf-8') as output_file:
+        #     output_file.write("time, cost\n")
+        #     for t, cost in trace_data:
+        #         output_file.write("".join([str(t), ", ", str(cost), "\n"]))
+
+        terminal_nodes = self.terminal_nodes()
 
         self.print("{:-<34}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
@@ -135,17 +143,54 @@ class DerivationGraphBase(base.GraphBase):
         if terminal_nodes:
             _, cost = self.shortest_path()
             self.print("Best solution: {:.3g}".format(cost))
-            self.print("Intensity: {:.3g}".format(cost/data))
+            self.print("Intensity: {:.3g}".format(cost/data))        
 
-        # from ... import temporaries
+        # from .... import temporaries
         # print("\n".join(["{}: {}".format(k, v) for k, v in temporaries._equivalent_expressions.items()]))
         # print("######")
         # print("\n".join(["{}: {}".format(k, v) for k, v in temporaries._table_of_temporaries.items()]))
-        
-        #print(self.equivalence_rules)
-        # produce output
 
-        return trace
+        return trace_data
+
+    def roundrobin(self, *iterables):
+        "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
+        # Recipe credited to George Sakkis
+        num_active = len(iterables)
+        nexts = itertools.cycle(iterables)
+        while num_active:
+            try:
+                for n in nexts:
+                    yield next(n)
+            except StopIteration:
+                # Remove the iterator we just exhausted from the cycle.
+                num_active -= 1
+                nexts = itertools.cycle(itertools.islice(nexts, num_active))
+
+
+    def successor_generator(self, node):
+
+        if DS_step.factorizations in node.applied_DS_steps:
+            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_tricks]
+        elif DS_step.kernels in node.applied_DS_steps:
+            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
+        elif DS_step.CSE in node.applied_DS_steps:
+            # there are cases where doing CSE replacement twice results in better solutions
+            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
+        elif DS_step.tricks in node.applied_DS_steps:
+            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations]
+        else:
+            funs = [self.DFS_CSE_replacement, self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_factorizations, self.DFS_tricks]
+
+        generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_variants(node.equations), funs)]
+        yield from self.roundrobin(*generators)
+
+
+    def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_DS_step=None):
+        new_node = DerivationGraphNode(equations, predecessor, factored_operands, previous_DS_step)
+        new_node.level = self.step_counter
+        self.nodes.append(new_node)
+        predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
+        return new_node
 
 
     def create_nodes(self, predecessor, *description, factored_operands=None, previous_DS_step=None):
@@ -158,11 +203,8 @@ class DerivationGraphBase(base.GraphBase):
             _factored_operands = _factored_operands.union(factored_operands)
 
         for equations, matched_kernels, original_equations in description:
-            new_node = DerivationGraphNode(equations, predecessor, _factored_operands.copy(), previous_DS_step)
-            new_node.level = self.step_counter
-            self.nodes.append(new_node)
+            new_node = self.create_node(predecessor, equations, matched_kernels, original_equations, _factored_operands.copy(), previous_DS_step)
             new_nodes.append(new_node)
-            predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
         return new_nodes
 
 
@@ -269,6 +311,7 @@ class DerivationGraphBase(base.GraphBase):
 
         return mins
 
+
     def DS_tricks(self):
 
         new_nodes = []
@@ -282,6 +325,12 @@ class DerivationGraphBase(base.GraphBase):
             new_nodes.extend(self.create_nodes(node, *transformed))
 
         return new_nodes
+
+
+    def DFS_tricks(self, node, equations):
+        for equations, edge_label, original_equations in self.TR_tricks(equations):
+            yield self.create_node(node, equations, edge_label, original_equations, previous_DS_step=DS_step.tricks)
+
 
     def DS_CSE_replacement(self):
         """Replaces common subexpression.
@@ -305,6 +354,12 @@ class DerivationGraphBase(base.GraphBase):
             new_nodes.extend(self.create_nodes(node, *transformed, previous_DS_step=DS_step.CSE))
 
         return new_nodes
+
+
+    def DFS_CSE_replacement(self, node, equations):
+        for equations, edge_label, original_equations in self.TR_CSE_replacement(equations):
+            yield self.create_node(node, equations, edge_label, original_equations, previous_DS_step=DS_step.CSE)
+
 
     def DS_prune(self, mins):
         if self.active_nodes == [self.root]:
@@ -345,10 +400,13 @@ class DerivationGraphBase(base.GraphBase):
 
         new_equation = matchpy.replace(equations[eqn_idx], initial_pos, replacement)
         equations_copy = equations.set(eqn_idx, new_equation)
-        equations_copy = equations_copy.to_normalform().remove_identities()
+        equations_copy = equations_copy.to_normalform()
 
         temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-        
+        # remove_identities has to be called after set_equivalent because
+        # after remove_identities, eqn_idx may not be correct anymore
+        equations_copy = equations_copy.remove_identities()        
+
         yield (equations_copy, matched_kernels, equations)
 
 
@@ -437,7 +495,6 @@ class DerivationGraphBase(base.GraphBase):
 
                 transformed = []
 
-                found_symbol_inv_occurrence = []
                 for equations in generate_variants(node.equations):
                     transformed.extend(self.TR_factorizations(equations, operands_to_factor, factorization_dict))
 
@@ -445,6 +502,43 @@ class DerivationGraphBase(base.GraphBase):
                 new_nodes.extend(self.create_nodes(node, *transformed, factored_operands=operands_to_factor, previous_DS_step=DS_step.factorizations))
 
         return new_nodes
+
+
+    def DFS_factorizations(self, node, equations):
+        """Factorization derivation step.
+
+        This derivation step applies factorizations to the active nodes. For a
+        description of how exactly factorizations are applied, see the docstring
+        of TR_factorizations().
+        """
+
+        # find all matrices that need to factored
+        operands_to_factor = find_operands_to_factor(equations)
+
+        operands_to_factor -= node.factored_operands
+        if operands_to_factor:
+            # construct dict {operand name: list of matched kernels for all valid factorizations}
+            # It is constructed here because it can be reused. 
+            factorization_dict = dict()
+            for operand in operands_to_factor:
+                for type in collections_module.factorizations_by_type:
+                    for kernel in type:
+                        matches = list(matchpy.match(operand, kernel.pattern))
+
+                        # This is important. Otherwise, the "break" at the end of
+                        # the loop is reached. In that case, only the first
+                        # factorization of each type is applied.
+                        if not matches:
+                            continue
+
+                        # this is kind of stupid, there is only one match
+                        for match_dict in matches:
+                            matched_kernel = kernel.set_match(match_dict, False)
+                            factorization_dict.setdefault(operand.name, []).append(matched_kernel)
+                        break
+
+            for equations, edge_label, original_equations in self.TR_factorizations(equations, operands_to_factor, factorization_dict):
+                yield self.create_node(node, equations, edge_label, original_equations, factored_operands=operands_to_factor, previous_DS_step=DS_step.factorizations)
 
 
     def TR_factorizations(self, equations, operands_to_factor, factorization_dict):
@@ -577,7 +671,7 @@ class DerivationGraphNode(base.GraphNodeBase):
         self.name = "".join(["node", str(self.id)])
         DerivationGraphNode._counter +=1
         self.equations = equations
-
+        self.generator = None
         
     def get_payload(self):
         return self.equations

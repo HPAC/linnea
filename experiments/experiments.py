@@ -89,10 +89,16 @@ def generate(experiment, example, name, strategy):
 
     graph = DerivationGraph(example.eqns)
     trace = graph.derivation(
-                        solution_nodes_limit=100,
-                        iteration_limit=15,
+                        time_limit=30*60,
                         merging=True,
                         dead_ends=True)
+
+    df = pd.DataFrame(trace_data, columns=["time", "cost"])
+    file_path = os.path.join(linnea.config.results_path, experiment, "trace", name + "_trace.csv")
+    df.to_csv(file_path)
+    if linnea.config.verbosity >= 2:
+        print("Generate intensity file {}".format(file_path))
+
     k = graph.write_output(code=True,
                        derivation=True,
                        output_name=name,
@@ -108,10 +114,10 @@ def generate(experiment, example, name, strategy):
         vals.append([data, cost, cost/data])
 
     mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(k)]], names=("example", "implementation"))
-    dframe = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
+    df = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
 
-    file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity" + ".csv")
-    dframe.to_csv(file_path)
+    file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity.csv")
+    df.to_csv(file_path)
     if linnea.config.verbosity >= 2:
         print("Generate intensity file {}".format(file_path))
 

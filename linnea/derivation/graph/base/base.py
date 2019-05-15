@@ -389,7 +389,7 @@ class GraphNodeBase():
         self.original_equations.pop(idx)
 
     def merge(self, other):
-        """Merges node self with other
+        """Merges node other into self.
 
         After merging, other can (and should) be removed.
         """
@@ -429,6 +429,10 @@ class GraphNodeBase():
     def change_predecessor(self, old_target, new_target):
         idx = self.predecessors.index(old_target)
         self.predecessors[idx] = new_target
+
+    def __lt__(self, other):
+        # TODO. Only necessary for PriorityQueue. Should probably be done differently.
+        return False
 
     def __str__(self):
         out = "".join(["NODE ", str(self.id), "\n    ", str(self.get_payload()), " ", str(self.metric)])

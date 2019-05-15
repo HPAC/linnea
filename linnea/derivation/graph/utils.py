@@ -16,10 +16,10 @@ from collections import namedtuple, deque
 
 from enum import Enum, unique
 
-
 import copy
 import itertools
 import operator
+import heapq
 
 @unique
 class ExpressionType(Enum):
@@ -644,3 +644,20 @@ def is_blocked(operation):
         return False
     else:
         return all((operand.factorization_labels or operand.has_property(properties.CONSTANT)) for operand in operation.operands)
+
+
+class PriorityStack():
+    def __init__(self):
+        self.heap = []
+        self.counter = 0
+
+    def put(self, prio, elem):
+        heapq.heappush(self.heap, (prio, -self.counter, elem))
+        self.counter += 1
+
+    def get(self):
+        prio, _, elem = heapq.heappop(self.heap)
+        return prio, elem
+
+    def empty(self):
+        return not self.heap
