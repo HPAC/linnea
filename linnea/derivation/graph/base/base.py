@@ -393,9 +393,9 @@ class GraphNodeBase():
         self.original_equations.extend(other.original_equations)
         self.applied_DS_steps.update(other.applied_DS_steps)
         self.factored_operands.update(other.factored_operands)
-        self.update_cost()
+        self.update_cost(other)
 
-    def update_cost(self):
+    def update_cost(self, other):
         """Updates self.accumulated_cost of all successors.
 
         When merging GraphNodes, the accumulated_cost (which is
@@ -404,12 +404,16 @@ class GraphNodeBase():
         to all successors. This is what this function does.
         """
 
-        for node in self.topological_sort_successors():
-            for successor, edge_label in zip(node.successors, node.edge_labels):
-                cost = node.accumulated_cost + edge_label.cost
-                if successor.accumulated_cost > cost:
-                    successor.accumulated_cost = cost
-                    successor.optimal_path_predecessor = node
+        if other.accumulated_cost <= self.accumulated_cost:
+            self.accumulated_cost = other.accumulated_cost
+            self.optimal_path_predecessor = other.optimal_path_predecessor
+
+            for node in self.topological_sort_successors():
+                for successor, edge_label in zip(node.successors, node.edge_labels):
+                    cost = node.accumulated_cost + edge_label.cost
+                    if successor.accumulated_cost > cost:
+                        successor.accumulated_cost = cost
+                        successor.optimal_path_predecessor = node
 
     def change_successor(self, old_target, new_target):
         idx = self.successors.index(old_target)
