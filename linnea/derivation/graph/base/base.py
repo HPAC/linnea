@@ -11,11 +11,6 @@ from .... import config
 from .. import utils as dgbu
 
 
-output_msg_add = "{2:>2n} {0:.<26}{1:.>5n}"
-# output_msg_add = "{2:>2n} {0}:{1:.>27n}"
-output_msg_plain = "   {0:.<26}{1:.>5n}"
-# output_msg_plain = "   {0}{1:.>27n}"
-
 # TODO rename to GenericGraph or something?
 class GraphBase():
 
@@ -29,11 +24,15 @@ class GraphBase():
 
     def print_DS(self, str, val):
         if config.verbosity >= 1:
-            print(output_msg_plain.format(str, val))
+            print("   {0:.<26}{1:.>5n}".format(str, val))
 
     def print_DS_numbered(self, str, val, number):
         if config.verbosity >= 1:
-            print(output_msg_add.format(str, val, number))
+            print("{2:>2n} {0:.<26}{1:.>5n}".format(str, val, number))
+
+    def print_result(self, str, val):
+        if config.verbosity >= 1:
+            print("{0:<22}{1:>12}".format(str, val))
 
     def derivation(self):
         raise NotImplementedError()
@@ -154,23 +153,13 @@ class GraphBase():
         else:
             return [], math.inf, None
 
-
-    def _topological_sort_visit(self, node, temp, perm, stack):
-        if node.id not in temp and node.id not in perm:
-            node_id = node.id
-            temp.add(node_id)
-            for successor in node.successors:
-                self._topological_sort_visit(successor, temp, perm, stack)
-            perm.add(node_id)
-            temp.remove(node_id)
-            stack.appendleft(node)
-
     def topological_sort(self):
         stack = collections.deque()
         temp = set()
         perm = set()
+        # TODO shouldn't it be sufficient to start at the root node?
         for node in self.nodes:
-            self._topological_sort_visit(node, temp, perm, stack)
+            node._topological_sort_visit(temp, perm, stack)
 
         return list(stack)
 
@@ -289,7 +278,6 @@ class GraphBase():
         return len(remove)
 
 
-
     def DS_dead_ends(self):
         """Removes dead ends from the active nodes.
 
@@ -405,22 +393,23 @@ class GraphNodeBase():
         self.original_equations.extend(other.original_equations)
         self.applied_DS_steps.update(other.applied_DS_steps)
         self.factored_operands.update(other.factored_operands)
-        self.update_cost(other.accumulated_cost, other.optimal_path_predecessor)
+        self.update_cost()
 
-    def update_cost(self, new_cost, predecessor):
+    def update_cost(self):
         """Updates self.accumulated_cost of all successors.
 
         When merging GraphNodes, the accumulated_cost (which is
         the minimal cost of all paths) of that node most likely changes. If
         there are any successors, those changes have to be propagated
-        recursively to all successors. This is what this function does.
-
+        to all successors. This is what this function does.
         """
-        if new_cost <= self.accumulated_cost:
-            self.accumulated_cost = new_cost
-            self.optimal_path_predecessor = predecessor
-        for successor, edge_label in zip(self.successors, self.edge_labels):
-            successor.update_cost(edge_label.cost + self.accumulated_cost, self)
+
+        for node in self.topological_sort_successors():
+            for successor, edge_label in zip(node.successors, node.edge_labels):
+                cost = node.accumulated_cost + edge_label.cost
+                if successor.accumulated_cost > cost:
+                    successor.accumulated_cost = cost
+                    successor.optimal_path_predecessor = node
 
     def change_successor(self, old_target, new_target):
         idx = self.successors.index(old_target)
@@ -429,10 +418,6 @@ class GraphNodeBase():
     def change_predecessor(self, old_target, new_target):
         idx = self.predecessors.index(old_target)
         self.predecessors[idx] = new_target
-
-    def __lt__(self, other):
-        # TODO. Only necessary for PriorityQueue. Should probably be done differently.
-        return False
 
     def __str__(self):
         out = "".join(["NODE ", str(self.id), "\n    ", str(self.get_payload()), " ", str(self.metric)])
@@ -470,7 +455,6 @@ class GraphNodeBase():
 
     def is_terminal(self):
         raise NotImplementedError()
-
 
     def shortest_paths_iter(self):
         """Yields all paths from root to self in order of increasing length.
@@ -611,6 +595,23 @@ class GraphNodeBase():
             return path
         else:
             raise PathDoesNotExist()
+
+    def _topological_sort_visit(self, temp, perm, stack):
+        id = self.id
+        if id not in temp and id not in perm:
+            temp.add(id)
+            for successor in self.successors:
+                successor._topological_sort_visit(temp, perm, stack)
+            perm.add(id)
+            temp.remove(id)
+            stack.appendleft(self)
+
+    def topological_sort_successors(self):
+        stack = collections.deque()
+        temp = set()
+        perm = set()
+        self._topological_sort_visit(temp, perm, stack)
+        return list(stack)
 
 
 class EdgeLabel():

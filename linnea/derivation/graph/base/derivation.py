@@ -63,10 +63,11 @@ class DerivationGraphBase(base.GraphBase):
         p_stack = PriorityStack()
         p_stack.put(0, self.root)
 
-        hashtable = dict()
+        hashtable = dict() # rename to existing_nodes?
         t_start = time.perf_counter()
         best_solution = math.inf
         trace_data = []
+        terminal_nodes = []
 
         print_interval = 1
         next_print = print_interval
@@ -95,6 +96,8 @@ class DerivationGraphBase(base.GraphBase):
                     hashtable[new_node.equations] = (0, new_node)
                     new_node.generator = self.successor_generator(new_node)
                     p_stack.put(0, new_node)
+                    if new_node.is_terminal():
+                        terminal_nodes.append(new_node)
                 else:
                     if existing_node.accumulated_cost > best_solution and new_node.accumulated_cost < best_solution:
                         # this has to happen before merging because merging changes cost
@@ -114,14 +117,13 @@ class DerivationGraphBase(base.GraphBase):
                 self.print("Time limit reached.")
                 break
 
-            terminal_nodes = self.terminal_nodes()
             if terminal_nodes:
                 for terminal_node in terminal_nodes:
                     if terminal_node.accumulated_cost < best_solution:
                         best_solution = terminal_node.accumulated_cost
                         trace_data.append((t_elapsed, terminal_node.accumulated_cost))
                         # print(t_elapsed)
-                        self.print("   {0:.<26}{1:.3g}".format("New solution", best_solution))
+                        self.print("   {0:.<23}{1:.3g}".format("New solution", best_solution))
                 # break
         else:
             self.print("No further derivations possible.")
@@ -139,11 +141,11 @@ class DerivationGraphBase(base.GraphBase):
         self.print_DS("Number of nodes:", len(self.nodes))
 
         data = self.root.equations.get_data()
-        self.print("Data: {}".format(data))
+        self.print_result("Data:", data)
         if terminal_nodes:
             _, cost = self.shortest_path()
-            self.print("Best solution: {:.3g}".format(cost))
-            self.print("Intensity: {:.3g}".format(cost/data))        
+            self.print_result("Best solution:", "{:.3g}".format(cost))
+            self.print_result("Intensity:", "{:.3g}".format(cost/data))        
 
         # from .... import temporaries
         # print("\n".join(["{}: {}".format(k, v) for k, v in temporaries._equivalent_expressions.items()]))
@@ -165,6 +167,24 @@ class DerivationGraphBase(base.GraphBase):
                 # Remove the iterator we just exhausted from the cycle.
                 num_active -= 1
                 nexts = itertools.cycle(itertools.islice(nexts, num_active))
+
+
+    # def roundrobin(self, iterables):
+
+    #     while iterables:
+    #         n = len(iterables)
+    #         for i in range(n):
+    #             remove = []
+    #             try:
+    #                 elem = next(iterables[i])
+    #             except StopIteration:
+    #                 remove.append(i)
+    #             else:
+    #                 yield elem
+
+    #         for i in reversed(remove):
+    #             # print("del", i)
+    #             del iterables[i]
 
 
     def successor_generator(self, node):
@@ -225,8 +245,7 @@ class DerivationGraphBase(base.GraphBase):
                 break
 
         number_of_algorithms = len(paths)
-        if config.verbosity >= 1:
-            self.print("Number of algorithms: {}".format(number_of_algorithms))
+        self.print_result("Number of algorithms:", number_of_algorithms)
 
         if code or derivation or experiment_code:
             directory_name = os.path.join(config.output_code_path, output_name)
