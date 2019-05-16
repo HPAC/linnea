@@ -113,6 +113,24 @@ def read_intensity(experiment_name, number_of_experiments):
     return pd.concat(file_dfs, sort=True)
 
 
+def read_trace(experiment_name, number_of_experiments):
+    example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
+    file_dfs = []
+    for example_name in example_names:
+        file_path = os.path.join(experiment_name, "trace", "{}_trace.csv".format(example_name))
+        if os.path.isfile(file_path):
+            try:
+                df = pd.read_csv(file_path, index_col=0)
+            except pd.errors.EmptyDataError:
+                print("Empty file", file_path)
+            else:
+                df_processed = pd.DataFrame([df["time"].min(), df["time"].max(), df["cost"].max(), df["cost"].min()], index=["first_solution_time", "best_solution_time", "first_solution_cost", "best_solution_cost"], columns=[example_name])
+                file_dfs.append(df_processed.transpose())
+        else:
+            print("Missing file", file_path)
+
+    return pd.concat(file_dfs, sort=True)    
+
 def read_results_k_best(experiment_name, number_of_experiments):
 
     example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
@@ -373,6 +391,9 @@ def process_data_intensity(intensity_data, experiment):
 
     return intensity_optimal
 
+def process_data_trace(trace_data, experiment):
+    trace_data.to_csv("{}_trace.csv".format(experiment), na_rep="NaN")
+
 
 def process_data_k_best(k_best_data, intensity_data, experiment):
 
@@ -451,9 +472,15 @@ if __name__ == '__main__':
     execution_time_all = []
     gen_results_all = []
     intensity_data_all = []
+    trace_data_all = []
     k_best_data_all = []
     execution_results_all = []
     for experiment, n in experiments:
+
+        # trace
+        trace_data = read_trace(experiment, n)
+        trace_data_all.append(trace_data)
+        process_data_trace(trace_data, experiment)
 
         # intensity
         intensity_data = read_intensity(experiment, n)
@@ -478,6 +505,10 @@ if __name__ == '__main__':
     # intensity combined
     intensity_data_combined = pd.concat(intensity_data_all)
     intensity_cols = process_data_intensity(intensity_data_combined, "combined")
+
+    # trace combined
+    trace_data_combined = pd.concat(trace_data_all)
+    process_data_trace(trace_data_combined, "combined")
 
     # k best
     k_best_data_combined = pd.concat(k_best_data_all)
