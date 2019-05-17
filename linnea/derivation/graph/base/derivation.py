@@ -629,19 +629,22 @@ class DerivationGraphBase(base.GraphBase):
             else:
                 ops_may_factor.add(op)
 
-        for ops_subset in powerset(ops_may_factor):
+        # sorting here removes randomness
+        for ops_subset in powerset(sorted(ops_may_factor)):
 
             factor_ops = ops_must_factor.union(ops_subset)
             if not factor_ops or factor_ops in blocking_products:
                 continue
 
             factorizations_candidates = []
-            for op in factor_ops:
+            # sorting here removes randomness
+            factor_ops_sorted = sorted(factor_ops)
+            for op in factor_ops_sorted:
                 factorizations_candidates.append(factorization_dict[op])
 
             # apply all factorizations
             for factorizations in itertools.product(*factorizations_candidates):
-                facts_dict = dict(zip(factor_ops, factorizations))
+                facts_dict = dict(zip(factor_ops_sorted, factorizations))
 
                 # collect matched kernels (avoiding duplicates)
                 matched_kernels = []
