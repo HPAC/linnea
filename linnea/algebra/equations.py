@@ -111,15 +111,6 @@ class Equations():
             if equation.rhs != equations_before[n].rhs:
                 temporaries.set_equivalent(equations_before[n].rhs, equation.rhs)
 
-    def metric(self):
-        # TODO how to compute the metric of multiple equations?
-        sum = [0, 0]
-        for equation in self.equations:
-            m = equation.rhs.metric()
-            sum[0] += m[0]
-            sum[1] += m[1]
-        return sum
-
     def remove_identities(self):
         """Removes equations where both sides are temporaries.
 

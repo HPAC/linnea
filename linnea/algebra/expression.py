@@ -66,55 +66,6 @@ class Expression(matchpy.Expression):
     def index_range(self):
         return functools.reduce(operator.mul, [index.value for index in self.indices], 1)
 
-    def metric(self):
-        """Returns the metric of self
-
-        The metric is a list of two integers. The first one is a count of the
-        number of unique (i.e. duplicates are not counted) matrices that may
-        be considered for factoring (matrices that are not triangular, diagonal
-        or orthogonal). The second integer is a count of all nodes (i.e.
-        operands) in the expression (counting duplicates TODO change that?).
-        """
-        return self._metric(set())
-
-    def _metric(self, known_inv_symbols, inverse=False):
-        metric = [0, 0]
-        if isinstance(self, Symbol):
-            metric[1] += 1
-            if inverse and self.name not in known_inv_symbols:
-                known_inv_symbols.add(self.name)
-                if not any(self.has_property(prop) for prop in [properties.TRIANGULAR, properties.DIAGONAL, properties.ORTHOGONAL]):
-                    metric[0] += 1
-        else:
-            inv = (isinstance(self, Inverse) or isinstance(self, InverseTranspose) or isinstance(self, InverseConjugate) or isinstance(self, InverseConjugateTranspose) or inverse)
-            for operand in self.operands:
-                operand_metric = operand._metric(known_inv_symbols, inv)
-                metric[0] += operand_metric[0]
-                metric[1] += operand_metric[1]
-        return metric
-
-
-    def _metric_unique(self, known_symbols, known_inv_symbols, inverse=False):
-        # This function just counts unique nodes.
-        metric = [0, 0]
-        if isinstance(self, Symbol):
-            # metric[1] += 1
-            if inverse and self.name not in known_inv_symbols:
-                known_inv_symbols.add(self.name)
-                if not any(self.has_property(prop) for prop in [properties.TRIANGULAR, properties.DIAGONAL, properties.ORTHOGONAL]):
-                    metric[0] += 1
-            if self.name not in known_symbols:
-                known_symbols.add(self.name)
-                metric[1] += 1
-        else:
-            inv = (isinstance(self, Inverse) or isinstance(self, InverseTranspose) or isinstance(self, InverseConjugate) or isinstance(self, InverseConjugateTranspose) or inverse)
-            for operand in self.operands:
-                operand_metric = operand._metric(known_inv_symbols, inv)
-                metric[0] += operand_metric[0]
-                metric[1] += operand_metric[1]
-        return metric
-
-
     def inverse_of(self, other):
         """Tests if self == other^-1 holds.
 

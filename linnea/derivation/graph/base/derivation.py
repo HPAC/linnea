@@ -329,27 +329,6 @@ class DerivationGraphBase(base.GraphBase):
             return None, None
 
 
-    def metric_mins(self):
-        """Computes the minimal metric for each metric class.
-
-        Returns a dictionary that maps the class (i.e. the first value in the
-        metric) to the minimum of the second value of that class.
-        """
-        mins = dict()
-        for node in self.active_nodes:
-            if node.metric is None:
-                node.metric = node.equations.metric()
-            try:
-                min, cost = mins[node.metric[0]]
-            except KeyError:
-                mins[node.metric[0]] = (node.metric[1], node.accumulated_cost)
-            else:
-                if min > node.metric[1]:
-                    mins[node.metric[0]] = (node.metric[1], node.accumulated_cost)
-
-        return mins
-
-
     def DS_tricks(self):
 
         new_nodes = []
@@ -397,23 +376,6 @@ class DerivationGraphBase(base.GraphBase):
     def DFS_CSE_replacement(self, node, equations):
         for equations, edge_label, original_equations in self.TR_CSE_replacement(equations):
             yield self.create_node(node, equations, edge_label, original_equations, previous_DS_step=DS_step.CSE)
-
-
-    def DS_prune(self, mins):
-        if self.active_nodes == [self.root]:
-           return 0
-
-        pruned_nodes = []
-        for node in self.active_nodes:
-            min, cost = mins[node.metric[0]]
-            if node.metric[1] > (min + 4) and not node.successors:
-                pruned_nodes.append(node)
-
-        for node in pruned_nodes:
-            node.labels.append("pruned")
-            self.active_nodes.remove(node)
-
-        return len(pruned_nodes)
 
 
     def TR_tricks(self, equations):
