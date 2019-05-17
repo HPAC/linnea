@@ -63,13 +63,13 @@ class DerivationGraphBase(base.GraphBase):
         p_stack = PriorityStack()
         p_stack.put(0, self.root)
 
-        hashtable = dict() # rename to existing_nodes?
+        existing_nodes = dict()
         t_start = time.perf_counter()
         best_solution = math.inf
         trace_data = []
         terminal_nodes = []
 
-        print_interval = 1
+        print_interval = 2
         next_print = print_interval
         pruned_nodes = dict()
 
@@ -93,9 +93,9 @@ class DerivationGraphBase(base.GraphBase):
                 pass
             else:
                 try:
-                    existing_prio, existing_node = hashtable[new_node.equations]
+                    existing_prio, existing_node = existing_nodes[new_node.equations]
                 except KeyError:
-                    hashtable[new_node.equations] = (0, new_node)
+                    existing_nodes[new_node.equations] = (0, new_node)
                     new_node.generator = self.successor_generator(new_node)
                     p_stack.put(0, new_node)
                     if new_node.is_terminal():
@@ -123,7 +123,7 @@ class DerivationGraphBase(base.GraphBase):
                                 p_node.labels.remove("pruned") 
                                 p_stack.put(p_prio, p_node)
                                 remove.append(p_node.id)
-                                print("Reactive node", p_node.id)
+                                # print("Reactive node", p_node.id)
                         for id in remove:
                             del pruned_nodes[id]
 
