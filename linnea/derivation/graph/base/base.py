@@ -46,14 +46,17 @@ class GraphBase():
     def create_nodes(self):
         raise NotImplementedError()
 
+    def remove_node(self, node):
+        self.nodes.remove(node)
+        try:
+            self.active_nodes.remove(node)
+        except ValueError:
+            pass
+
     def remove_nodes(self, nodes):
         """removes nodes from the graph"""
         for node in nodes:
-            self.nodes.remove(node)
-            try:
-                self.active_nodes.remove(node)
-            except ValueError:
-                pass
+            self.remove_node(node)
 
     def add_active_nodes(self, nodes):
         self.step_counter += 1

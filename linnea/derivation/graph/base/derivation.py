@@ -113,9 +113,10 @@ class DerivationGraphBase(base.GraphBase):
                         update = True
 
                     existing_node.merge(new_node)
-                    self.remove_nodes([new_node])
+                    self.remove_node(new_node)
 
                     # TODO how to improve this?
+                    # put this into a function
                     if update:
                         remove = []
                         for p_prio, p_node in pruned_nodes.values():
