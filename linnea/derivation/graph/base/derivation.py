@@ -102,9 +102,8 @@ class DerivationGraphBase(base.GraphBase):
                         terminal_nodes.append(new_node)
                 else:
                     update = False
-                    if existing_node.accumulated_cost > best_solution and new_node.accumulated_cost < best_solution:
+                    if existing_node.accumulated_cost > best_solution and new_node.accumulated_cost < best_solution and "pruned" in existing_node.labels:
                         # this has to happen before merging because merging changes cost
-                        # doing this, the same node could be on the stack twice. Can this be a problem?
                         # print("Node reactivated.")
                         p_stack.put(existing_prio, existing_node)
                         existing_node.labels.remove("pruned") 
@@ -155,8 +154,6 @@ class DerivationGraphBase(base.GraphBase):
         #     output_file.write("time, cost\n")
         #     for t, cost in trace_data:
         #         output_file.write("".join([str(t), ", ", str(cost), "\n"]))
-
-        terminal_nodes = self.terminal_nodes()
 
         self.print("{:-<34}".format(""))
         self.print_DS("Solution nodes:", len(terminal_nodes))
