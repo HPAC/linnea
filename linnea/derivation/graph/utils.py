@@ -1,18 +1,16 @@
 from ...algebra.expression import Symbol, Matrix, Scalar, Inverse, \
                                   Times, Plus, Operator, \
                                   Transpose, ConjugateTranspose, \
-                                  InverseTranspose, InverseConjugate, \
+                                  InverseConjugate, \
                                   InverseConjugateTranspose
 
 from ...algebra.transformations import transpose, invert, undistribute_inverse, \
                                        admits_undistribution
 from ...algebra.representations import to_POS
-
 from ...algebra import equations as aeq
-
 from ...algebra.properties import Property as properties
 
-from collections import namedtuple, deque
+from ...utils import is_inverse, is_transpose
 
 from enum import Enum, unique
 
@@ -58,12 +56,6 @@ class OperationType(Enum):
 
 
 @unique
-class InverseType(Enum):
-    linear_system = 1
-    explicit_inversion = 2
-    none = 3
-
-@unique
 class DS_step(Enum):
     factorizations = 1
     kernels = 2
@@ -71,9 +63,6 @@ class DS_step(Enum):
     CSE = 4
     prune = 5
     merge = 6
-
-# TODO currently, type is not used, so it could be removed
-Occurrence = namedtuple('Occurrence', ['eqn_idx', 'position', 'operand', 'type', 'group', 'symbol'])
 
 
 def find_operands_to_factor(equations, eqn_idx=None):
@@ -116,81 +105,6 @@ def find_operands_to_factor(equations, eqn_idx=None):
     return operands_to_factor
 
 
-def find_occurrences(equations, operands_to_factor):
-    """Finds all occurrences of operands that have to be factored.
-
-    Finds all occurrences of operands that have to be factored. This includes
-    occurrences which are not in inverses.
-
-    This function returns and Occurrences object, which has the following
-    attributes:
-    * eqn_idx: The index of the equation of the occurrence.
-    * position: The position of the occurrence in equation.
-    * operand: The Operand.
-    * type: The type of this occurrence. This is an InverseType object.
-    * group: An identifier for the group. Either the root of the expression, or
-      the position of this subexpression in the last sum.
-    * symbol: True if this occurrence is a symbol inverse, that is Inverse(A).
-
-    Args:
-        equations (Equations): The equations that are searched.
-        operands_to_factor (set): Set of operands to search for.
-
-    Yields:
-        Occurrence: All occurrences of the operands.
-
-    """
-
-    for eqn_idx, equation in enumerate(equations):
-        for res in _find_occurrences(equation.rhs, operands_to_factor, inv_type=InverseType.none, position=(1,), group=(1,)):
-            # for grouping, we also need the eqn_idx
-            yield Occurrence(eqn_idx, *res)
-
-
-def _find_occurrences(expr, operands_to_factor, inv_type=InverseType.none, position=(), group=None, symbol=False, predecessor=None):
-
-    if isinstance(expr, Symbol):
-        if expr in operands_to_factor:
-            yield (position, expr, inv_type, group, symbol)
-        return
-
-    if is_inverse(expr):
-        if isinstance(predecessor, Times):
-            inv_type = InverseType.linear_system
-        else:
-            inv_type = InverseType.explicit_inversion
-        symbol = isinstance(expr.operand, Symbol)
-
-    for n, operand in enumerate(expr.operands):
-        new_position = position + (n,)
-        new_group = group
-        if isinstance(expr, Plus):
-            new_group = new_position
-        yield from _find_occurrences(operand, operands_to_factor, inv_type, new_position, new_group, symbol, expr)
-
-
-def find_blocking_products(equations, operands_to_factor):
-    """Identifies sets of operands likely to lead to dead ends when factored.
-
-    In many cases, when all operands in a product are factored, the resulting
-    expression can not be computed anymore and becomes a dead end. The purpose
-    of this function is to identify such products.
-    """
-
-    for equation in equations:
-        for expr, pos in equation.rhs.preorder_iter():
-            if isinstance(expr, Times) and all(isinstance(operand, Symbol) or ((is_inverse(operand) or is_transpose(operand)) and isinstance(operand.operand, Symbol)) for operand in expr.operands):
-                ops = set()
-                for op in expr.operands:
-                    if isinstance(op, Symbol):
-                        ops.add(op)
-                    else:
-                        ops.add(op.operand)
-                # We can't remove cases with one operand only because of (X^T X)^-1 X^T y, where QR does lead to a solution.
-                if len(ops) > 1 and ops <= operands_to_factor:
-                    yield set(op.name for op in ops)
-                
-
 def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
 
     if is_inverse(expr) and isinstance(expr.operand, Symbol) and not isinstance(predecessor, Times):
@@ -200,24 +114,6 @@ def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
         for n, operand in enumerate(expr.operands):
             new_position = position + (n,)
             yield from find_explicit_symbol_inverse(operand, new_position, expr)
-
-
-def group_occurrences(occurrences):
-    # group symbol inverses by eqn_idx, inverse group, operand
-    occurrences = sorted(occurrences, key=grouping_keyfunc)
-    occurrences_grouped = []
-    # grouping by eqn_idx, inverse group, operand
-    for key, group in itertools.groupby(occurrences, grouping_keyfunc):
-        occurrences_grouped.append(list(group))
-    return occurrences_grouped
-
-
-def grouping_keyfunc(oc):
-    # eqn_idx, operand, group
-    if oc.group is None:
-        return (oc.eqn_idx, oc.operand, [])
-    else:
-        return (oc.eqn_idx, oc.operand, oc.group)
 
 
 # @profile
@@ -593,28 +489,6 @@ def inverse_positions(expr, position=[]):
 
     if is_inverse(expr):
         yield expr, position
-
-
-def is_inverse(expr):
-    return isinstance(expr, (Inverse, InverseTranspose, InverseConjugate, InverseConjugateTranspose))
-
-
-def is_transpose(expr):
-    return isinstance(expr, (Transpose, InverseTranspose, ConjugateTranspose, InverseConjugateTranspose))
-
-
-def contains_inverse(expr):
-    if is_inverse(expr):
-        return True
-    if isinstance(expr, Operator):
-        return any(contains_inverse(operand) for operand in expr.operands)
-
-
-def contains_transpose(expr):
-    if is_transpose(expr):
-        return True
-    if isinstance(expr, Operator):
-        return any(contains_transpose(operand) for operand in expr.operands)
 
 
 def is_blocked(operation):

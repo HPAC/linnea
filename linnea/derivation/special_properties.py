@@ -1,12 +1,10 @@
 from ..algebra.expression import Equal, Matrix, Vector, Scalar
-
 from ..algebra.properties import Property as properties
-
 from ..algebra.equations import Equations
 
-from .graph import properties as gp
-
 from .. import temporaries
+
+from .graph import properties as gp
 
 _counter = 0
 
@@ -33,5 +31,3 @@ def add_expression(expr, _properties):
     for node in graph.nodes:
         expr = node.equations[-1].rhs
         tmp = temporaries.create_tmp(expr, True, _properties=_properties)
-        # generate tmp here
-    # print(temporaries._table_of_temporaries)

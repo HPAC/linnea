@@ -1,18 +1,13 @@
-
 from ..algebra.expression import Symbol, Times, \
                                  Inverse, InverseTranspose, Transpose, \
                                  LinSolveL, LinSolveR
 from ..algebra.equations import Equations
+from ..algebra.properties import Property as properties
+from ..utils import PropertyConstraint, is_inverse
 
 from .. import config
 
-from ..utils import PropertyConstraint
-
 from .memory import memory as memory_module
-
-from ..algebra.properties import Property as properties
-
-from ..derivation.graph.utils import is_inverse
 
 import copy
 import math

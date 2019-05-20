@@ -18,8 +18,7 @@ linnea.config.init()
 from linnea.config import Strategy, Language
 import linnea.examples.examples
 import linnea.examples.application as application
-from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
-from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
+from linnea.derivation.graph.derivation import DerivationGraph
 from linnea.code_generation.experiments import operand_generation, runner, reference_code
 
 from random_expressions import generate_equation
@@ -28,13 +27,6 @@ from jobscripts import generate_scripts
 def measure(example, name, strategy, merge, reps=10):
 
     times = []
-
-    if strategy is Strategy.constructive:
-        DerivationGraph = CDGraph
-    elif strategy is Strategy.exhaustive:
-        DerivationGraph = EDGraph
-    else:
-        raise NotImplementedError()
 
     for i in range(reps):
         linnea.config.clear_all()

@@ -1,3 +1,4 @@
+from .... import config
 
 import itertools
 import operator
@@ -6,12 +7,7 @@ import math
 import os
 import collections
 
-from .... import config
 
-from .. import utils as dgbu
-
-
-# TODO rename to GenericGraph or something?
 class GraphBase():
 
     def __init__(self):
@@ -48,23 +44,11 @@ class GraphBase():
 
     def remove_node(self, node):
         self.nodes.remove(node)
-        try:
-            self.active_nodes.remove(node)
-        except ValueError:
-            pass
 
     def remove_nodes(self, nodes):
         """removes nodes from the graph"""
         for node in nodes:
             self.remove_node(node)
-
-    def add_active_nodes(self, nodes):
-        self.step_counter += 1
-        for node in nodes:
-            node.level = self.step_counter
-
-        self.active_nodes.extend(nodes)
-
 
     def to_dot(self, style):
         # TODO use source and sink ranks
@@ -102,12 +86,6 @@ class GraphBase():
         if config.verbosity >= 2:
             print("Generate graph file {}".format(file_path))
 
-    def __str__(self):
-        out = "".join(["Number of nodes: ", str(len(self.nodes)), "\n"])
-        out = "".join([out, "Number of active nodes: ", str(len(self.active_nodes)), "\n", "Active nodes: ["])
-        nodes = " ".join([node.name for node in self.active_nodes])
-        out = "".join([out, nodes, "]"])
-        return out
 
     def all_algorithms(self):
         """Generates all paths in the graph.
@@ -156,6 +134,7 @@ class GraphBase():
         else:
             return [], math.inf, None
 
+
     def topological_sort(self):
         stack = collections.deque()
         temp = set()
@@ -163,8 +142,8 @@ class GraphBase():
         # TODO shouldn't it be sufficient to start at the root node?
         for node in self.nodes:
             node._topological_sort_visit(temp, perm, stack)
-
         return list(stack)
+
 
     def set_shortest_path_successor(self):
         sorted_nodes = self.topological_sort()
@@ -258,56 +237,6 @@ class GraphBase():
 
         return
 
-
-    def DS_merge_nodes(self):
-        """Merges redundant nodes in the derivation graph.
-
-        Returns the number of removed nodes.
-
-        """
-        hashtable = dict()
-        for node in self.nodes:
-            hashtable.setdefault(node.get_payload(), []).append(node)
-
-        remove = []
-        for group in hashtable.values():
-            remaining_node = group.pop()
-            for node in group:
-                remaining_node.merge(node)
-            remove.extend(group)
-
-        self.remove_nodes(remove)
-
-        return len(remove)
-
-
-    def DS_dead_ends(self):
-        """Removes dead ends from the active nodes.
-
-        Identifies and remove nodes that can not lead to any solutions. This is
-        the case if
-        - for all variants, there is a product that is blocked, but
-        not an explicit inversion.
-        - there is a symbol inverse, that is, Inverse(A), where A has the
-          property ADMITS_FACTORIZATION, and A was already factored. This can
-          happen due to variants.
-
-        Returns:
-            int: Number of removed nodes.
-        """
-        remove = []
-        for node in self.active_nodes:
-            dead_end = []
-            for equations in dgbu.generate_variants(node.equations):
-                dead_end.append(dgbu.is_dead_end(equations, node.factored_operands))
-            if all(dead_end):
-                remove.append(node)
-
-        for node in remove:
-            node.labels.append("dead")
-            self.active_nodes.remove(node)
-
-        return len(remove)
 
 REAPath = collections.namedtuple("REAPath", ["predecessor", "k_prime", "cost"])
 

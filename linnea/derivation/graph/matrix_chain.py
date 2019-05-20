@@ -1,16 +1,23 @@
-from .base import expression as egb
-
-
 from ... import config
 
-collections_module = config.import_collections()
+from ..utils import select_optimal_match
+
+from .base import expression as egb
 
 import matchpy
 import operator
 
-from ..utils import select_optimal_match
+collections_module = config.import_collections()
 
 class MatrixChainGraph(egb.ExpressionGraphBase):
+
+    def add_active_nodes(self, nodes):
+        self.step_counter += 1
+        for node in nodes:
+            node.level = self.step_counter
+
+        self.active_nodes.extend(nodes)
+
 
     def derivation(self):
         _break = False
@@ -43,6 +50,28 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
             self.add_active_nodes(new_nodes)
 
             self.DS_merge_nodes()
+
+
+    def DS_merge_nodes(self):
+        """Merges redundant nodes in the derivation graph.
+
+        Returns the number of removed nodes.
+
+        """
+        hashtable = dict()
+        for node in self.nodes:
+            hashtable.setdefault(node.get_payload(), []).append(node)
+
+        remove = []
+        for group in hashtable.values():
+            remaining_node = group.pop()
+            for node in group:
+                remaining_node.merge(node)
+            remove.extend(group)
+
+        self.remove_nodes(remove)
+
+        return len(remove)
 
 
     def TR_matrix_chain_kernels(self, expression):
