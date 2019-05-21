@@ -59,12 +59,10 @@ def generate(experiment, example, name, strategy):
 
     strategy_str = None 
     if strategy is Strategy.constructive:
-        DerivationGraph = CDGraph
         algorithm_name = "algorithm{}c"
         strategy_str = "c"
         max_algorithms = 1
     elif strategy is Strategy.exhaustive:
-        DerivationGraph = EDGraph
         algorithm_name = "algorithm{}e"
         strategy_str = "e"
         max_algorithms = 100
