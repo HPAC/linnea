@@ -3,7 +3,6 @@ from .expression import Symbol, Matrix, Scalar, \
                         BlockedExpression, Operator
 
 from .utils import scalar_subexpressions
-from .equations import Equations
 
 import matchpy
 
@@ -16,7 +15,7 @@ class SizeMismatchInSum(Exception):
 class SizeMismatchInEquation(Exception):
     pass
 
-def check_validity(node):
+def check_validity(expr):
     """Checks if an expression is valid
 
     It is checked whether the dimensions of sums and products match. If not, an
@@ -27,16 +26,12 @@ def check_validity(node):
 
     [TODO] at the moment, blcoked expressions are not considered
     """
-    #print(node)
 
-    if isinstance(node, Equations):
-        return all(check_validity(equation) for equation in node)
-
-    if isinstance(node, Symbol):
+    if isinstance(expr, Symbol):
         return True
 
-    if isinstance(node, Equal):
-        expr1, expr2 = node.operands
+    if isinstance(expr, Equal):
+        expr1, expr2 = expr.operands
         if expr1.size != expr2.size:
             raise SizeMismatchInEquation("%s = %s with sizes %s and %s" \
                                     % (expr1, expr2, expr1.size, \
@@ -44,25 +39,25 @@ def check_validity(node):
 
         return check_validity(expr1) and check_validity(expr2)
 
-    if isinstance(node, Plus):
-        prev_term = node.operands[0] # previous term is only stored for printing
+    if isinstance(expr, Plus):
+        prev_term = expr.operands[0] # previous term is only stored for printing
         size = prev_term.size
         
         # compare size of first term with consecutive terms
-        for term in node.operands[1:]:
+        for term in expr.operands[1:]:
             if size != term.size:
                 raise SizeMismatchInSum("%s + %s with sizes %s and %s" \
                                         % (prev_term, term, prev_term.size, \
                                            term.size))
             prev_term = term
 
-        return all(check_validity(term) for term in node.operands)
+        return all(check_validity(term) for term in expr.operands)
 
-    if isinstance(node, Times):
+    if isinstance(expr, Times):
 
-        scalar_expressions = dict(scalar_subexpressions(node))
+        scalar_expressions = dict(scalar_subexpressions(expr))
         compare_with = 0 # for printing exception
-        factors = node.operands
+        factors = expr.operands
 
         # compare number of columns of current factor with rows of next factor
         for n, factor in enumerate(factors[:-1]):
@@ -93,6 +88,6 @@ def check_validity(node):
                                             factors[compare_with].size))
 
         return all(check_validity(factor) for factor in factors)
-    if isinstance(node, Operator) and node.arity is matchpy.Arity.unary:
-        return check_validity(node.operand)
+    if isinstance(expr, Operator) and expr.arity is matchpy.Arity.unary:
+        return check_validity(expr.operand)
     return False

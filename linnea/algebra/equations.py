@@ -1,15 +1,15 @@
-from . import expression as ae
-from .properties import Property as properties
+from .. import temporaries
+from ..derivation.partitioning import _propagate_partitioning, apply_partitioning
 
+from . import expression as ae
 from . import transformations as at
 from . import representations as ar
 
-from ..derivation.partitioning import _propagate_partitioning, apply_partitioning
-
-from .. import temporaries
+from .properties import Property as properties
+from .validity import check_validity
+from .consistency import check_consistency
 
 import copy
-
 import matchpy
 
 class UnknownSymbolType(Exception):
@@ -254,6 +254,14 @@ class Equations():
             for property in properties:
                 if equation.rhs.has_property(property):
                     operand.set_property(property)
+
+
+    def check_validity(self):
+        return all(check_validity(equation) for equation in self.equations)
+
+
+    def check_consistency(self):
+        return all(check_consistency(equation) for equation in self.equations)        
 
 
     def _copy_symbol(self, symbol):

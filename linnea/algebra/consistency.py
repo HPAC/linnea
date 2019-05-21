@@ -2,7 +2,6 @@ from .properties import negative_implications
 
 from .expression import Equal, Symbol
 
-# from patternmatcher.TOS import TOS
 
 class ConflictingProperties(Exception):
     pass

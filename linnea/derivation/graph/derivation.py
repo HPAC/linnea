@@ -1,6 +1,4 @@
 from ...algebra import expression as ae
-from ...algebra.validity import check_validity
-from ...algebra.consistency import check_consistency
 
 from ...utils import is_inverse
 
@@ -20,11 +18,12 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         # TODO add argument for stopping as soon as first solution is found
         # or use time_limit == 0?
 
-        check_validity(self.root.equations)
+        self.root.equations.check_validity()
         self.root.equations = self.root.equations.to_normalform()
         self.root.equations.infer_lhs_properties()
 
         self.init_temporaries(self.root.equations)
+        self.root.equations.check_consistency()
 
         trace_data, terminal_nodes = self.best_first_search(time_limit=time_limit, merging=merging, dead_ends=dead_ends)
                 
@@ -88,6 +87,3 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
                         if expr not in seen_before:
                             special_properties.add_expression(expr, [])
                             seen_before.add(expr)
-
-            # TODO check_consistency for Equations?
-            check_consistency(equation)
