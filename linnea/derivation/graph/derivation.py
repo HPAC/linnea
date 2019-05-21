@@ -34,9 +34,9 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         #     for t, cost in trace_data:
         #         output_file.write("".join([str(t), ", ", str(cost), "\n"]))
 
-        self.print("{:-<34}".format(""))
-        self.print_DS("Solution nodes:", len(terminal_nodes))
-        self.print_DS("Number of nodes:", len(self.nodes))
+        self.print_line()
+        self.print_result("Number of nodes:", len(self.nodes))
+        self.print_result("Solution nodes:", len(terminal_nodes))
 
         data = self.root.equations.get_data()
         self.print_result("Data:", data)

@@ -18,13 +18,13 @@ class GraphBase():
         if config.verbosity >= 1:
             print(str)
 
-    def print_DS(self, str, val):
+    def print_line(self):
         if config.verbosity >= 1:
-            print("   {0:.<26}{1:.>5n}".format(str, val))
+            print("{:-<34}".format(""))
 
-    def print_DS_numbered(self, str, val, number):
+    def print_result_sep(self, str, val):
         if config.verbosity >= 1:
-            print("{2:>2n} {0:.<26}{1:.>5n}".format(str, val, number))
+            print("{0:.<22}{1:.>12}".format(str, val))
 
     def print_result(self, str, val):
         if config.verbosity >= 1:

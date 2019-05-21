@@ -108,7 +108,7 @@ class DerivationGraphBase(base.GraphBase):
             
             t_elapsed = time.perf_counter() - t_start
             if t_elapsed > next_print:
-                self.print_DS("Nodes:", len(self.nodes))
+                self.print_result_sep("Nodes:", len(self.nodes))
                 next_print += print_interval
 
             if t_elapsed > time_limit:
@@ -121,7 +121,7 @@ class DerivationGraphBase(base.GraphBase):
                         best_solution = terminal_node.accumulated_cost
                         trace_data.append((t_elapsed, terminal_node.accumulated_cost))
                         # print(t_elapsed)
-                        self.print("   {0:.<23}{1:.3g}".format("New solution", best_solution))
+                        self.print_result_sep("New solution:", "{:.3g}".format(best_solution))
                 # break
         else:
             self.print("No further derivations possible.")
