@@ -1,23 +1,21 @@
-
-import matchpy
-import itertools
-
 from ..algebra.expression import Times, Plus, Symbol, Operator, \
                                  Transpose, Inverse, InverseTranspose, \
                                  Equal
 from ..algebra.equations import Equations
 from ..algebra.transformations import invert, invert_transpose, transpose
 from ..algebra.properties import Property as properties
-
-from .. import temporaries
-
 from ..utils import window, powerset, is_inverse, is_transpose, \
                     contains_inverse, contains_transpose
 
-from .graph.utils import is_blocked
+from .. import temporaries
+
+from .utils import is_blocked
 
 from enum import Enum, unique
 from collections import Counter
+
+import matchpy
+import itertools
 
 @unique
 class CSEType(Enum):

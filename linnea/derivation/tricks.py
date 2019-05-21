@@ -10,7 +10,7 @@ from ..algebra.equations import Equations
 from .. import config
 from .. import temporaries
 
-from .matrix_sum import decompose_sum
+from .reductions import decompose_sum
 
 import matchpy
 import copy

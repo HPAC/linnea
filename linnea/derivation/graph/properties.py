@@ -19,7 +19,6 @@ class PropertyGraph(derivation.DerivationGraphBase):
         
     def successor_generator(self, node):
 
-        # TODO there is no reason to do the roundrobin here
         funs = [self.DFS_factorizations, self.DFS_tricks]
         generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_variants(node.equations), funs)]
         yield from itertools.chain.from_iterable(generators)

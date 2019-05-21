@@ -1,6 +1,36 @@
+from ..algebra.properties import Property as properties
 
 import matchpy
 import math
+
+def is_blocked(operation):
+    """Test if the operation is blocked.
+
+    An operation is blocked if all non-constant operands are factors from any
+    factorizations. An operation is not blocked if all operands are constants,
+    or if the output does not admit factorizations (even if all operands are
+    factors).
+
+    Example:
+        When the LU factorization is applied to A in inv(A)*x, this results in
+        inv(U)*inv(L)*x. In this case, computing inv(U)*inv(L) is not allowed
+        because both factors come from factoring A. Computing inv(L)*x is
+        allowed because x is not a factor.
+
+    Args:
+        operation (Expression): Operation to test.
+
+    Returns:
+        bool: False if this operation is not allowed, True otherwise.
+
+    """
+    if not operation.has_property(properties.ADMITS_FACTORIZATION):
+        return False
+    elif operation.has_property(properties.CONSTANT):
+        return False
+    else:
+        return all((operand.factorization_labels or operand.has_property(properties.CONSTANT)) for operand in operation.operands)
+
 
 def apply_kernel_with_context(expr, many_to_one_matcher):
     """Applies the optimal kernel to an expressions.

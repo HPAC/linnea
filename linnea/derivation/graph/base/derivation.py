@@ -3,30 +3,22 @@ from ....code_generation import utils as cgu
 from ....code_generation.experiments import operand_generation, runner, reference_code
 
 from .... import config
-from .... import temporaries
-
-from ...matrix_sum import decompose_sum
-from ...utils import select_optimal_match
 
 from ... import tricks
 from ... import CSEs
 from ... import factorizations
-from ... import matrix_chain_solver as mcs
+from ... import reductions
 
 from ..utils import generate_variants, find_operands_to_factor, \
                     DS_step, is_dead_end, PriorityStack, process_next_simple, \
-                    OperationType, is_explicit_inversion, \
-                    is_blocked
+                    OperationType, is_explicit_inversion
 
 from . import base
 
-import matchpy
 import itertools
 import os.path
 import math
 import time
-
-collections_module = config.import_collections()
 
 class DerivationGraphBase(base.GraphBase):
     """
@@ -218,9 +210,9 @@ class DerivationGraphBase(base.GraphBase):
         pos, op_type = process_next_simple(equation)
 
         if op_type == OperationType.times:
-            yield from self.TR_matrix_chain(equations, eqn_idx, pos, is_explicit_inversion(equation[pos]))
+            yield from reductions.apply_matrix_chain_algorithm(equations, eqn_idx, pos, is_explicit_inversion(equation[pos]))
         elif op_type == OperationType.plus:
-            yield from self.TR_addition(equations, eqn_idx, pos)
+            yield from reductions.apply_sum_algorithm(equations, eqn_idx, pos)
 
 
     def TR_kernels(self, equations):
@@ -230,102 +222,16 @@ class DerivationGraphBase(base.GraphBase):
         pos, op_type = process_next_simple(equation)
 
         if op_type == OperationType.times and is_explicit_inversion(equation[pos]):
-            yield from self.TR_matrix_chain(equations, eqn_idx, pos, True)
+            yield from reductions.apply_matrix_chain_algorithm(equations, eqn_idx, pos, True)
         else:
             # yield_from can't be used in this case, because we need to know if a reduction was yielded
             reduction_yielded = False
-            for reduction in self.TR_reductions(equations, eqn_idx, (1,)):
+            for reduction in reductions.apply_reductions(equations, eqn_idx, (1,)):
                 reduction_yielded = True
                 yield reduction
             if not reduction_yielded:
                 # only use unary kernels if nothing else can be done
-                yield from self.TR_unary_kernels(equations, eqn_idx, (1,))
-
-
-    def TR_reductions(self, equations, eqn_idx, initial_pos):
-
-        initial_node = equations[eqn_idx][initial_pos]
-
-        for node, _pos in initial_node.preorder_iter():
-            pos = initial_pos + _pos
-
-            for grouped_kernels in collections_module.reduction_MA.match(node).grouped():
-
-                kernel, substitution = select_optimal_match(grouped_kernels)
-                
-                matched_kernel = kernel.set_match(substitution, True)
-                if is_blocked(matched_kernel.operation.rhs):
-                    continue
-
-                evaled_repl = matched_kernel.replacement
-
-                new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
-
-                equations_copy = equations.set(eqn_idx, new_equation)
-                equations_copy = equations_copy.to_normalform()
-
-                temporaries.set_equivalent(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-                # remove_identities has to be called after set_equivalent because
-                # after remove_identities, eqn_idx may not be correct anymore
-                equations_copy = equations_copy.remove_identities()
-
-                yield (equations_copy, (matched_kernel,))
-
-
-    def TR_matrix_chain(self, equations, eqn_idx, initial_pos, explicit_inversion=False):
-
-        try:
-            msc = mcs.MatrixChainSolver(equations[eqn_idx][initial_pos], explicit_inversion)
-        except mcs.MatrixChainNotComputable:
-            return
-
-        replacement = msc.tmp
-        matched_kernels = msc.matched_kernels
-
-        new_equation = matchpy.replace(equations[eqn_idx], initial_pos, replacement)
-        equations_copy = equations.set(eqn_idx, new_equation)
-        equations_copy = equations_copy.to_normalform()
-
-        temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-        # remove_identities has to be called after set_equivalent because
-        # after remove_identities, eqn_idx may not be correct anymore
-        equations_copy = equations_copy.remove_identities()        
-
-        yield (equations_copy, matched_kernels)
-
-
-    def TR_addition(self, equations, eqn_idx, initial_pos):
-
-        # Note: For addition, we decided to only use a binary kernel, no
-        #       variadic addition.
-
-        new_expr, matched_kernels = decompose_sum(equations[eqn_idx][initial_pos])
-
-        new_equation = matchpy.replace(equations[eqn_idx], initial_pos, new_expr)
-        equations_copy = equations.set(eqn_idx, new_equation)
-        equations_copy = equations_copy.to_normalform().remove_identities()
-
-        yield (equations_copy, matched_kernels)
-
-
-    def TR_unary_kernels(self, equations, eqn_idx, initial_pos):
-
-        initial_node = equations[eqn_idx][initial_pos]
-
-        # iterate over all subexpressions
-        for node, _pos in initial_node.preorder_iter():
-            pos = initial_pos + _pos
-
-            kernel, substitution = select_optimal_match(collections_module.unary_kernel_DN.match(node))
-
-            if kernel:
-                matched_kernel = kernel.set_match(substitution, False)
-                evaled_repl = matched_kernel.replacement
-
-                equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))
-                equations_copy = equations_copy.to_normalform().remove_identities()
-
-                yield (equations_copy, (matched_kernel,))
+                yield from reductions.apply_unary_kernels(equations, eqn_idx, (1,))
 
 
     def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_DS_step=None):
