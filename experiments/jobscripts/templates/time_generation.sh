@@ -8,6 +8,7 @@
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 {spec_exclusive}
+{spec_node}
 
 echo $(printf "{name}%03d" ${var_array_idx})
 

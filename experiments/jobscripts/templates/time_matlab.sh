@@ -8,6 +8,7 @@
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 {spec_exclusive}
+{spec_node}
 
 module load MISC
 module load matlab/2018b

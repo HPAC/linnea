@@ -24,6 +24,7 @@
             "group": "aices2",
             "model": "model==Haswell_EP",
             "exclusive": false,
+            "node": "linuxihdc074",
             "repetitions": 1
         },
         "path":

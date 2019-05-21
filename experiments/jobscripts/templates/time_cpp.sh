@@ -8,6 +8,7 @@
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 {spec_exclusive}
+{spec_node}
 
 module switch intel intel/{intel_version}
 module load gcc/{gcc_version}

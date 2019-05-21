@@ -24,6 +24,7 @@
             "group": " ",
             "model": "skx8160",
             "exclusive": false,
+            "node": "linuxihdc074",
             "repetitions": 1
         },
         "path":

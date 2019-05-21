@@ -85,6 +85,7 @@ scheduler_vars = {
         "flag_group":           "-P",
         "flag_model":           "-R",
         "flag_exclusive":       "-x",
+        "flag_node":            "-m ",
         "var_array_idx":        "LSB_JOBINDEX",
         "string_array_idx":     "%I"
         },
@@ -98,6 +99,7 @@ scheduler_vars = {
         "flag_group":           "-A",
         "flag_model":           "-C",
         "flag_exclusive":       "--exclusive",
+        "flag_node":            "--nodelist=",
         "var_array_idx":        "SLURM_ARRAY_TASK_ID",
         "string_array_idx":     "%a"
         }
@@ -113,6 +115,11 @@ def generate_scripts(experiment, number_of_experiments):
         experiment_configuration["time"]["spec_exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
     else:
         experiment_configuration["time"]["spec_exclusive"] = ""
+
+    if experiment_configuration["time"]["node"]:
+        experiment_configuration["time"]["spec_node"] = "#{directive} {flag_node}".format(**scheduler_vars[scheduler]) + experiment_configuration["time"]["node"]
+    else:
+        experiment_configuration["time"]["spec_node"] = ""
 
     for mode in ["time", "generate"]:
         if scheduler == "LSF":
