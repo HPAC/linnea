@@ -11,14 +11,11 @@ class ExpressionGraphBase(base.GraphBase):
     def __init__(self, root_expr):
         super().__init__()
         self.root = ExpressionGraphNode(root_expr)
-        self.active_nodes = [self.root]
         self.nodes = [self.root]
 
 
     def create_nodes(self, predecessor, *description):
         new_nodes = []
-        # print(description)
-        # if description:
         for expression, matched_kernels in description:
             new_node = ExpressionGraphNode(expression, predecessor)
             self.nodes.append(new_node)
