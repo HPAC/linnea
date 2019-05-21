@@ -124,8 +124,17 @@ def read_trace(experiment_name, number_of_experiments):
             except pd.errors.EmptyDataError:
                 print("Empty file", file_path)
             else:
-                df_processed = pd.DataFrame([df["time"].min(), df["time"].max(), df["cost"].max(), df["cost"].min()], index=["first_solution_time", "best_solution_time", "first_solution_cost", "best_solution_cost"], columns=[example_name])
-                file_dfs.append(df_processed.transpose())
+                processed_data = dict()
+                # processed_data = pd.DataFrame() # [], index=[], columns=[example_name]
+                min_cost = df["cost"].min()
+                processed_data["first_solution_time"] = df["time"].min()
+                processed_data["best_solution_time"] = df["time"].max()
+                processed_data["first_solution_cost"] = df["cost"].max()
+                processed_data["best_solution_cost"] = min_cost
+                for p in [1, 5, 10, 15, 25]:
+                    processed_data["time_to_{}pc".format(p)] = df.loc[df["cost"] < (min_cost * (1+p/100))]["time"].min()
+
+                file_dfs.append(pd.DataFrame(processed_data, index=[example_name]))
         else:
             print("Missing file", file_path)
 
@@ -507,7 +516,7 @@ if __name__ == '__main__':
     intensity_cols = process_data_intensity(intensity_data_combined, "combined")
 
     # trace combined
-    trace_data_combined = pd.concat(trace_data_all)
+    trace_data_combined = pd.concat(trace_data_all, sort=True)
     process_data_trace(trace_data_combined, "combined")
 
     # k best
