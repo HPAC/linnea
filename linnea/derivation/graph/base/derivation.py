@@ -91,6 +91,7 @@ class DerivationGraphBase(base.GraphBase):
                 for terminal_node in terminal_nodes:
                     if terminal_node.accumulated_cost < best_solution:
                         best_solution = terminal_node.accumulated_cost
+                        t_elapsed = time.perf_counter() - t_start
                         trace_data.append((t_elapsed, terminal_node.accumulated_cost))
                         self.print_result_sep("New solution:", "{:.3g}".format(best_solution))
                         new_solution = True
