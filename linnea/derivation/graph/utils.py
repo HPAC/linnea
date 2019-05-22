@@ -149,8 +149,9 @@ def generate_variants(equations, eqn_idx=None):
 
     yielded_variants = set()
 
-    eqn_indices = range(len(equations))
-    if eqn_idx:
+    if eqn_idx is None:
+        eqn_indices = range(len(equations))
+    else:
         eqn_indices = [eqn_idx]
 
     # TODO combine this with the other loop
@@ -211,10 +212,10 @@ def generate_variants(equations, eqn_idx=None):
                 new_equation = undistribute_inverse(new_equation)
             new_equations.append(new_equation)
 
-        temp_eqn = aeq.Equations(*new_equations)
-        if temp_eqn not in yielded_variants:
-            yielded_variants.add(temp_eqn)
-            yield temp_eqn
+        temp_eqns = aeq.Equations(*new_equations)
+        if temp_eqns not in yielded_variants:
+            yielded_variants.add(temp_eqns)
+            yield temp_eqns
 
     if equations not in yielded_variants:
         yield equations
