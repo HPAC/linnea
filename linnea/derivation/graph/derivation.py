@@ -38,7 +38,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         self.print_result("Solution nodes:", len(terminal_nodes))
 
         data = self.root.equations.get_data()
-        self.print_result("Data:", data)
+        self.print_result("Data:", "{:.3g}".format(data))
         if terminal_nodes:
             _, cost = self.shortest_path()
             self.print_result("Best solution:", "{:.3g}".format(cost))
