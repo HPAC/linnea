@@ -54,16 +54,17 @@ class DerivationGraphBase(base.GraphBase):
             prio, node = p_stack.get()
 
             if node.accumulated_cost > best_solution:
-                # self.print("Branch pruned.")
                 node.labels.append("pruned")
                 pruned_nodes[node.id] = (prio, node)
                 continue
 
             if all(is_dead_end(equations, node.factored_operands) for equations in generate_variants(node.equations)):
-                # self.print("Dead node.")
                 node.labels.append("dead")
                 continue
-                
+
+            nodes_merged = False
+            new_terminal_node = False
+
             try:
                 new_node = next(node.generator)
             except StopIteration:
@@ -77,35 +78,35 @@ class DerivationGraphBase(base.GraphBase):
                     p_stack.put(0, new_node)
                     if new_node.is_terminal():
                         terminal_nodes.append(new_node)
+                        new_terminal_node = True
                 else:
-                    update = False
-                    if existing_node.accumulated_cost > best_solution and new_node.accumulated_cost < best_solution and "pruned" in existing_node.labels:
-                        # this has to happen before merging because merging changes cost
-                        # print("Node reactivated.")
-                        p_stack.put(existing_prio, existing_node)
-                        existing_node.labels.remove("pruned") 
-
-                        del pruned_nodes[existing_node.id]
-                        update = True
-
                     existing_node.merge(new_node)
                     self.remove_node(new_node)
-
-                    # TODO how to improve this?
-                    # put this into a function
-                    if update:
-                        remove = []
-                        for p_prio, p_node in pruned_nodes.values():
-                            if p_node.accumulated_cost < best_solution:
-                                p_node.labels.remove("pruned") 
-                                p_stack.put(p_prio, p_node)
-                                remove.append(p_node.id)
-                                # print("Reactive node", p_node.id)
-                        for id in remove:
-                            del pruned_nodes[id]
+                    nodes_merged = True
 
                 p_stack.put(prio+1, node)
             
+            new_solution = False
+            if new_terminal_node or nodes_merged:
+                for terminal_node in terminal_nodes:
+                    if terminal_node.accumulated_cost < best_solution:
+                        best_solution = terminal_node.accumulated_cost
+                        trace_data.append((t_elapsed, terminal_node.accumulated_cost))
+                        self.print_result_sep("New solution:", "{:.3g}".format(best_solution))
+                        new_solution = True
+
+            # TODO how to improve this?
+            # put this into a function
+            if new_solution or nodes_merged:
+                remove = []
+                for p_prio, p_node in pruned_nodes.values():
+                    if p_node.accumulated_cost <= best_solution:
+                        p_node.labels.remove("pruned") 
+                        p_stack.put(p_prio, p_node)
+                        remove.append(p_node.id)
+                for id in remove:
+                    del pruned_nodes[id]
+           
             t_elapsed = time.perf_counter() - t_start
             if t_elapsed > next_print:
                 self.print_result_sep("Nodes:", len(self.nodes))
@@ -115,14 +116,6 @@ class DerivationGraphBase(base.GraphBase):
                 self.print("Time limit reached.")
                 break
 
-            if terminal_nodes:
-                for terminal_node in terminal_nodes:
-                    if terminal_node.accumulated_cost < best_solution:
-                        best_solution = terminal_node.accumulated_cost
-                        trace_data.append((t_elapsed, terminal_node.accumulated_cost))
-                        # print(t_elapsed)
-                        self.print_result_sep("New solution:", "{:.3g}".format(best_solution))
-                # break
         else:
             self.print("No further derivations possible.")
 
