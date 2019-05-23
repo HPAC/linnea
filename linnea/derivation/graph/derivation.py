@@ -54,6 +54,35 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def successor_generator(self, node):
 
+        _, eqn_idx = node.equations.process_next()
+        
+        gen_var_single1, gen_var_single2, gen_var_single3 = itertools.tee(generate_variants(node.equations, eqn_idx), 3)
+        gen_var1, gen_var2 = itertools.tee(generate_variants(node.equations), 2)
+
+        import functools
+        kernels_constructive = map(functools.partial(self.DFS_kernels_constructive, node), gen_var_single1)
+        kernels = map(functools.partial(self.DFS_kernels, node), gen_var_single2)
+        CSE_replacement = map(functools.partial(self.DFS_CSE_replacement, node), gen_var1)
+        tricks = map(functools.partial(self.DFS_tricks, node), gen_var_single3)
+        factorizations = map(functools.partial(self.DFS_factorizations, node), gen_var2)
+
+        if DS_step.factorizations in node.applied_DS_steps:
+            funs = [kernels_constructive, kernels, CSE_replacement, tricks]
+        elif DS_step.kernels in node.applied_DS_steps:
+            funs = [kernels_constructive, kernels, CSE_replacement, factorizations, tricks]
+        elif DS_step.CSE in node.applied_DS_steps:
+            # there are cases where doing CSE replacement twice results in better solutions
+            funs = [kernels_constructive, kernels, CSE_replacement, factorizations, tricks]
+        elif DS_step.tricks in node.applied_DS_steps:
+            funs = [kernels_constructive, kernels, CSE_replacement, factorizations]
+        else:
+            funs = [CSE_replacement, kernels_constructive, kernels, factorizations, tricks]
+
+        yield from self.roundrobin(*self.roundrobin(*funs))
+
+
+    def successor_generator_(self, node):
+
         if DS_step.factorizations in node.applied_DS_steps:
             funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_tricks]
         elif DS_step.kernels in node.applied_DS_steps:
