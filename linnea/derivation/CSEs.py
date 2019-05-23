@@ -62,6 +62,9 @@ class Subexpression():
         self.id = Subexpression._counter
         Subexpression._counter +=1
 
+    def __lt__(self, other):
+        return self.id < other.id
+
     def is_compatible(self, other):
         """Tests if self is compatible with other.
 
@@ -832,7 +835,7 @@ def find_CSEs(equations):
     CSEs.sort(key=sort_keyfunc, reverse=True)
 
     for CSE in CSEs:
-        # print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in CSE])
+        # print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in sorted(CSE)])
 
         CSE_as_dict = dict()
         for subexpr in CSE:
@@ -841,7 +844,7 @@ def find_CSEs(equations):
         insert_equations = []
         replacements_per_equation = dict()
         for CSE_id, subexprs in CSE_as_dict.items():
-
+            subexprs.sort()
             min_eqn_idx = min(subexpr.eqn_idx for subexpr in subexprs)
 
             CSE_expr = subexprs[0].expr # this works because indentify_subexpression_types uses subexprs[0] as reference
