@@ -47,10 +47,6 @@ class CppLibrary(enum.Enum):
     Eigen = 1
     Armadillo = 2
 
-class Strategy(enum.Enum):
-    constructive = 0
-    exhaustive = 1
-
 class GraphStyle(enum.Enum):
     full = 0
     simple = 1
@@ -82,10 +78,8 @@ generate_graph = False
 generate_derivation = False
 generate_code = False
 generate_experiments = False
-strategy = None
 verbosity = -1
-solution_nodes_limit = -1
-iteration_limit = -1
+time_limit = -1
 graph_style = None
 experiment_configuration = dict()
 output_code_path = None
@@ -143,10 +137,6 @@ def set_data_type(data_type):
         else:
             raise UnsupportedDataType()
 
-def set_strategy(_strategy):
-    global strategy
-    strategy = _strategy
-
 def set_merging_branches(merging):
     global merging_branches
     merging_branches = merging
@@ -183,25 +173,15 @@ def set_verbosity(level):
     global verbosity
     verbosity = level
 
-def set_solution_nodes_limit(limit):
-    global solution_nodes_limit
+def set_time_limit(limit):
+    global time_limit
     if isinstance(limit, str):
         if limit == "inf":
-            solution_nodes_limit = math.inf
+            time_limit = math.inf
         else:
-            solution_nodes_limit = int(limit)
+            time_limit = float(limit)
     else:    
-        solution_nodes_limit = limit
-
-def set_iteration_limit(limit):
-    global iteration_limit
-    if isinstance(limit, str):
-        if limit == "inf":
-            iteration_limit = math.inf
-        else:
-            iteration_limit = int(limit)
-    else:    
-        iteration_limit = limit
+        time_limit = limit
 
 def set_graph_style(style):
     global graph_style
@@ -251,11 +231,9 @@ set_generate_graph(False)
 set_generate_derivation(False)
 set_generate_code(True)
 set_generate_experiments(False)
-set_strategy(Strategy.constructive)
 set_output_code_path('.')
 set_verbosity(1)
-set_solution_nodes_limit(math.inf)
-set_iteration_limit(100)
+set_time_limit(math.inf)
 set_graph_style(GraphStyle.full)
 
 def load_config(config_file=''):
@@ -288,14 +266,10 @@ def load_config(config_file=''):
                     set_data_type(CDataType[value])
                 elif key == 'julia_data_type':
                     set_data_type(JuliaDataType[value])
-                elif key == 'strategy':
-                    set_strategy(Strategy[value])
                 elif key == 'output_code_path':
                     set_output_code_path(value)
-                elif key == 'solution_nodes_limit':
-                    set_solution_nodes_limit(value)
-                elif key == 'iteration_limit':
-                    set_iteration_limit(value)
+                elif key == 'time_limit':
+                    set_time_limit(value)
                 elif key == 'graph_style':
                     set_graph_style(GraphStyle[value])
                 elif key in settings and not key.startswith('_'):

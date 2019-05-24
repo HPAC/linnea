@@ -6,7 +6,6 @@
         "merging_branches": true,
         "dead_ends": true,
         "algorithms_limit": 100,
-        "strategy": "constructive",
         "output_name": "tmp",
         "generate_graph": false,
         "generate_derivation": false,

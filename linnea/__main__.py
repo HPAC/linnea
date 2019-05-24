@@ -24,14 +24,12 @@ def main():
     parser.add_argument("-e", "--experiments", action="store_const", const=True, help="generate code for experiments")
     parser.add_argument("-g", "--graph", action="store_const", const=True, help="write graph to file")
     parser.add_argument("--graph-style", choices=["full", "simple", "minimal"], help="specify graph style")
-    parser.add_argument("--iteration-limit", help="iteration limit")
     parser.add_argument("--no-code", dest="code", action="store_const", const=True, help="disable code generation")
     parser.add_argument("--no-merging", dest="merging", action="store_const", const=True, help="disable merging branches in the graph")
     parser.add_argument("-o", "--output", help="name of the output")
     parser.add_argument("--derivation", action="store_const", const=True, help="generate description of the derivation")
     group.add_argument("--silent", action="store_const", const=True, help="suppress non-error messages")
-    parser.add_argument("--solution-nodes-limit", help="limit for the number of solution nodes")
-    parser.add_argument("-s", "--strategy", choices=["constructive", "exhaustive"], help="specify derivation strategy")
+    parser.add_argument("--time-limit", help="time limit for the generation")
     group.add_argument("-v", "--verbose", action="count", help="increase verbosity")
     parser.add_argument("--example", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -53,8 +51,6 @@ def main():
         config.set_generate_graph(args.graph)
     if args.graph_style is not None:
         config.set_graph_style(config.GraphStyle[args.graph_style])
-    if args.iteration_limit is not None:
-        config.set_iteration_limit(args.iteration_limit)
     if args.code is not None:
         config.set_generate_code(args.code)
     if args.merging is not None:
@@ -67,19 +63,12 @@ def main():
         config.set_generate_derivation(args.derivation)
     if args.silent is not None:
         config.set_verbosity(0)
-    if args.solution_nodes_limit is not None:
-        config.set_solution_nodes_limit(args.solution_nodes_limit)
-    if args.strategy is not None:
-        config.set_strategy(config.Strategy[args.strategy])
+    if args.time_limit is not None:
+        config.set_time_limit(args.time_limit)
     if args.verbose is not None:
         config.set_verbosity(args.verbose+1)
 
     config.init()
-
-    if config.strategy is config.Strategy.constructive:
-        from .derivation.graph.constructive import DerivationGraph  
-    elif config.strategy is config.Strategy.exhaustive:
-        from .derivation.graph.exhaustive import DerivationGraph
 
 
     if args.example is None:
@@ -118,11 +107,13 @@ def main():
         config.set_output_name(example_name)
         equations = example.eqns
 
+    from .derivation.graph.derivation import DerivationGraph  
+
     graph = DerivationGraph(equations)
     trace = graph.derivation(
-                        solution_nodes_limit=config.solution_nodes_limit,
-                        iteration_limit=config.iteration_limit,
-                        merging=config.merging_branches)
+                        time_limit=config.time_limit,
+                        merging=config.merging_branches,
+                        dead_ends=config.dead_ends)
     if config.verbosity >= 2:
         print(":".join(str(t) for t in trace))
 

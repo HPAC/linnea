@@ -100,8 +100,6 @@ There are the following options (those are the names used in Python, the command
 
 * `algorithms_limit` The upper limit for the number of algorithms that are written to files. The default is `100`.
 
-* `strategy` The strategy used to find algorithms. Either `constructive` or `exhaustive`. The default is `constructive`.
-
 * `generate_graph` Whether or not to generate a `.gv` file of the derivation graph. The default is `false`.
 
 * `graph_style` Style of the derivation graph. Either `full`, `simple`, or `minimal`. The default is `full`. Only applies if `generate_graph` is set to `True`.

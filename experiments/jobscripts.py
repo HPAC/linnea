@@ -9,24 +9,27 @@ def time_generation_script(replacement):
     template_path = "jobscripts/templates/time_generation.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    for strategy, merging in itertools.product(["c", "e"], [True, False]):
+    for merging in [True, False]:
         replacement_copy = replacement.copy()
 
         file_name_parts = ["time_generation"]
 
-        file_name_parts.append(strategy)
-        replacement_copy["strategy"] = strategy
         if merging:
-            replacement_copy["strategy_name"] = strategy + "_m"
+            replacement_copy["dir_name"] = "merging"
+            replacement_copy["merging_label"] = "m"
             file_name_parts.append("m")
             replacement_copy["merging"] = "true"
         else:
-            replacement_copy["strategy_name"] = strategy + "_nm"
+            replacement_copy["dir_name"] = "no_merging"
+            replacement_copy["merging_label"] = "nm"
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
-        file_name = "{}/{}/{}.sh".format(replacement_copy['linnea_jobscripts_path'], replacement_copy["name"],
-                                         "_".join(file_name_parts))
+        file_name = "{}/{}/time_generation_{}.sh".format(
+                                replacement_copy['linnea_jobscripts_path'],
+                                replacement_copy["name"],
+                                replacement_copy["merging_label"]
+                            )
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
@@ -58,18 +61,14 @@ def generate_code_scripts(replacement):
     template_path = "jobscripts/templates/generate_code.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    for arg in ["c", "e", "f"]:
+    for args, ref in [("", ""), ("-f", "_ref")]:
         replacement_copy = replacement.copy()
 
-        replacement_copy["args"] = arg
+        replacement_copy["args"] = args
+        replacement_copy["ref"] = ref
 
-        if arg == "f":
-            replacement_copy["compile"] = "true"
-        else:
-            replacement_copy["compile"] = "false"
-
-        file_name = "{}/{}/generate_code_{}.sh".format(replacement_copy['linnea_jobscripts_path'],
-                                                       replacement_copy["name"], arg)
+        file_name = "{}/{}/generate_code{}.sh".format(replacement_copy['linnea_jobscripts_path'],
+                                                       replacement_copy["name"], ref)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))

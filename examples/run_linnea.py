@@ -6,8 +6,7 @@ if __name__ == "__main__":
     linnea.config.set_output_path(".")
     linnea.config.init()
 
-    from linnea.derivation.graph.constructive import DerivationGraph
-    # from linnea.derivation.graph.exhaustive import DerivationGraph
+    from linnea.derivation.graph.derivation import DerivationGraph
 
     from input1 import equations
 
@@ -15,8 +14,7 @@ if __name__ == "__main__":
     # equations = linnea.examples.examples.Example001().eqns
 
     graph = DerivationGraph(equations)
-    graph.derivation(solution_nodes_limit=100,
-                     iteration_limit=100,
+    graph.derivation(time_limit=60,
                      merging=True,
                      dead_ends=True)
 
