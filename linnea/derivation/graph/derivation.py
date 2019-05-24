@@ -1,6 +1,6 @@
 from ...algebra import expression as ae
 
-from ...utils import is_inverse
+from ...utils import is_inverse, roundrobin
 
 from .. import special_properties
 
@@ -10,6 +10,7 @@ from .utils import DS_step, generate_variants, find_operands_to_factor, \
 from . import base
 
 import itertools
+import functools
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
@@ -54,12 +55,13 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
 
     def successor_generator(self, node):
 
-        _, eqn_idx = node.equations.process_next()
-        
+        equation, eqn_idx = node.equations.process_next()
+        if not equation:
+            eqn_idx = None
+
         gen_var_single1, gen_var_single2, gen_var_single3 = itertools.tee(generate_variants(node.equations, eqn_idx), 3)
         gen_var1, gen_var2 = itertools.tee(generate_variants(node.equations), 2)
 
-        import functools
         kernels_constructive = map(functools.partial(self.DFS_kernels_constructive, node), gen_var_single1)
         kernels = map(functools.partial(self.DFS_kernels, node), gen_var_single2)
         CSE_replacement = map(functools.partial(self.DFS_CSE_replacement, node), gen_var1)
@@ -78,25 +80,25 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         else:
             funs = [CSE_replacement, kernels_constructive, kernels, factorizations, tricks]
 
-        yield from self.roundrobin(*self.roundrobin(*funs))
+        yield from roundrobin(*roundrobin(*funs))
 
 
-    def successor_generator_(self, node):
+    # def successor_generator(self, node):
 
-        if DS_step.factorizations in node.applied_DS_steps:
-            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_tricks]
-        elif DS_step.kernels in node.applied_DS_steps:
-            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
-        elif DS_step.CSE in node.applied_DS_steps:
-            # there are cases where doing CSE replacement twice results in better solutions
-            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
-        elif DS_step.tricks in node.applied_DS_steps:
-            funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations]
-        else:
-            funs = [self.DFS_CSE_replacement, self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_factorizations, self.DFS_tricks]
+    #     if DS_step.factorizations in node.applied_DS_steps:
+    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_tricks]
+    #     elif DS_step.kernels in node.applied_DS_steps:
+    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
+    #     elif DS_step.CSE in node.applied_DS_steps:
+    #         # there are cases where doing CSE replacement twice results in better solutions
+    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
+    #     elif DS_step.tricks in node.applied_DS_steps:
+    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations]
+    #     else:
+    #         funs = [self.DFS_CSE_replacement, self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_factorizations, self.DFS_tricks]
 
-        generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_variants(node.equations), funs)]
-        yield from self.roundrobin(*generators)
+    #     generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_variants(node.equations), funs)]
+    #     yield from self.roundrobin(*generators)
 
 
     def init_temporaries(self, equations):

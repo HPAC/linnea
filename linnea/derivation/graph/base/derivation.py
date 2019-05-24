@@ -124,39 +124,6 @@ class DerivationGraphBase(base.GraphBase):
         return trace_data, terminal_nodes
 
 
-    def roundrobin(self, *iterables):
-        "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
-        # Recipe credited to George Sakkis
-        num_active = len(iterables)
-        nexts = itertools.cycle(iterables)
-        while num_active:
-            try:
-                for n in nexts:
-                    yield next(n)
-            except StopIteration:
-                # Remove the iterator we just exhausted from the cycle.
-                num_active -= 1
-                nexts = itertools.cycle(itertools.islice(nexts, num_active))
-
-
-    # def roundrobin(self, iterables):
-
-    #     while iterables:
-    #         n = len(iterables)
-    #         for i in range(n):
-    #             remove = []
-    #             try:
-    #                 elem = next(iterables[i])
-    #             except StopIteration:
-    #                 remove.append(i)
-    #             else:
-    #                 yield elem
-
-    #         for i in reversed(remove):
-    #             # print("del", i)
-    #             del iterables[i]
-
-
     def DFS_kernels_constructive(self, node, equations):
         for new_equations, edge_label in self.TR_kernels_constructive(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_DS_step=DS_step.kernels)
