@@ -12,14 +12,15 @@ collections_module = config.import_collections()
 class MatrixChainGraph(egb.ExpressionGraphBase):
 
     def derivation(self):
-        nodes = [self.root]
-        while nodes:
+
+        new_nodes = []
+        while new_nodes:
+
             new_nodes = []
-            for node in nodes:
+            for node in self.nodes:
                 new_nodes.extend(self.create_nodes(node, *self.TR_matrix_chain_kernels(node.expression)))
                 new_nodes.extend(self.create_nodes(node, *self.TR_unary_kernels(node.expression)))
-            nodes = new_nodes
-
+            
             self.DS_merge_nodes()
 
 
