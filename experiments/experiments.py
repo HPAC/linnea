@@ -15,7 +15,7 @@ import linnea.config
 
 linnea.config.init()
 
-from linnea.config import Strategy, Language
+from linnea.config import Language
 import linnea.examples.examples
 import linnea.examples.application as application
 from linnea.derivation.graph.derivation import DerivationGraph
