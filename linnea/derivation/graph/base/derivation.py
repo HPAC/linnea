@@ -75,10 +75,11 @@ class DerivationGraphBase(base.GraphBase):
                 except KeyError:
                     existing_nodes[new_node.equations] = (0, new_node)
                     new_node.generator = self.successor_generator(new_node)
-                    p_stack.put(0, new_node)
                     if new_node.is_terminal():
                         terminal_nodes.append(new_node)
                         new_terminal_node = True
+                    else:
+                        p_stack.put(0, new_node)
                 else:
                     existing_node.merge(new_node)
                     self.remove_node(new_node)
