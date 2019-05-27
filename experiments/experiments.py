@@ -44,7 +44,8 @@ def measure(example, name, merge, reps=10):
                            output_name=name,
                            experiment_code=False,
                            algorithms_limit=1,
-                           graph=False)
+                           graph=False,
+                           subdir_name="time_generation")
         t_end = time.perf_counter()
         times.append(t_end-t_start)
     data = [numpy.mean(times),
