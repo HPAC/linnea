@@ -14,7 +14,7 @@ algorithm_tmp_result = {config.Language.Julia: """result_{0} = collect({0}(map(M
 algorithm_test = {config.Language.Julia: "@test isapprox(result_{0}, result_recommended, rtol=1e-3)",
                     config.Language.Cpp: ""}
 
-algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"], Benchmarker.measure(20, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
+algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"; {1}], Benchmarker.measure(20, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
                     config.Language.Cpp: ""}
 
 
@@ -48,7 +48,7 @@ def runner_to_file(runner_name, output_name, language, num_threads, algorithms=[
         includes.append(incl_format.format(subdir_name, algorithm_name))
         tmp_results.append(tmp_format.format(algorithm_name))
         tests.append(test_format.format(algorithm_name))
-        plots.append(plot_format.format(algorithm_name))
+        plots.append(plot_format.format(algorithm_name, num_threads))
 
 
     runner_template = utils.get_template(template_name, language)
