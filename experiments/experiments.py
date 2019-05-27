@@ -168,7 +168,9 @@ def main():
         name = "{}{:03}".format(args.experiment, args.jobindex)
         job_examples = [JobExample(examples[args.jobindex-1], name)]
 
-    
+
+    num_threads = [1, 24]
+
     if args.mode == "time_generation":
 
         linnea.config.set_verbosity(0)
@@ -208,13 +210,13 @@ def main():
 
         linnea.config.set_verbosity(2)
 
-        dir = os.path.join(linnea.config.results_path, args.experiment, "trace")
-        if not os.path.exists(dir):
-            os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
+        # dir = os.path.join(linnea.config.results_path, args.experiment, "trace")
+        # if not os.path.exists(dir):
+        #     os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
 
-        dir = os.path.join(linnea.config.results_path, args.experiment, "intensity")
-        if not os.path.exists(dir):
-            os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
+        # dir = os.path.join(linnea.config.results_path, args.experiment, "intensity")
+        # if not os.path.exists(dir):
+        #     os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
 
         for example, name in job_examples:
 
@@ -233,7 +235,7 @@ def main():
             if os.path.exists(file_path):
                 existing_algorithms.append((subdir_name, algorithm_name))
             
-            runner.generate_runner(name, existing_algorithms)
+            runner.generate_runner(name, existing_algorithms, num_threads)
 
             # k best runner
             existing_algorithms = []
@@ -244,10 +246,11 @@ def main():
                 if os.path.exists(file_path):
                     existing_algorithms.append(("generated", algorithm_name))
 
-            runner.runner_to_file("runner_k_best", name, algorithms=existing_algorithms, language=linnea.config.Language.Julia)
+            for threads in num_threads:
+                runner.runner_to_file("runner_k_best", name, linnea.config.Language.Julia, threads, existing_algorithms)
 
     elif args.mode == "jobscripts":
-        generate_scripts(args.experiment, len(examples))
+        generate_scripts(args.experiment, len(examples), num_threads)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,8 @@
 
 #include "operand_generator.hpp"
 
+#include <mkl.h>
+
 typedef double float_type;
 
 template<typename Function, typename Tuple, std::size_t... I>
@@ -24,10 +26,11 @@ decltype(auto) call(Function && f, Tuple && t, std::index_sequence<I...>)
 
 int main(int argc, char ** argv)
 {{
-    std::cout << "Test runner for algorithm {0}" << std::endl;
+    mkl_set_num_threads({num_threads});
+    std::cout << "Test runner for algorithm {experiment_name}" << std::endl;
     linalg_tests::basic_benchmarker benchmark;
     benchmark.set_cache_size(30 * 1024 * 1024);
-    std::ofstream file("cpp_results_{0}_timings.txt");
+    std::ofstream file("cpp_results_{experiment_name}_timings.txt");
     {{
     generator::generator<library::arma, float_type> arma_gen{{100}};
     auto matrices = operand_generator(arma_gen);
@@ -38,12 +41,12 @@ int main(int argc, char ** argv)
     //std::cout << "Armadillo norm(naive-recom): " << arma::norm(res_naive - res_recomm) << std::endl;
     //std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
 
-    std::array<std::string, 1> labels_arma_n{{ {{"naive_armadillo"}} }};
+    std::array<std::string, 2> labels_arma_n{{ {{"naive_armadillo", "{num_threads}"}} }};
     benchmark.run(file, labels_arma_n, 20, [&]() {{
             call(naive_armadillo{{}}, matrices, Indices{{}});
             }});
 
-    std::array<std::string, 1> labels_arma_r{{ {{"recommended_armadillo"}} }};
+    std::array<std::string, 2> labels_arma_r{{ {{"recommended_armadillo", "{num_threads}"}} }};
     benchmark.run(file, labels_arma_r, 20, [&]() {{
             call(recommended_armadillo{{}}, matrices, Indices{{}});
             }});
@@ -58,12 +61,12 @@ int main(int argc, char ** argv)
     //std::cout << "Eigen norm(naive-recom): " << (res_naive - res_recomm).norm() << std::endl;
     //std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
 
-    std::array<std::string, 1> labels_eigen_n{{ {{"naive_eigen"}} }};
+    std::array<std::string, 2> labels_eigen_n{{ {{"naive_eigen", "{num_threads}"}} }};
     benchmark.run(file, labels_eigen_n, 20, [&]() {{
             call(naive_eigen{{}}, matrices, Indices{{}});
             }});
 
-    std::array<std::string, 1> labels_eigen_r{{ {{"recommended_eigen"}} }};
+    std::array<std::string, 2> labels_eigen_r{{ {{"recommended_eigen", "{num_threads}"}} }};
     benchmark.run(file, labels_eigen_r, 20, [&]() {{
             call(recommended_eigen{{}}, matrices, Indices{{}});
             }});

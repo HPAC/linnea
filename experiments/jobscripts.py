@@ -35,26 +35,26 @@ def time_generation_script(replacement):
             output_file.write(template_str.format(**replacement_copy))
 
 
-def time_execution_scripts(replacement):
+def time_execution_scripts(replacement, threads):
 
     for language in ["julia", "matlab", "cpp"]:
         template_path = "jobscripts/templates/time_{}.sh".format(language)
         template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-        file_name = "{}/{}/time_{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], language)
+        file_name = "{}/{}/time_{}_t{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], language, threads)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
-            output_file.write(template_str.format(runner_name="runner", output_subdir=language, **replacement))
+            output_file.write(template_str.format(runner_name="runner_t{}".format(threads), output_subdir=language, **replacement))
 
-def time_k_best_script(replacement):
+def time_k_best_script(replacement, threads):
 
     template_path = "jobscripts/templates/time_julia.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    file_name = "{}/{}/time_k_best.sh".format(replacement['linnea_jobscripts_path'], replacement["name"])
+    file_name = "{}/{}/time_k_best_t{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], threads)
     with open(file_name, "wt", encoding='utf-8') as output_file:
         print("Writing", file_name)
-        output_file.write(template_str.format(runner_name="runner_k_best", output_subdir="k_best", **replacement))
+        output_file.write(template_str.format(runner_name="runner_k_best_t{}".format(threads), output_subdir="k_best", **replacement))
 
 def generate_code_scripts(replacement):
 
@@ -104,7 +104,7 @@ scheduler_vars = {
         }
     }
 
-def generate_scripts(experiment, number_of_experiments):
+def generate_scripts(experiment, number_of_experiments,  num_threads):
 
     experiment_configuration = config.experiment_configuration
 
@@ -140,9 +140,11 @@ def generate_scripts(experiment, number_of_experiments):
     time_configuration = {**experiment_configuration['time'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
     generate_configuration = {**experiment_configuration['generate'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
 
+    for threads in num_threads:
+        time_execution_scripts(time_configuration, threads)
+        time_k_best_script(time_configuration, threads)
+
     time_generation_script(time_configuration)
-    time_execution_scripts(time_configuration)
-    time_k_best_script(time_configuration)
     generate_code_scripts(generate_configuration)
 
 if __name__ == '__main__':

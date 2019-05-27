@@ -18,7 +18,7 @@ mkdir -p {name}/execution/cpp
 cd {name}/execution/cpp
 
 expname=$(printf "{name}%03d" ${var_array_idx})
-runner="{output_code_path}/${{expname}}/Cpp/build/${{expname}}"
+runner="{output_code_path}/${{expname}}/Cpp/build/{runner_name}"
 
 if [ -f $runner ]; then
     $runner

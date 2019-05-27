@@ -1,4 +1,5 @@
 import MatrixGenerator.*;
+maxNumCompThreads({num_threads})
 % hardcoded directory with naive and recommended implementation
 algorithms_dir = fullfile(fileparts(mfilename('fullpath')), 'reference');
 addpath(algorithms_dir);
@@ -12,6 +13,6 @@ recomd_mat = recommended_();
 %fprintf('Naive(0, 0): %f\\n', recomd_mat(1, 1));
 
 benchmarker = Benchmarker();
-benchmarker.benchmark('naive_matlab', 20, naive_);
-benchmarker.benchmark('recommended_matlab', 20, recommended_);
-benchmarker.save('matlab_results_{0}.txt');
+benchmarker.benchmark('naive_matlab {num_threads}', 20, naive_);
+benchmarker.benchmark('recommended_matlab {num_threads}', 20, recommended_);
+benchmarker.save('matlab_results_{experiment_name}.txt');
