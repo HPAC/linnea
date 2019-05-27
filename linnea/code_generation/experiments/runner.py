@@ -77,7 +77,7 @@ def generate_cmake_script(output_name, num_threads):
     script_template = utils.get_template(file_name, config.Language.Cpp)
     executables = []
     for threads in num_threads:
-        executables.append("add_executable(runner_t{} runner_t{}.cpp)\ntarget_link_libraries(runner_t{} PRIVATE libtests)\nset_target_properties(runner_t{} PROPERTIES CXX_STANDARD 14)\n".format(threads))
+        executables.append("add_executable(runner_t{0} runner_t{0}.cpp)\ntarget_link_libraries(runner_t{0} PRIVATE libtests)\nset_target_properties(runner_t{0} PROPERTIES CXX_STANDARD 14)\n".format(threads))
     script = script_template.format(experiment_name = output_name, executables = "\n".join(executables))
     file_path = os.path.join(config.output_code_path, output_name, config.Language.Cpp.name, file_name)
     output_file = open(file_path, "wt")
