@@ -7,11 +7,11 @@ def read_results_generation(experiment, number_of_experiments):
 
     dirs = []
     new_columns = []
-    for dir, col in zip(["c_m", "c_nm", "e_m", "e_nm"], ["constructive_merging", "constructive_no_merging", "exhaustive_merging", "exhaustive_no_merging"]):
-        path = os.path.join(experiment, "generation", dir)
+    for merging in "merging", "no_merging":
+        path = os.path.join(experiment, "generation", merging)
         if os.path.exists(path):
             dirs.append(path)
-            new_columns.append(col)
+            new_columns.append(merging)
         else:
             print("No directory", path)
 
@@ -21,7 +21,7 @@ def read_results_generation(experiment, number_of_experiments):
             file_name = "{}/generation{:03}.csv".format(dir, jobindex)
             if os.path.isfile(file_name):
                 try:
-                    df = pd.read_csv(file_name, index_col=[0, 1, 2])
+                    df = pd.read_csv(file_name, index_col=[0, 1])
                 except pd.errors.EmptyDataError:
                     print("Empty file", file_name)
                 else:
@@ -96,19 +96,18 @@ def read_intensity(experiment_name, number_of_experiments):
     example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
 
     file_dfs = []
-    for strategy in ["c", "e"]:
-        for example_name in example_names:
-            file_path = os.path.join(experiment_name, "intensity", strategy, "{}_intensity.csv".format(example_name))
-            if os.path.isfile(file_path):
-                try:
-                    df = pd.read_csv(file_path, index_col=[0, 1])
-                except pd.errors.EmptyDataError:
-                    print("Empty file", file_path)
-                else:
-                    file_dfs.append(df)
-                
+    for example_name in example_names:
+        file_path = os.path.join(experiment_name, "intensity", "{}_intensity.csv".format(example_name))
+        if os.path.isfile(file_path):
+            try:
+                df = pd.read_csv(file_path, index_col=[0, 1])
+            except pd.errors.EmptyDataError:
+                print("Empty file", file_path)
             else:
-                print("Missing file", file_path)
+                file_dfs.append(df)
+            
+        else:
+            print("Missing file", file_path)
 
     return pd.concat(file_dfs, sort=True)
 
@@ -228,7 +227,7 @@ def performance_profiles_data_reduce(time_data):
     julia = time_data.apply(lambda row: select_best(row["naive_julia"], row["recommended_julia"]), axis=1)
     eigen = time_data.apply(lambda row: select_best(row["naive_eigen"], row["recommended_eigen"]), axis=1)
 
-    res = pd.concat([time_data["algorithm0e"], armadillo, matlab, julia, eigen], axis=1)
+    res = pd.concat([time_data["algorithm0"], armadillo, matlab, julia, eigen], axis=1)
     res.rename(columns={0: "armadillo", 1: "matlab", 2: "julia", 3: "eigen"}, inplace=True)
 
     return res
@@ -255,11 +254,10 @@ def speedup_CI(time_data, implementation, reference):
 
 def to_speedup_data_CI(time_data):
     df = pd.DataFrame()
-    reference = "algorithm0e"
-    for implementation in ["naive_julia", "recommended_julia", "naive_matlab", "recommended_matlab", "naive_eigen", "recommended_eigen", "naive_armadillo", "recommended_armadillo", "algorithm0c"]:
+    reference = "algorithm0"
+    for implementation in ["naive_julia", "recommended_julia", "naive_matlab", "recommended_matlab", "naive_eigen", "recommended_eigen", "naive_armadillo", "recommended_armadillo"]:
         df[implementation] = time_data.apply(speedup_CI, axis=1, args=(implementation, reference))
-    df["intensity_e"] = time_data["intensity_e"]
-    df["intensity_c"] = time_data["intensity_c"]
+    df["intensity"] = time_data["intensity"]
     return df
 
 
@@ -313,12 +311,12 @@ def get_column_names(experiment):
     # TODO this code also appears in "read_results_generation"    
     new_columns = []
     for exp in experiments:
-        for dir, col in zip(["c_m", "c_nm", "e_m", "e_nm"], ["constructive_merging", "constructive_no_merging", "exhaustive_merging", "exhaustive_no_merging"]):
-            if col in new_columns:
+        for merging in ["merging", "no_merging"]:
+            if merging in new_columns:
                 continue
-            path = os.path.join(exp, "generation", dir)
+            path = os.path.join(exp, "generation", merging)
             if os.path.exists(path):
-                new_columns.append(col)
+                new_columns.append(merging)
 
     return new_columns
 
@@ -361,14 +359,15 @@ def process_data_generation(gen_results, experiment):
     gen_results.to_csv("{}_generation.csv".format(experiment), na_rep="NaN")
 
     new_columns = get_column_names(experiment)
+
     nodes_count = gen_results.drop(columns=["mean", "std", "min", "max", "solution"])
-    nodes_count = nodes_count.unstack([1, 2]) # use fill_value=... for missing data
+    nodes_count = nodes_count.unstack(1) # use fill_value=... for missing data
     nodes_count.columns = new_columns
     nodes_count.to_csv("{}_generation_nodes_count.csv".format(experiment), na_rep="NaN")
     nodes_count.dropna().to_csv("{}_generation_nodes_count_clean.csv".format(experiment))
 
     generation_time = gen_results.drop(columns=["std", "min", "max", "nodes", "solution"])
-    generation_time = generation_time.unstack([1, 2]) # use fill_value=... for missing data
+    generation_time = generation_time.unstack(1) # use fill_value=... for missing data
     generation_time.columns = new_columns
     generation_time.to_csv("{}_generation_time.csv".format(experiment), na_rep="NaN")
     generation_time.dropna().to_csv("{}_generation_time_clean.csv".format(experiment))
@@ -391,12 +390,11 @@ def process_data_intensity(intensity_data, experiment):
     intensity_only = intensity_data.unstack(level=1).loc[:, ("intensity")]
     intensity_only.to_csv("{}_intensity.csv".format(experiment), na_rep="NaN")
 
-    intensity_only_sorted = intensity_only.sort_values(by=["algorithm0e", "algorithm0c"])
+    intensity_only_sorted = intensity_only.sort_values(by=["algorithm0"])
     intensity_only_sorted.to_csv("{}_intensity_sorted.csv".format(experiment), na_rep="NaN")
 
     intensity_optimal = pd.DataFrame()
-    intensity_optimal["intensity_e"] = intensity_only["algorithm0e"]
-    intensity_optimal["intensity_c"] = intensity_only["algorithm0c"]
+    intensity_optimal["intensity"] = intensity_only["algorithm0"]
 
     return intensity_optimal
 
@@ -407,17 +405,17 @@ def process_data_trace(trace_data, experiment):
 def process_data_k_best(k_best_data, intensity_data, experiment):
 
     plain_data = pd.concat([k_best_data, intensity_data], axis=1, sort=True)
-    plain_data.drop(["algorithm0c", "naive_julia", "recommended_julia"], level=1, inplace=True)
+    plain_data.drop(["naive_julia", "recommended_julia"], level=1, inplace=True)
     plain_data.to_csv("{}_k_best.csv".format(experiment), na_rep="NaN")
 
     for col in ["min_time", "min_time_rel", "median_time", "ci_upper_rel", "ci_lower_rel", "cost"]:
         df = plain_data[col].unstack(0)
-        df.index = df.index.map(lambda x: int(x[9:][:-1]))
+        df.index = df.index.map(lambda x: int(x[9:]))
         df.sort_index(inplace=True)
         df.to_csv("{}_k_best_{}.csv".format(experiment, col), na_rep="NaN")
 
     # stats algorithm0e
-    algorithm0e_stats = pd.DataFrame(plain_data.xs("algorithm0e", level=1))
+    algorithm0e_stats = pd.DataFrame(plain_data.xs("algorithm0", level=1))
     algorithm0e_stats.dropna(inplace=True)
 
     df = plain_data["min_time"].unstack(0)
@@ -432,7 +430,7 @@ def process_data_k_best(k_best_data, intensity_data, experiment):
     min_time_stats = plain_data.loc[plain_data.groupby(level=0).min_time.idxmin().dropna()]
     min_time_stats.reset_index(level=1, inplace=True)
 
-    min_time_stats["idx"] = min_time_stats.apply(lambda row: int(row["implementation"][9:][:-1]), axis=1)
+    min_time_stats["idx"] = min_time_stats.apply(lambda row: int(row["implementation"][9:]), axis=1)
 
     del min_time_stats["ci_lower"]
     del min_time_stats["ci_lower_rel"]
@@ -450,7 +448,7 @@ def process_data_k_best(k_best_data, intensity_data, experiment):
     # stats for solution with smallest median time
     median_time_stats = plain_data.loc[plain_data.groupby(level=0).median_time.idxmin().dropna()]
     median_time_stats.reset_index(level=1, inplace=True)
-    median_time_stats["idx"] = median_time_stats.apply(lambda row: int(row["implementation"][9:][:-1]), axis=1)
+    median_time_stats["idx"] = median_time_stats.apply(lambda row: int(row["implementation"][9:]), axis=1)
 
     median_time_stats["slowdown"] = median_time_stats["median_time"]/algorithm0e_stats["median_time"]
     median_time_stats["speedup"] = algorithm0e_stats["median_time"]/median_time_stats["median_time"]
@@ -476,7 +474,7 @@ if __name__ == '__main__':
 
     experiments = [("random", 100), ("application", 25)]
 
-    speedup_reference = "algorithm0e"
+    speedup_reference = "algorithm0"
 
     execution_time_all = []
     gen_results_all = []
