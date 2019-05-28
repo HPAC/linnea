@@ -424,7 +424,7 @@ def process_data_k_best(k_best_data, intensity_data, experiment):
     df = plain_data["cost"].unstack(0)
     algorithm0e_stats["cost_cutoff"] = df.max()/df.min()
     
-    algorithm0e_stats.to_csv("{}_stats_algorithm0e.csv".format(experiment), na_rep="NaN")
+    algorithm0e_stats.to_csv("{}_k_best_stats_algorithm0e.csv".format(experiment), na_rep="NaN")
 
     # stats for solution with smallest min time
     min_time_stats = plain_data.loc[plain_data.groupby(level=0).min_time.idxmin().dropna()]
@@ -443,7 +443,7 @@ def process_data_k_best(k_best_data, intensity_data, experiment):
     min_time_stats["cost_rel"] = min_time_stats["cost"]/algorithm0e_stats["cost"]
     min_time_stats["intensity_ref"] = algorithm0e_stats["intensity"]
 
-    min_time_stats.to_csv("{}_stats_min_time.csv".format(experiment), na_rep="NaN")
+    min_time_stats.to_csv("{}_k_best_stats_min_time.csv".format(experiment), na_rep="NaN")
 
     # stats for solution with smallest median time
     median_time_stats = plain_data.loc[plain_data.groupby(level=0).median_time.idxmin().dropna()]
@@ -464,7 +464,7 @@ def process_data_k_best(k_best_data, intensity_data, experiment):
     median_time_stats["cost_rel"] = median_time_stats["cost"]/algorithm0e_stats["cost"]
     median_time_stats["intensity_ref"] = algorithm0e_stats["intensity"]
 
-    median_time_stats.to_csv("{}_stats_median_time.csv".format(experiment), na_rep="NaN")
+    median_time_stats.to_csv("{}_k_best_stats_median_time.csv".format(experiment), na_rep="NaN")
 
     # TODO search for cases where speedup < 1  and cost_rel > 1
     # median_time_stats.loc[(median_time_stats["speedup"] < 1.0) & (median_time_stats["cost_rel"] > 1.0)]
