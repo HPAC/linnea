@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-#{directive} {flag_jobname} "time_matlab_{name}{lsf_arrayjob}"
+#{directive} {flag_jobname} "time_matlab_t{threads}_{name}{lsf_arrayjob}"
 {slurm_arrayjob}
-#{directive} {flag_output} "{linnea_output_path}/logs/time_matlab_{name}{string_array_idx}.txt"
+#{directive} {flag_output} "{linnea_output_path}/logs/time_matlab_t{threads}_{name}{string_array_idx}.txt"
 #{directive} {flag_time} {time_execution}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_group} {group}
@@ -14,8 +14,8 @@ module load MISC
 module load matlab/2018b
 
 cd {linnea_results_path}
-mkdir -p {name}/execution/matlab
-cd {name}/execution/matlab
+mkdir -p {name}/execution/matlab/t{threads}
+cd {name}/execution/matlab/t{threads}
 
 mkdir -p logs
 export MATLAB_LOG_DIR={linnea_results_path}/execution/matlab/logs
