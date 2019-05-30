@@ -52,44 +52,49 @@ def read_results_execution(experiment_name, number_of_experiments):
 
     language_dfs = []
     for language in ["julia", "matlab", "cpp"]:
-        # new
-        path = os.path.join(experiment_name, "execution", language)
-        if os.path.exists(path):
-            file_dfs = []
-            for example in example_names:
-                file_path = "{0}/{1}_results_{2}_timings.txt".format(path, language, example)
-                if os.path.isfile(file_path):
-                    # TODO what if rows have different lengths?
-                    if language == "matlab":
-                        skiprows = 1
+        for threads in [1, 24]:
+            path = os.path.join(experiment_name, "execution", language, "t{}".format(threads))
+            if os.path.exists(path):
+                file_dfs = []                
+                for example in example_names:
+                    file_path = "{0}/{1}_results_{2}_timings.txt".format(path, language, example)
+                    if os.path.isfile(file_path):
+                        # TODO what if rows have different lengths?
+                        if language == "matlab":
+                            skiprows = 1
+                        else:
+                            skiprows = 0
+
+                        try:
+                            df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, skiprows=skiprows, header=None, index_col=[0, 1])
+                        except pd.errors.EmptyDataError:
+                            print("Empty file", file_path)
+                        else:
+                            df_processed = pd.DataFrame()
+                            df_processed["min_time"] = df.min(axis=1)
+                            df_processed["median_time"] = df.median(axis=1)
+                            df_processed["mean_time"] = df.mean(axis=1)
+                            df_processed["ci_lower"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[0]], axis=1)
+                            df_processed["ci_upper"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[1]], axis=1)
+                            df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
+                            df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
+                            df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
+                            tuples = [(example, implementation, threads) for implementation, threads in df.index.values]
+                            df_processed.index = pd.MultiIndex.from_tuples(tuples, names=['example', 'implementation', 'threads'])
+                            file_dfs.append(df_processed)
                     else:
-                        skiprows = 0
+                        print("Missing file", file_path)
 
-                    try:
-                        df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, skiprows=skiprows, header=None, index_col=0)
-                    except pd.errors.EmptyDataError:
-                        print("Empty file", file_path)
-                    else:
-                        df_processed = pd.DataFrame()
-                        df_processed["min_time"] = df.min(axis=1)
-                        df_processed["median_time"] = df.median(axis=1)
-                        df_processed["mean_time"] = df.mean(axis=1)
-                        df_processed["ci_lower"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[0]], axis=1)
-                        df_processed["ci_upper"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[1]], axis=1)
-                        df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
-                        df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
-                        df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
-                        df_processed.index = pd.MultiIndex.from_product([[example], df.index.values], names=['example', 'implementation'])
-                        file_dfs.append(df_processed)
-                else:
-                    print("Missing file", file_path)
+                if file_dfs:
+                    df = pd.concat(file_dfs, sort=True)
+                    language_dfs.append(df)
+            else:
+                print("No directory", path)
 
-            df = pd.concat(file_dfs, sort=True)
-            language_dfs.append(df)
-        else:
-            print("No results for", language)
-
-    return pd.concat(language_dfs, sort=True)
+    if language_dfs:
+        return pd.concat(language_dfs, sort=True)
+    else:
+        return pd.DataFrame()
 
 
 def read_intensity(experiment_name, number_of_experiments):
@@ -146,12 +151,13 @@ def read_results_k_best(experiment_name, number_of_experiments):
     path = os.path.join(experiment_name, "execution", "k_best")
     file_dfs = []
     file_dfs_raw = []
-    if os.path.exists(path):
-        for example in example_names:
-            file_path = "{0}/julia_results_{1}_timings.txt".format(path, example)
+
+    for example in example_names:
+        for threads in [1, 24]:
+            file_path = "{0}/t{1}/julia_results_{2}_timings.txt".format(path, threads, example)
             if os.path.isfile(file_path):
                 try:
-                    df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, header=None, index_col=0)
+                    df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, header=None, index_col=[0, 1])
                 except pd.errors.EmptyDataError:
                     print("Empty file", file_path)
                 else:
@@ -165,20 +171,23 @@ def read_results_k_best(experiment_name, number_of_experiments):
                     df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
                     df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
                     df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
-                    df_processed.index = pd.MultiIndex.from_product([[example], df.index.values], names=['example', 'implementation'])
+                    tuples = [(example, implementation, threads) for implementation, threads in df.index.values]
+                    df_processed.index = pd.MultiIndex.from_tuples(tuples, names=['example', 'implementation', 'threads'])
                     file_dfs.append(df_processed)
 
                     file_dfs_raw.append(pd.DataFrame(df.drop(["naive_julia", "recommended_julia"], errors='ignore').stack().reset_index(drop=True), columns=[example]))
             else:
                 print("Missing file", file_path)
+
+    if file_dfs:
+        df_raw = pd.concat(file_dfs_raw, axis=1)
+        df_raw.to_csv("{}_k_best_raw.csv".format(experiment), na_rep="NaN")
+
+        df = pd.concat(file_dfs, sort=True)
+        return df
     else:
         print("No results for k best experiment.")
-
-    df_raw = pd.concat(file_dfs_raw, axis=1)
-    df_raw.to_csv("{}_k_best_raw.csv".format(experiment), na_rep="NaN")
-
-    df = pd.concat(file_dfs, sort=True)
-    return df
+        return pd.DataFrame()
 
 
 def to_performance_profiles_data(time_data):
@@ -269,7 +278,7 @@ def to_mean_speedup(speedup_data, drop_reference=None):
     return speedup_mean
 
 
-def compare_to_fastest(time_data, reference):
+def compare_to_fastest(time_data, intensity_data, reference):
     """Identifies cases where other systems are faster than reference.
 
     Returns a DataFrame with example problem, algorithm and slowdown, sorted by
@@ -277,9 +286,10 @@ def compare_to_fastest(time_data, reference):
     """
     diff = time_data.apply(lambda row: row[reference]/row, axis=1)
     diff = diff.stack()
-    diff = diff.loc[diff > 1]
-    diff.sort_values(ascending=False, inplace=True)
-    return(diff)
+    diff = pd.DataFrame(diff, columns=["speedup"]).join(intensity_data, how='inner')
+    diff = diff.loc[diff["speedup"] > 1]
+    diff.sort_values(by=['speedup'], ascending=False, inplace=True)
+    return diff
 
 
 def check_std_dev(experiment_name, number_of_experiments, threshold=0.1):
@@ -321,37 +331,42 @@ def get_column_names(experiment):
     return new_columns
 
 
-def process_data_execution(execution_results, experiment, intensity_cols):
+def process_data_execution(data, experiment_name, intensity_cols):
 
-    execution_results = execution_results.unstack()
+    # for threads in [24]:
+    for threads in [1, 24]:
+        experiment = "{}_t{}".format(experiment_name, threads)
 
-    execution_time = execution_results["median_time"]
+        execution_results = data.xs(threads, level=2)
+        execution_results = execution_results.unstack()
 
-    execution_results = execution_results.reorder_levels([1, 0], axis=1)
-    execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
-    execution_results = pd.concat([execution_results, intensity_cols], axis=1, sort=True)
-    execution_results.to_csv("{}_execution_results.csv".format(experiment), na_rep="NaN")
-    execution_results.dropna().to_csv("{}_execution_results_clean.csv".format(experiment), na_rep="NaN")
-    to_speedup_data_CI(execution_results.dropna()).to_csv("{}_speedup_CI.csv".format(experiment), na_rep="NaN")
+        execution_time = execution_results["median_time"]
 
-    execution_time_with_intensity = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
-    execution_time_with_intensity.to_csv("{}_execution_time.csv".format(experiment), na_rep="NaN")
+        execution_results = execution_results.reorder_levels([1, 0], axis=1)
+        execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
+        execution_results = pd.concat([execution_results, intensity_cols], axis=1, sort=True)
+        execution_results.to_csv("{}_execution_results.csv".format(experiment), na_rep="NaN")
+        execution_results.dropna().to_csv("{}_execution_results_clean.csv".format(experiment), na_rep="NaN")
+        to_speedup_data_CI(execution_results.dropna()).to_csv("{}_speedup_CI.csv".format(experiment), na_rep="NaN")
 
-    execution_time.dropna().to_csv("{}_execution_time_clean.csv".format(experiment))
+        execution_time_with_intensity = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
+        execution_time_with_intensity.to_csv("{}_execution_time.csv".format(experiment), na_rep="NaN")
 
-    performance_profiles_data = to_performance_profiles_data(performance_profiles_data_reduce(execution_time))
-    performance_profiles_data.to_csv("{}_performance_profile.csv".format(experiment), na_rep="NaN")
-    
-    speedup_data = to_speedup_data(execution_time, speedup_reference)
-    speedup_data = pd.concat([speedup_data, intensity_cols], axis=1, sort=True)
-    speedup_data.to_csv("{}_speedup.csv".format(experiment), na_rep="NaN")
-    speedup_data.dropna().to_csv("{}_speedup_clean.csv".format(experiment))
+        execution_time.dropna().to_csv("{}_execution_time_clean.csv".format(experiment))
 
-    mean_speedup = to_mean_speedup(speedup_data)
-    mean_speedup.to_csv("{}_mean_speedup.csv".format(experiment), na_rep="NaN")
+        performance_profiles_data = to_performance_profiles_data(performance_profiles_data_reduce(execution_time))
+        performance_profiles_data.to_csv("{}_performance_profile.csv".format(experiment), na_rep="NaN")
+        
+        speedup_data = to_speedup_data(execution_time, speedup_reference)
+        speedup_data = pd.concat([speedup_data, intensity_cols], axis=1, sort=True)
+        speedup_data.to_csv("{}_speedup.csv".format(experiment), na_rep="NaN")
+        speedup_data.dropna().to_csv("{}_speedup_clean.csv".format(experiment))
 
-    speedup_over_linnea = compare_to_fastest(execution_time, speedup_reference)
-    speedup_over_linnea.to_csv("{}_speedup_over_linnea.csv".format(experiment), na_rep="NaN")
+        mean_speedup = to_mean_speedup(speedup_data)
+        mean_speedup.to_csv("{}_mean_speedup.csv".format(experiment), na_rep="NaN")
+
+        speedup_over_linnea = compare_to_fastest(execution_time, intensity_cols, speedup_reference)
+        speedup_over_linnea.to_csv("{}_speedup_over_linnea.csv".format(experiment), na_rep="NaN")
 
 
 def process_data_generation(gen_results, experiment):
@@ -495,14 +510,16 @@ if __name__ == '__main__':
         intensity_cols = process_data_intensity(intensity_data, experiment)
 
         # k best
-        k_best_data = read_results_k_best(experiment, n)
+        # k_best_data = read_results_k_best(experiment, n)
         k_best_data_all.append(k_best_data)
-        process_data_k_best(k_best_data, intensity_data, experiment)
+        if not k_best_data.empty:
+            process_data_k_best(k_best_data, intensity_data, experiment)
 
         # execution
         execution_results = read_results_execution(experiment, n)
         execution_results_all.append(execution_results)
-        process_data_execution(execution_results, experiment, intensity_cols)
+        if not execution_results.empty:
+            process_data_execution(execution_results, experiment, intensity_cols)
 
         # generation
         gen_results = read_results_generation(experiment, n)
@@ -519,11 +536,13 @@ if __name__ == '__main__':
 
     # k best
     k_best_data_combined = pd.concat(k_best_data_all)
-    process_data_k_best(k_best_data_combined, intensity_data_combined, "combined")
+    if not k_best_data_combined.empty:
+        process_data_k_best(k_best_data_combined, intensity_data_combined, "combined")
 
     # execution combined
     execution_results_combined = pd.concat(execution_results_all, sort=True)
-    process_data_execution(execution_results_combined, "combined", intensity_cols)
+    if not execution_results.empty:
+        process_data_execution(execution_results_combined, "combined", intensity_cols)
 
     # generation combined
     gen_results_combined = pd.concat(gen_results_all)
