@@ -11,18 +11,32 @@ collections_module = config.import_collections()
 
 class MatrixChainGraph(egb.ExpressionGraphBase):
 
+
+    def __init__(self, input):
+        super().__init__(input)
+        self.active_nodes = [self.root]
+
+
+    def remove_node(self, node):
+        self.nodes.remove(node)
+        try:
+            self.active_nodes.remove(node)
+        except ValueError:
+            pass
+
+
     def derivation(self):
 
-        new_nodes = []
-        while new_nodes:
-
+        while self.active_nodes:
             new_nodes = []
-            for node in self.nodes:
+            
+            for node in self.active_nodes:
                 new_nodes.extend(self.create_nodes(node, *self.TR_matrix_chain_kernels(node.expression)))
                 new_nodes.extend(self.create_nodes(node, *self.TR_unary_kernels(node.expression)))
             
+            self.active_nodes = new_nodes
             self.DS_merge_nodes()
-
+            
 
     def DS_merge_nodes(self):
         """Merges redundant nodes in the derivation graph.

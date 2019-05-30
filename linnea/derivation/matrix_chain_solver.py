@@ -87,7 +87,7 @@ class MatrixChainSolver():
                         matched_kernels, _cost, tmp = mc_graph.optimal_algorithm()
                         # mc_graph.to_dot_file(name="matrix_chain_graph.gv")
                         if not matched_kernels:
-                            # mc_graph.to_dot_file(name="matrix_chain_graph.gv")
+                            # mc_graph.write_graph("tmp", config.GraphStyle.full, file_name="matrix_chain_graph")
                             continue
 
                     cost = self.costs[i][k] + self.costs[k+1][j] + _cost
