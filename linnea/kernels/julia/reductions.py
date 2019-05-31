@@ -1521,6 +1521,31 @@ matrix_sum = KernelDescription(
     [KernelType.identity, KernelType.transpose]
     )
 
+# A + B^T
+
+A = Matrix("A", (m, n))
+B = Matrix("B", (n, m))
+cf = lambda d: d["N"]*d["M"]
+
+matrix_sum_transpose = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Plus(A, Transpose(B))}
+    ),
+    [],
+    [InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(A, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$A .+= transpose($B)",
+    "",
+    [SizeArgument("N", A, "columns"),
+     SizeArgument("M", A, "rows")], # Argument objects
+    [KernelType.identity]
+    )
+
 # scalar * diagonal
 
 X = Matrix("X", (m, n))
