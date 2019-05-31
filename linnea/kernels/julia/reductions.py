@@ -258,13 +258,13 @@ ger_alt = KernelDescription(
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
     "",
-    # "$A = $alpha*$x*transpose($y)", # doesn't seem to make much of a difference with Julia 1.1 dev
-    textwrap.dedent(
-        """\
-        fill!($A, 0.0)
-        ger!($alpha, $x, $y, $A)\
-        """
-        ),
+    "$A = $alpha*$x*transpose($y)",
+    # textwrap.dedent(
+    #     """\
+    #     fill!($A, 0.0)
+    #     ger!($alpha, $x, $y, $A)\
+    #     """
+    #     ),
     "",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
