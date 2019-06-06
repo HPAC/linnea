@@ -1658,7 +1658,7 @@ diagdiagsolve = KernelDescription(
     "",
     "$B ./= $A;",
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1698,7 +1698,7 @@ diagsmr = KernelDescription(
         """
         ),
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1732,7 +1732,7 @@ diagsml = KernelDescription(
     "",
     "$B ./= $A;",
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1805,7 +1805,7 @@ diagmmr = KernelDescription(
         """
         ),
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1847,7 +1847,7 @@ diagmml = KernelDescription(
         """
         ), # this has better spacial locality than view($B, i, :)[:] .*= $A[i];
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
