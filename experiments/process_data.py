@@ -150,10 +150,13 @@ def read_results_k_best(experiment_name, number_of_experiments):
 
     path = os.path.join(experiment_name, "execution", "k_best")
     file_dfs = []
-    file_dfs_raw = []
+    file_dfs_raw = dict()
+    for threads in [1, 24]:
+        file_dfs_raw[threads] = []
 
     for example in example_names:
         for threads in [1, 24]:
+
             file_path = "{0}/t{1}/julia_results_{2}_timings.txt".format(path, threads, example)
             if os.path.isfile(file_path):
                 try:
@@ -175,13 +178,14 @@ def read_results_k_best(experiment_name, number_of_experiments):
                     df_processed.index = pd.MultiIndex.from_tuples(tuples, names=['example', 'implementation', 'threads'])
                     file_dfs.append(df_processed)
 
-                    file_dfs_raw.append(pd.DataFrame(df.drop(["naive_julia", "recommended_julia"], errors='ignore').stack().reset_index(drop=True), columns=[example]))
+                    file_dfs_raw[threads].append(pd.DataFrame(df.drop(["naive_julia", "recommended_julia"], errors='ignore').stack().reset_index(drop=True), columns=[example]))
             else:
                 print("Missing file", file_path)
 
     if file_dfs:
-        df_raw = pd.concat(file_dfs_raw, axis=1)
-        df_raw.to_csv("{}_k_best_raw.csv".format(experiment), na_rep="NaN")
+        for threads, data in file_dfs_raw.items():
+            df_raw = pd.concat(data, axis=1)
+            df_raw.to_csv("{}_t{}_k_best_raw.csv".format(experiment, threads), na_rep="NaN")
 
         df = pd.concat(file_dfs, sort=True)
         return df
@@ -278,18 +282,19 @@ def to_mean_speedup(speedup_data, drop_reference=None):
     return speedup_mean
 
 
-def compare_to_fastest(time_data, intensity_data, reference):
+def compare_to_fastest(speedup_data, intensity_data):
     """Identifies cases where other systems are faster than reference.
 
     Returns a DataFrame with example problem, algorithm and slowdown, sorted by
     the magintude of the slowdown.
     """
-    diff = time_data.apply(lambda row: row[reference]/row, axis=1)
-    diff = diff.stack()
-    diff = pd.DataFrame(diff, columns=["speedup"]).join(intensity_data, how='inner')
-    diff = diff.loc[diff["speedup"] > 1]
-    diff.sort_values(by=['speedup'], ascending=False, inplace=True)
-    return diff
+    df = speedup_data.drop(["algorithm0", "mean", "intensity"], axis=1, errors="ignore")
+    df = 1. / df 
+    df = df.stack()
+    df = pd.DataFrame(df, columns=["speedup"]).join(intensity_data, how='inner')
+    df = df.loc[df["speedup"] > 1]
+    df.sort_values(by=['speedup'], ascending=False, inplace=True)
+    return df
 
 
 def check_std_dev(experiment_name, number_of_experiments, threshold=0.1):
@@ -347,7 +352,8 @@ def process_data_execution(data, experiment_name, intensity_cols):
         execution_results = pd.concat([execution_results, intensity_cols], axis=1, sort=True)
         execution_results.to_csv("{}_execution_results.csv".format(experiment), na_rep="NaN")
         execution_results.dropna().to_csv("{}_execution_results_clean.csv".format(experiment), na_rep="NaN")
-        to_speedup_data_CI(execution_results.dropna()).to_csv("{}_speedup_CI.csv".format(experiment), na_rep="NaN")
+        speedup_data_CI = to_speedup_data_CI(execution_results.dropna())
+        speedup_data_CI.to_csv("{}_speedup_CI.csv".format(experiment), na_rep="NaN")
 
         execution_time_with_intensity = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
         execution_time_with_intensity.to_csv("{}_execution_time.csv".format(experiment), na_rep="NaN")
@@ -365,9 +371,11 @@ def process_data_execution(data, experiment_name, intensity_cols):
         mean_speedup = to_mean_speedup(speedup_data)
         mean_speedup.to_csv("{}_mean_speedup.csv".format(experiment), na_rep="NaN")
 
-        speedup_over_linnea = compare_to_fastest(execution_time, intensity_cols, speedup_reference)
+        speedup_over_linnea = compare_to_fastest(speedup_data, intensity_cols)
         speedup_over_linnea.to_csv("{}_speedup_over_linnea.csv".format(experiment), na_rep="NaN")
 
+        speedup_over_linnea_CI = compare_to_fastest(speedup_data_CI, intensity_cols)
+        speedup_over_linnea_CI.to_csv("{}_speedup_over_linnea_CI.csv".format(experiment), na_rep="NaN")
 
 def process_data_generation(gen_results, experiment):
 
@@ -417,72 +425,123 @@ def process_data_trace(trace_data, experiment):
     trace_data.to_csv("{}_trace.csv".format(experiment), na_rep="NaN")
 
 
-def process_data_k_best(k_best_data, intensity_data, experiment):
+def process_data_k_best(data, intensity_data, experiment_name):
 
-    plain_data = pd.concat([k_best_data, intensity_data], axis=1, sort=True)
-    plain_data.drop(["naive_julia", "recommended_julia"], level=1, inplace=True)
-    plain_data.to_csv("{}_k_best.csv".format(experiment), na_rep="NaN")
+    for threads in [1, 24]:
+        experiment = "{}_t{}".format(experiment_name, threads)
 
-    for col in ["min_time", "min_time_rel", "median_time", "ci_upper_rel", "ci_lower_rel", "cost"]:
-        df = plain_data[col].unstack(0)
-        df.index = df.index.map(lambda x: int(x[9:]))
-        df.sort_index(inplace=True)
-        df.to_csv("{}_k_best_{}.csv".format(experiment, col), na_rep="NaN")
+        k_best_data = data.xs(threads, level=2)
 
-    # stats algorithm0e
-    algorithm0e_stats = pd.DataFrame(plain_data.xs("algorithm0", level=1))
-    algorithm0e_stats.dropna(inplace=True)
+        plain_data = pd.concat([k_best_data, intensity_data], axis=1, sort=True)
+        plain_data.drop(["naive_julia", "recommended_julia"], level=1, inplace=True)
+        plain_data.to_csv("{}_k_best.csv".format(experiment), na_rep="NaN")
 
-    df = plain_data["min_time"].unstack(0)
-    algorithm0e_stats["k"] = df.count()
+        for col in ["min_time", "min_time_rel", "median_time", "ci_upper_rel", "ci_lower_rel", "cost"]:
+            df = plain_data[col].unstack(0)
+            df.index = df.index.map(lambda x: int(x[9:]))
+            df.sort_index(inplace=True)
+            df.to_csv("{}_k_best_{}.csv".format(experiment, col), na_rep="NaN")
 
-    df = plain_data["cost"].unstack(0)
-    algorithm0e_stats["cost_cutoff"] = df.max()/df.min()
-    
-    algorithm0e_stats.to_csv("{}_k_best_stats_algorithm0e.csv".format(experiment), na_rep="NaN")
+        # stats algorithm0
+        algorithm0_stats = pd.DataFrame(plain_data.xs("algorithm0", level=1))
+        algorithm0_stats.dropna(inplace=True)
 
-    # stats for solution with smallest min time
-    min_time_stats = plain_data.loc[plain_data.groupby(level=0).min_time.idxmin().dropna()]
-    min_time_stats.reset_index(level=1, inplace=True)
+        df = plain_data["min_time"].unstack(0)
+        algorithm0_stats["k"] = df.count()
 
-    min_time_stats["idx"] = min_time_stats.apply(lambda row: int(row["implementation"][9:]), axis=1)
+        df = plain_data["cost"].unstack(0)
+        algorithm0_stats["cost_cutoff"] = df.max()/df.min()
+        
+        algorithm0_stats.to_csv("{}_k_best_stats_algorithm0.csv".format(experiment), na_rep="NaN")
 
-    del min_time_stats["ci_lower"]
-    del min_time_stats["ci_lower_rel"]
-    del min_time_stats["ci_upper"]
-    del min_time_stats["ci_upper_rel"]
-    del min_time_stats["min_time_rel"]
+        # stats for solution with smallest min time
+        min_time_stats = plain_data.loc[plain_data.groupby(level=0).min_time.idxmin().dropna()]
+        min_time_stats.reset_index(level=1, inplace=True)
 
-    min_time_stats["slowdown"] = min_time_stats["min_time"]/algorithm0e_stats["min_time"]
-    min_time_stats["speedup"] = algorithm0e_stats["min_time"]/min_time_stats["min_time"]
-    min_time_stats["cost_rel"] = min_time_stats["cost"]/algorithm0e_stats["cost"]
-    min_time_stats["intensity_ref"] = algorithm0e_stats["intensity"]
+        min_time_stats["idx"] = min_time_stats.apply(lambda row: int(row["implementation"][9:]), axis=1)
 
-    min_time_stats.to_csv("{}_k_best_stats_min_time.csv".format(experiment), na_rep="NaN")
+        del min_time_stats["ci_lower"]
+        del min_time_stats["ci_lower_rel"]
+        del min_time_stats["ci_upper"]
+        del min_time_stats["ci_upper_rel"]
+        del min_time_stats["min_time_rel"]
 
-    # stats for solution with smallest median time
-    median_time_stats = plain_data.loc[plain_data.groupby(level=0).median_time.idxmin().dropna()]
-    median_time_stats.reset_index(level=1, inplace=True)
-    median_time_stats["idx"] = median_time_stats.apply(lambda row: int(row["implementation"][9:]), axis=1)
+        min_time_stats["slowdown"] = min_time_stats["min_time"]/algorithm0_stats["min_time"]
+        min_time_stats["speedup"] = algorithm0_stats["min_time"]/min_time_stats["min_time"]
+        min_time_stats["cost_rel"] = min_time_stats["cost"]/algorithm0_stats["cost"]
+        min_time_stats["intensity_ref"] = algorithm0_stats["intensity"]
 
-    median_time_stats["slowdown"] = median_time_stats["median_time"]/algorithm0e_stats["median_time"]
-    median_time_stats["speedup"] = algorithm0e_stats["median_time"]/median_time_stats["median_time"]
-    tmp = pd.DataFrame()
-    tmp["optimal_ci_lower"] = median_time_stats["ci_lower"]
-    tmp["optimal_ci_upper"] = median_time_stats["ci_upper"]
-    tmp["optimal_median_time"] = median_time_stats["median_time"]
-    tmp["algorithm0e_ci_lower"] = algorithm0e_stats["ci_lower"]
-    tmp["algorithm0e_ci_upper"] = algorithm0e_stats["ci_upper"]
-    tmp["algorithm0e_median_time"] = algorithm0e_stats["median_time"]
-    median_time_stats["slowdown_CI"] = tmp.apply(speedup_CI, axis=1, args=("optimal", "algorithm0e"))
-    median_time_stats["speedup_CI"] = tmp.apply(speedup_CI, axis=1, args=("algorithm0e", "optimal"))
-    median_time_stats["cost_rel"] = median_time_stats["cost"]/algorithm0e_stats["cost"]
-    median_time_stats["intensity_ref"] = algorithm0e_stats["intensity"]
+        min_time_stats.to_csv("{}_k_best_stats_min_time.csv".format(experiment), na_rep="NaN")
 
-    median_time_stats.to_csv("{}_k_best_stats_median_time.csv".format(experiment), na_rep="NaN")
+        # stats for solution with smallest median time
+        median_time_stats = plain_data.loc[plain_data.groupby(level=0).median_time.idxmin().dropna()]
+        median_time_stats.reset_index(level=1, inplace=True)
+        median_time_stats["idx"] = median_time_stats.apply(lambda row: int(row["implementation"][9:]), axis=1)
 
-    # TODO search for cases where speedup < 1  and cost_rel > 1
-    # median_time_stats.loc[(median_time_stats["speedup"] < 1.0) & (median_time_stats["cost_rel"] > 1.0)]
+        median_time_stats["slowdown"] = median_time_stats["median_time"]/algorithm0_stats["median_time"]
+        median_time_stats["speedup"] = algorithm0_stats["median_time"]/median_time_stats["median_time"]
+        tmp = pd.DataFrame()
+        tmp["optimal_ci_lower"] = median_time_stats["ci_lower"]
+        tmp["optimal_ci_upper"] = median_time_stats["ci_upper"]
+        tmp["optimal_median_time"] = median_time_stats["median_time"]
+        tmp["algorithm0_ci_lower"] = algorithm0_stats["ci_lower"]
+        tmp["algorithm0_ci_upper"] = algorithm0_stats["ci_upper"]
+        tmp["algorithm0_median_time"] = algorithm0_stats["median_time"]
+        median_time_stats["slowdown_CI"] = tmp.apply(speedup_CI, axis=1, args=("optimal", "algorithm0"))
+        median_time_stats["speedup_CI"] = tmp.apply(speedup_CI, axis=1, args=("algorithm0", "optimal"))
+        median_time_stats["cost_rel"] = median_time_stats["cost"]/algorithm0_stats["cost"]
+        median_time_stats["intensity_ref"] = algorithm0_stats["intensity"]
+
+        median_time_stats.to_csv("{}_k_best_stats_median_time.csv".format(experiment), na_rep="NaN")
+
+        # TODO search for cases where speedup < 1  and cost_rel > 1
+        # median_time_stats.loc[(median_time_stats["speedup"] < 1.0) & (median_time_stats["cost_rel"] > 1.0)]
+
+
+def process_data_optimal_solution(execution_data, k_best_data, intensity_data, experiment_name):
+
+    # for threads in [24]:
+    for threads in [1, 24]:
+        experiment = "{}_t{}".format(experiment_name, threads)
+
+        execution_results = execution_data.xs(threads, level=2)
+        execution_results = execution_results.unstack()
+
+        execution_time = execution_results["median_time"].copy()
+
+        execution_results = execution_results.reorder_levels([1, 0], axis=1)
+        execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
+        execution_results = pd.concat([execution_results, intensity_cols], axis=1, sort=True)
+
+        k_best = k_best_data.xs(threads, level=2).copy()
+        k_best.drop(["naive_julia", "recommended_julia"], level=1, inplace=True)
+
+        median_time_stats = k_best.loc[k_best.groupby(level=0).median_time.idxmin().dropna()]
+        median_time_stats.reset_index(level=1, inplace=True)
+
+        execution_time["algorithm0"] = median_time_stats["median_time"]
+
+        speedup_data = to_speedup_data(execution_time, speedup_reference)
+        speedup_data = pd.concat([speedup_data, intensity_cols], axis=1, sort=True)
+        speedup_data.to_csv("{}_speedup_OS.csv".format(experiment), na_rep="NaN")
+
+        execution_results["algorithm0_median_time"] = median_time_stats["median_time"]
+        execution_results["algorithm0_ci_lower"] = median_time_stats["ci_lower"]
+        execution_results["algorithm0_ci_upper"] = median_time_stats["ci_upper"]
+
+        speedup_data_CI = to_speedup_data_CI(execution_results.dropna())
+        speedup_data_CI.to_csv("{}_speedup_OS_CI.csv".format(experiment), na_rep="NaN")
+
+        # execution_time = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
+        
+        performance_profiles_data = to_performance_profiles_data(performance_profiles_data_reduce(execution_time))
+        performance_profiles_data.to_csv("{}_performance_profile_OS.csv".format(experiment), na_rep="NaN")
+        
+        speedup_over_linnea = compare_to_fastest(speedup_data, intensity_cols)
+        speedup_over_linnea.to_csv("{}_speedup_over_linnea_OS.csv".format(experiment), na_rep="NaN")
+
+        speedup_over_linnea_CI = compare_to_fastest(speedup_data_CI, intensity_cols)
+        speedup_over_linnea_CI.to_csv("{}_speedup_over_linnea_OS_CI.csv".format(experiment), na_rep="NaN")
 
 
 if __name__ == '__main__':
@@ -510,7 +569,7 @@ if __name__ == '__main__':
         intensity_cols = process_data_intensity(intensity_data, experiment)
 
         # k best
-        # k_best_data = read_results_k_best(experiment, n)
+        k_best_data = read_results_k_best(experiment, n)
         k_best_data_all.append(k_best_data)
         if not k_best_data.empty:
             process_data_k_best(k_best_data, intensity_data, experiment)
@@ -525,6 +584,9 @@ if __name__ == '__main__':
         gen_results = read_results_generation(experiment, n)
         gen_results_all.append(gen_results)
         process_data_generation(gen_results, experiment)
+
+        # speedup plot and performance profile with optimal solution as reference
+        process_data_optimal_solution(execution_results, k_best_data, intensity_cols, experiment)
 
     # intensity combined
     intensity_data_combined = pd.concat(intensity_data_all)
@@ -547,6 +609,9 @@ if __name__ == '__main__':
     # generation combined
     gen_results_combined = pd.concat(gen_results_all)
     process_data_generation(gen_results_combined, "combined")
+
+    # speedup plot and performance profile with optimal solution as reference
+    process_data_optimal_solution(execution_results_combined, k_best_data_combined, intensity_cols, "combined")
 
 
  
