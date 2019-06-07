@@ -1956,7 +1956,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]
+cf = lambda d: d["N"]*d["M"]
 
 pmm = KernelDescription(
     ExpressionKV(
@@ -1972,7 +1972,8 @@ pmm = KernelDescription(
     "",
     "$B = $A[$P,:]",
     "",
-    [SizeArgument("N", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -1983,7 +1984,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]
+cf = lambda d: d["N"]*d["M"]
 
 ptmm = KernelDescription(
     ExpressionKV(
@@ -1999,7 +2000,8 @@ ptmm = KernelDescription(
     "",
     "$B = $A[invperm($P),:]",
     "",
-    [SizeArgument("N", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -2010,7 +2012,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(properties.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: d["M"]
+cf = lambda d: d["N"]*d["M"]
 
 mpm = KernelDescription(
     ExpressionKV(
@@ -2026,7 +2028,8 @@ mpm = KernelDescription(
     "",
     "$B = $A[:,invperm($P)]",
     "",
-    [SizeArgument("M", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -2037,7 +2040,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(properties.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: d["M"]
+cf = lambda d: d["N"]*d["M"]
 
 mptm = KernelDescription(
     ExpressionKV(
@@ -2053,7 +2056,8 @@ mptm = KernelDescription(
     "",
     "$B = $A[:,$P]",
     "",
-    [SizeArgument("M", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
