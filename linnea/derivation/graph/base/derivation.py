@@ -283,7 +283,7 @@ class DerivationGraphBase(base.GraphBase):
 
         if experiment_code:
 
-            generate_experiment_code(output_name, self.input, algorithm_name, len(paths), [1])
+            generate_experiment_code(output_name, self.input, algorithm_name, len(paths), [1, 24])
 
 
         return number_of_algorithms
