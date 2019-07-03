@@ -1,6 +1,6 @@
 from ....algebra.expression import Symbol
 from ....code_generation import utils as cgu
-from ....code_generation.experiments import operand_generation, runner, reference_code
+from ....code_generation.experiments.utils import generate_experiment_code
 
 from .... import config
 
@@ -248,6 +248,8 @@ class DerivationGraphBase(base.GraphBase):
                 cgu.remove_files(algorithms_dir_name)
                 derivation_dir_name = os.path.join(directory_name, config.language.name, subdir_name, "derivation")
                 cgu.remove_files(derivation_dir_name)
+                algorithms_dir_name = os.path.join(directory_name, config.language.name, "experiments")
+                cgu.remove_files(algorithms_dir_name)
 
         if code or derivation:
             for n, (path, cost) in enumerate(paths):
@@ -265,6 +267,9 @@ class DerivationGraphBase(base.GraphBase):
                 if code:
                     cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
 
+                if experiment_code:
+                    cgu.algorithm_to_file(output_name, "experiments", algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output, experiment = True)
+
                 if derivation:
                     file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", "algorithm{}.txt".format(n))
                     directory_name = os.path.dirname(file_name)
@@ -278,12 +283,8 @@ class DerivationGraphBase(base.GraphBase):
 
         if experiment_code:
 
-            reference_code.generate_reference_code(output_name, self.input)
+            generate_experiment_code(output_name, self.input, algorithm_name, len(paths), [1])
 
-            operand_generation.generate_operand_generator(output_name, self.input)
-
-            algorithms = [(subdir_name, algorithm_name.format(0))]
-            runner.generate_runner(output_name, algorithms, [1])
 
         return number_of_algorithms
 

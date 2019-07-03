@@ -443,7 +443,8 @@ class MatchedKernel():
 
 def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input, output,
                       language = config.language,
-                      file_extension = config.filename_extension):
+                      file_extension = config.filename_extension,
+                      experiment = False):
     file_name = os.path.join(config.output_code_path, output_name, language.name, subdir_name,
                              "".join([algorithm_name, file_extension]))
     directory_name = os.path.dirname(file_name)
@@ -453,13 +454,16 @@ def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input
     if config.verbosity >= 2:
         print("Generate algorithm file {}".format(file_name))
     algorithm_name = algorithm_name
-    algorithm_str = algorithm_to_str(algorithm_name, algorithm, input, output, language)
+    algorithm_str = algorithm_to_str(algorithm_name, algorithm, input, output, language, experiment)
     output_file.write(algorithm_str)
     output_file.close()
 
-def algorithm_to_str(function_name, algorithm, input, output, language):
+def algorithm_to_str(function_name, algorithm, input, output, language, experiment = False):
     if language == config.Language.Julia:
-        template = get_template("algorithm.jl", language)
+        if experiment:
+            template = get_template("algorithm_experiments.jl", language)
+        else:
+            template = get_template("algorithm.jl", language)
         algorithm_str = template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
     elif language == config.Language.Matlab:
         template = get_template("algorithm.m", language)

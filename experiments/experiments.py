@@ -19,7 +19,7 @@ from linnea.config import Language
 import linnea.examples.examples
 import linnea.examples.application as application
 from linnea.derivation.graph.derivation import DerivationGraph
-from linnea.code_generation.experiments import operand_generation, runner, reference_code
+from linnea.code_generation.experiments.utils import generate_experiment_code
 
 from random_expressions import generate_equation
 from jobscripts import generate_scripts
@@ -82,7 +82,7 @@ def generate(experiment, example, name):
     k = graph.write_output(code=True,
                        derivation=True,
                        output_name=name,
-                       experiment_code=False,
+                       experiment_code=True,
                        algorithms_limit=100,
                        graph=False,
                        subdir_name="generated",
@@ -222,32 +222,20 @@ def main():
 
             if not args.reference:
                 generate(args.experiment, example, name)
+            else:
+                algorithm_name = "algorithm{}"
 
-            reference_code.generate_reference_code(name, example.eqns)
-            operand_generation.generate_operand_generator(name, example.eqns)
+                # determining k for k best experiment
+                # using the upper limit for k is sufficient because we test if files exist
+                k = 0
+                while True:
+                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "experiments", algorithm_name.format(k) + ".jl")
+                    if os.path.exists(file_path):
+                        k += 1
+                    else:
+                        break
 
-            # runner should only include files that actually exists
-            # runner for comparing Julia, C++ and Matlab
-            existing_algorithms = []
-            subdir_name = "generated"
-            algorithm_name = "algorithm0"
-            file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, subdir_name, algorithm_name + ".jl")
-            if os.path.exists(file_path):
-                existing_algorithms.append((subdir_name, algorithm_name))
-            
-            runner.generate_runner(name, existing_algorithms, num_threads)
-
-            # k best runner
-            existing_algorithms = []
-            # using the upper limit for k is sufficient because we test if files exist
-            for i in range(100):
-                algorithm_name = "algorithm{}".format(i)
-                file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "generated", algorithm_name + ".jl")
-                if os.path.exists(file_path):
-                    existing_algorithms.append(("generated", algorithm_name))
-
-            for threads in num_threads:
-                runner.runner_to_file("runner_k_best", name, linnea.config.Language.Julia, threads, existing_algorithms)
+                generate_experiment_code(name, example.eqns, algorithm_name, k, num_threads)
 
     elif args.mode == "jobscripts":
         generate_scripts(args.experiment, len(examples), num_threads)

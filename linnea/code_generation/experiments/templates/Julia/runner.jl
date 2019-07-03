@@ -13,8 +13,8 @@ include("reference/recommended.jl")
 matrices = operand_generator()
 
 @info("Performing Test run...")
-result_naive = collect(naive(map(copy, matrices)...))
-result_recommended = collect(recommended(map(copy, matrices)...))
+result_naive = collect(naive(map(copy, matrices)...)[1])
+result_recommended = collect(recommended(map(copy, matrices)...)[1])
 {tmp_results}
 @test isapprox(result_recommended, result_naive, rtol=1e-3)
 {tests}

@@ -23,7 +23,8 @@ def generate_reference_code(output_name, equations):
     utils.algorithm_to_file(output_name, "reference", "naive",
                         equations.to_julia_expression(),
                         input_str, output_str,
-                        config.Language.Julia)
+                        config.Language.Julia,
+                        experiment = True)
     utils.algorithm_to_file(output_name, "reference", "naive",
                         equations.to_matlab_expression(), input_str, output_str,
                         config.Language.Matlab, ".m")
@@ -46,7 +47,8 @@ def generate_reference_code(output_name, equations):
     utils.algorithm_to_file(output_name, "reference", "recommended",
                         equations.to_julia_expression(recommended=True),
                         input_str, output_str,
-                        config.Language.Julia)
+                        config.Language.Julia,
+                        experiment = True)
     utils.algorithm_to_file(output_name, "reference", "recommended",
                         equations.to_matlab_expression(recommended=True),
                         input_str, output_str,
