@@ -10,6 +10,8 @@
 {spec_exclusive}
 {spec_node}
 
+export GOMP_CPU_AFFINITY="1 3 5 7 9 11 13 15 17 19 21 23 0 2 4 6 8 10 12 14 16 18 20 22"
+
 module load gcc/{gcc_version}
 
 cd {linnea_results_path}/
