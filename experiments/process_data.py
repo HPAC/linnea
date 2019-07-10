@@ -178,7 +178,7 @@ def read_results_k_best(experiment_name, number_of_experiments):
                     df_processed.index = pd.MultiIndex.from_tuples(tuples, names=['example', 'implementation', 'threads'])
                     file_dfs.append(df_processed)
 
-                    file_dfs_raw[threads].append(pd.DataFrame(df.drop(["naive_julia", "recommended_julia"], errors='ignore').stack().reset_index(drop=True), columns=[example]))
+                    file_dfs_raw[threads].append(pd.DataFrame(df.drop(["naive_julia", "recommended_julia"], level=0, errors='ignore').stack().reset_index(drop=True), columns=[example]))
             else:
                 print("Missing file", file_path)
 
