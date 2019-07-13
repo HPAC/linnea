@@ -5,11 +5,13 @@ function {}({})
     start::Float64 = 0.0
     finish::Float64 = 0.0
     Benchmarker.cachescrub()
-    Benchmarker.gcscrub()
+    GC.gc()
+    GC.enable(false)
     start = time_ns()
 
 {}
 
     finish = time_ns()
+    GC.enable(true)
     return (tuple({}), (finish-start)*1e-9)
 end
