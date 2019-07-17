@@ -8,6 +8,8 @@ def generate_reference_code(output_name, equations):
     input_str = ", ".join([operand.name for operand in input])
     output_str = ", ".join([operand.name for operand in output])
 
+    julia_input_str = ", ".join(["{}::{}".format(operand.name, utils.operand_type(operand, True)) for operand in input])
+
     utils.remove_files(os.path.join(config.output_code_path, output_name, config.Language.Julia.name, "reference"))
     utils.remove_files(os.path.join(config.output_code_path, output_name, config.Language.Cpp.name, "reference"))
     utils.remove_files(os.path.join(config.output_code_path, output_name, config.Language.Matlab.name, "reference"))
@@ -22,7 +24,7 @@ def generate_reference_code(output_name, equations):
                         config.Language.Cpp, ".hpp")
     utils.algorithm_to_file(output_name, "reference", "naive",
                         equations.to_julia_expression(),
-                        input_str, output_str,
+                        julia_input_str, output_str,
                         config.Language.Julia,
                         experiment = True)
     utils.algorithm_to_file(output_name, "reference", "naive",
@@ -46,7 +48,7 @@ def generate_reference_code(output_name, equations):
 
     utils.algorithm_to_file(output_name, "reference", "recommended",
                         equations.to_julia_expression(recommended=True),
-                        input_str, output_str,
+                        julia_input_str, output_str,
                         config.Language.Julia,
                         experiment = True)
     utils.algorithm_to_file(output_name, "reference", "recommended",

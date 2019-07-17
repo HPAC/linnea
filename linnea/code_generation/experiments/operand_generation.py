@@ -49,7 +49,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
 
     if language is config.Language.Julia:
         file_name = "operand_generator.jl"
-        op_gen_line_template = "{name} = generate(({size}), [{properties}])"
+        op_gen_line_template = "{name}::{type} = generate(({size}), [{properties}])"
         # random_operand = ["Properties.Random(20, 21)"]
         def random_operand(l, u):
             return "Properties.Random({}, {})".format(l, u)
@@ -85,6 +85,8 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
             replacement = {"name": operand.name}
         else:
             replacement = {"name": "out{{ {0} }}".format(idx)}
+
+        replacement["type"] = utils.operand_type(operand, True)
 
         # Special case - scalar generation for C++
         if language == config.Language.Cpp and operand.has_property(properties.SCALAR):

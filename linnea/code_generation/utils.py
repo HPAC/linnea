@@ -121,7 +121,7 @@ class Algorithm():
         code_list = []
 
         input_operands, output_operands = self.initial_equations.input_output()
-        self.experiment_input = ", ".join([self.memory.lookup[operand.name].name for operand in input_operands])
+        self.experiment_input = ", ".join(["{}::{}".format(self.memory.lookup[operand.name].name, operand_type(operand)) for operand in input_operands])
 
         code_list.append("{0}cost {1:.3g}\n".format(config.comment, self.cost))
 
@@ -487,6 +487,30 @@ def algorithm_to_str(function_name, algorithm, input, output, language, experime
         raise config.LanguageOptionNotImplemented()
     
     return algorithm_str
+
+def operand_type(operand, property_types=False):
+    if property_types:
+        if operand.has_property(properties.SCALAR):
+            return config.data_type_string
+        elif operand.has_property(properties.VECTOR):
+            return "Array{{{0},1}}".format(config.data_type_string)
+        elif operand.has_property(properties.DIAGONAL):
+            return "Diagonal{{{0},Array{{{0},1}}}}".format(config.data_type_string)
+        elif operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.SPD) or operand.has_property(properties.SPSD):
+            return "Symmetric{{{0},Array{{{0},2}}}}".format(config.data_type_string)
+        elif operand.has_property(properties.LOWER_TRIANGULAR):
+            return "LowerTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
+        elif operand.has_property(properties.UPPER_TRIANGULAR):
+            return "UpperTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
+        else:
+            return "Array{{{0},2}}".format(config.data_type_string)
+    else:
+        if operand.has_property(properties.SCALAR):
+            return config.data_type_string
+        elif operand.has_property(properties.VECTOR):
+            return "Array{{{0},1}}".format(config.data_type_string)
+        else:
+            return "Array{{{0},2}}".format(config.data_type_string)
 
 def remove_files(directory_name):
     if os.path.exists(directory_name):
