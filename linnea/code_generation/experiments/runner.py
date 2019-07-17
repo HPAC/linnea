@@ -57,10 +57,10 @@ def runner_to_file(runner_name, output_name, language, num_threads, algorithms=[
         runner_file = runner_template.format(
             num_threads = num_threads,
             includes = "\n".join(includes),
-            tmp_results = "\n".join(tmp_results),
-            tests = "\n".join(tests),
+            tmp_results = textwrap.indent("\n".join(tmp_results), "    "),
+            tests = textwrap.indent("\n".join(tests), "    "),
             experiment_name = output_name,
-            measurements = "\n".join(plots),
+            measurements = textwrap.indent("\n".join(plots), "    "),
         )
     else:
         runner_file = runner_template.format(num_threads = num_threads, experiment_name = output_name)
