@@ -5,7 +5,6 @@ function {}({})
     start::Float64 = 0.0
     finish::Float64 = 0.0
     Benchmarker.cachescrub()
-    GC.gc()
     GC.enable(false)
     start = time_ns()
 
