@@ -14,7 +14,7 @@ import functools
 
 class DerivationGraph(base.derivation.DerivationGraphBase):
 
-    def derivation(self, time_limit=60, merging=True, dead_ends=True):
+    def derivation(self, time_limit=60, merging=True, dead_ends=True, pruning_factor=1.0):
         
         # TODO add argument for stopping as soon as first solution is found
         # or use time_limit == 0?
@@ -26,7 +26,7 @@ class DerivationGraph(base.derivation.DerivationGraphBase):
         self.init_temporaries(self.root.equations)
         self.root.equations.check_consistency()
 
-        trace_data, terminal_nodes = self.best_first_search(time_limit=time_limit, merging=merging, dead_ends=dead_ends)
+        trace_data, terminal_nodes = self.best_first_search(time_limit=time_limit, merging=merging, dead_ends=dead_ends, pruning_factor=pruning_factor)
                 
         # file_name = os.path.join(config.output_code_path, config.output_name, config.language.name, "dfs_trace.csv")
         # with open(file_name, "wt", encoding='utf-8') as output_file:

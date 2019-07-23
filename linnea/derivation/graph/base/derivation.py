@@ -33,7 +33,7 @@ class DerivationGraphBase(base.GraphBase):
         self.nodes = [self.root]
 
 
-    def best_first_search(self, time_limit=60, merging=True, dead_ends=True):
+    def best_first_search(self, time_limit=60, merging=True, dead_ends=True, pruning_factor=1.0):
 
         self.root.generator = self.successor_generator(self.root)
 
@@ -53,12 +53,12 @@ class DerivationGraphBase(base.GraphBase):
         while not p_stack.empty():
             prio, node = p_stack.get()
 
-            if node.accumulated_cost > best_solution:
+            if node.accumulated_cost > best_solution * pruning_factor:
                 node.labels.append("pruned")
                 pruned_nodes[node.id] = (prio, node)
                 continue
 
-            if all(is_dead_end(equations, node.factored_operands) for equations in generate_variants(node.equations)):
+            if dead_ends and all(is_dead_end(equations, node.factored_operands) for equations in generate_variants(node.equations)):
                 node.labels.append("dead")
                 continue
 
@@ -99,10 +99,11 @@ class DerivationGraphBase(base.GraphBase):
 
             # TODO how to improve this?
             # put this into a function
+            # TODO why do we use new_solution here? best_solution only gets smaller. 
             if new_solution or nodes_merged:
                 remove = []
                 for p_prio, p_node in pruned_nodes.values():
-                    if p_node.accumulated_cost <= best_solution:
+                    if p_node.accumulated_cost <= best_solution * pruning_factor:
                         p_node.labels.remove("pruned") 
                         p_stack.put(p_prio, p_node)
                         remove.append(p_node.id)
