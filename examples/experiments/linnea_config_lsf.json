@@ -44,6 +44,7 @@
         "julia_data_type": "Float64",
         "merging_branches": true,
         "dead_ends": true,
+        "pruning_factor": 1.0,
         "algorithms_limit": 100,
         "output_name": "tmp",
         "generate_graph": false,

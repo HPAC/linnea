@@ -3,7 +3,7 @@ if __name__ == "__main__":
 
     import linnea.config
 
-    linnea.config.set_output_path(".")
+    linnea.config.set_output_code_path(".")
     linnea.config.init()
 
     from linnea.derivation.graph.derivation import DerivationGraph
@@ -16,7 +16,8 @@ if __name__ == "__main__":
     graph = DerivationGraph(equations)
     graph.derivation(time_limit=60,
                      merging=True,
-                     dead_ends=True)
+                     dead_ends=True,
+                     pruning_factor=1.0)
 
     graph.write_output(code=True,
                        derivation=False,
