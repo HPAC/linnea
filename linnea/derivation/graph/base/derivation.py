@@ -87,7 +87,6 @@ class DerivationGraphBase(base.GraphBase):
 
                 p_stack.put(prio+1, node)
             
-            new_solution = False
             if new_terminal_node or nodes_merged:
                 for terminal_node in terminal_nodes:
                     if terminal_node.accumulated_cost < best_solution:
@@ -95,12 +94,10 @@ class DerivationGraphBase(base.GraphBase):
                         t_elapsed = time.perf_counter() - t_start
                         trace_data.append((t_elapsed, terminal_node.accumulated_cost))
                         self.print_result_sep("New solution:", "{:.3g}".format(best_solution))
-                        new_solution = True
 
             # TODO how to improve this?
             # put this into a function
-            # TODO why do we use new_solution here? best_solution only gets smaller. 
-            if new_solution or nodes_merged:
+            if nodes_merged:
                 remove = []
                 for p_prio, p_node in pruned_nodes.values():
                     if p_node.accumulated_cost <= best_solution * pruning_factor:
