@@ -70,20 +70,29 @@ class DerivationGraphBase(base.GraphBase):
             except StopIteration:
                 pass
             else:
-                try:
-                    existing_prio, existing_node = existing_nodes[new_node.equations]
-                except KeyError:
-                    existing_nodes[new_node.equations] = (0, new_node)
-                    new_node.generator = self.successor_generator(new_node)
+                # TODO is there a good way to avoid code duplication here?
+                if merging:
+                    try:
+                        existing_prio, existing_node = existing_nodes[new_node.equations]
+                    except KeyError:
+                        existing_nodes[new_node.equations] = (0, new_node)
+                        if new_node.is_terminal():
+                            terminal_nodes.append(new_node)
+                            new_terminal_node = True
+                        else:
+                            new_node.generator = self.successor_generator(new_node)
+                            p_stack.put(0, new_node)
+                    else:
+                        existing_node.merge(new_node)
+                        self.remove_node(new_node)
+                        nodes_merged = True
+                else:
                     if new_node.is_terminal():
                         terminal_nodes.append(new_node)
                         new_terminal_node = True
                     else:
+                        new_node.generator = self.successor_generator(new_node)
                         p_stack.put(0, new_node)
-                else:
-                    existing_node.merge(new_node)
-                    self.remove_node(new_node)
-                    nodes_merged = True
 
                 p_stack.put(prio+1, node)
             
