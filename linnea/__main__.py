@@ -30,6 +30,7 @@ def main():
     parser.add_argument("--derivation", action="store_const", const=True, help="generate description of the derivation")
     group.add_argument("--silent", action="store_const", const=True, help="suppress non-error messages")
     parser.add_argument("--time-limit", help="time limit for the generation")
+    parser.add_argument("--pruning-factor", help="cutoff for pruning nodes (relative to best solution)")
     group.add_argument("-v", "--verbose", action="count", help="increase verbosity")
     parser.add_argument("--example", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -47,6 +48,8 @@ def main():
         config.set_generate_experiments(args.experiments)
     if args.dead_ends is not None:
         config.set_dead_ends(args.dead_ends)
+    if args.pruning_factor is not None:
+        config.set_pruning_factor(args.pruning_factor)
     if args.graph is not None:
         config.set_generate_graph(args.graph)
     if args.graph_style is not None:
@@ -110,12 +113,12 @@ def main():
     from .derivation.graph.derivation import DerivationGraph  
 
     graph = DerivationGraph(equations)
-    trace = graph.derivation(
-                        time_limit=config.time_limit,
-                        merging=config.merging_branches,
-                        dead_ends=config.dead_ends)
+    trace = graph.derivation(time_limit=config.time_limit,
+                             merging=config.merging_branches,
+                             dead_ends=config.dead_ends,
+                             pruning_factor=config.pruning_factor)
     if config.verbosity >= 2:
-        print(":".join(str(t) for t in trace))
+        print(trace)
 
     graph.write_output(code=config.generate_code,
                        derivation=config.generate_derivation,

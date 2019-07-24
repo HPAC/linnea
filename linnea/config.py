@@ -73,6 +73,7 @@ language = None
 output_name = None
 merging_branches = False
 dead_ends = False
+pruning_factor = -1
 algorithms_limit = -1
 generate_graph = False
 generate_derivation = False
@@ -144,6 +145,10 @@ def set_merging_branches(merging):
 def set_dead_ends(de):
     global dead_ends
     dead_ends = de
+
+def set_pruning_factor(factor):
+    global pruning_factor
+    pruning_factor = factor
 
 def set_algorithms_limit(n):
     global algorithms_limit
@@ -226,6 +231,7 @@ set_language(Language.Julia)
 set_data_type(JuliaDataType.Float64)
 set_merging_branches(True)
 set_dead_ends(True)
+set_pruning_factor(1.0)
 set_algorithms_limit(100)
 set_generate_graph(False)
 set_generate_derivation(False)
