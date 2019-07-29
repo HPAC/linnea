@@ -61,7 +61,7 @@ def generate_code_scripts(replacement):
     template_path = "jobscripts/templates/generate_code.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    for args, ref in [("", ""), ("-f", "_ref")]:
+    for args, ref in [("", ""), ("-f", "_ref"), ("--k-best", "_k_best")]:
         replacement_copy = replacement.copy()
 
         replacement_copy["args"] = args

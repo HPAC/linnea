@@ -56,7 +56,7 @@ def measure(example, name, merge, reps=10):
             bool(graph.terminal_nodes())]
     return data
 
-def generate(experiment, example, name):
+def generate(experiment, example, name, k_best=False):
 
     algorithm_name = "algorithm{}"
 
@@ -67,26 +67,41 @@ def generate(experiment, example, name):
 
     print(example.eqns)
 
+    if k_best:
+        # time_limit = ???
+        algorithms_limit = 100
+        pruning_factor = 1.5
+        intensity_dir = "intensity_k_best"
+        subdir_name_experiments = "k_best"
+    else:
+        algorithms_limit = 1
+        pruning_factor = 1.0
+        intensity_dir = "intensity"
+        subdir_name_experiments = "experiments"
+
     graph = DerivationGraph(example.eqns)
     trace = graph.derivation(
                         time_limit=30*60,
                         merging=True,
-                        dead_ends=True)
+                        dead_ends=True,
+                        pruning_factor=pruning_factor)
 
-    df = pd.DataFrame(trace, columns=["time", "cost"])
-    file_path = os.path.join(linnea.config.results_path, experiment, "trace", name + "_trace.csv")
-    df.to_csv(file_path)
-    if linnea.config.verbosity >= 2:
-        print("Generate trace file {}".format(file_path))
+    if not k_best:
+        df = pd.DataFrame(trace, columns=["time", "cost"])
+        file_path = os.path.join(linnea.config.results_path, experiment, "trace", name + "_trace.csv")
+        df.to_csv(file_path)
+        if linnea.config.verbosity >= 2:
+            print("Generate trace file {}".format(file_path))
 
-    k = graph.write_output(code=True,
-                       derivation=True,
-                       output_name=name,
-                       experiment_code=True,
-                       algorithms_limit=100,
-                       graph=False,
-                       subdir_name="generated",
-                       algorithm_name=algorithm_name)
+    k = graph.write_output(
+                        code=False,
+                        derivation=True,
+                        output_name=name,
+                        experiment_code=True,
+                        algorithms_limit=algorithms_limit,
+                        graph=False,
+                        subdir_name_experiments=subdir_name_experiments,
+                        algorithm_name=algorithm_name)
 
     vals = []
     data = example.eqns.get_data()
@@ -96,7 +111,7 @@ def generate(experiment, example, name):
     mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(k)]], names=("example", "implementation"))
     df = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
 
-    file_path = os.path.join(linnea.config.results_path, experiment, "intensity", name + "_intensity.csv")
+    file_path = os.path.join(linnea.config.results_path, experiment, intensity_dir, name + "_intensity.csv")
     df.to_csv(file_path)
     if linnea.config.verbosity >= 2:
         print("Generate intensity file {}".format(file_path))
@@ -110,6 +125,7 @@ def main():
     parser.add_argument("-j", "--jobindex", help="Job index.", type=int, default=0)
     parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
     parser.add_argument("-f", "--reference", action="store_true", help="Only generate reference code.")
+    parser.add_argument("--k-best", action="store_true", help="Generate code for k best experiment.")
     parser.add_argument("-l", "--config", type=str, default=None, help="Specify configuration file.")
     args = parser.parse_args()
 
@@ -221,7 +237,7 @@ def main():
         for example, name in job_examples:
 
             if not args.reference:
-                generate(args.experiment, example, name)
+                generate(args.experiment, example, name, args.k_best)
             else:
                 algorithm_name = "algorithm{}"
 
@@ -229,7 +245,7 @@ def main():
                 # using the upper limit for k is sufficient because we test if files exist
                 k = 0
                 while True:
-                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "experiments", algorithm_name.format(k) + ".jl")
+                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "k_best", algorithm_name.format(k) + ".jl")
                     if os.path.exists(file_path):
                         k += 1
                     else:

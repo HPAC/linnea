@@ -441,6 +441,18 @@ class MatchedKernel():
         self.kernel_io = None
         
 
+def derivation_to_file(output_name, subdir_name, algorithm_name, derivation):
+    file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", algorithm_name)
+    directory_name = os.path.dirname(file_name)
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
+    output_file = open(file_name, "wt")
+    output_file.write(derivation)
+    output_file.close()
+    if config.verbosity >= 2:
+        print("Generate derivation file {}".format(file_name))
+
+
 def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input, output,
                       language = config.language,
                       file_extension = config.filename_extension,

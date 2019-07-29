@@ -226,7 +226,19 @@ class DerivationGraphBase(base.GraphBase):
         return new_nodes
 
 
-    def write_output(self, code=True, derivation=False, output_name="tmp", experiment_code=False, algorithms_limit=1, graph=False, graph_style=config.GraphStyle.full, subdir_name="generated", algorithm_name="algorithm{}"):
+    def write_output(
+            self,
+            code=True,
+            derivation=False,
+            output_name="tmp",
+            experiment_code=False,
+            algorithms_limit=1,
+            graph=False,
+            graph_style=config.GraphStyle.full,
+            subdir_name="generated",
+            subdir_name_experiments="experiments",
+            algorithm_name="algorithm{}"
+        ):
 
         if not config.output_code_path:
             raise config.OutputPathNotSet("Unable to write output: output_code_path not set.")
@@ -251,12 +263,16 @@ class DerivationGraphBase(base.GraphBase):
                 os.makedirs(directory_name)
             else:
                 # Removing existing algorithm files
-                algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name)
-                cgu.remove_files(algorithms_dir_name)
-                derivation_dir_name = os.path.join(directory_name, config.language.name, subdir_name, "derivation")
-                cgu.remove_files(derivation_dir_name)
-                algorithms_dir_name = os.path.join(directory_name, config.language.name, "experiments")
-                cgu.remove_files(algorithms_dir_name)
+                if code:
+                    algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name)
+                    cgu.remove_files(algorithms_dir_name)
+                    derivation_dir_name = os.path.join(directory_name, config.language.name, subdir_name, "derivation")
+                    cgu.remove_files(derivation_dir_name)
+                if experiment_code:
+                    algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name_experiments)
+                    cgu.remove_files(algorithms_dir_name)
+                    algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name_experiments, "derivation")
+                    cgu.remove_files(algorithms_dir_name)
 
         if code or derivation:
             for n, (path, cost) in enumerate(paths):
@@ -273,20 +289,14 @@ class DerivationGraphBase(base.GraphBase):
 
                 if code:
                     cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
+                    if derivation:
+                        cgu.derivation_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.derivation())
 
                 if experiment_code:
-                    cgu.algorithm_to_file(output_name, "experiments", algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output, experiment = True)
+                    cgu.algorithm_to_file(output_name, subdir_name_experiments, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output, experiment=True)
+                    if derivation:
+                        cgu.derivation_to_file(output_name, subdir_name_experiments, algorithm_name.format(n), algorithm.derivation())
 
-                if derivation:
-                    file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", "algorithm{}.txt".format(n))
-                    directory_name = os.path.dirname(file_name)
-                    if not os.path.exists(directory_name):
-                        os.makedirs(directory_name)
-                    output_file = open(file_name, "wt")
-                    output_file.write(algorithm.derivation())
-                    output_file.close()
-                    if config.verbosity >= 2:
-                        print("Generate derivation file {}".format(file_name))
 
         if experiment_code:
 
