@@ -45,6 +45,28 @@ def ci_pos(n):
     return lower_pos-1, upper_pos-1
 
 
+def read_execution_file(file, skiprows):
+    """Function to read data with variable number of columns.
+
+    """
+    from io import StringIO
+    from os import stat
+    if os.stat(file).st_size != 0:
+        with open(file) as input_file:
+            file_dfs = []
+            for i, line in enumerate(input_file):
+                if i < skiprows:
+                    continue
+                df = pd.read_csv(StringIO(line), sep='\t', skipinitialspace=True, header=None, index_col=[0, 1])
+                file_dfs.append(df)
+            df = pd.concat(file_dfs)
+            # print(df)
+        return df 
+    else:
+        # print("Empty file", file)
+        return None
+
+
 def read_results_execution(experiment_name, number_of_experiments):
 
     # TODO move this into the loop below
@@ -65,6 +87,9 @@ def read_results_execution(experiment_name, number_of_experiments):
                         else:
                             skiprows = 0
 
+                        # df = read_execution_file(file_path, skiprows)
+                        # if df is None:
+                        #     print("Empty file", file_path)
                         try:
                             df = pd.read_csv(file_path, sep='\t', skipinitialspace=True, skiprows=skiprows, header=None, index_col=[0, 1])
                         except pd.errors.EmptyDataError:
@@ -74,11 +99,12 @@ def read_results_execution(experiment_name, number_of_experiments):
                             df_processed["min_time"] = df.min(axis=1)
                             df_processed["median_time"] = df.median(axis=1)
                             df_processed["mean_time"] = df.mean(axis=1)
-                            df_processed["ci_lower"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[0]], axis=1)
-                            df_processed["ci_upper"] = df.apply(lambda row: sorted(row)[ci_pos(len(row))[1]], axis=1)
+                            df_processed["ci_lower"] = df.apply(lambda row: sorted(row.dropna())[ci_pos(len(row.dropna()))[0]], axis=1)
+                            df_processed["ci_upper"] = df.apply(lambda row: sorted(row.dropna())[ci_pos(len(row.dropna()))[1]], axis=1)
                             df_processed["ci_lower_rel"] = df_processed["ci_lower"]/df_processed["median_time"]
                             df_processed["ci_upper_rel"] = df_processed["ci_upper"]/df_processed["median_time"]
                             df_processed["min_time_rel"] = df_processed["min_time"]/df_processed["median_time"]
+                            df_processed["iters"] = df.apply(lambda row: len(row.dropna()), axis=1)
                             tuples = [(example, implementation, threads) for implementation, threads in df.index.values]
                             df_processed.index = pd.MultiIndex.from_tuples(tuples, names=['example', 'implementation', 'threads'])
                             file_dfs.append(df_processed)
@@ -345,7 +371,7 @@ def process_data_execution(data, experiment_name, intensity_cols):
         execution_results = data.xs(threads, level=2)
         execution_results = execution_results.unstack()
 
-        execution_time = execution_results["median_time"]
+        execution_time = execution_results[base_time]
 
         execution_results = execution_results.reorder_levels([1, 0], axis=1)
         execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
@@ -507,7 +533,7 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         execution_results = execution_data.xs(threads, level=2)
         execution_results = execution_results.unstack()
 
-        execution_time = execution_results["median_time"].copy()
+        execution_time = execution_results[base_time].copy()
 
         execution_results = execution_results.reorder_levels([1, 0], axis=1)
         execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
@@ -516,18 +542,20 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         k_best = k_best_data.xs(threads, level=2).copy()
         k_best.drop(["naive_julia", "recommended_julia"], level=1, inplace=True)
 
-        median_time_stats = k_best.loc[k_best.groupby(level=0).median_time.idxmin().dropna()]
-        median_time_stats.reset_index(level=1, inplace=True)
+        k_best_time_stats = k_best.loc[k_best.groupby(level=0)[base_time].idxmin().dropna()]
+        k_best_time_stats.reset_index(level=1, inplace=True)
 
-        execution_time["algorithm0"] = median_time_stats["median_time"]
+        execution_time["algorithm0"] = k_best_time_stats[base_time]
 
         speedup_data = to_speedup_data(execution_time, speedup_reference)
         speedup_data = pd.concat([speedup_data, intensity_cols], axis=1, sort=True)
         speedup_data.to_csv("{}_speedup_OS.csv".format(experiment), na_rep="NaN")
 
-        execution_results["algorithm0_median_time"] = median_time_stats["median_time"]
-        execution_results["algorithm0_ci_lower"] = median_time_stats["ci_lower"]
-        execution_results["algorithm0_ci_upper"] = median_time_stats["ci_upper"]
+        execution_results["algorithm0_min_time"] = k_best_time_stats["min_time"]
+        execution_results["algorithm0_mean_time"] = k_best_time_stats["mean_time"]
+        execution_results["algorithm0_median_time"] = k_best_time_stats["median_time"]
+        execution_results["algorithm0_ci_lower"] = k_best_time_stats["ci_lower"]
+        execution_results["algorithm0_ci_upper"] = k_best_time_stats["ci_upper"]
 
         speedup_data_CI = to_speedup_data_CI(execution_results.dropna())
         speedup_data_CI.to_csv("{}_speedup_OS_CI.csv".format(experiment), na_rep="NaN")
@@ -548,6 +576,7 @@ if __name__ == '__main__':
 
     experiments = [("random", 100), ("application", 25)]
 
+    base_time = "min_time" # what is used for calculating speedups
     speedup_reference = "algorithm0"
 
     execution_time_all = []
