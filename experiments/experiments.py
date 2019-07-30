@@ -24,7 +24,7 @@ from linnea.code_generation.experiments.utils import generate_experiment_code
 from random_expressions import generate_equation
 from jobscripts import generate_scripts
 
-def measure(example, name, merging):
+def measure(experiment, example, name, merging):
 
     linnea.config.clear_all()
     if hasattr(example, "init"):
@@ -209,7 +209,7 @@ def main():
         data = []
         for example, name in job_examples:
             for merge in merging_args:
-                measure(example, name, merge)
+                measure(args.experiment, example, name, merge)
 
 
     elif args.mode == "generate_code":
