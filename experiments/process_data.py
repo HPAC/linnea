@@ -123,12 +123,12 @@ def read_results_execution(experiment_name, number_of_experiments):
         return pd.DataFrame()
 
 
-def read_intensity(experiment_name, number_of_experiments):
+def read_intensity(experiment_name, number_of_experiments, dir):
     example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
 
     file_dfs = []
     for example_name in example_names:
-        file_path = os.path.join(experiment_name, "intensity", "{}_intensity.csv".format(example_name))
+        file_path = os.path.join(experiment_name, dir, "{}_intensity.csv".format(example_name))
         if os.path.isfile(file_path):
             try:
                 df = pd.read_csv(file_path, index_col=[0, 1])
@@ -432,15 +432,16 @@ def process_data_generation(gen_results, experiment):
     nodes_and_time.dropna().to_csv("{}_generation_all_clean.csv".format(experiment))
 
 
-def process_data_intensity(intensity_data, experiment):
+def process_data_intensity(intensity_data, experiment, output_name):
 
-    intensity_data.to_csv("{}_intensity_all.csv".format(experiment), na_rep="NaN")
+    intensity_data.to_csv("{}_{}_all.csv".format(experiment, output_name), na_rep="NaN")
 
     intensity_only = intensity_data.unstack(level=1).loc[:, ("intensity")]
-    intensity_only.to_csv("{}_intensity.csv".format(experiment), na_rep="NaN")
+    intensity_only.to_csv("{}_{}.csv".format(experiment, output_name), na_rep="NaN")
 
-    intensity_only_sorted = intensity_only.sort_values(by=["algorithm0"])
-    intensity_only_sorted.to_csv("{}_intensity_sorted.csv".format(experiment), na_rep="NaN")
+    # what is the point of this?
+    # intensity_only_sorted = intensity_only.sort_values(by=["algorithm0"])
+    # intensity_only_sorted.to_csv("{}_{}_sorted.csv".format(experiment, output_name), na_rep="NaN")
 
     intensity_optimal = pd.DataFrame()
     intensity_optimal["intensity"] = intensity_only["algorithm0"]
@@ -582,6 +583,7 @@ if __name__ == '__main__':
     execution_time_all = []
     gen_results_all = []
     intensity_data_all = []
+    intensity_k_best_data_all = []
     trace_data_all = []
     k_best_data_all = []
     execution_results_all = []
@@ -592,16 +594,21 @@ if __name__ == '__main__':
         trace_data_all.append(trace_data)
         process_data_trace(trace_data, experiment)
 
-        # intensity
-        intensity_data = read_intensity(experiment, n)
-        intensity_data_all.append(intensity_data)
-        intensity_cols = process_data_intensity(intensity_data, experiment)
+        # intensity k best
+        intensity_data = read_intensity(experiment, n, "intensity_k_best")
+        intensity_k_best_data_all.append(intensity_data)
+        intensity_cols = process_data_intensity(intensity_data, experiment, "intensity_k_best")
 
         # k best
         k_best_data = read_results_k_best(experiment, n)
         k_best_data_all.append(k_best_data)
         if not k_best_data.empty:
             process_data_k_best(k_best_data, intensity_data, experiment)
+
+        # intensity
+        intensity_data = read_intensity(experiment, n, "intensity")
+        intensity_data_all.append(intensity_data)
+        intensity_cols = process_data_intensity(intensity_data, experiment, "intensity")
 
         # execution
         execution_results = read_results_execution(experiment, n)
@@ -617,18 +624,23 @@ if __name__ == '__main__':
         # speedup plot and performance profile with optimal solution as reference
         process_data_optimal_solution(execution_results, k_best_data, intensity_cols, experiment)
 
-    # intensity combined
-    intensity_data_combined = pd.concat(intensity_data_all)
-    intensity_cols = process_data_intensity(intensity_data_combined, "combined")
 
     # trace combined
     trace_data_combined = pd.concat(trace_data_all, sort=True)
     process_data_trace(trace_data_combined, "combined")
 
+    # intensity k best combined
+    intensity_data_combined = pd.concat(intensity_k_best_data_all)
+    intensity_cols = process_data_intensity(intensity_data_combined, "combined", "intensity_k_best")
+
     # k best
     k_best_data_combined = pd.concat(k_best_data_all)
     if not k_best_data_combined.empty:
         process_data_k_best(k_best_data_combined, intensity_data_combined, "combined")
+
+    # intensity combined
+    intensity_data_combined = pd.concat(intensity_data_all)
+    intensity_cols = process_data_intensity(intensity_data_combined, "combined", "intensity")
 
     # execution combined
     execution_results_combined = pd.concat(execution_results_all, sort=True)
