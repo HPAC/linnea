@@ -24,37 +24,40 @@ from linnea.code_generation.experiments.utils import generate_experiment_code
 from random_expressions import generate_equation
 from jobscripts import generate_scripts
 
-def measure(example, name, merge, reps=10):
+def measure(example, name, merge):
 
-    times = []
+    linnea.config.clear_all()
+    if hasattr(example, "init"):
+        # calls initialization that have to be done before each repetition
+        example.init()
+        
+    graph = DerivationGraph(example.eqns)
+    trace = graph.derivation(
+                        time_limit=30*60,
+                        merging=merge,
+                        dead_ends=True)
 
-    for i in range(reps):
-        linnea.config.clear_all()
-        if hasattr(example, "init"):
-            # calls initialization that have to be done before each repetition
-            example.init()
-        graph = DerivationGraph(example.eqns)
-        t_start = time.perf_counter()
-        trace = graph.derivation(
-                            time_limit=30*60,
-                            merging=merge,
-                            dead_ends=True)
-        graph.write_output(code=True,
-                           derivation=False,
-                           output_name=name,
-                           experiment_code=False,
-                           algorithms_limit=1,
-                           graph=False,
-                           subdir_name="time_generation")
-        t_end = time.perf_counter()
-        times.append(t_end-t_start)
-    data = [numpy.mean(times),
-            numpy.std(times),
-            numpy.min(times),
-            numpy.max(times),
-            graph.nodes_count(),
-            bool(graph.terminal_nodes())]
-    return data
+    graph.write_output(code=True,
+                       derivation=False,
+                       output_name=name,
+                       experiment_code=False,
+                       algorithms_limit=1,
+                       graph=False,
+                       subdir_name="time_generation")
+
+    df = pd.DataFrame(trace, columns=["time", "cost"])
+
+    if merging:
+        subdir = "merging"
+    else:
+        subdir = "no_merging"
+
+    file_path = os.path.join(linnea.config.results_path, experiment, "generation", subdir, name + "_trace.csv")
+    df.to_csv(file_path)
+    if linnea.config.verbosity >= 2:
+        print("Generate trace file {}".format(file_path))
+
+    return
 
 def generate(experiment, example, name, k_best=False):
 
@@ -123,7 +126,6 @@ def main():
     parser.add_argument("experiment", choices=["random", "application"])
     parser.add_argument("-m", "--merging", choices=["true", "false", "both"], default="true")
     parser.add_argument("-j", "--jobindex", help="Job index.", type=int, default=0)
-    parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
     parser.add_argument("-f", "--reference", action="store_true", help="Only generate reference code.")
     parser.add_argument("--k-best", action="store_true", help="Generate code for k best experiment.")
     parser.add_argument("-l", "--config", type=str, default=None, help="Specify configuration file.")
@@ -191,35 +193,21 @@ def main():
 
         linnea.config.set_verbosity(0)
 
+        for subdir in ["merging", "no_merging"]:
+            dir = os.path.join(linnea.config.results_path, args.experiment, "generation", subdir)
+            if not os.path.exists(dir):
+                os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
+
         merging_args = []
-        merging_labels = []
         if args.merging == "true" or args.merging == "both":
             merging_args.append(True)
-            merging_labels.append("merging")
         elif args.merging == "false" or args.merging == "both":
             merging_args.append(False)
-            merging_labels.append("no_merging")
-
-        mindex = pd.MultiIndex.from_product([
-            [example.name for example in job_examples],
-            merging_labels],
-            names=["example", "merging"])
-
-        col_index = pd.Index(["mean", "std", "min", "max", "nodes", "solution"])
-
-        if args.jobindex == 0:
-            output_file = "generation.csv"
-        else:
-            output_file = "generation{:03}.csv".format(args.jobindex)
 
         data = []
         for example, name in job_examples:
             for merge in merging_args:
-                data.append(measure(example, name, merge, args.repetitions))
-                dframe = pd.DataFrame(data, index=mindex[:len(data)], columns=col_index)
-
-                # Data is written after every measurement in case the job is killed
-                dframe.to_csv(output_file)
+                measure(example, name, merge)
 
 
     elif args.mode == "generate_code":

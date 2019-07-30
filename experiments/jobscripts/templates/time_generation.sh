@@ -17,6 +17,6 @@ source {linnea_virtualenv_path}/bin/activate
 cd {linnea_results_path}
 mkdir -p {name}/generation/{dir_name}
 cd {name}/generation/{dir_name}
-python3 {linnea_src_path}/experiments/experiments.py time_generation {name} -j=${var_array_idx} -r=1 -m={merging}
+python3 {linnea_src_path}/experiments/experiments.py time_generation {name} -j=${var_array_idx} -m={merging}
 
 exit
