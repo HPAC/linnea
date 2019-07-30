@@ -24,17 +24,17 @@ from linnea.code_generation.experiments.utils import generate_experiment_code
 from random_expressions import generate_equation
 from jobscripts import generate_scripts
 
-def measure(example, name, merge):
+def measure(example, name, merging):
 
     linnea.config.clear_all()
     if hasattr(example, "init"):
         # calls initialization that have to be done before each repetition
         example.init()
-        
+
     graph = DerivationGraph(example.eqns)
     trace = graph.derivation(
                         time_limit=30*60,
-                        merging=merge,
+                        merging=merging,
                         dead_ends=True)
 
     graph.write_output(code=True,
@@ -193,6 +193,8 @@ def main():
 
         linnea.config.set_verbosity(0)
 
+        # TODO this is not necessary because it also happens in the jobscript. It might be possible to simplify the jobscript too.
+        # All paths are known here, there might be no need to go anywhere in the jobscript.
         for subdir in ["merging", "no_merging"]:
             dir = os.path.join(linnea.config.results_path, args.experiment, "generation", subdir)
             if not os.path.exists(dir):
