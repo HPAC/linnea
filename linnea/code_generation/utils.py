@@ -510,9 +510,9 @@ def operand_type(operand, property_types=False):
             return "Diagonal{{{0},Array{{{0},1}}}}".format(config.data_type_string)
         elif operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.SPD) or operand.has_property(properties.SPSD):
             return "Symmetric{{{0},Array{{{0},2}}}}".format(config.data_type_string)
-        elif operand.has_property(properties.LOWER_TRIANGULAR):
+        elif operand.has_property(properties.LOWER_TRIANGULAR) and operand.has_property(properties.SQUARE):
             return "LowerTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
-        elif operand.has_property(properties.UPPER_TRIANGULAR):
+        elif operand.has_property(properties.UPPER_TRIANGULAR) and operand.has_property(properties.SQUARE):
             return "UpperTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
         else:
             return "Array{{{0},2}}".format(config.data_type_string)
