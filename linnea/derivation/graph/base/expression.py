@@ -17,7 +17,7 @@ class ExpressionGraphBase(base.GraphBase):
     def create_nodes(self, predecessor, *description):
         new_nodes = []
         for expression, matched_kernels in description:
-            new_node = ExpressionGraphNode(expression, predecessor)
+            new_node = ExpressionGraphNode(expression)
             self.nodes.append(new_node)
             new_nodes.append(new_node)
             predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), None)

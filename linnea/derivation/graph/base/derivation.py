@@ -204,10 +204,10 @@ class DerivationGraphBase(base.GraphBase):
 
 
     def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_DS_step=None):
-        new_node = DerivationGraphNode(equations, predecessor, factored_operands, previous_DS_step)
+        new_node = DerivationGraphNode(equations, factored_operands, previous_DS_step)
         new_node.level = self.step_counter
-        self.nodes.append(new_node)
         predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
+        self.nodes.append(new_node)
         return new_node
 
 
@@ -323,8 +323,8 @@ class DerivationGraphNode(base.GraphNodeBase):
 
     _counter = 0
 
-    def __init__(self, equations=None, predecessor=None, factored_operands=None, previous_DS_step=None):
-        super().__init__(predecessor, factored_operands, previous_DS_step)
+    def __init__(self, equations=None, factored_operands=None, previous_DS_step=None):
+        super().__init__(factored_operands, previous_DS_step)
 
         # IDs for dot output
         self.id = DerivationGraphNode._counter

@@ -13,6 +13,7 @@ class GraphBase():
     def __init__(self):
         super().__init__()
         self.step_counter = -1
+        self.k_best_state = 1
 
     def print(self, str):
         if config.verbosity >= 1:
@@ -181,11 +182,13 @@ class GraphBase():
             float: The cost of the path.
         """
 
-        # to make sure that initialization happens only once
-        if not self.nodes[0].k_shortest_paths: 
+        # initialization has to happen whenever the graph changed
+        if self.k_best_state != len(self.nodes):
             for node in self.nodes:
-                path = REAPath(node.optimal_path_predecessor, 0, node.accumulated_cost)
-                node.k_shortest_paths.append(path)
+                path = REAPath(node.optimal_path_predecessor, node.optimal_path_predecessor_idx, 0, node.accumulated_cost)
+                node.k_shortest_paths = [path]
+                node.k_shortest_paths_candidates = []
+            self.k_best_state = len(self.nodes)
 
         terminal_nodes = list(filter(operator.methodcaller("is_terminal"), self.nodes))
         if not terminal_nodes:
@@ -238,7 +241,7 @@ class GraphBase():
         return
 
 
-REAPath = collections.namedtuple("REAPath", ["predecessor", "k_prime", "cost"])
+REAPath = collections.namedtuple("REAPath", ["predecessor", "predecessor_idx", "k_prime", "cost"])
 
 class PathDoesNotExist(Exception):
     pass
@@ -246,16 +249,18 @@ class PathDoesNotExist(Exception):
 
 class GraphNodeBase():
 
-    def __init__(self, predecessor=None, factored_operands=None, previous_DS_step=None):
+    def __init__(self, factored_operands=None, previous_DS_step=None):
 
         self.successors = []
         self.edge_labels = []
         self.predecessors = []
+        self.predecessors_indices = []
         self.original_equations = []
         self.metric = None
         self.accumulated_cost = 0
         self.level = None
-        self.optimal_path_predecessor = predecessor
+        self.optimal_path_predecessor = None
+        self.optimal_path_predecessor_idx = None
         self.optimal_path_successor = None
         self.labels = []
 
@@ -294,40 +299,52 @@ class GraphNodeBase():
         raise NotImplementedError()
 
     def set_labeled_edge(self, target, label, original_equations):
+        idx = len(self.successors)
         self.successors.append(target)
         self.edge_labels.append(label)
         self.original_equations.append(original_equations)
+
+        target.optimal_path_predecessor = self
+        target.optimal_path_predecessor_idx = len(target.predecessors)
+
         # add self to predecessors of target node
         target.predecessors.append(self)
+        target.predecessors_indices.append(idx)
         target.accumulated_cost = label.cost + self.accumulated_cost
         # print("set", target.id, self.id, target.accumulated_cost, label.cost, self.accumulated_cost)
 
-    def remove_edge(self, target):
-        idx = self.successors.index(target)
-        self.successors.pop(idx)
-        self.edge_labels.pop(idx)
-        self.original_equations.pop(idx)
+    # def remove_edge(self, target):
+    #     idx = self.successors.index(target)
+    #     self.successors.pop(idx)
+    #     self.edge_labels.pop(idx)
+    #     self.original_equations.pop(idx)
 
     def merge(self, other):
         """Merges node other into self.
 
         After merging, other can (and should) be removed.
         """
-        for predecessor in other.predecessors:
+        idx_shift = len(self.predecessors)
+        for predecessor, p_idx in zip(other.predecessors, other.predecessors_indices):
             predecessor.change_successor(other, self)
             self.predecessors.append(predecessor)
+            self.predecessors_indices.append(p_idx)
+
         for successor in other.successors:
             successor.change_predecessor(other, self)
-            self.successors.append(successor)
             if successor.optimal_path_predecessor is other:
                 successor.optimal_path_predecessor = self
+                # successor.optimal_path_predecessor_idx doesn't have to be changed
+        # this can't be done in the loop because change_predecessor uses len(self.successors)
+        self.successors.extend(other.successors)
+
         self.edge_labels.extend(other.edge_labels)
         self.original_equations.extend(other.original_equations)
         self.applied_DS_steps.update(other.applied_DS_steps)
         self.factored_operands.update(other.factored_operands)
-        self.update_cost(other)
+        self.update_cost(other, idx_shift)
 
-    def update_cost(self, other):
+    def update_cost(self, other, idx_shift):
         """Updates self.accumulated_cost of all successors.
 
         When merging GraphNodes, the accumulated_cost (which is
@@ -339,13 +356,17 @@ class GraphNodeBase():
         if other.accumulated_cost <= self.accumulated_cost:
             self.accumulated_cost = other.accumulated_cost
             self.optimal_path_predecessor = other.optimal_path_predecessor
+            self.optimal_path_predecessor_idx = other.optimal_path_predecessor_idx + idx_shift
 
             for node in self.topological_sort_successors():
-                for successor, edge_label in zip(node.successors, node.edge_labels):
+                for idx, (successor, edge_label) in enumerate(zip(node.successors, node.edge_labels)):
                     cost = node.accumulated_cost + edge_label.cost
                     if successor.accumulated_cost > cost:
                         successor.accumulated_cost = cost
                         successor.optimal_path_predecessor = node
+                        for new_idx, (predecessor, p_idx) in enumerate(zip(successor.predecessors, successor.predecessors_indices)):
+                            if predecessor is node and p_idx == idx:
+                                successor.optimal_path_predecessor_idx = new_idx
 
     def change_successor(self, old_target, new_target):
         idx = self.successors.index(old_target)
@@ -354,6 +375,7 @@ class GraphNodeBase():
     def change_predecessor(self, old_target, new_target):
         idx = self.predecessors.index(old_target)
         self.predecessors[idx] = new_target
+        self.predecessors_indices[idx] += len(new_target.successors)
 
     def __str__(self):
         out = "".join(["NODE ", str(self.id), "\n    ", str(self.get_payload()), " ", str(self.metric)])
@@ -426,19 +448,11 @@ class GraphNodeBase():
             list: The converted path, in the form of indices of successors.
             float: The cost of the path.
         """
-
         _path = []
         current_node = self
         current_path = path
         while current_path.predecessor:
-            # if there are multiple edges between the current and next node, we select the cheapest one
-            optimal_successor_idx = None
-            cost = math.inf
-            for idx, (node, label) in enumerate(zip(current_path.predecessor.successors, current_path.predecessor.edge_labels)):
-                if node == current_node and label.cost < cost:
-                    optimal_successor_idx = idx
-            idx = current_path.predecessor.successors.index(current_node)
-            _path.append(optimal_successor_idx)
+            _path.append(current_node.predecessors_indices[current_path.predecessor_idx])
             current_node = current_path.predecessor
             current_path = current_node.k_shortest_paths[current_path.k_prime]
 
@@ -475,20 +489,11 @@ class GraphNodeBase():
 
         # B.1 initialize candidates
         if k == 1:
-            for predecessor in self.predecessors:
-                """The way this works at the moment, if there is more than one edge
-                between a node and its optimal_path_predecessor, none of those
-                edges is added. Technically, all except for one of the edges
-                should be added to generate all paths. At the moment, this is
-                not a problem because if there are multiple edges between two
-                nodes, they are the same, so it is sufficient to only consider
-                one (which happens because of the initialization in
-                k_shortest_paths()).
-                """
-                if predecessor != self.optimal_path_predecessor:
-                    idx = predecessor.successors.index(self)
+            for p_idx, predecessor in enumerate(self.predecessors):
+                if p_idx != self.optimal_path_predecessor_idx:
+                    idx = self.predecessors_indices[p_idx]
                     cost = predecessor.edge_labels[idx].cost
-                    path = REAPath(predecessor, 0, predecessor.accumulated_cost + cost)
+                    path = REAPath(predecessor, p_idx, 0, predecessor.accumulated_cost + cost)
                     self.k_shortest_paths_candidates.append(path)
 
         # B.2
@@ -497,6 +502,7 @@ class GraphNodeBase():
             # get u and k'
             path = self.k_shortest_paths[k-1]
             node_u = path.predecessor
+            node_u_idx = path.predecessor_idx
             k_prime = path.k_prime
 
             # B.4
@@ -513,11 +519,11 @@ class GraphNodeBase():
                 # path (k_prime+1, node_u) does exsist
 
                 # get cost
-                idx = node_u.successors.index(self)
+                idx = self.predecessors_indices[node_u_idx]
                 cost_uv = node_u.edge_labels[idx].cost
                 new_cost = node_u.k_shortest_paths[k_prime+1].cost + cost_uv
 
-                new_path = REAPath(node_u, k_prime+1, new_cost)
+                new_path = REAPath(node_u, node_u_idx, k_prime+1, new_cost)
                 self.k_shortest_paths_candidates.append(new_path)
 
         # B.6
