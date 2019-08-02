@@ -254,6 +254,19 @@ class GraphNodeBase():
         self.successors = []
         self.edge_labels = []
         self.predecessors = []
+
+        """
+        This list holds the indices of self in the successor lists of its
+        predecessors. If there are multiple edges to the same predecessor, every
+        entry in this list corresponds to a different edge. This is used to
+        associate predecessors with edges in case there are multiple edges to
+        the same predecessor. More formally:
+        For all i, it holds that
+        self.predecessors[i].successors[self.predecessors_indices[i]] is self.
+        If there is an i and j such that
+        self.predecessors[i] is self.predecessors[j], then
+        self.predecessors_indices[i] != self.predecessors_indices[j] has to hold.
+        """
         self.predecessors_indices = []
         self.original_equations = []
         self.metric = None
