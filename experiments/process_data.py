@@ -146,29 +146,39 @@ def read_intensity(experiment_name, number_of_experiments, dir):
 def read_trace(experiment_name, number_of_experiments):
     example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
     file_dfs = []
-    for example_name in example_names:
-        file_path = os.path.join(experiment_name, "trace", "{}_trace.csv".format(example_name))
-        if os.path.isfile(file_path):
-            try:
-                df = pd.read_csv(file_path, index_col=0)
-            except pd.errors.EmptyDataError:
-                print("Empty file", file_path)
-            else:
-                processed_data = dict()
-                # processed_data = pd.DataFrame() # [], index=[], columns=[example_name]
-                min_cost = df["cost"].min()
-                processed_data["first_solution_time"] = df["time"].min()
-                processed_data["best_solution_time"] = df["time"].max()
-                processed_data["first_solution_cost"] = df["cost"].max()
-                processed_data["best_solution_cost"] = min_cost
-                for p in [1, 5, 10, 15, 25]:
-                    processed_data["time_to_{}pc".format(p)] = df.loc[df["cost"] < (min_cost * (1+p/100))]["time"].min()
+    for merging, merging_bool in [("merging", True), ("no_merging", False)]:
+        path = file_path = os.path.join(experiment_name, "generation", merging)
+        if os.path.exists(path) and os.listdir(path):
+            for example in example_names:
+                file_path = os.path.join(path, "{}_trace.csv".format(example))
+                if os.path.isfile(file_path):
+                    try:
+                        df = pd.read_csv(file_path, index_col=0)
+                    except pd.errors.EmptyDataError:
+                        print("Empty file", file_path)
+                    else:
+                        processed_data = dict()
+                        # processed_data = pd.DataFrame() # [], index=[], columns=[example]
+                        min_cost = df["cost"].min()
+                        processed_data["first_solution_time"] = df["time"].min()
+                        processed_data["best_solution_time"] = df["time"].max()
+                        processed_data["first_solution_cost"] = df["cost"].max()
+                        processed_data["best_solution_cost"] = min_cost
+                        for p in [1, 5, 10, 15, 25]:
+                            processed_data["time_to_{}pc".format(p)] = df.loc[df["cost"] < (min_cost * (1+p/100))]["time"].min()
 
-                file_dfs.append(pd.DataFrame(processed_data, index=[example_name]))
+                        mindex = pd.MultiIndex.from_tuples([(example, merging_bool)], names=['example', 'merging'])
+
+                        file_dfs.append(pd.DataFrame(processed_data, index=mindex))
+                else:
+                    print("Missing file", file_path)
         else:
-            print("Missing file", file_path)
+            print(path, "is empty or does not exist.")
 
-    return pd.concat(file_dfs, sort=True)    
+    if file_dfs:
+        return pd.concat(file_dfs, sort=True)
+    else:
+        return pd.DataFrame()
 
 def read_results_k_best(experiment_name, number_of_experiments):
 
@@ -403,6 +413,7 @@ def process_data_execution(data, experiment_name, intensity_cols):
         speedup_over_linnea_CI = compare_to_fastest(speedup_data_CI, intensity_cols)
         speedup_over_linnea_CI.to_csv("{}_speedup_over_linnea_CI.csv".format(experiment), na_rep="NaN")
 
+
 def process_data_generation(gen_results, experiment):
 
     gen_results.to_csv("{}_generation.csv".format(experiment), na_rep="NaN")
@@ -448,8 +459,18 @@ def process_data_intensity(intensity_data, experiment, output_name):
 
     return intensity_optimal
 
+
 def process_data_trace(trace_data, experiment):
-    trace_data.to_csv("{}_trace.csv".format(experiment), na_rep="NaN")
+    if not trace_data.empty:
+        trace_data.to_csv("{}_generation.csv".format(experiment), na_rep="NaN")
+
+        for merging, merging_bool in [("merging", True), ("no_merging", False)]:
+            try:
+                data = trace_data.xs(merging_bool, level=1)
+            except KeyError:
+                pass
+            else:
+                data.to_csv("{}_generation_{}.csv".format(experiment, merging), na_rep="NaN")
 
 
 def process_data_k_best(data, intensity_data, experiment_name):
@@ -616,10 +637,10 @@ if __name__ == '__main__':
         if not execution_results.empty:
             process_data_execution(execution_results, experiment, intensity_cols)
 
-        # generation
-        gen_results = read_results_generation(experiment, n)
-        gen_results_all.append(gen_results)
-        process_data_generation(gen_results, experiment)
+        # # generation
+        # gen_results = read_results_generation(experiment, n)
+        # gen_results_all.append(gen_results)
+        # process_data_generation(gen_results, experiment)
 
         # speedup plot and performance profile with optimal solution as reference
         process_data_optimal_solution(execution_results, k_best_data, intensity_cols, experiment)
@@ -647,9 +668,9 @@ if __name__ == '__main__':
     if not execution_results.empty:
         process_data_execution(execution_results_combined, "combined", intensity_cols)
 
-    # generation combined
-    gen_results_combined = pd.concat(gen_results_all)
-    process_data_generation(gen_results_combined, "combined")
+    # # generation combined
+    # gen_results_combined = pd.concat(gen_results_all)
+    # process_data_generation(gen_results_combined, "combined")
 
     # speedup plot and performance profile with optimal solution as reference
     process_data_optimal_solution(execution_results_combined, k_best_data_combined, intensity_cols, "combined")
