@@ -326,6 +326,8 @@ class GraphNodeBase():
         target.accumulated_cost = label.cost + self.accumulated_cost
         # print("set", target.id, self.id, target.accumulated_cost, label.cost, self.accumulated_cost)
 
+        # target.k_shortest_paths = [REAPath(target.optimal_path_predecessor, target.optimal_path_predecessor_idx, 0, target.accumulated_cost)]
+
     # def remove_edge(self, target):
     #     idx = self.successors.index(target)
     #     self.successors.pop(idx)
