@@ -249,7 +249,7 @@ class DerivationGraphBase(base.GraphBase):
         paths = []
         min_cost = self.shortest_path()[1]
         for path, cost in self.k_shortest_paths(algorithms_limit):
-            if pruning_factor == 1.0 or cost <= config.pruning_factor*min_cost:
+            if config.pruning_factor == 1.0 or cost <= config.pruning_factor*min_cost:
                 paths.append((path, cost))
             else:
                 break
