@@ -99,13 +99,6 @@ def generate(experiment, example, name, k_best=False):
                         dead_ends=True,
                         pruning_factor=pruning_factor)
 
-    if not k_best:
-        df = pd.DataFrame(trace, columns=["time", "cost"])
-        file_path = os.path.join(linnea.config.results_path, experiment, "trace", name + "_trace.csv")
-        df.to_csv(file_path)
-        if linnea.config.verbosity >= 2:
-            print("Generate trace file {}".format(file_path))
-
     k = graph.write_output(
                         code=False,
                         derivation=True,
