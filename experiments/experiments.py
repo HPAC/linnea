@@ -49,7 +49,7 @@ def measure(experiment, example, name, merging):
                        subdir_name="time_generation")
     t_end = time.perf_counter()
 
-    df_code_gen_time = pd.DataFrame([t_end-t_start], index=[example], columns=["time"])
+    df_code_gen_time = pd.DataFrame([t_end-t_start], index=[name], columns=["time"])
     
     if merging:
         subdir = "merging"
