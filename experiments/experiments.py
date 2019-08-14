@@ -37,6 +37,9 @@ def measure(experiment, example, name, merging):
                         merging=merging,
                         dead_ends=True)
 
+    df_trace = pd.DataFrame(trace, columns=["time", "cost"])
+
+    t_start = time.perf_counter()
     graph.write_output(code=True,
                        derivation=False,
                        output_name=name,
@@ -44,18 +47,24 @@ def measure(experiment, example, name, merging):
                        algorithms_limit=1,
                        graph=False,
                        subdir_name="time_generation")
+    t_end = time.perf_counter()
 
-    df = pd.DataFrame(trace, columns=["time", "cost"])
-
+    df_code_gen_time = pd.DataFrame([t_end-t_start], index=[example], columns=["time"])
+    
     if merging:
         subdir = "merging"
     else:
         subdir = "no_merging"
 
     file_path = os.path.join(linnea.config.results_path, experiment, "generation", subdir, name + "_trace.csv")
-    df.to_csv(file_path)
+    df_trace.to_csv(file_path)
     if linnea.config.verbosity >= 2:
         print("Generate trace file {}".format(file_path))
+
+    file_path = os.path.join(linnea.config.results_path, experiment, "generation", subdir, name + "_code_gen_time.csv")
+    df_code_gen_time.to_csv(file_path)
+    if linnea.config.verbosity >= 2:
+        print("Generate code gen time file {}".format(file_path))
 
     return
 
