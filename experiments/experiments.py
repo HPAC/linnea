@@ -49,7 +49,8 @@ def measure(experiment, example, name, merging):
                        subdir_name="time_generation")
     t_end = time.perf_counter()
 
-    df_code_gen_time = pd.DataFrame([t_end-t_start], index=[name], columns=["time"])
+    mindex = pd.MultiIndex.from_tuples([(name, merging)], names=["example", "merging"])
+    df_code_gen_time = pd.DataFrame([t_end-t_start], index=mindex, columns=["time"])
     
     if merging:
         subdir = "merging"
