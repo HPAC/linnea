@@ -16,8 +16,8 @@ function main()
     @info("Performing Test run...")
     result_naive = collect(naive(map(copy, matrices)...)[1])
     result_recommended = collect(recommended(map(copy, matrices)...)[1])
-{tmp_results}
-    @test isapprox(result_recommended, result_naive, rtol=1e-3)
+    test_result = isapprox(result_naive, result_recommended, rtol=1e-3)
+    @test test_result
 {tests}
     @info("Test run performed successfully")
 
