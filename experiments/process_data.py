@@ -180,6 +180,33 @@ def read_trace(experiment_name, number_of_experiments):
     else:
         return pd.DataFrame()
 
+
+def read_write_time(experiment_name, number_of_experiments):
+    example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
+    file_dfs = []
+    for merging, merging_bool in [("merging", True), ("no_merging", False)]:
+        path = file_path = os.path.join(experiment_name, "generation", merging)
+        if os.path.exists(path) and os.listdir(path):
+            for example in example_names:
+                file_path = os.path.join(path, "{}_code_gen_time.csv".format(example))
+                if os.path.isfile(file_path):
+                    try:
+                        df = pd.read_csv(file_path, index_col=[0, 1])
+                    except pd.errors.EmptyDataError:
+                        print("Empty file", file_path)
+                    else:
+                        file_dfs.append(df)
+                else:
+                    print("Missing file", file_path)
+        else:
+            print(path, "is empty or does not exist.")
+
+    if file_dfs:
+        return pd.concat(file_dfs, sort=True)
+    else:
+        return pd.DataFrame()
+
+
 def read_results_k_best(experiment_name, number_of_experiments):
 
     example_names = ["{}{:03}".format(experiment_name, i) for i in range(1, number_of_experiments+1)]
@@ -473,6 +500,12 @@ def process_data_trace(trace_data, experiment):
                 data.to_csv("{}_generation_{}.csv".format(experiment, merging), na_rep="NaN")
 
 
+def process_write_time(write_time_data, experiment):
+    if not write_time_data.empty:
+        write_time_data.to_csv("{}_write_time.csv".format(experiment), na_rep="NaN")
+        write_time_data.unstack().mean().to_csv("{}_write_time_avg.csv".format(experiment), na_rep="NaN")
+
+
 def process_data_k_best(data, intensity_data, experiment_name):
 
     for threads in [1, 24]:
@@ -606,6 +639,7 @@ if __name__ == '__main__':
     intensity_data_all = []
     intensity_k_best_data_all = []
     trace_data_all = []
+    write_data_all = []
     k_best_data_all = []
     execution_results_all = []
     for experiment, n in experiments:
@@ -614,6 +648,11 @@ if __name__ == '__main__':
         trace_data = read_trace(experiment, n)
         trace_data_all.append(trace_data)
         process_data_trace(trace_data, experiment)
+
+        # write time
+        write_data = read_write_time(experiment, n)
+        write_data_all.append(write_data)
+        process_write_time(write_data, experiment)
 
         # intensity k best
         intensity_data = read_intensity(experiment, n, "intensity_k_best")
@@ -649,6 +688,10 @@ if __name__ == '__main__':
     # trace combined
     trace_data_combined = pd.concat(trace_data_all, sort=True)
     process_data_trace(trace_data_combined, "combined")
+
+    # write time
+    write_data_combined = pd.concat(write_data_all, sort=True)
+    process_write_time(write_data_combined, "combined")
 
     # intensity k best combined
     intensity_data_combined = pd.concat(intensity_k_best_data_all)
