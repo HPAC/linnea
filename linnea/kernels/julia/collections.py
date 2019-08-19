@@ -112,6 +112,7 @@ reductions = list(itertools.chain(
                 diagfulladd,
                 invscal,
                 invlascl,
+                ## Solvers, used for CGO 2018.
                 # posv,
                 # posvr,
                 # sysv,
@@ -122,6 +123,7 @@ reductions = list(itertools.chain(
                 # posv_vec,
                 # sysv_vec,
                 # gesv_vec,
+                ## end
                 pmm,
                 ptmm,
                 mpm,
