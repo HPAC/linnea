@@ -21,6 +21,8 @@ function main()
 {tests}
     @info("Test run performed successfully")
 
+    n = 2000
+    rand(n, n)*rand(n, n) # this seems to help to reduce some startup noise
 
     @info("Running Benchmarks...")
     plotter = Benchmarker.Plot("julia_results_{experiment_name}", ["algorithm"; "threads"]);
