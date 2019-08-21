@@ -10,12 +10,21 @@ from ..algebra.equations import Equations
 from .. import config
 from .. import temporaries
 
-from .matrix_sum import decompose_sum
+from .reductions import decompose_sum
 
 import matchpy
 import copy
 
 collections_module = config.import_collections()
+
+def apply_tricks(equations):
+    equation, eqn_idx = equations.process_next()
+    if not equation:
+        return
+    for expr, position in equation.rhs.preorder_iter():
+        for callback_func, substitution in trick_MA.match(expr):
+            yield callback_func(substitution, equations, eqn_idx, position)
+
 
 WD1 = matchpy.Wildcard.dot("WD1")
 WD2 = matchpy.Wildcard.dot("WD2")
@@ -62,7 +71,7 @@ def eigen1_callback(substitution, equations, eqn_idx, position):
     equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)
 
-    return (new_equations, (), equations)
+    return (new_equations, ())
 
 eigen2 = matchpy.Pattern(
             Plus(Times(SYM1, SYM2, Transpose(SYM1)), Times(WD1, SYM3), WS1),
@@ -99,7 +108,7 @@ def eigen2_callback(substitution, equations, eqn_idx, position):
     equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)
 
-    return (new_equations, (), equations)
+    return (new_equations, ())
 
 def symmetric_product_constraint(WP1, WP2, _A):
     p1 = Times(*WP1)
@@ -124,7 +133,7 @@ def symmetric_product_callback(substitution, equations, eqn_idx, position):
     new_equations = Equations(*equations_list)
     new_equations.set_equivalent(equations)
     
-    return (new_equations, (matched_kernel,), equations)
+    return (new_equations, (matched_kernel,))
 
 
 # A^T B + B^T A + A^T A
@@ -148,7 +157,7 @@ def trick3_callback(substitution, equations, eqn_idx, position):
     
     new_equations = Equations(*equations_list)
 
-    return (new_equations, matched_kernels, equations)
+    return (new_equations, matched_kernels)
 
 
 # A^T B + B^T A + A^T C A (C is symmetric)
@@ -180,7 +189,7 @@ def trick4_callback(substitution, equations, eqn_idx, position):
     equations_list.insert(eqn_idx, new_equation)
     new_equations = Equations(*equations_list)
 
-    return (new_equations, (), equations)
+    return (new_equations, ())
 
 # patterns = [eigen1, eigen2, symmetric_product, trick3]
 

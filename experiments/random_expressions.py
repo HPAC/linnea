@@ -99,7 +99,7 @@ def matrix_chain_sizes(first, last, length, nonsingular=False):
 
 
 def random_composition(n):
-    """Generatas a radnom composition of n.
+    """Generatas a random composition of n.
     
     A composition is an ordered sum of positive integers. This function always
     generates a composition with at least two elements.
@@ -166,7 +166,7 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
 
 
     else:
-        # TODO do we really want to use transpose here? it get's pushed down anyway, and it leads to those towers
+        # TODO do we really want to use transpose here? it gets pushed down anyway, and it leads to those towers
         if expr_size[0] == expr_size[1]:
             # operators = [ae.Times, ae.Plus, ae.Transpose, ae.Inverse]
 

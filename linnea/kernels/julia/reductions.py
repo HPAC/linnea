@@ -258,13 +258,13 @@ ger_alt = KernelDescription(
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
     "",
-    # "$A = $alpha*$x*transpose($y)", # doesn't seem to make much of a difference with Julia 1.1 dev
-    textwrap.dedent(
-        """\
-        fill!($A, 0.0)
-        ger!($alpha, $x, $y, $A)\
-        """
-        ),
+    "$A .= $alpha.*$x.*transpose($y)",
+    # textwrap.dedent(
+    #     """\
+    #     fill!($A, 0.0)
+    #     ger!($alpha, $x, $y, $A)\
+    #     """
+    #     ),
     "",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
@@ -1521,6 +1521,31 @@ matrix_sum = KernelDescription(
     [KernelType.identity, KernelType.transpose]
     )
 
+# A + B^T
+
+A = Matrix("A", (m, n))
+B = Matrix("B", (n, m))
+cf = lambda d: d["N"]*d["M"]
+
+matrix_sum_transpose = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Plus(A, Transpose(B))}
+    ),
+    [],
+    [InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+    ],
+    OutputOperand(A, StorageFormat.full), # return value
+    cf, # cost function
+    "",
+    "$A .+= transpose($B)",
+    "",
+    [SizeArgument("N", A, "columns"),
+     SizeArgument("M", A, "rows")], # Argument objects
+    [KernelType.identity]
+    )
+
 # scalar * diagonal
 
 X = Matrix("X", (m, n))
@@ -1633,7 +1658,7 @@ diagdiagsolve = KernelDescription(
     "",
     "$B ./= $A;",
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1673,7 +1698,7 @@ diagsmr = KernelDescription(
         """
         ),
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1707,7 +1732,7 @@ diagsml = KernelDescription(
     "",
     "$B ./= $A;",
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1780,7 +1805,7 @@ diagmmr = KernelDescription(
         """
         ),
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1822,7 +1847,7 @@ diagmml = KernelDescription(
         """
         ), # this has better spacial locality than view($B, i, :)[:] .*= $A[i];
     "",
-    [SizeArgument("M", A, "rows"),
+    [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
@@ -1931,7 +1956,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]
+cf = lambda d: d["N"]*d["M"]
 
 pmm = KernelDescription(
     ExpressionKV(
@@ -1947,7 +1972,8 @@ pmm = KernelDescription(
     "",
     "$B = $A[$P,:]",
     "",
-    [SizeArgument("N", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -1958,7 +1984,7 @@ P = Matrix("P", (n, n))
 P.set_property(properties.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]
+cf = lambda d: d["N"]*d["M"]
 
 ptmm = KernelDescription(
     ExpressionKV(
@@ -1974,7 +2000,8 @@ ptmm = KernelDescription(
     "",
     "$B = $A[invperm($P),:]",
     "",
-    [SizeArgument("N", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -1985,7 +2012,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(properties.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: d["M"]
+cf = lambda d: d["N"]*d["M"]
 
 mpm = KernelDescription(
     ExpressionKV(
@@ -2001,7 +2028,8 @@ mpm = KernelDescription(
     "",
     "$B = $A[:,invperm($P)]",
     "",
-    [SizeArgument("M", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -2012,7 +2040,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(properties.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: d["M"]
+cf = lambda d: d["N"]*d["M"]
 
 mptm = KernelDescription(
     ExpressionKV(
@@ -2028,7 +2056,8 @@ mptm = KernelDescription(
     "",
     "$B = $A[:,$P]",
     "",
-    [SizeArgument("M", P, "columns")], # Argument objects
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("M", A, "columns")], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 

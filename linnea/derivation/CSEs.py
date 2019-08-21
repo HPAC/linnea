@@ -1,24 +1,21 @@
-
-import matchpy
-import itertools
-
 from ..algebra.expression import Times, Plus, Symbol, Operator, \
-                                      Transpose, Inverse, InverseTranspose, \
-                                      Equal
+                                 Transpose, Inverse, InverseTranspose, \
+                                 Equal
 from ..algebra.equations import Equations
 from ..algebra.transformations import invert, invert_transpose, transpose
 from ..algebra.properties import Property as properties
+from ..utils import window, powerset, is_inverse, is_transpose, \
+                    contains_inverse, contains_transpose
 
 from .. import temporaries
 
-from ..utils import window, powerset
-
-from .graph.utils import is_inverse, is_transpose, is_blocked, \
-                                     contains_inverse, contains_transpose
-
+from .utils import is_blocked
 
 from enum import Enum, unique
 from collections import Counter
+
+import matchpy
+import itertools
 
 @unique
 class CSEType(Enum):
@@ -64,6 +61,9 @@ class Subexpression():
 
         self.id = Subexpression._counter
         Subexpression._counter +=1
+
+    def __lt__(self, other):
+        return self.id < other.id
 
     def is_compatible(self, other):
         """Tests if self is compatible with other.
@@ -775,6 +775,25 @@ def indentify_subexpression_types(subexprs):
     
     return return_types
 
+def sort_keyfunc(CSE):
+    """Keyfunction for sorting CSEs.
+
+    As a sorting key for a common subexpression, this function returns a tuple
+    of two elements, containing:
+    - The overall number of symbols replaced, i.e. the number of occurrences
+      times the number of symbols (operands) per occurrence.
+    - The number of occurrences (to break ties).
+
+    Returns:
+        (int, int)
+    """
+    number_of_symbols = 0
+    for expr, _ in CSE[0].expr.preorder_iter():
+        if isinstance(expr, Symbol):
+            number_of_symbols += 1
+
+    return (len(CSE)*number_of_symbols, len(CSE))
+
 def find_CSEs(equations):
     """Finds and replaces common subexpressions in equations.
 
@@ -812,9 +831,11 @@ def find_CSEs(equations):
                 subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.none)
                 CSE_detector.add_subexpression(subexpr)
 
-    # CSE_detector.print_self()
-    for CSE in CSE_detector.CSEs():
-        # print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in CSE])
+    CSEs = list(CSE_detector.CSEs())
+    CSEs.sort(key=sort_keyfunc, reverse=True)
+
+    for CSE in CSEs:
+        # print("CSEs", [(str(subexpr.expr), subexpr.eqn_idx) for subexpr in sorted(CSE)])
 
         CSE_as_dict = dict()
         for subexpr in CSE:
@@ -823,7 +844,7 @@ def find_CSEs(equations):
         insert_equations = []
         replacements_per_equation = dict()
         for CSE_id, subexprs in CSE_as_dict.items():
-
+            subexprs.sort()
             min_eqn_idx = min(subexpr.eqn_idx for subexpr in subexprs)
 
             CSE_expr = subexprs[0].expr # this works because indentify_subexpression_types uses subexprs[0] as reference

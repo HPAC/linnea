@@ -29,6 +29,7 @@ transpose_vector = list(reductions.transpose_vector.generate_kernels())
 axpy = list(reductions.axpy.generate_kernels())
 scal = list(reductions.scal.generate_kernels())
 matrix_sum = list(reductions.matrix_sum.generate_kernels())
+matrix_sum_transpose = list(reductions.matrix_sum_transpose.generate_kernels())
 lascl = list(reductions.lascl.generate_kernels())
 syrk = list(reductions.syrk.generate_kernels())
 syr2k = list(reductions.syr2k.generate_kernels())
@@ -88,6 +89,7 @@ reductions = list(itertools.chain(
                 axpy,
                 scal,
                 matrix_sum,
+                matrix_sum_transpose,
                 lascl,
                 symm,
                 syrk,
@@ -110,6 +112,7 @@ reductions = list(itertools.chain(
                 diagfulladd,
                 invscal,
                 invlascl,
+                ## Solvers, used for CGO 2018.
                 # posv,
                 # posvr,
                 # sysv,
@@ -120,6 +123,7 @@ reductions = list(itertools.chain(
                 # posv_vec,
                 # sysv_vec,
                 # gesv_vec,
+                ## end
                 pmm,
                 ptmm,
                 mpm,
@@ -160,6 +164,7 @@ addition_kernels = list(itertools.chain(
                 scalar_sum,
                 axpy,
                 matrix_sum,
+                matrix_sum_transpose,
                 diagdiagadd,
                 diagfulladd,
             ))

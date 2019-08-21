@@ -4021,3 +4021,33 @@ class Example162():
 
         self.eqns = Equations(Equal(W, Times(Inverse(D), A)))
 
+
+class Example163():
+    def __init__(self):
+
+        # TAGS
+        # 
+
+        n = 1000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        D = Matrix("D", (n, n))
+        D.set_property(properties.FULL_RANK)
+
+
+        X = Matrix("X", (n, n))
+        Y = Matrix("Y", (n, n))
+        Z = Matrix("Z", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Transpose(A)),
+                        Equal(Y, Times(B, Plus(C, D)))
+                        )

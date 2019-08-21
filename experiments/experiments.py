@@ -15,70 +15,63 @@ import linnea.config
 
 linnea.config.init()
 
-from linnea.config import Strategy, Language
+from linnea.config import Language
 import linnea.examples.examples
 import linnea.examples.application as application
-from linnea.derivation.graph.constructive import DerivationGraph as CDGraph
-from linnea.derivation.graph.exhaustive import DerivationGraph as EDGraph
-from linnea.code_generation.experiments import operand_generation, runner, reference_code
+from linnea.derivation.graph.derivation import DerivationGraph
+from linnea.code_generation.experiments.utils import generate_experiment_code
 
 from random_expressions import generate_equation
 from jobscripts import generate_scripts
 
-def measure(example, name, strategy, merge, reps=10):
+def measure(experiment, example, name, merging):
 
-    times = []
+    linnea.config.clear_all()
+    if hasattr(example, "init"):
+        # calls initialization that have to be done before each repetition
+        example.init()
 
-    if strategy is Strategy.constructive:
-        DerivationGraph = CDGraph
-    elif strategy is Strategy.exhaustive:
-        DerivationGraph = EDGraph
+    graph = DerivationGraph(example.eqns)
+    trace = graph.derivation(
+                        time_limit=30*60,
+                        merging=merging,
+                        dead_ends=True)
+
+    df_trace = pd.DataFrame(trace, columns=["time", "cost"])
+
+    t_start = time.perf_counter()
+    graph.write_output(code=True,
+                       derivation=False,
+                       output_name=name,
+                       experiment_code=False,
+                       algorithms_limit=1,
+                       graph=False,
+                       subdir_name="time_generation")
+    t_end = time.perf_counter()
+
+    mindex = pd.MultiIndex.from_tuples([(name, merging)], names=["example", "merging"])
+    df_code_gen_time = pd.DataFrame([t_end-t_start], index=mindex, columns=["time"])
+    
+    if merging:
+        subdir = "merging"
     else:
-        raise NotImplementedError()
+        subdir = "no_merging"
 
-    for i in range(reps):
-        linnea.config.clear_all()
-        if hasattr(example, "init"):
-            # calls initialization that have to be done before each repetition
-            example.init()
-        graph = DerivationGraph(example.eqns)
-        t_start = time.perf_counter()
-        trace = graph.derivation(
-                            solution_nodes_limit=100,
-                            iteration_limit=15,
-                            merging=merge,
-                            dead_ends=True)
-        graph.write_output(code=True,
-                           derivation=False,
-                           output_name=name,
-                           experiment_code=False,
-                           algorithms_limit=1,
-                           graph=False)
-        t_end = time.perf_counter()
-        times.append(t_end-t_start)
-    data = [numpy.mean(times),
-            numpy.std(times),
-            numpy.min(times),
-            numpy.max(times),
-            graph.nodes_count(),
-            bool(graph.terminal_nodes())]
-    return data
+    file_path = os.path.join(linnea.config.results_path, experiment, "generation", subdir, name + "_trace.csv")
+    df_trace.to_csv(file_path)
+    if linnea.config.verbosity >= 2:
+        print("Generate trace file {}".format(file_path))
 
-def generate(experiment, example, name, strategy):
+    file_path = os.path.join(linnea.config.results_path, experiment, "generation", subdir, name + "_code_gen_time.csv")
+    df_code_gen_time.to_csv(file_path)
+    if linnea.config.verbosity >= 2:
+        print("Generate code gen time file {}".format(file_path))
 
-    strategy_str = None 
-    if strategy is Strategy.constructive:
-        DerivationGraph = CDGraph
-        algorithm_name = "algorithm{}c"
-        strategy_str = "c"
-        max_algorithms = 1
-    elif strategy is Strategy.exhaustive:
-        DerivationGraph = EDGraph
-        algorithm_name = "algorithm{}e"
-        strategy_str = "e"
-        max_algorithms = 100
-    else:
-        raise NotImplementedError()
+    return
+
+def generate(experiment, example, name, k_best=False):
+
+    algorithm_name = "algorithm{}"
 
     linnea.config.clear_all()
     if hasattr(example, "init"):
@@ -87,20 +80,34 @@ def generate(experiment, example, name, strategy):
 
     print(example.eqns)
 
+    if k_best:
+        # time_limit = ???
+        algorithms_limit = 100
+        pruning_factor = 1.5
+        intensity_dir = "intensity_k_best"
+        subdir_name_experiments = "k_best"
+    else:
+        algorithms_limit = 1
+        pruning_factor = 1.0
+        intensity_dir = "intensity"
+        subdir_name_experiments = "experiments"
+
     graph = DerivationGraph(example.eqns)
     trace = graph.derivation(
-                        solution_nodes_limit=100,
-                        iteration_limit=15,
+                        time_limit=30*60,
                         merging=True,
-                        dead_ends=True)
-    k = graph.write_output(code=True,
-                       derivation=True,
-                       output_name=name,
-                       experiment_code=False,
-                       algorithms_limit=max_algorithms,
-                       graph=False,
-                       subdir_name=strategy.name,
-                       algorithm_name=algorithm_name)
+                        dead_ends=True,
+                        pruning_factor=pruning_factor)
+
+    k = graph.write_output(
+                        code=False,
+                        derivation=True,
+                        output_name=name,
+                        experiment_code=True,
+                        algorithms_limit=algorithms_limit,
+                        graph=False,
+                        subdir_name_experiments=subdir_name_experiments,
+                        algorithm_name=algorithm_name)
 
     vals = []
     data = example.eqns.get_data()
@@ -108,10 +115,10 @@ def generate(experiment, example, name, strategy):
         vals.append([data, cost, cost/data])
 
     mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(k)]], names=("example", "implementation"))
-    dframe = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
+    df = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
 
-    file_path = os.path.join(linnea.config.results_path, experiment, "intensity", strategy_str, name + "_intensity" + ".csv")
-    dframe.to_csv(file_path)
+    file_path = os.path.join(linnea.config.results_path, experiment, intensity_dir, name + "_intensity.csv")
+    df.to_csv(file_path)
     if linnea.config.verbosity >= 2:
         print("Generate intensity file {}".format(file_path))
 
@@ -122,10 +129,8 @@ def main():
     parser.add_argument("experiment", choices=["random", "application"])
     parser.add_argument("-m", "--merging", choices=["true", "false", "both"], default="true")
     parser.add_argument("-j", "--jobindex", help="Job index.", type=int, default=0)
-    parser.add_argument("-r", "--repetitions", help="Number of repetitions.", type=int)
-    parser.add_argument("-c", "--constructive", action="store_true", help="Use constructive strategy.")
-    parser.add_argument("-e", "--exhaustive", action="store_true", help="Use exhaustive strategy.")
-    parser.add_argument("-f", "--reference", action="store_true", help="Generate reference code.")
+    parser.add_argument("-f", "--reference", action="store_true", help="Only generate reference code.")
+    parser.add_argument("--k-best", action="store_true", help="Generate code for k best experiment.")
     parser.add_argument("-l", "--config", type=str, default=None, help="Specify configuration file.")
     args = parser.parse_args()
 
@@ -162,11 +167,6 @@ def main():
     random.seed(0)
     rand_exprs = [ExampleContainer(generate_equation(random.randint(4, 7))) for _ in range(100)]
 
-    # also add init for new examples
-
-    # TODO write parameters (repetitions) to file
-    # TODO write description of experiment (name, operand sizes, equations) to file
-
     if args.config:
         linnea.config.load_config(config_file=args.config)
 
@@ -190,99 +190,61 @@ def main():
         job_examples = [JobExample(examples[args.jobindex-1], name)]
 
 
-    strategies = []
-    algorithms = []
-    strategy_strs = []
-    if args.constructive:
-        strategies.append(Strategy.constructive)
-        algorithms.append(("constructive", "algorithm0c"))
-        strategy_strs.append("c")
-    if args.exhaustive:
-        strategies.append(Strategy.exhaustive)
-        algorithms.append(("exhaustive", "algorithm0e"))
-        strategy_strs.append("e")
+    num_threads = [1, 24]
 
     if args.mode == "time_generation":
 
-        if not strategies:
-            return
-
         linnea.config.set_verbosity(0)
 
+        # TODO this is not necessary because it also happens in the jobscript. It might be possible to simplify the jobscript too.
+        # All paths are known here, there might be no need to go anywhere in the jobscript.
+        for subdir in ["merging", "no_merging"]:
+            dir = os.path.join(linnea.config.results_path, args.experiment, "generation", subdir)
+            if not os.path.exists(dir):
+                os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
+
         merging_args = []
-        merging_labels = []
         if args.merging == "true" or args.merging == "both":
             merging_args.append(True)
-            merging_labels.append("merging")
         elif args.merging == "false" or args.merging == "both":
             merging_args.append(False)
-            merging_labels.append("no_merging")
-
-        mindex = pd.MultiIndex.from_product([
-            [example.name for example in job_examples],
-            [strategy.name for strategy in strategies],
-            merging_labels],
-            names=["example", "strategy", "merging"])
-
-        col_index = pd.Index(["mean", "std", "min", "max", "nodes", "solution"])
-
-        if args.jobindex == 0:
-            output_file = "generation.csv"
-        else:
-            output_file = "generation{:03}.csv".format(args.jobindex)
 
         data = []
         for example, name in job_examples:
-            for strategy, merge in itertools.product(strategies, merging_args):
-                data.append(measure(example, name, strategy, merge, args.repetitions))
-                dframe = pd.DataFrame(data, index=mindex[:len(data)], columns=col_index)
-
-                # Data is written after every measurement in case the job is killed
-                dframe.to_csv(output_file)
+            for merge in merging_args:
+                measure(args.experiment, example, name, merge)
 
 
     elif args.mode == "generate_code":
 
         linnea.config.set_verbosity(2)
 
-        for strategy_str in strategy_strs:
-            dir = os.path.join(linnea.config.results_path, args.experiment, "intensity", strategy_str)
+        for subdir in ["trace", "intensity", "intensity_k_best"]:
+            dir = os.path.join(linnea.config.results_path, args.experiment, subdir)
             if not os.path.exists(dir):
                 os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
 
         for example, name in job_examples:
 
-            for strategy in strategies:
-                generate(args.experiment, example, name, strategy)
+            if not args.reference:
+                generate(args.experiment, example, name, args.k_best)
+            else:
+                algorithm_name = "algorithm{}"
 
-            if args.reference:
-                reference_code.generate_reference_code(name, example.eqns)
-                operand_generation.generate_operand_generator(name, example.eqns)
-
-
-                # runner should only include files that actually exists
-                # runner for comparing Julia, C++ and Matlab
-                existing_algorithms = []
-                for subdir_name, algorithm_name in [("constructive", "algorithm0c"), ("exhaustive", "algorithm0e")]:
-                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, subdir_name, algorithm_name + ".jl")
-                    if os.path.exists(file_path):
-                        existing_algorithms.append((subdir_name, algorithm_name))
-                
-                runner.generate_runner(name, existing_algorithms)
-
-                # k best runner
-                existing_algorithms = []
+                # determining k for k best experiment
                 # using the upper limit for k is sufficient because we test if files exist
-                for i in range(100):
-                    algorithm_name = "algorithm{}e".format(i)
-                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "exhaustive", algorithm_name + ".jl")
+                k = 0
+                while True:
+                    file_path = os.path.join(linnea.config.output_code_path, name, Language.Julia.name, "k_best", algorithm_name.format(k) + ".jl")
                     if os.path.exists(file_path):
-                        existing_algorithms.append(("exhaustive", algorithm_name))
+                        k += 1
+                    else:
+                        break
 
-                runner.runner_to_file("runner_k_best", name, algorithms=existing_algorithms, language=linnea.config.Language.Julia)
+                generate_experiment_code(name, example.eqns, algorithm_name, k, num_threads)
 
     elif args.mode == "jobscripts":
-        generate_scripts(args.experiment, len(examples))
+        generate_scripts(args.experiment, len(examples), num_threads)
 
 
 if __name__ == "__main__":

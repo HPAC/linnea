@@ -158,9 +158,9 @@ class ReductionKernel(Kernel):
         # print("here", self.id, self.pattern)
 
     # @profile
-    def set_match(self, match_dict, context, CSE_rules=False, blocked_products=False, set_equivalent=True, equiv_expr=None):
+    def set_match(self, match_dict, context, blocked_products=False, set_equivalent=True, equiv_expr=None):
         
-        matched_kernel = super().set_match(match_dict, CSE_rules)
+        matched_kernel = super().set_match(match_dict)
 
         #############
         # operation
@@ -221,56 +221,6 @@ class ReductionKernel(Kernel):
             "type_prefix": config.blas_data_type_prefix,
             }
 
-        #############
-        # CSE rules
-
-        if CSE_rules:
-            if isinstance(self.pattern.expression, Times):
-                _rules = [
-                    (
-                        matchpy.Pattern(Times(ctx1, _operation, ctx2)),
-                        lambda ctx1, ctx2: Times(*ctx1, _tmp, *ctx2)
-                    ),
-                    (
-                        matchpy.Pattern(Times(ctx1, transpose(_operation), ctx2)),
-                        lambda ctx1, ctx2: Times(*ctx1, transpose(_tmp), *ctx2)
-                    ),
-                    (
-                        matchpy.Pattern(Times(ctx1, conjugate_transpose(_operation), ctx2)),
-                        lambda ctx1, ctx2: Times(*ctx1, conjugate_transpose(_tmp), *ctx2)
-                    ),
-                ]
-            elif isinstance(self.pattern.expression, Plus):
-                _rules = [
-                    (
-                        matchpy.Pattern(Plus(ctx1, _operation)),
-                        lambda ctx1: Plus(*ctx1, _tmp)
-                    ),
-                    (
-                        matchpy.Pattern(Plus(ctx1, transpose(_operation))),
-                        lambda ctx1: Plus(*ctx1, transpose(_tmp))
-                    ),
-                    (
-                        matchpy.Pattern(Plus(ctx1, conjugate_transpose(_operation))),
-                        lambda ctx1: Plus(*ctx1, conjugate_transpose(_tmp))
-                    ),
-                ]
-            else:
-                _rules = [
-                    (
-                        matchpy.Pattern(_operation),
-                        lambda **_: _tmp
-                    ),
-                    (
-                        matchpy.Pattern(transpose(_operation)),
-                        lambda **_: transpose(_tmp)
-                    ),
-                    (
-                        matchpy.Pattern(conjugate_transpose(_operation)),
-                        lambda **_: conjugate_transpose(_tmp)
-                    ),
-                ]
-            matched_kernel.CSE_rules = _rules
 
         #############
         # Blocked products

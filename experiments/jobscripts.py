@@ -9,24 +9,27 @@ def time_generation_script(replacement):
     template_path = "jobscripts/templates/time_generation.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    for strategy, merging in itertools.product(["c", "e"], [True, False]):
+    for merging in [True, False]:
         replacement_copy = replacement.copy()
 
         file_name_parts = ["time_generation"]
 
-        file_name_parts.append(strategy)
-        replacement_copy["strategy"] = strategy
         if merging:
-            replacement_copy["strategy_name"] = strategy + "_m"
+            replacement_copy["dir_name"] = "merging"
+            replacement_copy["merging_label"] = "m"
             file_name_parts.append("m")
             replacement_copy["merging"] = "true"
         else:
-            replacement_copy["strategy_name"] = strategy + "_nm"
+            replacement_copy["dir_name"] = "no_merging"
+            replacement_copy["merging_label"] = "nm"
             file_name_parts.append("nm")
             replacement_copy["merging"] = "false"
 
-        file_name = "{}/{}/{}.sh".format(replacement_copy['linnea_jobscripts_path'], replacement_copy["name"],
-                                         "_".join(file_name_parts))
+        file_name = "{}/{}/time_generation_{}.sh".format(
+                                replacement_copy['linnea_jobscripts_path'],
+                                replacement_copy["name"],
+                                replacement_copy["merging_label"]
+                            )
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
@@ -38,38 +41,34 @@ def time_execution_scripts(replacement):
         template_path = "jobscripts/templates/time_{}.sh".format(language)
         template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-        file_name = "{}/{}/time_{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], language)
+        file_name = "{}/{}/time_{}_t{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], language, replacement["threads"])
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
-            output_file.write(template_str.format(runner_name="runner", output_subdir=language, **replacement))
+            output_file.write(template_str.format(runner_name="runner_t{}".format(replacement["threads"]), output_subdir=language, **replacement))
 
 def time_k_best_script(replacement):
 
     template_path = "jobscripts/templates/time_julia.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    file_name = "{}/{}/time_k_best.sh".format(replacement['linnea_jobscripts_path'], replacement["name"])
+    file_name = "{}/{}/time_k_best_t{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], replacement["threads"])
     with open(file_name, "wt", encoding='utf-8') as output_file:
         print("Writing", file_name)
-        output_file.write(template_str.format(runner_name="runner_k_best", output_subdir="k_best", **replacement))
+        output_file.write(template_str.format(runner_name="runner_k_best_t{}".format(replacement["threads"]), output_subdir="k_best", **replacement))
 
 def generate_code_scripts(replacement):
 
     template_path = "jobscripts/templates/generate_code.sh"
     template_str = pkg_resources.resource_string(__name__, template_path).decode("UTF-8")
 
-    for arg in ["c", "e", "f"]:
+    for args, ref in [("", ""), ("-f", "_ref"), ("--k-best", "_k_best")]:
         replacement_copy = replacement.copy()
 
-        replacement_copy["args"] = arg
+        replacement_copy["args"] = args
+        replacement_copy["ref"] = ref
 
-        if arg == "f":
-            replacement_copy["compile"] = "true"
-        else:
-            replacement_copy["compile"] = "false"
-
-        file_name = "{}/{}/generate_code_{}.sh".format(replacement_copy['linnea_jobscripts_path'],
-                                                       replacement_copy["name"], arg)
+        file_name = "{}/{}/generate_code{}.sh".format(replacement_copy['linnea_jobscripts_path'],
+                                                       replacement_copy["name"], ref)
         with open(file_name, "wt", encoding='utf-8') as output_file:
             print("Writing", file_name)
             output_file.write(template_str.format(**replacement_copy))
@@ -85,6 +84,7 @@ scheduler_vars = {
         "flag_group":           "-P",
         "flag_model":           "-R",
         "flag_exclusive":       "-x",
+        "flag_node":            "-m ",
         "var_array_idx":        "LSB_JOBINDEX",
         "string_array_idx":     "%I"
         },
@@ -98,12 +98,13 @@ scheduler_vars = {
         "flag_group":           "-A",
         "flag_model":           "-C",
         "flag_exclusive":       "--exclusive",
+        "flag_node":            "--nodelist=",
         "var_array_idx":        "SLURM_ARRAY_TASK_ID",
         "string_array_idx":     "%a"
         }
     }
 
-def generate_scripts(experiment, number_of_experiments):
+def generate_scripts(experiment, number_of_experiments,  num_threads):
 
     experiment_configuration = config.experiment_configuration
 
@@ -113,6 +114,11 @@ def generate_scripts(experiment, number_of_experiments):
         experiment_configuration["time"]["spec_exclusive"] = "#{directive} {flag_exclusive}".format(**scheduler_vars[scheduler])
     else:
         experiment_configuration["time"]["spec_exclusive"] = ""
+
+    if experiment_configuration["time"]["node"]:
+        experiment_configuration["time"]["spec_node"] = "#{directive} {flag_node}".format(**scheduler_vars[scheduler]) + experiment_configuration["time"]["node"]
+    else:
+        experiment_configuration["time"]["spec_node"] = ""
 
     for mode in ["time", "generate"]:
         if scheduler == "LSF":
@@ -134,9 +140,13 @@ def generate_scripts(experiment, number_of_experiments):
     time_configuration = {**experiment_configuration['time'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
     generate_configuration = {**experiment_configuration['generate'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
 
+    for threads in num_threads:
+        time_configuration_copy = time_configuration.copy()
+        time_configuration_copy["threads"] = threads
+        time_execution_scripts(time_configuration_copy)
+        time_k_best_script(time_configuration_copy)
+
     time_generation_script(time_configuration)
-    time_execution_scripts(time_configuration)
-    time_k_best_script(time_configuration)
     generate_code_scripts(generate_configuration)
 
 if __name__ == '__main__':

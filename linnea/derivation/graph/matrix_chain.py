@@ -1,59 +1,70 @@
-from .base import expression as egb
-
-
 from ... import config
 
-collections_module = config.import_collections()
+from ..utils import select_optimal_match
+
+from .base import expression as egb
 
 import matchpy
 import operator
 
-from ..utils import select_optimal_match
+collections_module = config.import_collections()
 
 class MatrixChainGraph(egb.ExpressionGraphBase):
 
+
+    def __init__(self, input):
+        super().__init__(input)
+        self.active_nodes = [self.root]
+
+
+    def remove_node(self, node):
+        self.nodes.remove(node)
+        try:
+            self.active_nodes.remove(node)
+        except ValueError:
+            pass
+
+
     def derivation(self):
-        _break = False
+
         while self.active_nodes:
-
             new_nodes = []
-            inactive_nodes = []
-
+            
             for node in self.active_nodes:
-                transformed = self.TR_matrix_chain_kernels(node.expression)
-
-                new_nodes.extend(self.create_nodes(node, *transformed))
-                # if any(map(operator.methodcaller("is_terminal"), new_nodes)):
-                #     _break = True
-                #     break
-
-                transformed = self.TR_unary_kernels(node.expression)
-
-                new_nodes.extend(self.create_nodes(node, *transformed))
-
-                inactive_nodes.append(node)
-
-            if _break:
-                _break = False
-                break
-
-            for node in inactive_nodes:
-                self.active_nodes.remove(node)
-
-            self.add_active_nodes(new_nodes)
-
+                new_nodes.extend(self.create_nodes(node, *self.TR_matrix_chain_kernels(node.expression)))
+                new_nodes.extend(self.create_nodes(node, *self.TR_unary_kernels(node.expression)))
+            
+            self.active_nodes = new_nodes
             self.DS_merge_nodes()
+            
+
+    def DS_merge_nodes(self):
+        """Merges redundant nodes in the derivation graph.
+
+        Returns the number of removed nodes.
+
+        """
+        hashtable = dict()
+        for node in self.nodes:
+            hashtable.setdefault(node.get_payload(), []).append(node)
+
+        remove = []
+        for group in hashtable.values():
+            remaining_node = group.pop()
+            for node in group:
+                remaining_node.merge(node)
+            remove.extend(group)
+
+        self.remove_nodes(remove)
+
+        return len(remove)
 
 
     def TR_matrix_chain_kernels(self, expression):
         kernel, substitution = select_optimal_match(collections_module.matrix_chain_DN.match(expression))
 
         if kernel:
-            
-            # print("match", kernel.pattern, substitution)
-                
             matched_kernel = kernel.set_match(substitution, False)
-
             transformed_expression = matched_kernel.replacement
 
             return [(transformed_expression, (matched_kernel,))]
@@ -66,14 +77,10 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
         # iterate over all subexpressions
         for node, pos in expression.preorder_iter():
             kernel, substitution = select_optimal_match(collections_module.unary_kernel_DN.match(node))
+
             if kernel:
-                # print([(kernel.pattern, substitution) for kernel, substitution in matches])
-                
                 matched_kernel = kernel.set_match(substitution, False)
-
-                evaled_repl = matched_kernel.replacement
-                transformed_expression = matchpy.replace(expression, pos, evaled_repl)
-
+                transformed_expression = matchpy.replace(expression, pos, matched_kernel.replacement)
                 transformed_expressions.append((transformed_expression, (matched_kernel,)))
 
         return transformed_expressions

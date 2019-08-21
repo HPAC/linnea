@@ -1,18 +1,13 @@
-
 from ..algebra.expression import Symbol, Times, \
                                  Inverse, InverseTranspose, Transpose, \
                                  LinSolveL, LinSolveR
 from ..algebra.equations import Equations
+from ..algebra.properties import Property as properties
+from ..utils import PropertyConstraint, is_inverse
 
 from .. import config
 
-from ..utils import PropertyConstraint
-
 from .memory import memory as memory_module
-
-from ..algebra.properties import Property as properties
-
-from ..derivation.graph.utils import is_inverse
 
 import copy
 import math
@@ -126,7 +121,7 @@ class Algorithm():
         code_list = []
 
         input_operands, output_operands = self.initial_equations.input_output()
-        self.experiment_input = ", ".join([self.memory.lookup[operand.name].name for operand in input_operands])
+        self.experiment_input = ", ".join(["{}::{}".format(self.memory.lookup[operand.name].name, operand_type(operand)) for operand in input_operands])
 
         code_list.append("{0}cost {1:.3g}\n".format(config.comment, self.cost))
 
@@ -426,7 +421,7 @@ class MatchedKernel():
 
     _counter = 0
 
-    def __init__(self, CSE_rules=False):
+    def __init__(self):
         self.id = MatchedKernel._counter
         MatchedKernel._counter += 1
         
@@ -435,9 +430,6 @@ class MatchedKernel():
         self.replacement = None
         self.operation = None
         self.cost = 0 # TODO change this to None. Currently, it's necessary to make sums work.
-
-        if CSE_rules:
-            self.CSE_rules = None
 
         self.signature = None
         self.arguments = None
@@ -449,9 +441,22 @@ class MatchedKernel():
         self.kernel_io = None
         
 
+def derivation_to_file(output_name, subdir_name, algorithm_name, derivation):
+    file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", algorithm_name)
+    directory_name = os.path.dirname(file_name)
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
+    output_file = open(file_name, "wt")
+    output_file.write(derivation)
+    output_file.close()
+    if config.verbosity >= 2:
+        print("Generate derivation file {}".format(file_name))
+
+
 def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input, output,
                       language = config.language,
-                      file_extension = config.filename_extension):
+                      file_extension = config.filename_extension,
+                      experiment = False):
     file_name = os.path.join(config.output_code_path, output_name, language.name, subdir_name,
                              "".join([algorithm_name, file_extension]))
     directory_name = os.path.dirname(file_name)
@@ -461,13 +466,16 @@ def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input
     if config.verbosity >= 2:
         print("Generate algorithm file {}".format(file_name))
     algorithm_name = algorithm_name
-    algorithm_str = algorithm_to_str(algorithm_name, algorithm, input, output, language)
+    algorithm_str = algorithm_to_str(algorithm_name, algorithm, input, output, language, experiment)
     output_file.write(algorithm_str)
     output_file.close()
 
-def algorithm_to_str(function_name, algorithm, input, output, language):
+def algorithm_to_str(function_name, algorithm, input, output, language, experiment = False):
     if language == config.Language.Julia:
-        template = get_template("algorithm.jl", language)
+        if experiment:
+            template = get_template("algorithm_experiments.jl", language)
+        else:
+            template = get_template("algorithm.jl", language)
         algorithm_str = template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
     elif language == config.Language.Matlab:
         template = get_template("algorithm.m", language)
@@ -491,6 +499,30 @@ def algorithm_to_str(function_name, algorithm, input, output, language):
         raise config.LanguageOptionNotImplemented()
     
     return algorithm_str
+
+def operand_type(operand, property_types=False):
+    if property_types:
+        if operand.has_property(properties.SCALAR):
+            return config.data_type_string
+        elif operand.has_property(properties.VECTOR):
+            return "Array{{{0},1}}".format(config.data_type_string)
+        elif operand.has_property(properties.DIAGONAL):
+            return "Diagonal{{{0},Array{{{0},1}}}}".format(config.data_type_string)
+        elif operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.SPD) or operand.has_property(properties.SPSD):
+            return "Symmetric{{{0},Array{{{0},2}}}}".format(config.data_type_string)
+        elif operand.has_property(properties.LOWER_TRIANGULAR) and operand.has_property(properties.SQUARE):
+            return "LowerTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
+        elif operand.has_property(properties.UPPER_TRIANGULAR) and operand.has_property(properties.SQUARE):
+            return "UpperTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
+        else:
+            return "Array{{{0},2}}".format(config.data_type_string)
+    else:
+        if operand.has_property(properties.SCALAR):
+            return config.data_type_string
+        elif operand.has_property(properties.VECTOR):
+            return "Array{{{0},1}}".format(config.data_type_string)
+        else:
+            return "Array{{{0},2}}".format(config.data_type_string)
 
 def remove_files(directory_name):
     if os.path.exists(directory_name):

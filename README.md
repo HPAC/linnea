@@ -90,7 +90,7 @@ There are the following options (those are the names used in Python, the command
 
 * `output_name` Linnea creates a new directory that contains all output files. This is the name of this directory. The default is `tmp`.
 
-* `language` Not available for the commandline tool. For now, the only allowed option is `Julia`.
+* `time_limit` The maximum time spent to find algorithms, in seconds. A higher limit allows Linnea to find better solutions. Linnea usually finds a (potentially suboptimal) solution in less than one second.
 
 * `julia_data_type` The data type used in the generated code. Either `Float32` or `Float64`. The default is `Float64`.
 
@@ -99,8 +99,6 @@ There are the following options (those are the names used in Python, the command
 * `dead_ends` Whether or not to eliminate dead ends in the derivation graph early. The default is `true`.
 
 * `algorithms_limit` The upper limit for the number of algorithms that are written to files. The default is `100`.
-
-* `strategy` The strategy used to find algorithms. Either `constructive` or `exhaustive`. The default is `constructive`.
 
 * `generate_graph` Whether or not to generate a `.gv` file of the derivation graph. The default is `false`.
 

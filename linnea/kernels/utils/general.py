@@ -29,9 +29,9 @@ class Kernel():
         # self.arg = arg
         # self.arg = arg
 
-    def set_match(self, match_dict, CSE_rules=False):
+    def set_match(self, match_dict):
 
-        matched_kernel = MatchedKernel(CSE_rules)
+        matched_kernel = MatchedKernel()
 
         #############
         # Signature

@@ -1,8 +1,32 @@
+from .algebra import expression as ae
+
 import string
 import textwrap
 import itertools
 
 import matchpy
+
+
+def is_inverse(expr):
+    return isinstance(expr, (ae.Inverse, ae.InverseTranspose, ae.InverseConjugate, ae.InverseConjugateTranspose))
+
+
+def is_transpose(expr):
+    return isinstance(expr, (ae.Transpose, ae.InverseTranspose, ae.ConjugateTranspose, ae.InverseConjugateTranspose))
+
+
+def contains_inverse(expr):
+    if is_inverse(expr):
+        return True
+    if isinstance(expr, ae.Operator):
+        return any(contains_inverse(operand) for operand in expr.operands)
+
+
+def contains_transpose(expr):
+    if is_transpose(expr):
+        return True
+    if isinstance(expr, ae.Operator):
+        return any(contains_transpose(operand) for operand in expr.operands)
 
 
 class CodeTemplate():
@@ -269,3 +293,18 @@ def powerset(iterable, min=0, max=None):
     if max is None:
         max = len(s)+1
     return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(min, max))
+
+
+def roundrobin(*iterables):
+    "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
+    # Recipe credited to George Sakkis
+    num_active = len(iterables)
+    nexts = itertools.cycle(iterables)
+    while num_active:
+        try:
+            for n in nexts:
+                yield next(n)
+        except StopIteration:
+            # Remove the iterator we just exhausted from the cycle.
+            num_active -= 1
+            nexts = itertools.cycle(itertools.islice(nexts, num_active))

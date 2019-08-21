@@ -1,15 +1,15 @@
-from . import expression as ae
-from .properties import Property as properties
+from .. import temporaries
+from ..derivation.partitioning import _propagate_partitioning, apply_partitioning
 
+from . import expression as ae
 from . import transformations as at
 from . import representations as ar
 
-from ..derivation.partitioning import _propagate_partitioning, apply_partitioning
-
-from .. import temporaries
+from .properties import Property as properties
+from .validity import check_validity
+from .consistency import check_consistency
 
 import copy
-
 import matchpy
 
 class UnknownSymbolType(Exception):
@@ -111,15 +111,6 @@ class Equations():
             if equation.rhs != equations_before[n].rhs:
                 temporaries.set_equivalent(equations_before[n].rhs, equation.rhs)
 
-    def metric(self):
-        # TODO how to compute the metric of multiple equations?
-        sum = [0, 0]
-        for equation in self.equations:
-            m = equation.rhs.metric()
-            sum[0] += m[0]
-            sum[1] += m[1]
-        return sum
-
     def remove_identities(self):
         """Removes equations where both sides are temporaries.
 
@@ -179,6 +170,12 @@ class Equations():
             if (equation.rhs.name in temporaries._equivalent_expressions
                 and not equation.lhs.name in temporaries._equivalent_expressions):
                 candidates.append(equation)
+
+    def process_next(self):
+        for eqn_idx, equation in enumerate(self.equations):
+            if not isinstance(equation.rhs, ae.Symbol):
+                return equation, eqn_idx
+        return None, -1
 
     def apply_partitioning(self):
         change = True
@@ -257,6 +254,14 @@ class Equations():
             for property in properties:
                 if equation.rhs.has_property(property):
                     operand.set_property(property)
+
+
+    def check_validity(self):
+        return all(check_validity(equation) for equation in self.equations)
+
+
+    def check_consistency(self):
+        return all(check_consistency(equation) for equation in self.equations)        
 
 
     def _copy_symbol(self, symbol):
