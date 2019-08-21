@@ -597,6 +597,12 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         k_best = k_best_data.xs(threads, level=2).copy()
         k_best.drop(["naive_julia", "recommended_julia"], level=1, inplace=True)
 
+        execution_time["algorithm0"] = k_best.xs("algorithm0", level=1)[base_time]
+
+        speedup_data = to_speedup_data(execution_time, speedup_reference)
+        speedup_over_linnea = compare_to_fastest(speedup_data, intensity_cols)
+        speedup_over_linnea.to_csv("{}_k_best_speedup_over_linnea.csv".format(experiment), na_rep="NaN")
+
         k_best_time_stats = k_best.loc[k_best.groupby(level=0)[base_time].idxmin().dropna()]
         k_best_time_stats.reset_index(level=1, inplace=True)
 
@@ -621,10 +627,10 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         performance_profiles_data.to_csv("{}_performance_profile_OS.csv".format(experiment), na_rep="NaN")
         
         speedup_over_linnea = compare_to_fastest(speedup_data, intensity_cols)
-        speedup_over_linnea.to_csv("{}_speedup_over_linnea_OS.csv".format(experiment), na_rep="NaN")
+        speedup_over_linnea.to_csv("{}_k_best_speedup_over_linnea_OS.csv".format(experiment), na_rep="NaN")
 
         speedup_over_linnea_CI = compare_to_fastest(speedup_data_CI, intensity_cols)
-        speedup_over_linnea_CI.to_csv("{}_speedup_over_linnea_OS_CI.csv".format(experiment), na_rep="NaN")
+        speedup_over_linnea_CI.to_csv("{}_k_best_speedup_over_linnea_OS_CI.csv".format(experiment), na_rep="NaN")
 
 
 if __name__ == '__main__':
