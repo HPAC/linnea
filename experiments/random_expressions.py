@@ -76,10 +76,10 @@ def matrix_chain_sizes(first, last, length, nonsingular=False):
     sizes = [first]
     for i in range(length-1):
         rand = random.random()
-        if rand > 0.5: # 0.6 <= rand < 0.95:
+        if rand > 0.5:
             # square
             next_size = sizes[i]
-        elif rand > 0.4: # 0.95 <= rand:
+        elif rand > 0.48:
             # vector
             next_size = 1
         else:
@@ -126,6 +126,21 @@ def random_composition(n):
     return composition
 
 
+def random_composition_v2(n):
+    if n == 2:
+        return [1, 1]
+    else:  
+        num = random.randint(1, 2**(n-1)-2)
+        bitseq = bin(num)[2:].zfill(n-1)
+        composition = [1]
+        for bit in bitseq:
+            if bit == "0":
+                composition[-1] += 1
+            elif bit == "1":
+                composition.append(1)
+        return composition
+
+
 def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
     if n_ops == 1:
 
@@ -134,7 +149,7 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
             if rows == 1:
                 return generate_scalar()
             
-            if random.random() > 0.5:
+            if random.random() > 0.1:
 
                 if parent.arity == Arity.unary:
                     if parent is ae.Inverse:
@@ -144,9 +159,9 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
                 else:
                     operators = [ae.Transpose, ae.Inverse]
                     if parent is ae.Plus:
-                        weights = [2, 1]
+                        weights = [10, 1]
                     else:
-                        weights = [1, 3]
+                        weights = [1, 10]
 
                     operator = random.choices(operators, weights)[0]
 
@@ -181,14 +196,23 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
                 weights = [4, 1]
             elif parent is ae.Inverse:
                 operators = [ae.Times, ae.Plus]
-                weights = [3, 1]    
+                weights = [1, 1]    
             elif parent is None:
                 operators = [ae.Times, ae.Plus, ae.Inverse]
                 weights = [5, 3, 1]
         else:
             # operators = [ae.Times, ae.Plus, ae.Transpose]
-            operators = [ae.Times, ae.Plus]
-            weights = [3, 1]
+            # operators = [ae.Times, ae.Plus]
+            # weights = [3, 1]
+            if parent is ae.Times:
+                operators = [ae.Plus]
+                weights = [1]
+            elif parent is ae.Plus:
+                operators = [ae.Times]
+                weights = [1]
+            else:
+                operators = [ae.Times, ae.Plus]
+                weights = [3, 1]
 
 
         operator = random.choices(operators, weights)[0]
@@ -199,10 +223,13 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
             expr = operator(generate_expression(n_ops, tuple(reversed(expr_size)), parent=operator, nonsingular=nonsingular))
             return expr
         elif operator.arity == Arity.variadic:
-            partition = random_composition(n_ops)
+            # partition = random_composition(n_ops)
+            partition = random_composition_v2(n_ops)
             if operator == ae.Plus:
+                # partition = random_composition_v2(n_ops)
                 expr = operator(*(generate_expression(n, expr_size, parent=operator, nonsingular=nonsingular) for n in partition))
             elif operator == ae.Times:
+                # partition = random_composition_v2(n_ops)
                 sizes = matrix_chain_sizes(*expr_size, len(partition), nonsingular=nonsingular)
                 operands = []
                 for n, size in zip(partition, window(sizes)):
@@ -224,14 +251,34 @@ def main():
     # expr = generate_expression(6, expr_size)
     # print(expr)
     # print(simplify(expr))
-    # print(check_validity(expr))
+    # print(expr.check_validity())
 
-    size = random.randint(3, 7)
-    eqn = generate_equation(size)
-    print(eqn)
-    # eqn = eqn.to_normalform()
+    # size = random.randint(3, 7)
+    # eqn = generate_equation(size)
     # print(eqn)
-    print(check_validity(eqn))
+    # # eqn = eqn.to_normalform()
+    # # print(eqn)
+    # print(eqn.check_validity())
+
+    random.seed(0)
+    rand_exprs = [generate_equation(random.randint(4, 7)) for _ in range(100)]
+    i = 0
+    for idx, eqn in enumerate(rand_exprs, 1):
+        # if not any((isinstance(subexpr, ae.Matrix) and not subexpr.has_property(properties.DIAGONAL)) for subexpr, _ in eqn[0].rhs.preorder_iter()):
+        #     print(idx, eqn)
+        #     i += 1
+
+        # if not any(isinstance(subexpr, ae.Inverse) for subexpr, _ in eqn[0].rhs.preorder_iter()):
+        #     print(idx, eqn)
+        #     i += 1
+
+        # if eqn[0].rhs.has_property(properties.VECTOR):
+        #     print(idx, eqn)
+        #     i += 1
+
+        print(idx, eqn)
+
+    print(i)
 
 
 """
