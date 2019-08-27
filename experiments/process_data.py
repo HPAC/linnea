@@ -503,7 +503,7 @@ def process_data_trace(trace_data, experiment):
 def process_write_time(write_time_data, experiment):
     if not write_time_data.empty:
         write_time_data.to_csv("{}_write_time.csv".format(experiment), na_rep="NaN")
-        write_time_data.unstack().mean().to_csv("{}_write_time_avg.csv".format(experiment), na_rep="NaN")
+        write_time_data.unstack().mean().to_csv("{}_write_time_avg.csv".format(experiment), na_rep="NaN", header=True)
 
 
 def process_data_k_best(data, intensity_data, experiment_name):
