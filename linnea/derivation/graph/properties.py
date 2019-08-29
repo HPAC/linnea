@@ -3,7 +3,6 @@ from ... import config
 from .base import derivation
 from .utils import generate_variants
 
-import math
 import itertools
 
 class PropertyGraph(derivation.DerivationGraphBase):
@@ -13,7 +12,16 @@ class PropertyGraph(derivation.DerivationGraphBase):
         old_verbosity = config.verbosity
         config.set_verbosity(0)
 
-        self.best_first_search(time_limit=math.inf)
+        """
+        In most cases, this search finishes in much less than a second. However,
+        there might be (rare) cases where it takes much longer. To avoid
+        unexpected behavior of the derivation, we limit the search to 1 second.
+        This may prevent special_properties from working properly, i.e. when
+        factorizations or tricks are applied,
+        - merging may work less often, and
+        - some properties are not preserved.
+        """
+        self.best_first_search(time_limit=1)
 
         config.set_verbosity(old_verbosity)
         
