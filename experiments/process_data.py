@@ -168,12 +168,6 @@ def read_trace(experiment_name, number_of_experiments):
                         for p in [1, 5, 10, 15, 25]:
                             processed_data["time_to_{}pc".format(p)] = df.loc[df["cost"] < (min_cost * (1+p/100))]["time"].min()
 
-                        for p in [1, 5, 10, 15, 25]: # [1, 10, 25, 50, 75]
-                            processed_data["time_to_r{}pc".format(p)] = df.loc[df["cost"] < ((max_cost - min_cost) * (p/100)) + min_cost]["time"].min()
-
-                        for t in [1, 10, 60, 600]:
-                            processed_data["best_solution_after_{}s".format(t)] = df.loc[df["time"] < t]["cost"].min()/min_cost
-
                         mindex = pd.MultiIndex.from_tuples([(example, merging_bool)], names=['example', 'merging'])
 
                         file_dfs.append(pd.DataFrame(processed_data, index=mindex))
