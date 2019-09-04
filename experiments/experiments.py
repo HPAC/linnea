@@ -107,7 +107,8 @@ def generate(experiment, example, name, k_best=False):
                         algorithms_limit=algorithms_limit,
                         graph=False,
                         subdir_name_experiments=subdir_name_experiments,
-                        algorithm_name=algorithm_name)
+                        algorithm_name=algorithm_name,
+                        no_duplicates=True)
 
     vals = []
     data = example.eqns.get_data()
