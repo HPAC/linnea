@@ -237,7 +237,8 @@ class DerivationGraphBase(base.GraphBase):
             graph_style=config.GraphStyle.full,
             subdir_name="generated",
             subdir_name_experiments="experiments",
-            algorithm_name="algorithm{}"
+            algorithm_name="algorithm{}",
+            no_duplicates=False
         ):
 
         if not config.output_code_path:
@@ -246,15 +247,29 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name, graph_style)
         
-        paths = []
+        algorithms = []
+        known_algorithms = set()
+        number_of_algorithms = 0
         min_cost = self.shortest_path()[1]
-        for path, cost in self.k_shortest_paths(algorithms_limit):
-            if config.pruning_factor == 1.0 or cost <= config.pruning_factor*min_cost:
-                paths.append((path, cost))
-            else:
+        for path, cost in self.k_shortest_paths(math.inf):
+            # If the pruning factor is not 1.0, only algorithms with a cost of
+            # up to pruning factor times cost of best algorithm are selected.
+            if config.pruning_factor != 1.0 and cost > config.pruning_factor*min_cost:
                 break
 
-        number_of_algorithms = len(paths)
+            algorithm = self.path_to_algorithm(path, cost)
+            if no_duplicates:
+                if not algorithm in known_algorithms:
+                    known_algorithms.add(algorithm)
+                    algorithms.append(algorithm)
+                    number_of_algorithms += 1
+            else:
+                algorithms.append(algorithm)
+                number_of_algorithms += 1
+
+            if number_of_algorithms == algorithms_limit:
+                break
+
         self.print_result("Number of algorithms:", number_of_algorithms)
 
         if code or derivation or experiment_code:
@@ -275,17 +290,7 @@ class DerivationGraphBase(base.GraphBase):
                     cgu.remove_files(algorithms_dir_name)
 
         if code or derivation:
-            for n, (path, cost) in enumerate(paths):
-            
-                kernels_and_equations = []
-                current_node = self.root
-                for idx in path:
-                    edge_label = current_node.edge_labels[idx]
-                    kernels_and_equations.append(current_node.original_equations[idx])
-                    kernels_and_equations.extend(edge_label.matched_kernels)
-                    current_node = current_node.successors[idx]
-
-                algorithm = cgu.Algorithm(self.input, current_node.equations, kernels_and_equations, cost)
+            for n, algorithm in enumerate(algorithms):
 
                 if code:
                     cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
@@ -297,10 +302,8 @@ class DerivationGraphBase(base.GraphBase):
                     if derivation:
                         cgu.derivation_to_file(output_name, subdir_name_experiments, algorithm_name.format(n), algorithm.derivation())
 
-
         if experiment_code:
-
-            generate_experiment_code(output_name, self.input, algorithm_name, len(paths), [1, 24])
+            generate_experiment_code(output_name, self.input, algorithm_name, len(algorithms), [1, 24])
 
 
         return number_of_algorithms
@@ -318,6 +321,17 @@ class DerivationGraphBase(base.GraphBase):
         else:
             return None, None
 
+
+    def path_to_algorithm(self, path, cost):
+        kernels_and_equations = []
+        current_node = self.root
+        for idx in path:
+            edge_label = current_node.edge_labels[idx]
+            kernels_and_equations.append(current_node.original_equations[idx])
+            kernels_and_equations.extend(edge_label.matched_kernels)
+            current_node = current_node.successors[idx]
+
+        return cgu.Algorithm(self.input, current_node.equations, kernels_and_equations, cost)
 
 class DerivationGraphNode(base.GraphNodeBase):
 

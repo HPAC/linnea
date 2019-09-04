@@ -337,8 +337,39 @@ class GraphNodeBase():
     def merge(self, other):
         """Merges node other into self.
 
-        After merging, other can (and should) be removed.
+        After merging, other can (and should) be removed. To some extent, this
+        function tries to avoid creating redundant multiedges.
         """
+
+        """
+        Here we are avoiding some cases of redundant multiedges that are easy to
+        to detect and fix:
+        1. other only has one predecessor, and
+        2. other is the last node in the list of successors or its parent.
+        Without the second condition, removing the redundant edge would require
+        updating the predecessors_indices of some nodes. However, those two
+        conditions are always fulfilled if other is a new node.
+        """
+        # only one predecessor
+        if len(other.predecessors) == 1:
+            other_parent = other.predecessors[0]
+            other_p_idx = other.predecessors_indices[0]
+            # last node in successor list
+            if other_p_idx == len(other_parent.successors) - 1:
+                other_edge_label = other_parent.edge_labels[other_p_idx]
+                try:
+                    # idx only exists if self and other have a common predecessor
+                    idx = self.predecessors.index(other_parent)
+                except ValueError:
+                    pass
+                else:
+                    self_edge_label = self.predecessors[idx].edge_labels[self.predecessors_indices[idx]]
+                    if self_edge_label.matched_kernels == other_edge_label.matched_kernels:
+                        del other_parent.edge_labels[other_p_idx]
+                        del other_parent.successors[other_p_idx]
+                        return
+
+
         idx_shift = len(self.predecessors)
         for predecessor, p_idx in zip(other.predecessors, other.predecessors_indices):
             predecessor.change_successor(other, self)

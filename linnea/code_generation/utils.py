@@ -63,6 +63,12 @@ class Algorithm():
 
         self.liveness_analysis()
 
+    def __eq__(self, other):
+        return self.matched_kernels == other.matched_kernels
+
+    def __hash__(self):
+        return hash(tuple(self.matched_kernels))
+
     def _symbols(self, expr):
         """Returns all the symbols in expr.
     
@@ -439,6 +445,12 @@ class MatchedKernel():
         self.other_replacements = None
 
         self.kernel_io = None
+
+    def __eq__(self, other):
+        return self.signature == other.signature and self.operation == other.operation
+
+    def __hash__(self):
+        return hash((self.signature, self.operation))
         
 
 def derivation_to_file(output_name, subdir_name, algorithm_name, derivation):
