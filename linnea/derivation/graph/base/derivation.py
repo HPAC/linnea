@@ -232,6 +232,7 @@ class DerivationGraphBase(base.GraphBase):
             derivation=False,
             output_name="tmp",
             experiment_code=False,
+            k_best=False,
             algorithms_limit=1,
             graph=False,
             graph_style=config.GraphStyle.full,
@@ -252,9 +253,7 @@ class DerivationGraphBase(base.GraphBase):
         number_of_algorithms = 0
         min_cost = self.shortest_path()[1]
         for path, cost in self.k_shortest_paths(math.inf):
-            # If the pruning factor is not 1.0, only algorithms with a cost of
-            # up to pruning factor times cost of best algorithm are selected.
-            if config.pruning_factor != 1.0 and cost > config.pruning_factor*min_cost:
+            if k_best and cost > config.pruning_factor*min_cost:
                 break
 
             algorithm = self.path_to_algorithm(path, cost)
@@ -303,7 +302,7 @@ class DerivationGraphBase(base.GraphBase):
                         cgu.derivation_to_file(output_name, subdir_name_experiments, algorithm_name.format(n), algorithm.derivation())
 
         if experiment_code:
-            generate_experiment_code(output_name, self.input, algorithm_name, [1, 24])
+            generate_experiment_code(output_name, self.input, algorithm_name, [1, 24], k_best, number_of_algorithms)
 
 
         return number_of_algorithms

@@ -104,6 +104,7 @@ def generate(experiment, example, name, k_best=False):
                         derivation=True,
                         output_name=name,
                         experiment_code=True,
+                        k_best=k_best,
                         algorithms_limit=algorithms_limit,
                         graph=False,
                         subdir_name_experiments=subdir_name_experiments,
