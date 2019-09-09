@@ -303,7 +303,7 @@ class DerivationGraphBase(base.GraphBase):
                         cgu.derivation_to_file(output_name, subdir_name_experiments, algorithm_name.format(n), algorithm.derivation())
 
         if experiment_code:
-            generate_experiment_code(output_name, self.input, algorithm_name, len(algorithms), [1, 24])
+            generate_experiment_code(output_name, self.input, algorithm_name, [1, 24])
 
 
         return number_of_algorithms
