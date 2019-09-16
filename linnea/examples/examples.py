@@ -4051,3 +4051,29 @@ class Example163():
                         Equal(X, Transpose(A)),
                         Equal(Y, Times(B, Plus(C, D)))
                         )
+
+
+class Example164():
+    def __init__(self):
+
+        # TAGS
+        # gemm, constraint
+
+        n = 1000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        X = Matrix("X", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Plus(Times(A, B), A)),
+                        # Equal(X, Plus(Times(A, B), B)),
+                        # Equal(X, Plus(Times(A, B), C)),
+                        )

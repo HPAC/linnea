@@ -4,8 +4,8 @@ from ..utils.reductions import KernelDescription, \
                                KernelType, \
                                OutputOperand
 
-from ..utils.general import SizeArgument, PropertyArgument, StrideArgument, StorageFormatArgument, \
-                            InputOperand
+from ..utils.general import SizeArgument, PropertyArgument, StrideArgument, \
+                            StorageFormatArgument, InputOperand
 
 
 from ...code_generation.memory.storage_format import StorageFormat
@@ -17,6 +17,8 @@ from ...algebra.expression import Times, Plus, \
                                   Identity, \
                                   ConstantScalar, \
                                   Scalar, Vector, Matrix
+
+from ...utils import InequalityConstraint
 
 import textwrap
 
@@ -522,6 +524,7 @@ gemm = KernelDescription(
     [SizeArgument("M", Op1(A), "rows"),
      SizeArgument("N", Op2(B), "columns"),
      SizeArgument("K", Op1(A), "columns")], # Argument objects
+    constraints=[InequalityConstraint("A", "C"), InequalityConstraint("B", "C")]
     )
 
 

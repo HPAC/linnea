@@ -147,7 +147,7 @@ class ReductionKernel(Kernel):
         for expr, pos in self.pattern.expression.preorder_iter():
             if isinstance(expr, matchpy.Wildcard):
                 for constraint in self.pattern.constraints:
-                    if constraint.variable == expr.variable_name:
+                    if isinstance(constraint, PropertyConstraint) and constraint.variable == expr.variable_name:
                         property_list.append(constraint.properties)
                         break
                 else:
@@ -440,16 +440,29 @@ class KernelDescription():
         wildcards (dict): Mapping operand names to WildcardSymbol objects. The
             wildcard names the the names of the operands preceded by an
             underscore "_".
+        constraints (list): List of additional constraints for this kernel.
 
     """
     # TODO rename kernel variants: KV as prefix
-    def __init__(self, expr_variant, variants, input_operands, return_value, cost_function, pre_code, signature, post_code, arguments, kernel_types=[KernelType.identity]):
+    def __init__(self,
+                 expr_variant,
+                 variants,
+                 input_operands,
+                 return_value,
+                 cost_function,
+                 pre_code,
+                 signature,
+                 post_code,
+                 arguments,
+                 kernel_types=[KernelType.identity],
+                 constraints=[]):
         self.expr_variant = expr_variant
         self.variants = variants
         self.input_operands = input_operands
         self.return_value = return_value
         self.kernel_types = kernel_types
         self.cost_function = cost_function
+        self.constraints = constraints
 
         self.pre_code = CodeTemplate(pre_code)
         self.signature = CodeTemplate(signature)
@@ -566,6 +579,13 @@ class KernelDescription():
                         property_set.difference_update((properties.MATRIX, properties.VECTOR, properties.SCALAR))
                         if property_set:
                             constraints_list.append(PropertyConstraint(_wildcard_name, property_set))
+
+                if self.constraints:
+                    operand_names = set(op.name for op in remaining_operands)
+                    renaming = {name: self.wildcards[name].variable_name for name in operand_names}
+                    for constraint in self.constraints:
+                        if constraint.variables <= operand_names:
+                            constraints_list.append(constraint.with_renamed_vars(renaming))
 
                 remaining_wildcards = [self.wildcards[operand.name] for operand in remaining_operands]
                 

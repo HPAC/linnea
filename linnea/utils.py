@@ -251,9 +251,7 @@ class PropertyConstraint(matchpy.Constraint):
             return all(variable.has_property(prop) for prop in self.properties)
 
     def __eq__(self, other):
-        if not isinstance(other, PropertyConstraint):
-            return NotImplemented
-        return self.variable == other.variable and self.properties == other.properties
+        return isinstance(other, PropertyConstraint) and self.variable == other.variable and self.properties == other.properties
 
     def __hash__(self):
         return hash((self.variable, self.properties))
@@ -273,6 +271,47 @@ class PropertyConstraint(matchpy.Constraint):
     @property
     def variables(self):
         return frozenset([self.variable])
+
+
+class InequalityConstraint(matchpy.Constraint):
+    def __init__(self, x1, x2):
+        self.x1 = x1 # variable name (str)
+        self.x2 = x2 # variable name (str)
+
+    def __call__(self, match):
+        try:
+            x1 = match[self.x1]
+        except KeyError:
+            return False
+        else:
+            try:
+                x2 = match[self.x2]
+            except KeyError:
+                return False
+            else:
+                return x1 != x2
+
+    def __eq__(self, other):
+        return isinstance(other, InequalityConstraint) and self.x1 == other.x1 and self.x2 == other.x2
+
+    def __hash__(self):
+        return hash((self.x1, self.x2))
+ 
+    def __repr__(self):
+        return 'InequalityConstraint({!r}, {!r})'.format(self.x1, self.x2)
+
+    def __str__(self):
+        return 'IC({} != {})'.format(self.x1, self.x2)
+
+    def with_renamed_vars(self, renaming):
+        try:
+            return InequalityConstraint(renaming[self.x1], renaming[self.x2])
+        except KeyError:
+            return self
+
+    @property
+    def variables(self):
+        return frozenset([self.x1, self.x2])
 
 
 def window(seq, n=2):
