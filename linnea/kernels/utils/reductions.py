@@ -107,7 +107,7 @@ class ReductionKernel(Kernel):
             pattern_expr = transpose(pattern_expr)
             # TODO ugly hack
             for constraint in self.pattern.constraints:
-                if (properties.SQUARE in constraint.properties and properties.DIAGONAL in constraint.properties) or properties.SYMMETRIC in constraint.properties:
+                if isinstance(constraint, PropertyConstraint) and ((properties.SQUARE in constraint.properties and properties.DIAGONAL in constraint.properties) or properties.SYMMETRIC in constraint.properties):
                     pattern_expr = remove_transpose(pattern_expr, constraint.variable)
             self.replacement_template = transpose(self.replacement_template)
         elif type == KernelType.conjugate_transpose:
