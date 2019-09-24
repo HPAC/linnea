@@ -125,6 +125,7 @@ def main():
                        output_name=config.output_name,
                        experiment_code=config.generate_experiments,
                        algorithms_limit=config.algorithms_limit,
+                       pruning_factor=config.pruning_factor,
                        graph=config.generate_graph,
                        graph_style=config.graph_style)
 

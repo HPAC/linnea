@@ -234,6 +234,7 @@ class DerivationGraphBase(base.GraphBase):
             experiment_code=False,
             k_best=False,
             algorithms_limit=1,
+            pruning_factor=1.0,
             graph=False,
             graph_style=config.GraphStyle.full,
             subdir_name="generated",
@@ -253,7 +254,7 @@ class DerivationGraphBase(base.GraphBase):
         number_of_algorithms = 0
         min_cost = self.shortest_path()[1]
         for path, cost in self.k_shortest_paths(math.inf):
-            if k_best and cost > config.pruning_factor*min_cost:
+            if k_best and cost > pruning_factor*min_cost:
                 break
 
             algorithm = self.path_to_algorithm(path, cost)

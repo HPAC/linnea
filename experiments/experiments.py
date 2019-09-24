@@ -106,6 +106,7 @@ def generate(experiment, example, name, k_best=False):
                         experiment_code=True,
                         k_best=k_best,
                         algorithms_limit=algorithms_limit,
+                        pruning_factor=pruning_factor,
                         graph=False,
                         subdir_name_experiments=subdir_name_experiments,
                         algorithm_name=algorithm_name,
