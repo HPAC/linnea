@@ -99,7 +99,7 @@ def generate(experiment, example, name, k_best=False):
                         dead_ends=True,
                         pruning_factor=pruning_factor)
 
-    k = graph.write_output(
+    algorithms = graph.write_output(
                         code=False,
                         derivation=True,
                         output_name=name,
@@ -114,10 +114,10 @@ def generate(experiment, example, name, k_best=False):
 
     vals = []
     data = example.eqns.get_data()
-    for _, cost in graph.k_shortest_paths(k):
-        vals.append([data, cost, cost/data])
-
-    mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(k)]], names=("example", "implementation"))
+    for algorithm in algorithms:
+        vals.append([algorithm.data, algorithm.cost, algorithm.intensity])
+    
+    mindex = pd.MultiIndex.from_product([[name], [algorithm_name.format(i) for i in range(len(algorithms))]], names=("example", "implementation"))
     df = pd.DataFrame(vals, index=mindex, columns=["data", "cost", "intensity"])
 
     file_path = os.path.join(linnea.config.results_path, experiment, intensity_dir, name + "_intensity.csv")

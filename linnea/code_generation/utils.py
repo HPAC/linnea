@@ -52,6 +52,8 @@ class Algorithm():
         self.matched_kernels = [keq for keq in kernels_and_equations if isinstance(keq, MatchedKernel)]
         self.kernels_and_equations = kernels_and_equations
         self.cost = cost
+        self.data = self.initial_equations.get_data()
+        self.intensity = self.cost/self.data
 
         self.memory = None
 

@@ -306,7 +306,7 @@ class DerivationGraphBase(base.GraphBase):
             generate_experiment_code(output_name, self.input, algorithm_name, [1, 24], k_best, number_of_algorithms)
 
 
-        return number_of_algorithms
+        return algorithms
 
     def optimal_algorithm_to_str(self):
         matched_kernels, cost, final_equations = self.optimal_algorithm()
