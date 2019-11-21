@@ -98,6 +98,13 @@ class Subexpression():
                 # TODO it should be possible to do this without product.
                 # Check which one is longer, then check prefix.
                 for self_pos, other_pos in itertools.product(self.positions, other.positions):
+                    """This is a simple way to check the prefix relatioship.
+                    zip stops as soon as the first iterable is exhausted, so we
+                    are only looking at the elements that both may have in
+                    common. The case where one path (i.e. iterable) is empty is
+                    handled correctly because all returns true for an empty
+                    iterable.
+                    """
                     if all(e1==e2 for e1, e2 in zip(self_pos, other_pos)):
                         return False
                 return True
