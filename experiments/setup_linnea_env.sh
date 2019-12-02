@@ -34,16 +34,18 @@ echo
 echo "############################################"
 echo
 
+module purge
+module load DEVELOP
 module load python/3.6.0 && PYTHON_MODULE="YES" || PYTHON_MODULE="NO"
 module load cmake/3.10.1 && CMAKE_MODULE="YES" || CMAKE_MODULE="NO"
-module switch intel intel/18.0 && INTEL_MODULE="YES" || INTEL_MODULE="NO"
-module load gcc/7 && GCC_MODULE="YES" || GCC_MODULE="NO"
+module switch intel intel/19.0 && INTEL_MODULE="YES" || INTEL_MODULE="NO"
+module load gcc/8 && GCC_MODULE="YES" || GCC_MODULE="NO"
 
 echo "############################################"
 echo "Python 3.6.0:..." $PYTHON_MODULE
 echo "CMake 3.10.1:..." $CMAKE_MODULE
-echo "Intel 18.0:....." $INTEL_MODULE
-echo "Gcc 7:.........." $GCC_MODULE
+echo "Intel 19.0:....." $INTEL_MODULE
+echo "Gcc 8:.........." $GCC_MODULE
 echo "############################################"
 echo "If all above modules are loaded you should proceed with the installation."
 prompt
@@ -66,45 +68,45 @@ git clone https://gitlab.com/conradsnicta/armadillo-code.git $SRC_DIR/armadillo
 git clone https://github.com/JuliaLang/julia.git $SRC_DIR/julia
 git clone https://github.com/HPAC/linnea.git $SRC_DIR/linnea
 
-echo "Installing Julia" 
-    cd $SRC_DIR/julia 
+echo "Installing Julia"
+    cd $SRC_DIR/julia
     git checkout 1c6f89f04a1ee4eba8380419a2b01426e84f52aa # Julia 1.1.0-DEV.468 from October 17, 2018
-    echo "USE_INTEL_MKL = 1" > $SRC_DIR/julia/Make.user 
+    echo "USE_INTEL_MKL = 1" > $SRC_DIR/julia/Make.user
     make -j 1
-    ./julia -e "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/HPAC/MatrixGenerator.jl.git\", rev=\"master\"))" 
+    ./julia -e "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/HPAC/MatrixGenerator.jl.git\", rev=\"master\"))"
 
-echo "Installing Eigen" 
-    cd $SRC_DIR/eigen 
-    git checkout 3.3.5 
-    mkdir build 
-    cd build 
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIB_DIR" .. 
-    make install 
+echo "Installing Eigen"
+    cd $SRC_DIR/eigen
+    git checkout 3.3.7
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIB_DIR" ..
+    make install
 
-echo "Installing Armadillo" 
-    cd $SRC_DIR/armadillo 
-    git checkout 9.200.x 
-    mkdir build 
-    cd build 
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIB_DIR" .. 
-    make install 
+echo "Installing Armadillo"
+    cd $SRC_DIR/armadillo
+    git checkout 9.800.x
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIB_DIR" ..
+    make install
 
-echo "Installing MatrixGeneratorCpp" 
-    cd $SRC_DIR/MatrixGeneratorCpp 
-    mkdir build 
-    cd build 
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIB_DIR" -DCMAKE_PREFIX_PATH="$LIB_DIR" -DWITH_ARMADILLO=On -DWITH_EIGEN=On -DWITH_MKL=On .. 
-    make install 
+echo "Installing MatrixGeneratorCpp"
+    cd $SRC_DIR/MatrixGeneratorCpp
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$LIB_DIR" -DCMAKE_PREFIX_PATH="$LIB_DIR" -DWITH_ARMADILLO=On -DWITH_EIGEN=On -DWITH_MKL=On ..
+    make install
 
-echo "Creating Linnea virtual environment" 
+echo "Creating Linnea virtual environment"
     python3.6 -m venv $VENV
 
-echo "Installing Linnea in the virtual environment" 
-    source $VENV/bin/activate 
-    cd $SRC_DIR/linnea 
+echo "Installing Linnea in the virtual environment"
+    source $VENV/bin/activate
+    cd $SRC_DIR/linnea
     pip install --upgrade pip setuptools
-    pip install -e . 
-    deactivate 
+    pip install -e .
+    deactivate
 
 echo "Finished."
 
