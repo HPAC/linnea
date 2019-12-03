@@ -11,7 +11,7 @@
 {spec_node}
 
 module load MISC
-module load matlab/2018b
+module load matlab/2019b
 
 cd {linnea_results_path}
 mkdir -p {name}/execution/matlab/t{threads}
