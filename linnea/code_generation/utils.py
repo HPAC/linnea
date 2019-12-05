@@ -131,7 +131,7 @@ class Algorithm():
         input_operands, output_operands = self.initial_equations.input_output()
         self.experiment_input = ", ".join(["{}::{}".format(self.memory.lookup[operand.name].name, operand_type(operand)) for operand in input_operands])
 
-        code_list.append("{0}cost {1:.3g}\n".format(config.comment, self.cost))
+        code_list.append("{0}cost: {1:.3g} FLOPs\n".format(config.comment, self.cost))
 
         if config.c:
             code_list.append("int info = 0;\n\n")

@@ -308,18 +308,14 @@ class DerivationGraphBase(base.GraphBase):
 
         return algorithms
 
+
     def optimal_algorithm_to_str(self):
-        matched_kernels, cost, final_equations = self.optimal_algorithm()
-        if matched_kernels:
-            algorithm = cgu.Algorithm(self.input, final_equations, matched_kernels, cost)
-            code = algorithm.code()
-            # code_lines = code.splitlines()
-            # del code_lines[1:3] # remove "using Base.LinAlg..."
-            # code = "\n".join(code_lines)
-            function_name = "linnea_function{:X}".format(hash(self.input))
-            return function_name, cgu.algorithm_to_str(function_name, code, algorithm.experiment_input, algorithm.experiment_output)
+        path, cost = self.shortest_path()
+        if path:
+            algorithm = self.path_to_algorithm(path, cost)
+            return cgu.algorithm_to_str("algorithm", algorithm.code(), algorithm.experiment_input, algorithm.experiment_output, config.language.Julia)
         else:
-            return None, None
+            return None
 
 
     def path_to_algorithm(self, path, cost):

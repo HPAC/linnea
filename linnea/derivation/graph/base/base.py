@@ -130,7 +130,6 @@ class GraphBase():
                 if current_node.successors:
                     current_node = current_node.successors[idx]
 
-            # beginning or end is missing
             return matched_kernels, cost, current_node.get_payload()
         else:
             return [], math.inf, None
