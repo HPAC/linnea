@@ -15,6 +15,9 @@ import matchpy
 class UnknownSymbolType(Exception):
     pass
 
+class InvalidInput(Exception):
+    pass
+
 class Equations():
 
     _counter = 0
@@ -257,6 +260,62 @@ class Equations():
 
 
     def check_validity(self):
+        """Checks if the objects is valid.
+
+        In addition to checking that the individual equations are well-formed,
+        this function also checks that the sequence of equations is valid.
+        All operands are treated as unique mathematical objects, that this,
+        they only represent one value. As a result, 1) operands cannot be
+        redefined, and 2) input operands cannot be overwritten. Since at
+        present, Linnea does not use any properties or labels to annotate what
+        is input and what is output, the two requirements are checked by
+        analyzing the dataflow: Requirement 2) is checked by testing that the
+        first use of an operands takes place after its definition (if there is
+        a definition; otherwise, the operand is an input operand).
+
+        Examples of invalid sequences of equations:
+        X = X A
+
+        Y = X A
+        X = B C
+
+        X = A
+        X = B
+
+        Returns:
+            bool: True if the equations are valid, raises an exception
+                otherwise.
+
+        Raises:
+            InvalidInput: If any of the two requirements above is violated.
+            SizeMismatch: If operand sizes in any expression do not match.
+
+        """
+        first_use = dict()
+        definition = dict()
+        for n, equation in enumerate(self.equations):
+            # Test that there is only on definition.
+            if not equation.lhs in definition:
+                definition[equation.lhs] = n
+            else:
+                raise InvalidInput("Operands can only be defined once: {}".format(equation.lhs.name)) 
+
+            for expr, _ in equation.rhs.preorder_iter():
+                if isinstance(expr, ae.Symbol) and not isinstance(expr, ae.Constant):
+                    # add expr: n to first_use if expr is not in dict
+                    if not expr in first_use:
+                        first_use[expr] = n
+        
+        # Test that first use happens after definition.         
+        for operand, definition_line in definition.items():
+            try:
+                first_use_line = first_use[operand]
+            except KeyError:
+                pass
+            else:
+                if first_use_line <= definition_line:
+                    raise InvalidInput("Input operands can not be overwritten: {}".format(operand.name))
+        
         return all(check_validity(equation) for equation in self.equations)
 
 

@@ -4077,3 +4077,106 @@ class Example164():
                         # Equal(X, Plus(Times(A, B), B)),
                         # Equal(X, Plus(Times(A, B), C)),
                         )
+
+
+class Example165():
+    def __init__(self):
+
+        # TAGS
+        # validity, invalid
+
+        n = 1000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        X = Matrix("X", (n, n))
+        Y = Matrix("Y", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Times(A, X))
+                        )
+
+
+class Example166():
+    def __init__(self):
+
+        # TAGS
+        # validity, invalid
+
+        n = 1000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        X = Matrix("X", (n, n))
+        Y = Matrix("Y", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Times(A, B)),
+                        Equal(X, Times(A, C))
+                        )
+
+
+class Example167():
+    def __init__(self):
+
+        # TAGS
+        # validity, invalid
+
+        n = 1000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        X = Matrix("X", (n, n))
+        Y = Matrix("Y", (n, n))
+
+        self.eqns = Equations(
+                        Equal(Y, Times(A, X)),
+                        Equal(X, Times(A, B))
+                        )
+
+
+class Example168():
+    def __init__(self):
+
+        # TAGS
+        # validity, valid
+
+        n = 1000
+
+        A = Matrix("A", (n, n))
+        A.set_property(properties.FULL_RANK)
+
+        B = Matrix("B", (n, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        X = Matrix("X", (n, n))
+        Y = Matrix("Y", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Times(A, B)),
+                        Equal(Y, Times(A, X))
+                        )
