@@ -20,8 +20,8 @@ import linnea.examples.examples
 import linnea.examples.application as application
 from linnea.derivation.graph.derivation import DerivationGraph
 from linnea.code_generation.experiments.utils import generate_experiment_code
+from linnea.example.random_expressions import generate_equation
 
-from random_expressions import generate_equation
 from jobscripts import generate_scripts
 
 def measure(experiment, example, name, merging):

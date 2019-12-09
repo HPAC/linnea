@@ -2,19 +2,19 @@ import random
 
 from matchpy import Arity
 
+from ..algebra import expression as ae
+from ..algebra import equations as aeq
+from ..algebra.transformations import simplify
+from ..utils import window
+from ..algebra.validity import check_validity
+from ..algebra.properties import Property as properties
+
 # Arity.nullary = Arity(0, True)
 # Arity.unary = Arity(1, True)
 # Arity.binary = Arity(2, True)
 # Arity.ternary = Arity(3, True)
 # Arity.polyadic = Arity(2, False)
 # Arity.variadic = Arity(0, False)
-
-from linnea.algebra import expression as ae
-from linnea.algebra import equations as aeq
-from linnea.algebra.transformations import simplify
-from linnea.utils import window
-from linnea.algebra.validity import check_validity
-from linnea.algebra.properties import Property as properties
 
 _counter = -1
 

@@ -5,13 +5,13 @@ import numpy
 
 
 import itertools
-from linnea.algebra import expression as ae
-from linnea.algebra.equations import Equations
-from linnea.algebra.transformations import simplify
-from linnea.algebra.properties import Property as properties
-from linnea.frontend.export import export
-from linnea.code_generation import experiments as cge
-from linnea.utils import window
+from ..algebra import expression as ae
+from ..algebra.equations import Equations
+from ..algebra.transformations import simplify
+from ..algebra.properties import Property as properties
+from ..frontend.export import export
+from ..code_generation import experiments as cge
+from ..utils import window
 
 
 def matrix_size():
