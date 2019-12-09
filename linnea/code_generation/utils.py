@@ -98,13 +98,13 @@ class Algorithm():
             rhs_symbols = set(self._symbols(matched_kernel.operation.rhs))
             for rhs_symbol in rhs_symbols:
                 if rhs_symbol not in live_symbols:
-                    self.liveness.setdefault(rhs_symbol.name ,[None, None])[1] = line_number
+                    self.liveness.setdefault(rhs_symbol.name, [None, None])[1] = line_number
             
             live_symbols.update(rhs_symbols)
 
             lhs_symbols = set(self._symbols(matched_kernel.operation.lhs))
             for lhs_symbol in lhs_symbols:
-                self.liveness.setdefault(lhs_symbol.name ,[None, None])[0] = line_number
+                self.liveness.setdefault(lhs_symbol.name, [None, None])[0] = line_number
 
         for equation in self.final_equations:
             self.liveness[equation.rhs.name][1] = None
