@@ -10,8 +10,11 @@
 {spec_exclusive}
 {spec_node}
 
-module switch intel intel/{intel_version}
-module load gcc/{gcc_version}
+module purge
+module load DEVELOP
+module load LIBRARIES
+module load intelmkl/{intel_version}
+module load clang/{clang_version}
 
 cd {linnea_results_path}
 mkdir -p {name}/execution/cpp/t{threads}

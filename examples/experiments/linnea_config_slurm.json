@@ -5,8 +5,8 @@
         "version":
         {
             "cmake_version": "3.13.2",
-            "intel_version": "18.0",
-            "gcc_version": "8",
+            "intel_version": "2019",
+            "clang_version": "8.0",
             "python_version": "3.6.0"
         },
         "generate":

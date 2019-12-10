@@ -10,7 +10,9 @@
 {spec_exclusive}
 {spec_node}
 
-module load gcc/{gcc_version}
+module purge
+module load DEVELOP
+module load clang/{clang_version}
 
 cd {linnea_results_path}/
 mkdir -p {name}/execution/{output_subdir}/t{threads}

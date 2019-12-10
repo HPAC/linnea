@@ -10,6 +10,7 @@
 {spec_exclusive}
 {spec_node}
 
+module purge
 module load MISC
 module load matlab/2019b
 

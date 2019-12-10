@@ -25,9 +25,9 @@ function prompt {
 echo "############################################"
 echo "Please make sure you have the following packages installed:"
 echo "cmake v3.13.2"
-echo "gcc v7"
+echo "clang 8.0"
 echo "python 3.6"
-echo "Intel MKL"
+echo "Intel MKL 2019"
 
 echo "Linnea environment dir: $LINNEA_INSTALL_DIR"
 echo

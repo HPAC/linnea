@@ -8,15 +8,17 @@
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 
-
+module purge
+module load DEVELOP
+module load LIBRARIES
 module load python/{python_version}
 
 source {linnea_virtualenv_path}/bin/activate
 python3 {linnea_src_path}/experiments/experiments.py generate_code {name} -j=${var_array_idx} {args}
 
 module load cmake/{cmake_version}
-module switch intel intel/{intel_version}
-module load gcc/{gcc_version}
+module load intelmkl/{intel_version}
+module load clang/{clang_version}
 
 expname=$(printf "{name}%03d" ${var_array_idx})
 
