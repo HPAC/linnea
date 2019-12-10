@@ -104,7 +104,7 @@ echo "Installing Linnea in the virtual environment"
 
 echo "Installing Julia"
     cd $SRC_DIR/julia
-    #git checkout 1c6f89f04a1ee4eba8380419a2b01426e84f52aa # Julia 1.1.0-DEV.468 from October 17, 2018
+    git checkout v1.3.0
     echo "USE_INTEL_MKL = 1" > $SRC_DIR/julia/Make.user
     make -j 24
     ./julia -e "using Pkg; Pkg.add(PackageSpec(url=\"https://github.com/HPAC/MatrixGenerator.jl.git\", rev=\"master\"))"
