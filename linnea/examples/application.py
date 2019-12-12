@@ -757,7 +757,7 @@ class Example18():
         # tikhonov regularization 1
 
         n = 3000
-        m = 50
+        m = 200
 
         A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
         Gamma = Matrix("Gamma", (m , m), properties = [properties.FULL_RANK])
@@ -777,7 +777,7 @@ class Example19():
         # tikhonov regularization 2
 
         n = 3000
-        m = 50
+        m = 200
 
         A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
         I = IdentityMatrix(m, m)
@@ -799,7 +799,7 @@ class Example20():
         # tikhonov regularization 3
 
         n = 3000
-        m = 50
+        m = 200
 
         A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
         P = Matrix("P", (n, n), properties = [properties.SPD]) # covariance matrix
@@ -824,7 +824,7 @@ class Example21():
         # tikhonov regularization 4
 
         n = 3000
-        m = 50
+        m = 200
 
         A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
         P = Matrix("P", (n, n), properties = [properties.SPD]) # covariance matrix
