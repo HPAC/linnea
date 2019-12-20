@@ -456,7 +456,7 @@ class MatchedKernel():
         
 
 def derivation_to_file(output_name, subdir_name, algorithm_name, derivation):
-    file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", algorithm_name)
+    file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", "".join([algorithm_name, ".txt"]))
     directory_name = os.path.dirname(file_name)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
