@@ -15,6 +15,7 @@ import textwrap
 import os
 import matchpy
 import pkg_resources
+import itertools
 
 class Algorithm():
     """Represents an Algorithm and translates it to code.
@@ -23,6 +24,7 @@ class Algorithm():
     code.
 
     Attributes:
+        name (string): The name of the algorithm.
         initial_equations (Equations): The input equations.
         final_equations (Equations): The equations left at the end of the
             dervation. They only consist of quations of the form
@@ -31,22 +33,23 @@ class Algorithm():
         kernels_and_equations (list): List of MatchedKernel and Equation
             objects, representing the algorithm (and its derivation).
         cost (int): The cost of the entire algorithm.
-        memory (Memory): A Memory object, which is used to translate the
-            algorithm to code.
+        data (int): The amount of data (number of scalars) of the input
+            equations.
+        intensity (float): The computational intensity of this algorithm.
         liveness (dict): Stores liveness information. For each operand, it
             contains a tuple of to integers. The first integer is the line
             number (corresponds to a MatchedKernel object in matched_kernels)
             where the operand is define. If it is None, the operand is an input
             operand. The second integer is the line number where the operand is
             used for the last time. If it is None, the operand is an ouput
-            operand.
-        known_lines (set): Is used to generate code. Contains lines of code that
-            may be generated multiple times even though they are only needed
-            once, such as definitions of constant arguments.
+            operand. Is written when accessing the code property.
+        docstring (string): Docstring for the generated code. Is written when
+            accessing the code property.
     """
-    def __init__(self, initial_equations, final_equations, kernels_and_equations, cost):
+    def __init__(self, name, initial_equations, final_equations, kernels_and_equations, cost):
 
         # super(Algorithm, self).__init__()
+        self.name = name
         self.initial_equations = initial_equations
         self.final_equations = final_equations
         self.matched_kernels = [keq for keq in kernels_and_equations if isinstance(keq, MatchedKernel)]
@@ -55,15 +58,13 @@ class Algorithm():
         self.data = self.initial_equations.get_data()
         self.intensity = self.cost/self.data
 
-        self.memory = None
-
         self.liveness = None
-        self.known_lines = None
 
-        self.experiment_input = None
-        self.experiment_output = None
+        self._experiment_input = None
+        self._experiment_output = None
 
-        self.liveness_analysis()
+        self._code = None
+        self.docstring = None
 
     def __eq__(self, other):
         return self.matched_kernels == other.matched_kernels
@@ -75,11 +76,41 @@ class Algorithm():
         """Returns all the symbols in expr.
     
         """
+        # TODO this should go into some utils module
         if isinstance(expr, Symbol):
             yield expr
         else:
             for operand in expr.operands:    
                 yield from self._symbols(operand)
+
+    @property
+    def code(self):
+        """str: The generated code."""
+        if self._code is None:
+            self._code = self._generate_code()
+        return self._code
+
+    def code_as_function(self, experiment=False):
+        """Returns the generated code as a function.
+        
+        Args:
+            experiment (bool, optional): If True, the generated function
+                contains a timer. Defaults to False.
+
+        Returns:
+            string: The generated code.
+        """
+        if config.language == config.Language.Julia:
+            code = self.code # this cannot be done later because it sets self.docstring, self._experiment_input, and self._experiment_output
+            if experiment:
+                template = get_template("algorithm_experiments.jl", config.language)
+                algorithm_str = template.format(self.name, self._experiment_input, textwrap.indent(code, "    "), self._experiment_output)
+            else:
+                template = get_template("algorithm.jl", config.language)
+                algorithm_str = template.format(self.docstring, self.name, self._experiment_input, textwrap.indent(code, "    "), self._experiment_output)
+        else:
+            raise config.LanguageOptionNotImplemented()
+        return algorithm_str
 
     def liveness_analysis(self):
         """Performs a liveness analysis.
@@ -92,24 +123,26 @@ class Algorithm():
         which is the case because they are purely symbolic, and a symbol
         represents a unique operand).
         """
-        self.liveness = dict()
+        liveness = dict()
         live_symbols = set()
         for line_number, matched_kernel in reversed(list(enumerate(self.matched_kernels))):
             rhs_symbols = set(self._symbols(matched_kernel.operation.rhs))
             for rhs_symbol in rhs_symbols:
                 if rhs_symbol not in live_symbols:
-                    self.liveness.setdefault(rhs_symbol.name, [None, None])[1] = line_number
+                    liveness.setdefault(rhs_symbol.name, [None, None])[1] = line_number
             
             live_symbols.update(rhs_symbols)
 
             lhs_symbols = set(self._symbols(matched_kernel.operation.lhs))
             for lhs_symbol in lhs_symbols:
-                self.liveness.setdefault(lhs_symbol.name, [None, None])[0] = line_number
+                liveness.setdefault(lhs_symbol.name, [None, None])[0] = line_number
 
         for equation in self.final_equations:
-            self.liveness[equation.rhs.name][1] = None
+            liveness[equation.rhs.name][1] = None
 
-    def code(self):
+        return liveness
+
+    def _generate_code(self):
         """Translated the algorithm to code.
 
         The language depends on what is specified in config.
@@ -122,14 +155,20 @@ class Algorithm():
         """
         TODO this is inconsistent. memory and known_lines are attributes,
         matched_kernel and line_number is passed to memory.add_operation
+        TODO it doesn't make a lot of sense that memory is part of the object,
+        same for known_lines
         """
 
-        self.memory = memory_module.Memory(self.initial_equations)
-        self.known_lines = set()
+        memory = memory_module.Memory(self.initial_equations)
+        self.liveness = self.liveness_analysis()
+        
+        known_lines = set()
         code_list = []
 
         input_operands, output_operands = self.initial_equations.input_output()
-        self.experiment_input = ", ".join(["{}::{}".format(self.memory.lookup[operand.name].name, operand_type(operand)) for operand in input_operands])
+        self._experiment_input = ", ".join(["{}::{}".format(memory.lookup[operand.name].name, operand_type(operand)) for operand in input_operands])
+
+        self.docstring = self._generate_docstring(memory)
 
         code_list.append("{0}cost: {1:.3g} FLOPs\n".format(config.comment, self.cost))
 
@@ -137,34 +176,38 @@ class Algorithm():
             code_list.append("int info = 0;\n\n")
 
         for line_number, matched_kernel in enumerate(self.matched_kernels):
-            code_list.append(self._matched_kernel_to_code(matched_kernel, line_number))
+            code_list.append(self._matched_kernel_to_code(matched_kernel, line_number, memory, known_lines))
 
         code_list.append(config.comment)
-        code_list.append(self.memory.content_string_with_format())
+        code_list.append(memory.content_string_with_format())
         code_list.append("\n")
 
         output_operand_mapping = {eqn.lhs: eqn.rhs for eqn in self.final_equations}
-        conversion_to_full = self.memory.convert_to_full(output_operand_mapping.values())
+        conversion_to_full = memory.convert_to_full(output_operand_mapping.values())
         if conversion_to_full:
             code_list.append(conversion_to_full)
             code_list.append("\n")
 
             code_list.append(config.comment)
-            code_list.append(self.memory.content_string_with_format())
+            code_list.append(memory.content_string_with_format())
             code_list.append("\n")
 
         code_list.append(textwrap.indent(str(self.final_equations), config.comment))
-        self.experiment_output = ", ".join([self.memory.lookup[output_operand_mapping[operand].name].name for operand in output_operands])
+        self._experiment_output = ", ".join([memory.lookup[output_operand_mapping[operand].name].name for operand in output_operands])
 
         return "".join(code_list)
 
-    def _matched_kernel_to_code(self, matched_kernel, line_number):
+    def _matched_kernel_to_code(self, matched_kernel, line_number, memory, known_lines):
         """Generates code for a single MatchedKernel objects.
 
         Args:
             matched_kernel (MatchedKernel)
             line_number (int): The line number of the operation represeted by
                 matched_kernel. Is necessary to use the liveness dictionary.
+            memory (Memory): Represents the current state of the memory.
+            known_lines (set): Contains lines of code that may be generated
+                multiple times even though they are only needed once, such as
+                definitions of constant arguments.
 
         Returns:
             string: Code.
@@ -172,6 +215,7 @@ class Algorithm():
         Important:
             MatchedKernel objects can not be modified because they are used
             multiple times for the generation of algorithms.
+            The memory object is modified by this function.
 
         """
         lines_list = []
@@ -181,8 +225,8 @@ class Algorithm():
         # print(matched_kernel.operand_dict)
         # print(matched_kernel.kernel_io)
 
-        mem_content = "".join([config.comment, self.memory.content_string_with_format(), "\n"])
-        # mem_content = "".join([config.comment, self.memory.content_string(), "\n"])
+        mem_content = "".join([config.comment, memory.content_string_with_format(), "\n"])
+        # mem_content = "".join([config.comment, memory.content_string(), "\n"])
         lines_list.append(mem_content)
 
         # TODO arguments could be a stack or something, removing processed arguments. Then we don't need late_arguments.
@@ -200,10 +244,10 @@ class Algorithm():
         late_arguments = []
         for argument in arguments:
             try:
-                pre_code, arg_replacement = argument.get_replacement(matched_kernel.operand_dict, self.memory)
+                pre_code, arg_replacement = argument.get_replacement(matched_kernel.operand_dict, memory)
             except memory_module.OperandNotInMemory:
                 """ This Argument object has to be used after
-                self.memory.add_operation(). Happens only for StrideArgument objects
+                memory.add_operation(). Happens only for StrideArgument objects
                 if nothing is overwritten.
                 TODO: If nothing is overwritten, a new memory location is
                 allocated. Thus, the stride can be chosen. So does  this  make 
@@ -216,7 +260,7 @@ class Algorithm():
                 argument_mapping[argument.name] = arg_replacement   
 
         # print(matched_kernel.operation)
-        mem_ops_before, mem_ops_after, operand_mapping = self.memory.add_operation(matched_kernel.kernel_io, self.liveness, line_number)
+        mem_ops_before, mem_ops_after, operand_mapping = memory.add_operation(matched_kernel.kernel_io, self.liveness, line_number)
         # print(operand_mapping)
 
         if mem_ops_before:
@@ -225,7 +269,7 @@ class Algorithm():
 
         # print(late_arguments)
         for argument in late_arguments:
-            pre_code, arg_replacement = argument.get_replacement(matched_kernel.operand_dict, self.memory)
+            pre_code, arg_replacement = argument.get_replacement(matched_kernel.operand_dict, memory)
             if pre_code:
                 argument_pre_code.append(pre_code)
             argument_mapping[argument.name] = arg_replacement 
@@ -241,7 +285,7 @@ class Algorithm():
             kernel_post_code.safe_substitute_copy(operand_mapping)
 
         if argument_pre_code:
-            lines_list.extend(self.remove_duplicate_lines(argument_pre_code, self.known_lines))
+            lines_list.extend(self.remove_duplicate_lines(argument_pre_code, known_lines))
 
         if matched_kernel.pre_code:
             lines_list.append(kernel_pre_code.safe_substitute_str(argument_mapping))
@@ -316,6 +360,47 @@ class Algorithm():
                 known_lines.add(line)
                 new_lines.append(line)
         return new_lines
+
+    def _generate_docstring(self, memory):
+        input_operands, output_operands = self.initial_equations.input_output()
+        operand_description = []
+        internal_properties = {properties.AUXILIARY, properties.SCALAR,
+                               properties.VECTOR, properties.MATRIX,
+                               properties.SQUARE, properties.ROW_PANEL,
+                               properties.COLUMN_PANEL, properties.CONSTANT,
+                               properties.ADMITS_FACTORIZATION,
+                               properties.FACTOR, properties.TRIANGULAR}
+        for operand in input_operands:
+            print_properties = operand.properties - internal_properties
+            remove = set()
+            # removing properties that are implied by others
+            for p1, p2 in itertools.combinations(print_properties, 2):
+                if p1 < p2:
+                    remove.add(p2)
+                elif p1 > p2:
+                    remove.add(p1)
+            print_properties -= remove
+            if print_properties:
+                properties_list = ", ".join(sorted([p.value for p in print_properties]))
+                if len(print_properties) > 1:
+                    properties_str = " with properties {}".format(properties_list)
+                else:
+                    properties_str = " with property {}".format(properties_list)
+            else:
+                properties_str = ""
+            size = " x ".join([str(s) for s in operand.size if s != 1])
+            description = "- `{}::{}`: Operand {} of size {}{}.".format(memory.lookup[operand.name].name, operand_type(operand), operand.name, size, properties_str)
+            operand_description.append(description)
+        template = textwrap.dedent(
+                    """\
+                    \"\"\"
+                        {}({})
+
+                    # Arguments
+                    {}
+                    \"\"\"\
+                    """)
+        return template.format(self.name, self._experiment_input, "\n".join(operand_description))
 
 class KernelIO():
     """Describes the input and output of a kernel.
@@ -467,52 +552,15 @@ def derivation_to_file(output_name, subdir_name, algorithm_name, derivation):
         print("Generate derivation file {}".format(file_name))
 
 
-def algorithm_to_file(output_name, subdir_name, algorithm_name, algorithm, input, output,
-                      language = config.language,
-                      file_extension = config.filename_extension,
-                      experiment = False):
-    file_name = os.path.join(config.output_code_path, output_name, language.name, subdir_name,
-                             "".join([algorithm_name, file_extension]))
-    directory_name = os.path.dirname(file_name)
+def to_file(file_path, content):
+    directory_name = os.path.dirname(file_path)
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
-    output_file = open(file_name, "wt")
-    if config.verbosity >= 2:
-        print("Generate algorithm file {}".format(file_name))
-    algorithm_name = algorithm_name
-    algorithm_str = algorithm_to_str(algorithm_name, algorithm, input, output, language, experiment)
-    output_file.write(algorithm_str)
+    output_file = open(file_path, "wt")
+    output_file.write(content)
     output_file.close()
-
-def algorithm_to_str(function_name, algorithm, input, output, language, experiment = False):
-    if language == config.Language.Julia:
-        if experiment:
-            template = get_template("algorithm_experiments.jl", language)
-        else:
-            template = get_template("algorithm.jl", language)
-        algorithm_str = template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
-    elif language == config.Language.Matlab:
-        template = get_template("algorithm.m", language)
-        algorithm_str = template.format(function_name, input, textwrap.indent(algorithm, "    "), output)
-    elif language == config.Language.Cpp:
-        types_list = ", ".join("typename Type_{}".format(op) for op in str.split(input, ", "))
-        args_list = ", ".join("Type_{0} && {0}".format(op) for op in str.split(input, ", "))
-        output_len = len(str.split(output, ", "))
-        if output_len > 1:
-            output_string = "return std::make_tuple({});".format(output)
-        else:
-            ret_string = textwrap.dedent(
-                         """
-                            typedef std::remove_reference_t<decltype({})> return_t;
-                            return return_t({});
-                         """)
-            output_string = ret_string.format(output, output)
-        template = get_template("algorithm.cpp", language)
-        algorithm_str = template.format(function_name, types_list, args_list, textwrap.indent(algorithm, "    "), output_string)
-    else:
-        raise config.LanguageOptionNotImplemented()
-    
-    return algorithm_str
+    if config.verbosity >= 2:
+        print("Generate file {}".format(file_path))
 
 def operand_type(operand, property_types=False):
     if property_types:

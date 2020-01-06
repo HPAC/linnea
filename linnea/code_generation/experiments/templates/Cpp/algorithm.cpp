@@ -4,6 +4,7 @@ template<{}>
 decltype(auto) operator()({})
 {{
 {}
-    {}
+
+{}
 }}
 }};

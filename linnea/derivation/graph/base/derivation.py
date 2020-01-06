@@ -257,7 +257,7 @@ class DerivationGraphBase(base.GraphBase):
             if k_best and cost > pruning_factor*min_cost:
                 break
 
-            algorithm = self.path_to_algorithm(path, cost)
+            algorithm = self.path_to_algorithm(path, cost, algorithm_name.format(number_of_algorithms))
             if no_duplicates:
                 if not algorithm in known_algorithms:
                     known_algorithms.add(algorithm)
@@ -273,38 +273,42 @@ class DerivationGraphBase(base.GraphBase):
         self.print_result("Number of algorithms:", number_of_algorithms)
 
         if code or derivation or experiment_code:
-            directory_name = os.path.join(config.output_code_path, output_name)
-            if not os.path.exists(directory_name):
-                os.makedirs(directory_name)
+            output_path = os.path.join(config.output_code_path, output_name)
+            code_path = os.path.join(output_path, config.language.name, subdir_name)
+            experiment_path = os.path.join(output_path, config.language.name, subdir_name_experiments)
+            if not os.path.exists(output_path):
+                os.makedirs(output_path)
             else:
                 # Removing existing algorithm files
                 if code:
-                    algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name)
-                    cgu.remove_files(algorithms_dir_name)
-                    derivation_dir_name = os.path.join(directory_name, config.language.name, subdir_name, "derivation")
-                    cgu.remove_files(derivation_dir_name)
+                    cgu.remove_files(code_path)
+                    cgu.remove_files(os.path.join(code_path, "derivation"))
                 if experiment_code:
-                    algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name_experiments)
-                    cgu.remove_files(algorithms_dir_name)
-                    algorithms_dir_name = os.path.join(directory_name, config.language.name, subdir_name_experiments, "derivation")
-                    cgu.remove_files(algorithms_dir_name)
+                    cgu.remove_files(experiment_path)
+                    cgu.remove_files(os.path.join(experiment_path, "derivation"))
 
         if code or derivation:
             for n, algorithm in enumerate(algorithms):
 
+                algorithm_file_name = "".join([algorithm.name, config.filename_extension])
+                derivation_file_name = os.path.join("derivation", "".join([algorithm.name, ".txt"]))
+
                 if code:
-                    cgu.algorithm_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output)
+                    file_name = os.path.join(code_path, algorithm_file_name)
+                    cgu.to_file(file_name, algorithm.code_as_function())
                     if derivation:
-                        cgu.derivation_to_file(output_name, subdir_name, algorithm_name.format(n), algorithm.derivation())
+                        file_name = os.path.join(code_path, derivation_file_name)
+                        cgu.to_file(file_name, algorithm.derivation())
 
                 if experiment_code:
-                    cgu.algorithm_to_file(output_name, subdir_name_experiments, algorithm_name.format(n), algorithm.code(), algorithm.experiment_input, algorithm.experiment_output, experiment=True)
+                    file_name = os.path.join(experiment_path, algorithm_file_name)
+                    cgu.to_file(file_name, algorithm.code_as_function(experiment=True))
                     if derivation:
-                        cgu.derivation_to_file(output_name, subdir_name_experiments, algorithm_name.format(n), algorithm.derivation())
+                        file_name = os.path.join(experiment_path, derivation_file_name)
+                        cgu.to_file(file_name, algorithm.derivation())
 
         if experiment_code:
             generate_experiment_code(output_name, self.input, algorithm_name, [1, 24], k_best, number_of_algorithms)
-
 
         return algorithms
 
@@ -312,13 +316,13 @@ class DerivationGraphBase(base.GraphBase):
     def optimal_algorithm_to_str(self):
         path, cost = self.shortest_path()
         if path:
-            algorithm = self.path_to_algorithm(path, cost)
-            return cgu.algorithm_to_str("algorithm", algorithm.code(), algorithm.experiment_input, algorithm.experiment_output, config.language.Julia)
+            algorithm = self.path_to_algorithm(path, cost, "algorithm")
+            return algorithm.code_as_function()
         else:
             return None
 
 
-    def path_to_algorithm(self, path, cost):
+    def path_to_algorithm(self, path, cost, algorithm_name):
         kernels_and_equations = []
         current_node = self.root
         for idx in path:
@@ -327,7 +331,7 @@ class DerivationGraphBase(base.GraphBase):
             kernels_and_equations.extend(edge_label.matched_kernels)
             current_node = current_node.successors[idx]
 
-        return cgu.Algorithm(self.input, current_node.equations, kernels_and_equations, cost)
+        return cgu.Algorithm(algorithm_name, self.input, current_node.equations, kernels_and_equations, cost)
 
 class DerivationGraphNode(base.GraphNodeBase):
 

@@ -385,13 +385,13 @@ class Symbol(matchpy.Symbol, Expression):
         out.append(dot_table_node.format(node_name, str(self.name), str(self.size), props, false_properties))
         return out
 
-    def to_matlab_expression(self, recommended=False):
+    def to_matlab_expression(self):
         return self.name
 
-    def to_julia_expression(self, recommended=False):
+    def to_julia_expression(self):
         return self.name
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         return self.name
 
     @property
@@ -453,18 +453,18 @@ class Equal(Operator):
     def __str__(self):
         return "{0} = {1}".format(*self.operands)
 
-    def to_matlab_expression(self, recommended=False):
-        return "{0} = {1};".format(*map(operator.methodcaller("to_matlab_expression", recommended), self.operands))
+    def to_matlab_expression(self):
+        return "{0} = {1};".format(*map(operator.methodcaller("to_matlab_expression"), self.operands))
 
-    def to_julia_expression(self, recommended=False):
-        return "{0} = {1};".format(*map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+    def to_julia_expression(self):
+        return "{0} = {1};".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         if lib is CppLibrary.Blaze:
             template_str = "auto {0} = blaze::evaluate({1});"
         else:
             template_str = "auto {0} = ({1}).eval();"
-        return template_str.format(*map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
+        return template_str.format(*map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
 class Plus(Operator):
     """docstring for Plus"""
@@ -496,16 +496,16 @@ class Plus(Operator):
         bands = list(zip(*[operand.bandwidth for operand in self.operands]))
         return (max(bands[0]), max(bands[1]))
 
-    def to_matlab_expression(self, recommended=False):
-        operand_str = '+'.join(map(operator.methodcaller("to_matlab_expression", recommended), self.operands))
+    def to_matlab_expression(self):
+        operand_str = '+'.join(map(operator.methodcaller("to_matlab_expression"), self.operands))
         return "({0})".format(operand_str)
 
-    def to_julia_expression(self, recommended=False):
-        operand_str = '+'.join(map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+    def to_julia_expression(self):
+        operand_str = '+'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
         return "({0})".format(operand_str)
 
-    def to_cpp_expression(self, lib, recommended=False):
-        operand_str = '+'.join(map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
+    def to_cpp_expression(self, lib):
+        operand_str = '+'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
         return "({0})".format(operand_str)
 
 
@@ -633,14 +633,14 @@ class Times(Operator):
     def is_inverse_type(self, type):
         return type in [Inverse, InverseTranspose]
 
-    def to_matlab_expression(self, recommended=False):
-        return '*'.join(map(operator.methodcaller("to_matlab_expression", recommended), self.operands))
+    def to_matlab_expression(self):
+        return '*'.join(map(operator.methodcaller("to_matlab_expression"), self.operands))
 
-    def to_julia_expression(self, recommended=False):
-        return '*'.join(map(operator.methodcaller("to_julia_expression", recommended), self.operands))
+    def to_julia_expression(self):
+        return '*'.join(map(operator.methodcaller("to_julia_expression"), self.operands))
 
-    def to_cpp_expression(self, lib, recommended=False):
-        return '*'.join(map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands))
+    def to_cpp_expression(self, lib):
+        return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
 
 class LinSolveL(Operator):
@@ -674,10 +674,10 @@ class LinSolveL(Operator):
         op1, op2 = self.operands
         return Times(Inverse(op1), op2).bandwidth
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
 
         op1 = self.operands[0]
-        op1_str, op2_str = map(operator.methodcaller("to_cpp_expression", lib, recommended), self.operands)
+        op1_str, op2_str = map(operator.methodcaller("to_cpp_expression", lib), self.operands)
 
         if lib is CppLibrary.Eigen:
             if op1.has_property(properties.UPPER_TRIANGULAR):
@@ -701,11 +701,11 @@ class LinSolveL(Operator):
         else:
             raise NotImplementedError()
 
-    def to_matlab_expression(self, recommended=False):
-        return "(({0})\{1})".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
+    def to_matlab_expression(self):
+        return "(({0})\{1})".format(*map(operator.methodcaller("to_matlab_expression"), self.operands))
 
-    def to_julia_expression(self, recommended=False):
-        return "(({0})\{1})".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+    def to_julia_expression(self):
+        return "(({0})\{1})".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
 
     def __str__(self):
         return "(({0})\{1})".format(*self.operands)
@@ -742,14 +742,14 @@ class LinSolveR(Operator):
         op1, op2 = self.operands
         return Times(op1, Inverse(op2)).bandwidth
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         NotImplementedError()
 
-    def to_matlab_expression(self, recommended=False):
-        return "({0}/({1}))".format(*map(operator.methodcaller("to_matlab_expression", recommended=recommended), self.operands))
+    def to_matlab_expression(self):
+        return "({0}/({1}))".format(*map(operator.methodcaller("to_matlab_expression"), self.operands))
 
-    def to_julia_expression(self, recommended=False):
-        return "({0}/({1}))".format(*map(operator.methodcaller("to_julia_expression", recommended=recommended), self.operands))
+    def to_julia_expression(self):
+        return "({0}/({1}))".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
 
     def __str__(self):
         return "({0}/({1}))".format(*self.operands)
@@ -832,13 +832,13 @@ class Transpose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_matlab_expression(self, recommended=False):
-        return "transpose({0})".format(self.operands[0].to_matlab_expression(recommended))
+    def to_matlab_expression(self):
+        return "transpose({0})".format(self.operands[0].to_matlab_expression())
 
-    def to_julia_expression(self, recommended=False):
-        return "transpose({0})".format(self.operands[0].to_julia_expression(recommended))
+    def to_julia_expression(self):
+        return "transpose({0})".format(self.operands[0].to_julia_expression())
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         template_str = None
         if lib is CppLibrary.Blaze:
             template_str = "blaze::trans({0})"
@@ -846,7 +846,7 @@ class Transpose(Operator):
             template_str = "({0}).transpose()"
         elif lib is CppLibrary.Armadillo:
             template_str = "({0}).t()"
-        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
+        return template_str.format(self.operands[0].to_cpp_expression(lib))
 
 
 class Conjugate(Operator):
@@ -924,13 +924,13 @@ class ConjugateTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_matlab_expression(self, recommended=False):
+    def to_matlab_expression(self):
         raise NotImplementedError()
 
-    def to_julia_expression(self, recommended=False):
-        return "ctranspose({0})".format(self.operands[0].to_julia_expression(recommended))
+    def to_julia_expression(self):
+        return "ctranspose({0})".format(self.operands[0].to_julia_expression())
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         template_str = None
         if lib is CppLibrary.Blaze:
             template_str = "blaze::ctrans({0})"
@@ -938,7 +938,7 @@ class ConjugateTranspose(Operator):
             template_str = "({0}).adjoint()"
         elif lib is CppLibrary.Armadillo:
             template_str = "({0}).t()"
-        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
+        return template_str.format(self.operands[0].to_cpp_expression(lib))
 
 
 class Inverse(Operator):
@@ -981,13 +981,13 @@ class Inverse(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_matlab_expression(self, recommended=False):
-        return "inv({0})".format(self.operands[0].to_matlab_expression(recommended))
+    def to_matlab_expression(self):
+        return "inv({0})".format(self.operands[0].to_matlab_expression())
 
-    def to_julia_expression(self, recommended=False):
-        return "inv({0})".format(self.operands[0].to_julia_expression(recommended))
+    def to_julia_expression(self):
+        return "inv({0})".format(self.operands[0].to_julia_expression())
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         template_str = None
         if self.operand.has_property(properties.SCALAR):
             if lib is CppLibrary.Eigen and any(not subexpr.has_property(properties.SCALAR) for subexpr, _ in self.preorder_iter()):
@@ -1007,7 +1007,7 @@ class Inverse(Operator):
                 template_str = "({0}).inverse()"
             elif lib is CppLibrary.Blaze:
                 template_str = "blaze::inv({0})"
-        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
+        return template_str.format(self.operands[0].to_cpp_expression(lib))
 
 class InverseTranspose(Operator):
     """docstring for InverseTranspose"""
@@ -1047,13 +1047,13 @@ class InverseTranspose(Operator):
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
 
-    def to_matlab_expression(self, recommended=False):
-        return "inv(transpose({0}))".format(self.operands[0].to_matlab_expression(recommended))
+    def to_matlab_expression(self):
+        return "inv(transpose({0}))".format(self.operands[0].to_matlab_expression())
 
-    def to_julia_expression(self, recommended=False):
-        return "inv(transpose({0}))".format(self.operands[0].to_julia_expression(recommended))
+    def to_julia_expression(self):
+        return "inv(transpose({0}))".format(self.operands[0].to_julia_expression())
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         template_str = None
         # perform casting only for input matrices, not expression results
         if lib is CppLibrary.Armadillo:
@@ -1067,7 +1067,7 @@ class InverseTranspose(Operator):
             template_str = "({0}).transpose().inverse()"
         elif lib is CppLibrary.Blaze:
             template_str = "blaze::inv(blaze::trans({0}))"
-        return template_str.format(self.operands[0].to_cpp_expression(lib, recommended))
+        return template_str.format(self.operands[0].to_cpp_expression(lib))
 
 class InverseConjugate(Operator):
     """docstring for InverseConjugate"""
@@ -1203,14 +1203,14 @@ class IdentityMatrix(ConstantMatrix):
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
 
-    def to_matlab_expression(self, recommended=False):
+    def to_matlab_expression(self):
         # TODO add data type (last position)
         return "eye({0}, {1})".format(*self.size)
 
-    def to_julia_expression(self, recommended=False):
+    def to_julia_expression(self):
         return "Array{{{0}}}(I, {1}, {2})".format(config.data_type_string, *self.size)
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         if lib is CppLibrary.Blaze:
             # IdentityMatrix can only be symmetric in Blaze
             if self.size[0] != self.size[1]:
@@ -1255,13 +1255,13 @@ class ConstantScalar(Scalar, Constant):
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)
 
-    def to_matlab_expression(self, recommended=False):
+    def to_matlab_expression(self):
         return "{0}".format(self.value)
 
-    def to_julia_expression(self, recommended=False):
+    def to_julia_expression(self):
         return "{0}".format(self.value)
 
-    def to_cpp_expression(self, lib, recommended=False):
+    def to_cpp_expression(self, lib):
         return "{0}".format(self.value)
 
 
