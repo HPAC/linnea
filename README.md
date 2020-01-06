@@ -68,8 +68,15 @@ For the linear system from the previous examples, the following code will be gen
 using LinearAlgebra.BLAS
 using LinearAlgebra
 
-function algorithm0(ml0, ml1)
-    # cost 1e+06
+"""
+    algorithm0(ml0::Array{Float64,2}, ml1::Array{Float64,1})
+
+# Arguments
+- `ml0::Array{Float64,2}`: Operand L of size 1000 x 1000 with properties LowerTriangular, Non-singular.
+- `ml1::Array{Float64,1}`: Operand x of size 1000.
+"""                    
+function algorithm0(ml0::Array{Float64,2}, ml1::Array{Float64,1})
+    # cost: 1e+06 FLOPs
     # L: ml0, full, x: ml1, full
     # tmp1 = (L^-1 x)
     trsv!('L', 'N', 'N', ml0, ml1)
