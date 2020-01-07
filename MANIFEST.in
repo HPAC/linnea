@@ -1,5 +1,5 @@
 include README.md
-include code_generation/experiments/templates/Julia/*.jl
-include code_generation/experiments/templates/Cpp/*.cpp
-include code_generation/experiments/templates/Cpp/*.hpp
-include code_generation/experiments/templates/Matlab/*.m
+include linnea/code_generation/experiments/templates/Julia/*.jl
+include linnea/code_generation/experiments/templates/Cpp/*.cpp
+include linnea/code_generation/experiments/templates/Cpp/*.hpp
+include linnea/code_generation/experiments/templates/Matlab/*.m
