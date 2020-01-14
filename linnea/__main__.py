@@ -9,6 +9,8 @@ logging.basicConfig(level=logging.INFO,
 
 from . import config
 
+from .frontend.utils import parse_input
+
 class ExampleDoesNotExist(Exception):
     pass
 
@@ -76,20 +78,7 @@ def main():
 
     if args.example is None:
         with open(args.input, "r" ) as input_file:
-            from tatsu.model import ModelBuilderSemantics
-            from .frontend.AST_translation import LinneaWalker
-            from .frontend.parser import LinneaParser
-
-            parser = LinneaParser(semantics=ModelBuilderSemantics())
-            ast = parser.parse(input_file.read(), rule_name = "model")
-
-            walker = LinneaWalker()
-            walker.walk(ast)
-            equations = walker.equations
-
-            # print(equations)
-            # quit()
-
+            equations = parse_input(input_file.read())
     else:
         from .examples import examples
 

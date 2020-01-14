@@ -1,7 +1,5 @@
-from tatsu.model import ModelBuilderSemantics
 
-from .frontend.AST_translation import LinneaWalker
-from .frontend.parser import LinneaParser
+from .frontend.utils import parse_input
 from .derivation.graph.derivation import DerivationGraph
 
 import linnea.config
@@ -24,12 +22,7 @@ def run_linnea(input, time_limit=10):
     
     linnea.config.set_verbosity(0)
 
-    parser = LinneaParser(semantics=ModelBuilderSemantics())
-    ast = parser.parse(input, rule_name = "model")
-
-    walker = LinneaWalker()
-    walker.walk(ast)
-    equations = walker.equations
+    equations = parse_input(input)
 
     graph = DerivationGraph(equations)
     graph.derivation(time_limit=time_limit, merging=True, pruning_factor=1.)
