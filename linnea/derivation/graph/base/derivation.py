@@ -249,28 +249,9 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name, graph_style)
         
-        algorithms = []
-        known_algorithms = set()
-        number_of_algorithms = 0
-        min_cost = self.shortest_path()[1]
-        for path, cost in self.k_shortest_paths(math.inf):
-            if k_best and cost > pruning_factor*min_cost:
-                break
+        algorithms = list(self.k_best_algorithms(algorithms_limit, algorithm_name, no_duplicates, k_best, pruning_factor))
 
-            algorithm = self.path_to_algorithm(path, cost, algorithm_name.format(number_of_algorithms))
-            if no_duplicates:
-                if not algorithm in known_algorithms:
-                    known_algorithms.add(algorithm)
-                    algorithms.append(algorithm)
-                    number_of_algorithms += 1
-            else:
-                algorithms.append(algorithm)
-                number_of_algorithms += 1
-
-            if number_of_algorithms == algorithms_limit:
-                break
-
-        self.print_result("Number of algorithms:", number_of_algorithms)
+        self.print_result("Number of algorithms:", len(algorithms))
 
         if code or derivation or experiment_code:
             output_path = os.path.join(config.output_code_path, output_name)
@@ -308,9 +289,57 @@ class DerivationGraphBase(base.GraphBase):
                         cgu.to_file(file_name, algorithm.derivation())
 
         if experiment_code:
-            generate_experiment_code(output_name, self.input, algorithm_name, [1, 24], k_best, number_of_algorithms)
+            generate_experiment_code(output_name, self.input, algorithm_name, [1, 24], k_best, len(algorithms))
 
         return algorithms
+
+
+    def k_best_algorithms(self, k, algorithm_name="algorithm{}", no_duplicates=True, k_best=False, pruning_factor=1.0):
+        """Generates the k best algorithms.
+
+        Algorithms are generated in the order of increasing cost. Less than k
+        algortihms are generated if fewer exist.
+
+        Args:
+            k (int): The number of algorithms to generated.
+            algorithm_name (string, optional): Format string used as template
+                for the algortihm name. Needs to contain exactly one occurrence
+                of "{}", which is replaced with a number. Defaults to
+                "algorithm{}".
+            no_duplicates (bool, optional): If True, duplicate algorithms are
+                removed. This may affect the performance if there is a large
+                number of duplicate algorithms. Defaults to True.
+            k_best (bool, optional): Flag for the "k best" experiment. If True,
+                only algorithms with a cost smaller than "pruning_factor*cost of
+                best algorithm" are generated (at most k).
+            pruning_factor (float, optional): If k_best is True, only algorithms
+                with a cost smaller than "pruning_factor*cost of best algorithm"
+                are generated (at most k). Is ignored if k_best is False.
+                Defaults to 1.0.
+
+        Yields:
+            Algorithm: The k best algorithms.
+        """
+        algorithms = []
+        known_algorithms = set()
+        number_of_algorithms = 0
+        min_cost = self.shortest_path()[1]
+        for path, cost in self.k_shortest_paths(math.inf):
+            if k_best and cost > pruning_factor*min_cost:
+                break
+
+            algorithm = self.path_to_algorithm(path, cost, algorithm_name.format(number_of_algorithms))
+            if no_duplicates:
+                if not algorithm in known_algorithms:
+                    known_algorithms.add(algorithm)
+                    yield algorithm
+                    number_of_algorithms += 1
+            else:
+                yield algorithm
+                number_of_algorithms += 1
+
+            if number_of_algorithms == k:
+                break
 
 
     def optimal_algorithm_to_str(self):
