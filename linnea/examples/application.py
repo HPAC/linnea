@@ -10,6 +10,7 @@ from ..algebra.equations import Equations
 
 from .. import derivation
 
+from ..derivation import special_properties
 
 
 class Example01():
@@ -684,6 +685,9 @@ class Example16():
         minus1 = ConstantScalar(-1.0)
         kminus1 = Plus(k, minus1) # this is positive too, but using special_properties doesn't work
 
+        # This works:
+        # special_properties.add_expression(Plus(Times(kminus1, Il), Times(Transpose(Wk), A, Bin, Transpose(A), Wk)), [properties.SPD])
+        
         self.eqns = Equations(
                         Equal(Bout,
                             Times(
