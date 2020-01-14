@@ -396,11 +396,14 @@ class Algorithm():
                     \"\"\"
                         {}({})
 
+                    Compute
+                    {}.
+
                     # Arguments
                     {}
                     \"\"\"\
                     """)
-        return template.format(self.name, self._experiment_input, "\n".join(operand_description))
+        return template.format(self.name, self._experiment_input, self.initial_equations, "\n".join(operand_description))
 
 class KernelIO():
     """Describes the input and output of a kernel.
