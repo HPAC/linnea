@@ -46,11 +46,6 @@ def to_SOP(expr):
             else:
                 factors.append([operand])
 
-        # Products have to be copied to ensure that the expression tree is
-        # actually a tree. If common subexpression in the expression tree are
-        # references to the same object, bad things happen when modifying one
-        # occurence of that expression (all other occurences are modified as
-        # well).
         return ae.Plus(*(to_SOP(ae.Times(*product)) for product in itertools.product(*factors)))
         # return Plus(factors)
 
