@@ -4180,3 +4180,30 @@ class Example168():
                         Equal(X, Times(A, B)),
                         Equal(Y, Times(A, X))
                         )
+
+
+class Example169():
+    def __init__(self):
+
+        # TAGS
+        # validity, invalid
+
+        n = 1000
+        m = 2000
+
+        A = Matrix("A", (n, m))
+        A.set_property(properties.FULL_RANK)
+        A.set_property(properties.SPD)
+
+        B = Matrix("B", (m, n))
+        B.set_property(properties.FULL_RANK)
+
+        C = Matrix("C", (n, n))
+        C.set_property(properties.FULL_RANK)
+
+        X = Matrix("X", (n, n))
+        Y = Matrix("Y", (n, n))
+
+        self.eqns = Equations(
+                        Equal(X, Times(A, B)),
+                        )
