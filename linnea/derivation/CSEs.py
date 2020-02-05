@@ -305,9 +305,12 @@ class CSEDetector():
         for subexprs in self.all_subexpr_lists:
             if len(subexprs) > 1:
                 cse = CSE(subexprs)
-                self.all_CSEs[cse.id] = cse
-                for subexpr in subexprs:
-                    self.subexpr_to_CSE[subexpr.id] = cse.id
+                # print(str(cse.expr), cse.max_clique_size)
+                # Removing CSEs that can never be replaced.
+                if cse.max_clique_size >= 2:
+                    self.all_CSEs[cse.id] = cse
+                    for subexpr in subexprs:
+                        self.subexpr_to_CSE[subexpr.id] = cse.id
 
         # print("construct CSEs", [(str(cse.expr), len(cse.subexprs)) for cse in self.all_CSEs.values()])
 
@@ -374,6 +377,7 @@ class CSEDetector():
                 for predeccessor in node.predeccessors:
                     predeccessor.successors.remove(node)
 
+    # TODO remove
     def remove_invalid_CSEs(self, nodes):
         """Removes invalid CSEs.
 
@@ -409,7 +413,9 @@ class CSEDetector():
         """
         current_nodes = [node for node in self.all_CSEs.values()]
 
-        self.remove_invalid_CSEs(current_nodes)
+        # Not necessary anymore, now that invalid CSEs are not constructed in
+        # the first place.
+        # self.remove_invalid_CSEs(current_nodes)
         self.remove_not_maximal_CSEs(current_nodes)
 
         CSEs = []
