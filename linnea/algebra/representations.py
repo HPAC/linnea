@@ -160,6 +160,7 @@ def to_POS(expr, side="l"):
     elif side == "r":
         other_side = "l"
     else:
+        # TODO this should be an argument error
         print("Error in to_POS.")
 
     expr = _to_POS(expr, side)
@@ -222,7 +223,7 @@ def _to_POS(expr, side):
     new_operands = []
 
     terms = []
-    # Here, a term is a operand of a sum. terms contains tuples
+    # Here, a term is an operand of a sum. Terms contains tuples
     # of three elements. If the term is Times, the tuple contains:
     # - the expression itself (Times)
     # - a list of scalar operands
@@ -257,6 +258,8 @@ def _to_POS(expr, side):
                 non_scalar_sequences.append(non_scalars)    
             # scalar_sequences = [scalars for _, scalars, _ in group]
 
+            # TODO Now that terms are hashable, shouldn't it be possible to do
+            # this with a sets and intersections?
             # Here, we check if those terms that have a non-scalar factor in common
             # also have scalars in common. If yes, they are factored out as well.
             if all(len(scalars) > 0 for scalars in scalar_sequences):
