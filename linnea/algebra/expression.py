@@ -1172,8 +1172,15 @@ class Vector(Symbol):
 
 class Matrix(Symbol):
     """docstring for Matrix"""
-    def __init__(self, name, size, indices=set(), properties = []):
-        super().__init__(name, size, indices, properties)
+    def __init__(self, name, size, indices=set(), props = []):
+        super().__init__(name, size, indices, props)
+        rows, columns = size
+        if rows < columns:
+            self.set_property(properties.ROW_PANEL)
+        elif rows > columns:
+            self.set_property(properties.COLUMN_PANEL)
+        else:
+            self.set_property(properties.SQUARE)
 
     def __repr__(self):
         return 'Matrix({!r}, size={})'.format(self.name, self.size)
