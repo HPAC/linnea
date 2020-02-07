@@ -1172,15 +1172,23 @@ class Vector(Symbol):
 
 class Matrix(Symbol):
     """docstring for Matrix"""
-    def __init__(self, name, size, indices=set(), props = []):
-        super().__init__(name, size, indices, props)
-        rows, columns = size
-        if rows < columns:
-            self.set_property(properties.ROW_PANEL)
-        elif rows > columns:
-            self.set_property(properties.COLUMN_PANEL)
-        else:
-            self.set_property(properties.SQUARE)
+    def __init__(self, name, size, indices=set(), properties = []):
+        super().__init__(name, size, indices, properties)
+        """TODO
+        While this makes a lot of sense, it completely breaks the application
+        of kernels. The reason is that in the KernelDescription objects, we use
+        normal expressions, and use all properties from those expressions as
+        constraints. While for many kernels, the shape does not matter,
+        assigning a shape property here makes those kernels only match one
+        specific shape.
+        """
+        # rows, columns = size
+        # if rows < columns:
+        #     self.set_property(Property.ROW_PANEL)
+        # elif rows > columns:
+        #     self.set_property(Property.COLUMN_PANEL)
+        # else:
+        #     self.set_property(Property.SQUARE)
 
     def __repr__(self):
         return 'Matrix({!r}, size={})'.format(self.name, self.size)
