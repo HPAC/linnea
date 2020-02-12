@@ -188,6 +188,10 @@ class DerivationGraphBase(base.GraphBase):
         equation, eqn_idx = equations.process_next()
         if not equation:
             return
+        """
+        process_next_simple is used here only to identify matrix chains that are
+        explicit inversions.
+        """
         pos, op_type = process_next_simple(equation)
 
         if op_type == OperationType.times and is_explicit_inversion(equation[pos]):
