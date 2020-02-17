@@ -354,7 +354,8 @@ class PropertyTuple(tuple):
     
     This subclass of tuple should only be used for sets of properties. It offers
     comparision functions which implement an extension of the ordering defined
-    by le_property_sets(s1, s2) to tuples of sets of properties.
+    by le_property_sets(s1, s2) to tuples of sets of properties. This order is
+    also called "product order" (https://en.wikipedia.org/wiki/Product_order).
 
     Note:
         An example for the usecase of this kernel:
