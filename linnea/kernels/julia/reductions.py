@@ -1826,7 +1826,11 @@ scale!(b, A) is deprecated
 
 A = Matrix("A", (m, m))
 A.set_property(properties.DIAGONAL)
-A.set_property(properties.SQUARE)
+"""Symmetric used to be square. While square might be more intuitive, it results
+in a property set that is not in canonical form. With symmetric, the set is in
+canonical form.
+"""
+A.set_property(properties.SYMMETRIC)
 B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
