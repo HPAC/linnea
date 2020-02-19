@@ -4207,3 +4207,30 @@ class Example169():
         self.eqns = Equations(
                         Equal(X, Times(A, B)),
                         )
+
+
+class Example170():
+    def __init__(self):
+
+        # TAGS
+        # simple, equivalent expression
+
+        n1 = 10
+        n2 = 10 
+
+        A = Matrix("A", (n1, n1))
+        A.set_property(properties.SPD)
+
+        B = Matrix("B", (n1, n1))
+
+        C = Matrix("C", (n1, n1))
+        
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+
+        X = Matrix("X", (n1, n1))
+
+        self.eqns = Equations(
+                            Equal(X, Plus(Times(Inverse(A), B, C), Times(D, E)))
+                            # Equal(X, Times(Inverse(A), B, C))
+                            )
