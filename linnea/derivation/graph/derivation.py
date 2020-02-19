@@ -45,10 +45,12 @@ class DerivationGraph(derivation.DerivationGraphBase):
             self.print_result("Best solution:", "{:.3g}".format(cost))
             self.print_result("Intensity:", "{:.3g}".format(cost/data))        
 
-        # from .... import temporaries
-        # print("\n".join(["{}: {}".format(k, v) for k, v in temporaries._equivalent_expressions.items()]))
-        # print("######")
-        # print("\n".join(["{}: {}".format(k, v) for k, v in temporaries._table_of_temporaries.items()]))
+        # from ... import temporaries
+        # for tmp, expr in temporaries._equivalent_expressions.items():
+        #     print(tmp, "<->", expr)
+        #     for _expr, _tmp in temporaries._table_of_temporaries.items():
+        #         if tmp == _tmp.name and expr != _expr:
+        #             print("<-", _expr)
 
         return trace_data
 
