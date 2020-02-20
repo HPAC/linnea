@@ -28,6 +28,17 @@ def add_expression(expr, _properties):
     graph = gp.PropertyGraph(Equations(Equal(lhs, expr)))
     graph.derivation()
 
+    # graph.write_output(code=False,
+    #                    derivation=False,
+    #                    output_name=name,
+    #                    experiment_code=False,
+    #                    k_best=False,
+    #                    algorithms_limit=100,
+    #                    pruning_factor=1.0,
+    #                    graph=True,
+    #                    # graph_style=linnea.config.GraphStyle.full,
+    #                    no_duplicates=True)
+
     for node in graph.nodes:
         expr = node.equations[-1].rhs
         tmp = temporaries.create_tmp(expr, True, _properties=_properties)
