@@ -26,7 +26,7 @@ def apply_factorizations(equations, operands_to_factor, factorization_dict):
     For applying factorizations, a number of rules are applied:
     - Matrices are only factored if they have the ADMITS_FACTORIZATION
       property (this is tested by find_operands_to_factor() ).
-    - We never apply different facotrizations to differrent occurrences of
+    - We never apply different factorizations to different occurrences of
       the same matrix. As an example, if the matrix A shows up twice, we
       will never apply LU to one occurrence and QR to another.
     - Factorization will always be applied to matrices that appear
