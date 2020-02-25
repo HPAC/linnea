@@ -208,24 +208,20 @@ class DerivationGraphBase(base.GraphBase):
                 yield from reductions.apply_unary_kernels(equations, eqn_idx, (1,))
 
 
-    def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_DS_step=None):
-        new_node = DerivationGraphNode(equations, factored_operands, previous_DS_step)
+    def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=set(), previous_DS_step=None):
+        new_node = DerivationGraphNode(equations, factored_operands.union(predecessor.factored_operands), previous_DS_step)
         predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
         self.nodes.append(new_node)
         return new_node
 
 
-    def create_nodes(self, predecessor, *description, factored_operands=None, previous_DS_step=None):
+    def create_nodes(self, predecessor, *description, factored_operands=set(), previous_DS_step=None):
         new_nodes = []
         # print(description)
         # if description:
 
-        _factored_operands = predecessor.factored_operands
-        if factored_operands:
-            _factored_operands = _factored_operands.union(factored_operands)
-
         for equations, matched_kernels, original_equations in description:
-            new_node = self.create_node(predecessor, equations, matched_kernels, original_equations, _factored_operands.copy(), previous_DS_step)
+            new_node = self.create_node(predecessor, equations, matched_kernels, original_equations, factored_operands, previous_DS_step)
             new_nodes.append(new_node)
         return new_nodes
 
