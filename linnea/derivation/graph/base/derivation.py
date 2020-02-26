@@ -209,6 +209,7 @@ class DerivationGraphBase(base.GraphBase):
 
 
     def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=set(), previous_DS_step=None):
+        # new_node = DerivationGraphNode(equations, factored_operands.copy(), previous_DS_step)
         new_node = DerivationGraphNode(equations, factored_operands.union(predecessor.factored_operands), previous_DS_step)
         predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
         self.nodes.append(new_node)
