@@ -168,8 +168,9 @@ class DerivationGraphBase(base.GraphBase):
             # It is constructed here because it can be reused. 
             factorization_dict = factorizations.construct_factorization_dict(operands_to_factor)
 
-            for new_equations, edge_label in factorizations.apply_factorizations(equations, operands_to_factor, factorization_dict):
-                yield self.create_node(node, new_equations, edge_label, equations, factored_operands=operands_to_factor, previous_DS_step=DS_step.factorizations)
+            # factorizations.apply_factorizations_v2(equations, operands_to_factor, factorization_dict)
+            for new_equations, edge_label in factorizations.apply_factorizations_v2(equations, operands_to_factor, factorization_dict):
+                yield self.create_node(node, new_equations, edge_label, equations, factored_operands=set(), previous_DS_step=DS_step.factorizations)
 
 
     def TR_kernels_constructive(self, equations):

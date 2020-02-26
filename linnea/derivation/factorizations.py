@@ -1,6 +1,6 @@
 from ..algebra.expression import Symbol, Times, Plus
 from ..algebra.equations import Equations
-from ..utils import powerset, is_inverse, is_transpose
+from ..utils import powerset, is_inverse, is_transpose, roundrobin
 
 from .. import config
 
@@ -19,6 +19,70 @@ class InverseType(Enum):
     none = 3
 
 Occurrence = namedtuple('Occurrence', ['eqn_idx', 'position', 'operand', 'type', 'group', 'symbol'])
+
+def apply_factorizations_v2(equations, operands_to_factor, factorization_dict):
+
+    # find all occurrences
+    all_occurrences = list(find_occurrences(equations, operands_to_factor))
+
+    blocking_products = list(find_blocking_products(equations, operands_to_factor))
+
+    # Removing groups (summands) which do not contain any inverted occurrences.
+    candidate_occurrences = []
+    for oc_group in group_occurrences(all_occurrences):
+        if any(oc.type != InverseType.none for oc in oc_group):
+            candidate_occurrences.extend(oc_group)
+
+    # collect all operands that show up
+    ops = set(oc.operand.name for oc in candidate_occurrences)
+
+    # Symbols directely inside an inverse always have to be factored.
+    ops_must_factor = set()
+    ops_may_factor = set()
+    for op in ops:
+        if any(oc.operand.name == op and oc.symbol for oc in candidate_occurrences):
+            ops_must_factor.add(op)
+        else:
+            ops_may_factor.add(op)
+
+    for factor_ops in (ops_must_factor, ops_may_factor):
+
+        factorizations_pairs = []
+        # sorting here removes randomness
+        factor_ops_sorted = sorted(factor_ops)
+        for op in factor_ops_sorted:
+            tmp = []
+            for factorization in factorization_dict[op]:
+                tmp.append((op, factorization))
+            factorizations_pairs.append(iter(tmp))
+
+        # facts_dict = dict(zip(factor_ops_sorted, factorizations))
+        # print(factorizations_pairs)
+        # print(list(zip(*factorizations_pairs)))
+        for op, matched_kernel in roundrobin(*factorizations_pairs):
+            # print(op, matched_kernel)
+
+            # collect replacements 
+            replacements_per_equation = dict()
+
+            for oc in candidate_occurrences:
+                if oc.operand.name == op:
+                    replacements_per_equation.setdefault(oc.eqn_idx, []).append((oc.position, matched_kernel.replacement))
+
+            # replace
+            equations_list = list(equations.equations)
+
+            for eqn_idx, replacements in replacements_per_equation.items():
+                if replacements:
+                    equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
+            
+            equations_copy = Equations(*equations_list)
+            equations_copy = equations_copy.simplify()
+            equations_copy.set_equivalent(equations)
+            equations_copy = equations_copy.to_SOP().simplify()
+
+            # print(equations_copy)
+            yield (equations_copy, [matched_kernel])
 
 def apply_factorizations(equations, operands_to_factor, factorization_dict):
     """This function generates new equations by applying factorizations.
