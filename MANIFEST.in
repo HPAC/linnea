@@ -2,4 +2,5 @@ include README.md
 include linnea/code_generation/experiments/templates/Julia/*.jl
 include linnea/code_generation/experiments/templates/Cpp/*.cpp
 include linnea/code_generation/experiments/templates/Cpp/*.hpp
+include linnea/code_generation/experiments/templates/Cpp/CMakeLists.txt
 include linnea/code_generation/experiments/templates/Matlab/*.m
