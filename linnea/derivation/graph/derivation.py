@@ -71,7 +71,7 @@ class DerivationGraph(derivation.DerivationGraphBase):
         factorizations = map(functools.partial(self.DFS_factorizations, node), gen_var2)
 
         if DS_step.factorizations in node.applied_DS_steps:
-            funs = [kernels_constructive, CSE_replacement, kernels, tricks]
+            funs = [kernels_constructive, CSE_replacement, factorizations, kernels, tricks]
         elif DS_step.kernels in node.applied_DS_steps:
             funs = [kernels_constructive, CSE_replacement, factorizations, kernels, tricks]
         elif DS_step.CSE in node.applied_DS_steps:
