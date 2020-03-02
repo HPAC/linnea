@@ -498,6 +498,13 @@ class Memory():
         - copy
         """
 
+        """
+        In the following, memory locations are copied because their initial
+        state is needed for the memory operations, but they are modified later.
+        Without copying, modifiying the memory locations would affect the
+        generated code.
+        """
+
         if config.julia and (
             self.storage_format[operand.name] < StorageFormat.factorization_obj
             or (
