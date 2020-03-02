@@ -39,7 +39,7 @@ out_of_place_conversions = [
     sf.StorageFormatConversion(
         sf.StorageFormat.full,
         sf.StorageFormat.permutation_vector,
-        utils.CodeTemplate("$output = invperm(findn($input)[1])\n") # this could also be done with convert(Array{Int64, 1}, P*range(1, size(P, 1)))
+        utils.CodeTemplate("$output = map(x -> x[2], sort!(findall(!iszero, $input), by = x -> x[1]))\n") # starting from Julia 1.1, this could also be done with $output = invperm(map(x -> findall(!iszero, x)[1], eachcol($input)))
         ),
     sf.StorageFormatConversion(
         sf.StorageFormat.permutation_vector,
