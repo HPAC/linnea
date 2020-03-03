@@ -1208,7 +1208,8 @@ class ConstantMatrix(Matrix, Constant):
 class IdentityMatrix(ConstantMatrix):
     """docstring for IdentityMatrix"""
     def __init__(self, rows, columns):
-        super().__init__("I", (rows, columns))
+        super().__init__("I({}, {})".format(rows, columns), (rows, columns))
+        # print(self)
         self.set_property(properties.IDENTITY)
         self.set_property(properties.DIAGONAL)
         if rows == columns:
@@ -1245,7 +1246,7 @@ class IdentityMatrix(ConstantMatrix):
 class ZeroMatrix(ConstantMatrix):
     """docstring for ZeroMatrix"""
     def __init__(self, rows, columns):
-        super().__init__("0", (rows, columns))
+        super().__init__("0({}, {})".format(rows, columns), (rows, columns))
         self.set_property(properties.ZERO)
 
     def __repr__(self):

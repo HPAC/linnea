@@ -45,7 +45,13 @@ def clear():
     _table_of_temporaries.clear()
     _equivalent_expressions.clear()
     _table_of_factors.clear()
-    _counter = 0
+    """It is currently not possible to reset _counter here because MatchPy
+    requires that variable names are unique. Without unique variable names, if
+    the generation is run multiple times in the same program, it
+    can happen that the substitute function returns a wrong variable with the
+    same name.
+    """
+    # _counter = 0
 
 # @profile
 def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
