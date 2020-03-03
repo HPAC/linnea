@@ -195,6 +195,10 @@ class Algorithm():
         code_list.append(textwrap.indent(str(self.final_equations), config.comment))
         self._experiment_output = ", ".join([memory.lookup[output_operand_mapping[operand].name].name for operand in output_operands])
 
+        """Resetting the MemoryLocation ID counter is purely cosmetic. Since
+        they only need to be unique per algorithm and are not used for anything
+        else, it is fine to do this here."""
+        memory_module.MemoryLocation.reset_ID_counter()
         return "".join(code_list)
 
     def _matched_kernel_to_code(self, matched_kernel, line_number, memory, known_lines):

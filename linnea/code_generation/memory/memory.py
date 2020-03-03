@@ -681,6 +681,16 @@ class MemoryLocation():
         self.content = []
 
     @staticmethod
+    def reset_ID_counter():
+        """Resets the MemoryLocation ID counter.
+
+        MemoryLocation IDs need to be unique within an algorithm, so this
+        function should not be used during the generation of code for an
+        algorithm.
+        """
+        MemoryLocation._counter = 0
+
+    @staticmethod
     def from_existing(existing_location):
         new_location = object.__new__(MemoryLocation)
         new_location.id = MemoryLocation._counter
