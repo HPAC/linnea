@@ -12,18 +12,18 @@ operands_mapping_julia = {Property.SYMMETRIC: "Shape.Symmetric",
                           Property.DIAGONAL: "Shape.Diagonal",
                           Property.LOWER_TRIANGULAR: "Shape.LowerTriangular",
                           Property.UPPER_TRIANGULAR: "Shape.UpperTriangular",
-                          Property.SPD: "Property.SPD",
-                          Property.SPSD: "Property.SPD", # TODO does this make sense?
-                          Property.ORTHOGONAL: "Property.ORTHOGONAL"
+                          Property.SPD: "Properties.SPD",
+                          Property.SPSD: "Properties.SPD", # TODO does this make sense?
+                          Property.ORTHOGONAL: "Properties.Orthogonal"
                          }
 
 operands_mapping_matlab = {Property.SYMMETRIC: "Shape.Symmetric()",
                           Property.DIAGONAL: "Shape.Diagonal()",
                           Property.LOWER_TRIANGULAR: "Shape.LowerTriangular()",
                           Property.UPPER_TRIANGULAR: "Shape.UpperTriangular()",
-                          Property.SPD: "Property.SPD()",
-                          Property.SPSD: "Property.SPD()", # TODO does this make sense?
-                          Property.ORTHOGONAL: "Property.ORTHOGONAL()"
+                          Property.SPD: "Properties.SPD()",
+                          Property.SPSD: "Properties.SPD()", # TODO does this make sense?
+                          Property.ORTHOGONAL: "Properties.Orthogonal()"
                          }
 
 operands_mapping_cpp = {Property.SYMMETRIC: "generator::shape::self_adjoint{}",
