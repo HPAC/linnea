@@ -12,7 +12,6 @@ class GraphBase():
 
     def __init__(self):
         super().__init__()
-        self.step_counter = -1
         self.k_best_state = 1
 
     def print(self, str):
@@ -270,7 +269,6 @@ class GraphNodeBase():
         self.original_equations = []
         self.metric = None
         self.accumulated_cost = 0
-        self.level = None
         self.optimal_path_predecessor = None
         self.optimal_path_predecessor_idx = None
         self.optimal_path_successor = None
@@ -440,7 +438,7 @@ class GraphNodeBase():
         eqns_str = eqns_str.replace("}", "&#125;")
 
         if style is config.GraphStyle.full:
-            out = ["""{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4} | {5:.3g} | {6} | {7} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.level), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))]
+            out = ["""{0} [shape=record, label="{{ {1} |{{ {2} | {3} | {4:.3g} | {5} | {6} }} }}"];\n""".format(self.name, eqns_str, str(self.id), str(self.metric), self.accumulated_cost, ", ".join([str(op) for op in self.factored_operands]), ", ".join([str(lab) for lab in self.labels]))]
         elif style is config.GraphStyle.simple:
             out = ["""{0} [shape=rect, label="{1}"];""".format(self.name, eqns_str)]
         elif style is config.GraphStyle.minimal:
