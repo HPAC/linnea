@@ -1,6 +1,5 @@
 from .algebra import expression as ae
 from .algebra.properties import Property
-from .algebra import transformations as at
 from .algebra import representations as ar
 
 import copy
@@ -105,7 +104,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, properties=None):
 def _get_equivalent(expr):
     # TODO: This is horrible. Is there any way to fix it?
     new_expr = _flatten_equivalent(expr)
-    return ar.to_SOP(at.simplify(ar.to_SOP(new_expr)))
+    return ar.to_normalform(new_expr)
 
 
 def _flatten_equivalent(expr):

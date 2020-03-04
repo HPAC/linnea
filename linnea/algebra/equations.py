@@ -63,7 +63,7 @@ class Equations():
         equations = []
         for equation in self.equations:
             equation = matchpy.replace_all(equation, rules)
-            equation = ar.to_SOP(at.simplify(ar.to_SOP(equation)))
+            equation = ar.to_normalform(equation)
             equations.append(equation)
         return Equations(*equations)
 
@@ -74,7 +74,7 @@ class Equations():
         return Equations(*[ar.to_SOP(equation) for equation in self.equations])
 
     def to_normalform(self):
-        return Equations(*[ar.to_SOP(at.simplify(ar.to_SOP(equation))) for equation in self.equations])
+        return Equations(*[ar.to_normalform(equation) for equation in self.equations])
 
     def get_data(self):
         """Counts the number of floating point values for calculating intensity.
