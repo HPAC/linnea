@@ -160,8 +160,7 @@ def to_POS(expr, side="l"):
     elif side == "r":
         other_side = "l"
     else:
-        # TODO this should be an argument error
-        print("Error in to_POS.")
+        raise ValueError("side can only be 'l' or 'r'")
 
     expr = _to_POS(expr, side)
     expr = _to_POS(expr, other_side)
@@ -218,7 +217,7 @@ def _to_POS(expr, side):
         idx = -1
         keyfunc = _keyfunc_right
     else:
-        print("Error in _to_POS.")
+        raise ValueError("side can only be 'l' or 'r'")
     
     new_operands = []
 
