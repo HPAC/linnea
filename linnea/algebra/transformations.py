@@ -11,7 +11,7 @@ class TransformationError(Exception):
 
 def simplify(expr):
     if not isinstance(expr, ae.Symbol) and not isinstance(expr, matchpy.Wildcard):
-        expr = type(expr)(*list(map(simplify, expr.operands)))
+        expr = type(expr)(*map(simplify, expr.operands))
     if isinstance(expr, ae.Operator) and expr.arity is matchpy.Arity.unary:
         if isinstance(expr, ae.Identity):
             return expr.operand
