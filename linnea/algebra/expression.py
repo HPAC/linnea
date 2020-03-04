@@ -4,8 +4,7 @@ import operator
 import itertools
 
 from . import InferenceOfProperties
-from .properties import Property as properties
-from .properties import implications, PropertyError
+from .properties import Property, implications, PropertyError
 from . import utils
 
 from .. import config
@@ -61,6 +60,7 @@ class Expression(matchpy.Expression):
                 operand.delete_partitioning()
 
     def has_property(self, prop):
+        # print(self, prop, InferenceOfProperties.infer_property(self, prop))
         return InferenceOfProperties.infer_property(self, prop)
 
     def index_range(self):
@@ -87,12 +87,12 @@ class Expression(matchpy.Expression):
             return self.operand == other.operand
         elif isinstance(self, ConjugateTranspose) and isinstance(other, InverseConjugateTranspose):
             return self.operand == other.operand
-        elif isinstance(self, Symbol) and self.has_property(properties.ORTHOGONAL) and isinstance(other, Transpose) and other.operand.has_property(properties.ORTHOGONAL):
+        elif isinstance(self, Symbol) and self.has_property(Property.ORTHOGONAL) and isinstance(other, Transpose) and other.operand.has_property(Property.ORTHOGONAL):
             return self == other.operand
-        elif isinstance(other, Symbol) and other.has_property(properties.ORTHOGONAL) and isinstance(self, Transpose) and self.operand.has_property(properties.ORTHOGONAL):
+        elif isinstance(other, Symbol) and other.has_property(Property.ORTHOGONAL) and isinstance(self, Transpose) and self.operand.has_property(Property.ORTHOGONAL):
             return other == self.operand
         elif isinstance(self, Symbol) and isinstance(other, Symbol):
-            if self.has_property(properties.IDENTITY) and self == other:
+            if self.has_property(Property.IDENTITY) and self == other:
                 return True
             else:
                 return False
@@ -132,7 +132,7 @@ class Expression(matchpy.Expression):
         that both expressions are in the same canonical form. It should always
         return a correct result if self == other (i.e. when testing symmetry).
         """
-        if self.has_property(properties.SCALAR) and other.has_property(properties.SCALAR):
+        if self.has_property(Property.SCALAR) and other.has_property(Property.SCALAR):
             return self == other
         elif isinstance(self, Transpose):
             return self.operand == other
@@ -151,7 +151,7 @@ class Expression(matchpy.Expression):
         elif isinstance(self, InverseConjugate) and isinstance(other, InverseConjugateTranspose):
             return self.operand == other.operand
         elif isinstance(self, Symbol) and isinstance(other, Symbol):
-            if self.has_property(properties.SYMMETRIC) and self == other:
+            if self.has_property(Property.SYMMETRIC) and self == other:
                 return True
             else:
                 return False
@@ -299,7 +299,7 @@ class Operator(matchpy.Operation, Expression):
         non_scalars = []
         for operand in self.operands:
             try:
-                is_scalar = operand.has_property(properties.SCALAR)
+                is_scalar = operand.has_property(Property.SCALAR)
             except AttributeError:
                 # This is the case if operand is a matchpy.Variable
                 is_scalar = False
@@ -347,20 +347,20 @@ class Symbol(matchpy.Symbol, Expression):
     def set_property(self, prop):
         # print("Setting property ", prop, " to ", self)
 
-        if prop == properties.LOWER_TRIANGULAR:
+        if prop == Property.LOWER_TRIANGULAR:
             self.bandwidth = (self.bandwidth[0], 0)
-        elif prop == properties.UPPER_TRIANGULAR:
+        elif prop == Property.UPPER_TRIANGULAR:
             self.bandwidth = (0, self.bandwidth[1])
-        elif prop == properties.DIAGONAL:
+        elif prop == Property.DIAGONAL:
             self.bandwidth = (0, 0)
 
-        if prop == properties.SCALAR:
+        if prop == Property.SCALAR:
             return
-        elif prop == properties.VECTOR:
+        elif prop == Property.VECTOR:
             return
-        elif prop == properties.MATRIX:
+        elif prop == Property.MATRIX:
             return
-        elif prop == properties.POSITIVE and isinstance(self, (Vector, Matrix)):
+        elif prop == Property.POSITIVE and isinstance(self, (Vector, Matrix)):
             raise PropertyError("Property 'positive' is only defined for scalars.")
 
         self.properties.add(prop)
@@ -379,10 +379,10 @@ class Symbol(matchpy.Symbol, Expression):
 
     def to_dot(self, out):
         node_name = "".join(["node", str(Expression.counter)])
-        props = "\n".join([str(p) for p in self.properties])
-        props = "\n".join([str(p) for p in properties if self.has_property(p)])
+        # properties = "\n".join([str(p) for p in self.properties])
+        properties = "\n".join([str(p) for p in Property if self.has_property(p)])
         false_properties = "\n".join([str(p) for p in self.false_properties])
-        out.append(dot_table_node.format(node_name, str(self.name), str(self.size), props, false_properties))
+        out.append(dot_table_node.format(node_name, str(self.name), str(self.size), properties, false_properties))
         return out
 
     def to_matlab_expression(self):
@@ -680,11 +680,11 @@ class LinSolveL(Operator):
         op1_str, op2_str = map(operator.methodcaller("to_cpp_expression", lib), self.operands)
 
         if lib is CppLibrary.Eigen:
-            if op1.has_property(properties.UPPER_TRIANGULAR):
+            if op1.has_property(Property.UPPER_TRIANGULAR):
                 op1_str = "({0}).template triangularView<Eigen::Upper>()".format(op1_str)
-            elif op1.has_property(properties.LOWER_TRIANGULAR):
+            elif op1.has_property(Property.LOWER_TRIANGULAR):
                 op1_str = "({0}).template triangularView<Eigen::Lower>()".format(op1_str)
-            elif op1.has_property(properties.SPD):
+            elif op1.has_property(Property.SPD):
                 op1_str = "({0}).llt()".format(op1_str)
             else:
                 op1_str = "({0}).partialPivLu()".format(op1_str)
@@ -692,9 +692,9 @@ class LinSolveL(Operator):
             return "( {0}.solve({1}) )".format(op1_str, op2_str)
 
         elif lib is CppLibrary.Armadillo:
-            if op1.has_property(properties.UPPER_TRIANGULAR):
+            if op1.has_property(Property.UPPER_TRIANGULAR):
                 op1_str = "arma::trimatu({0})".format(op1_str)
-            elif op1.has_property(properties.LOWER_TRIANGULAR):
+            elif op1.has_property(Property.LOWER_TRIANGULAR):
                 op1_str = "trimatl({0})".format(op1_str)
 
             return "arma::solve({0}, {1}, arma::solve_opts::fast)".format(op1_str, op2_str)
@@ -989,8 +989,8 @@ class Inverse(Operator):
 
     def to_cpp_expression(self, lib):
         template_str = None
-        if self.operand.has_property(properties.SCALAR):
-            if lib is CppLibrary.Eigen and any(not subexpr.has_property(properties.SCALAR) for subexpr, _ in self.preorder_iter()):
+        if self.operand.has_property(Property.SCALAR):
+            if lib is CppLibrary.Eigen and any(not subexpr.has_property(Property.SCALAR) for subexpr, _ in self.preorder_iter()):
                 template_str = "({0}).inverse()"
             else:
                 template_str = "1.0/({0})"
@@ -999,9 +999,9 @@ class Inverse(Operator):
                 template_str = "({0}).i()"
                 # use specialized functions only for single matrices, not expressions
                 if isinstance(self.operands[0], Matrix):
-                    if self.operands[0].has_property(properties.SPD):
+                    if self.operands[0].has_property(Property.SPD):
                         template_str = "arma::inv_sympd({0})"
-                    elif self.operands[0].has_property(properties.DIAGONAL):
+                    elif self.operands[0].has_property(Property.DIAGONAL):
                         template_str = "arma::inv(arma::diagmat({0}))"
             elif lib is CppLibrary.Eigen:
                 template_str = "({0}).inverse()"
@@ -1059,9 +1059,9 @@ class InverseTranspose(Operator):
         if lib is CppLibrary.Armadillo:
             template_str = "({0}).t().i()"
             if isinstance(self.operands[0], Matrix):
-                if self.operands[0].has_property(properties.SPD):
+                if self.operands[0].has_property(Property.SPD):
                     template_str = "arma::inv_sympd(({0}).t())"
-                elif self.operands[0].has_property(properties.DIAGONAL):
+                elif self.operands[0].has_property(Property.DIAGONAL):
                     template_str = "arma::inv( arma::diagmat(({0}).t()) )"
         elif lib is CppLibrary.Eigen:
             template_str = "({0}).transpose().inverse()"
@@ -1203,18 +1203,18 @@ class ConstantMatrix(Matrix, Constant):
     """docstring for ConstantMatrix"""
     def __init__(self, name, size):
         super().__init__(name, size)
-        self.set_property(properties.CONSTANT)
+        self.set_property(Property.CONSTANT)
 
 class IdentityMatrix(ConstantMatrix):
     """docstring for IdentityMatrix"""
     def __init__(self, rows, columns):
         super().__init__("I({}, {})".format(rows, columns), (rows, columns))
         # print(self)
-        self.set_property(properties.IDENTITY)
-        self.set_property(properties.DIAGONAL)
+        self.set_property(Property.IDENTITY)
+        self.set_property(Property.DIAGONAL)
         if rows == columns:
-            self.set_property(properties.SPD)
-            self.set_property(properties.SYMMETRIC)
+            self.set_property(Property.SPD)
+            self.set_property(Property.SYMMETRIC)
 
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
@@ -1247,7 +1247,7 @@ class ZeroMatrix(ConstantMatrix):
     """docstring for ZeroMatrix"""
     def __init__(self, rows, columns):
         super().__init__("0({}, {})".format(rows, columns), (rows, columns))
-        self.set_property(properties.ZERO)
+        self.set_property(Property.ZERO)
 
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
@@ -1264,9 +1264,9 @@ class ConstantScalar(Scalar, Constant):
     def __init__(self, value):
         super().__init__(str(value))
         self.value = value
-        self.set_property(properties.CONSTANT)
+        self.set_property(Property.CONSTANT)
         if value > 0:
-            self.set_property(properties.POSITIVE)
+            self.set_property(Property.POSITIVE)
 
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)
@@ -1411,8 +1411,8 @@ if __name__ == "__main__":
     n = 10
 
     A = Matrix("A", (10, 10))
-    A.set_property(properties.LOWER_TRIANGULAR)
-    print(A.has_property(properties.LOWER_TRIANGULAR))
+    A.set_property(Property.LOWER_TRIANGULAR)
+    print(A.has_property(Property.LOWER_TRIANGULAR))
     B = Matrix("B", (10, 10))
     C = Matrix("C", (10, 10))
     CC = ConstantMatrix("CC", (10, 10))
@@ -1443,7 +1443,7 @@ if __name__ == "__main__":
     expr = Times(A, Times(B, Inverse(C)))
     expr = matchpy.freeze(Times(A, Times(B, Inverse(C))))
 
-    print(expr.has_property(properties.LOWER_TRIANGULAR))
+    print(expr.has_property(Property.LOWER_TRIANGULAR))
     print(expr.bandwidth)
     # print(Times(A, B))
     # print(Times(A))

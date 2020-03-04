@@ -3,7 +3,7 @@ from ..algebra.expression import Times, Plus, Symbol, Operator, \
                                  Equal
 from ..algebra.equations import Equations
 from ..algebra.transformations import invert, invert_transpose, transpose
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 from ..utils import window, powerset, is_inverse, is_transpose, \
                     contains_inverse, contains_transpose
 
@@ -829,7 +829,7 @@ def find_CSEs(equations):
             # TODO do we want to invert if expr is not square?
             inv = contains_inverse(expr) and not is_inverse(expr)
             trans = contains_transpose(expr) and not is_transpose(expr)
-            if expr.has_property(properties.SYMMETRIC):
+            if expr.has_property(Property.SYMMETRIC):
                 trans = False
             if inv and trans:
                 subexpr = Subexpression(expr, eqn_idx, positions, level, CSEType.inverse_transpose)

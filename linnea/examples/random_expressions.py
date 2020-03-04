@@ -7,7 +7,7 @@ from ..algebra import equations as aeq
 from ..algebra.transformations import simplify
 from ..utils import window
 from ..algebra.validity import check_validity
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 
 # Arity.nullary = Arity(0, True)
 # Arity.unary = Arity(1, True)
@@ -52,9 +52,9 @@ def generate_matrix(rows, columns):
     global _counter
     _counter += 1
     operand = ae.Matrix("M{}".format(_counter), (rows, columns))
-    operand.set_property(properties.FULL_RANK)  
+    operand.set_property(Property.FULL_RANK)  
     if rows == columns and random.random() > 0.25:
-        operand.set_property(random.choice([properties.DIAGONAL, properties.LOWER_TRIANGULAR, properties.UPPER_TRIANGULAR, properties.SYMMETRIC, properties.SPD]))
+        operand.set_property(random.choice([Property.DIAGONAL, Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR, Property.SYMMETRIC, Property.SPD]))
     return operand
 
 def matrix_chain_sizes(first, last, length, nonsingular=False):
@@ -285,7 +285,7 @@ def main():
     no_square_matrix = 0
     no_non_square_matrix = 0
     for idx, eqn in enumerate(rand_exprs, 1):
-        if not any((isinstance(subexpr, ae.Matrix) and not subexpr.has_property(properties.DIAGONAL)) for subexpr, _ in eqn[0].rhs.preorder_iter()):
+        if not any((isinstance(subexpr, ae.Matrix) and not subexpr.has_property(Property.DIAGONAL)) for subexpr, _ in eqn[0].rhs.preorder_iter()):
         #     print(idx, eqn)
             no_full_matrix += 1
 
@@ -293,14 +293,14 @@ def main():
             # print(idx, eqn)
             no_inverse += 1
 
-        if eqn[0].rhs.has_property(properties.VECTOR):
+        if eqn[0].rhs.has_property(Property.VECTOR):
             # print(idx, eqn)
             result_is_vector += 1
 
         non_square = 0
         square = 0
         for subexpr, _ in eqn[0].rhs.preorder_iter():
-            if isinstance(subexpr, ae.Matrix) and not subexpr.has_property(properties.SQUARE):
+            if isinstance(subexpr, ae.Matrix) and not subexpr.has_property(Property.SQUARE):
                 non_square += 1
                 # print(subexpr.size)
             else:

@@ -75,11 +75,11 @@ class PropertyConstraints():
     def __init__(self):
         self.property_dict = dict()
 
-    def add_constraints(self, wildcard_name, *props):
-        self.property_dict.setdefault(wildcard_name, []).extend(props)
+    def add_constraints(self, wildcard_name, *properties):
+        self.property_dict.setdefault(wildcard_name, []).extend(properties)
 
     def __call__(self, match_dict):
-        return all(all(match_dict[wildcard_name].has_property(prop) for prop in props) for wildcard_name, props in self.property_dict.items())
+        return all(all(match_dict[wildcard_name].has_property(prop) for prop in properties) for wildcard_name, properties in self.property_dict.items())
 
     def __repr__(self):
         return "PropertyConstraints(" + repr(self.property_dict) + ")" 
@@ -339,12 +339,12 @@ def le_property_sets(s1, s2):
     general set.
 
     Examples:
-        set([properties.SQUARE, properties.DIAGONAL]) < set([properties.LOWER_TRIANGULAR])
+        set([Property.SQUARE, Property.DIAGONAL]) < set([Property.LOWER_TRIANGULAR])
 
     Note:
         This function implements a partial ordering. Property sets may not be
-        comparable. As an example, consider set(property.LOWER_TRIANGULAR) and
-        set(property.UPPER_TRIANGULAR).
+        comparable. As an example, consider set(Property.LOWER_TRIANGULAR) and
+        set(Property.UPPER_TRIANGULAR).
     """
     return all(any(e1 < e2 or e1 == e2 for e1 in s1) for e2 in s2)
 

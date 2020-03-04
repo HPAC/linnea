@@ -1,5 +1,5 @@
 from ..algebra.expression import Equal, Matrix, Vector, Scalar
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 from ..algebra.equations import Equations
 
 from .. import temporaries
@@ -9,7 +9,7 @@ from .graph import properties as gp
 _counter = 0
 
 
-def add_expression(expr, _properties):
+def add_expression(expr, properties):
     # TODO what happens if the same expression is added a second time
     # - with the same properties?
     # - with different properties?
@@ -18,11 +18,11 @@ def add_expression(expr, _properties):
     name = "".join(["SP", str(_counter)])
     _counter +=1
     lhs = None
-    if expr.has_property(properties.MATRIX):
+    if expr.has_property(Property.MATRIX):
         lhs = Matrix(name, expr.size)
-    elif expr.has_property(properties.VECTOR):
+    elif expr.has_property(Property.VECTOR):
         lhs = Vector(name, expr.size)
-    elif expr.has_property(properties.SCALAR):
+    elif expr.has_property(Property.SCALAR):
         lhs = Scalar(name)
 
     graph = gp.PropertyGraph(Equations(Equal(lhs, expr)))
@@ -41,4 +41,4 @@ def add_expression(expr, _properties):
 
     for node in graph.nodes:
         expr = node.equations[-1].rhs
-        tmp = temporaries.create_tmp(expr, True, _properties=_properties)
+        tmp = temporaries.create_tmp(expr, True, properties=properties)

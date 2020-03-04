@@ -1,6 +1,6 @@
 from . import expression as ae
 
-from .properties import Property as properties
+from .properties import Property
 
 from . import transformations as at
 
@@ -26,7 +26,7 @@ def to_SOP(expr):
 
     # TODO should this be part of simplify()?
 
-    # if isinstance(expr, Times) and any(isinstance(operand, Plus) and not operand.has_property(properties.SCALAR) for operand in expr.operands):
+    # if isinstance(expr, Times) and any(isinstance(operand, Plus) and not operand.has_property(Property.SCALAR) for operand in expr.operands):
     if isinstance(expr, ae.Times) and any(isinstance(operand, ae.Plus) for operand in expr.operands):
         factors = []
         for operand in expr.operands:
@@ -40,7 +40,7 @@ def to_SOP(expr):
             # the bottom-up approach should be faster because the expressions
             # that are copied are simpler, but it's not the case.
 
-            # if isinstance(operand, Plus) and not operand.has_property(properties.SCALAR):
+            # if isinstance(operand, Plus) and not operand.has_property(Property.SCALAR):
             if isinstance(operand, ae.Plus):
                 factors.append(operand.operands)
             else:
@@ -207,7 +207,7 @@ def _to_POS(expr, side):
     # TODO does this make it faster?
     if not isinstance(expr, ae.Plus) and not isinstance(expr, ae.Symbol):
         return type(expr)(*[_to_POS(operand, side) for operand in expr.operands])
-    elif expr.has_property(properties.SCALAR) or isinstance(expr, ae.Symbol):
+    elif expr.has_property(Property.SCALAR) or isinstance(expr, ae.Symbol):
         # This function doesn't do anything with scalar
         return expr
 

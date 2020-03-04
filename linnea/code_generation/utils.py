@@ -2,7 +2,7 @@ from ..algebra.expression import Symbol, Times, \
                                  Inverse, InverseTranspose, Transpose, \
                                  LinSolveL, LinSolveR
 from ..algebra.equations import Equations
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 from ..utils import PropertyConstraint, is_inverse
 
 from .. import config
@@ -368,12 +368,12 @@ class Algorithm():
     def _generate_docstring(self, memory):
         input_operands, output_operands = self.initial_equations.input_output()
         operand_description = []
-        internal_properties = {properties.AUXILIARY, properties.SCALAR,
-                               properties.VECTOR, properties.MATRIX,
-                               properties.SQUARE, properties.ROW_PANEL,
-                               properties.COLUMN_PANEL, properties.CONSTANT,
-                               properties.ADMITS_FACTORIZATION,
-                               properties.FACTOR, properties.TRIANGULAR}
+        internal_properties = {Property.AUXILIARY, Property.SCALAR,
+                               Property.VECTOR, Property.MATRIX,
+                               Property.SQUARE, Property.ROW_PANEL,
+                               Property.COLUMN_PANEL, Property.CONSTANT,
+                               Property.ADMITS_FACTORIZATION,
+                               Property.FACTOR, Property.TRIANGULAR}
         for operand in input_operands:
             print_properties = operand.properties - internal_properties
             remove = set()
@@ -571,24 +571,24 @@ def to_file(file_path, content):
 
 def operand_type(operand, property_types=False):
     if property_types:
-        if operand.has_property(properties.SCALAR):
+        if operand.has_property(Property.SCALAR):
             return config.data_type_string
-        elif operand.has_property(properties.VECTOR):
+        elif operand.has_property(Property.VECTOR):
             return "Array{{{0},1}}".format(config.data_type_string)
-        elif operand.has_property(properties.DIAGONAL):
+        elif operand.has_property(Property.DIAGONAL):
             return "Diagonal{{{0},Array{{{0},1}}}}".format(config.data_type_string)
-        elif operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.SPD) or operand.has_property(properties.SPSD):
+        elif operand.has_property(Property.SYMMETRIC) or operand.has_property(Property.SPD) or operand.has_property(Property.SPSD):
             return "Symmetric{{{0},Array{{{0},2}}}}".format(config.data_type_string)
-        elif operand.has_property(properties.LOWER_TRIANGULAR) and operand.has_property(properties.SQUARE):
+        elif operand.has_property(Property.LOWER_TRIANGULAR) and operand.has_property(Property.SQUARE):
             return "LowerTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
-        elif operand.has_property(properties.UPPER_TRIANGULAR) and operand.has_property(properties.SQUARE):
+        elif operand.has_property(Property.UPPER_TRIANGULAR) and operand.has_property(Property.SQUARE):
             return "UpperTriangular{{{0},Array{{{0},2}}}}".format(config.data_type_string)
         else:
             return "Array{{{0},2}}".format(config.data_type_string)
     else:
-        if operand.has_property(properties.SCALAR):
+        if operand.has_property(Property.SCALAR):
             return config.data_type_string
-        elif operand.has_property(properties.VECTOR):
+        elif operand.has_property(Property.VECTOR):
             return "Array{{{0},1}}".format(config.data_type_string)
         else:
             return "Array{{{0},2}}".format(config.data_type_string)
@@ -605,8 +605,8 @@ WD1 = matchpy.Wildcard.dot("WD1")
 WD2 = matchpy.Wildcard.dot("WD2")
 WS1 = matchpy.Wildcard.star("WS1")
 WS2 = matchpy.Wildcard.star("WS2")
-PS1 = matchpy.CustomConstraint(lambda WD1: WD1.has_property(properties.MATRIX) or WD1.has_property(properties.VECTOR))
-PS2 = matchpy.CustomConstraint(lambda WD2: WD2.has_property(properties.MATRIX) or WD2.has_property(properties.VECTOR))
+PS1 = matchpy.CustomConstraint(lambda WD1: WD1.has_property(Property.MATRIX) or WD1.has_property(Property.VECTOR))
+PS2 = matchpy.CustomConstraint(lambda WD2: WD2.has_property(Property.MATRIX) or WD2.has_property(Property.VECTOR))
 notInv1 = matchpy.CustomConstraint(lambda WD1: not is_inverse(WD1))
 notInv2 = matchpy.CustomConstraint(lambda WD2: not is_inverse(WD2))
 

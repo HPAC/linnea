@@ -8,7 +8,7 @@ import itertools
 from ..algebra import expression as ae
 from ..algebra.equations import Equations
 from ..algebra.transformations import simplify
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 from ..frontend.export import export
 from ..code_generation import experiments as cge
 from ..utils import window
@@ -27,10 +27,10 @@ def generate_operand(rows, columns):
             return # scalar
 
         operand = ae.Matrix('M{}'.format(_n), size=(rows, columns))
-        operand.set_property(properties.FULL_RANK)
+        operand.set_property(Property.FULL_RANK)
         # include "no property"
         if random.random() > 0.25:
-            operand.set_property(random.choices([properties.DIAGONAL, properties.LOWER_TRIANGULAR, properties.UPPER_TRIANGULAR, properties.SYMMETRIC, properties.SPD])[0])
+            operand.set_property(random.choices([Property.DIAGONAL, Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR, Property.SYMMETRIC, Property.SPD])[0])
         return operand
     elif columns == 1:
         return ae.Vector('v{}'.format(_n), size=(rows, columns))
@@ -38,7 +38,7 @@ def generate_operand(rows, columns):
         return ae.Vector('v{}'.format(_n), size=(rows, columns))
     else:
         operand = ae.Matrix('M{}'.format(_n), size=(rows, columns))
-        operand.set_property(properties.FULL_RANK)
+        operand.set_property(Property.FULL_RANK)
         return operand
 
 def matrix_chain_generator():
@@ -98,9 +98,9 @@ def matrix_chain_generator():
 
         # print(expr.size)
         # print((sizes[0], sizes[-1]))
-        if expr.has_property(properties.MATRIX):
+        if expr.has_property(Property.MATRIX):
             lhs = ae.Matrix('X'.format(_n), size=(sizes[0], sizes[-1]))
-        elif expr.has_property(properties.VECTOR):
+        elif expr.has_property(Property.VECTOR):
             lhs = ae.Vector('x'.format(_n), size=(sizes[0], sizes[-1]))
 
         yield Equations(ae.Equal(lhs, expr))

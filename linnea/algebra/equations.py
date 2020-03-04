@@ -5,7 +5,7 @@ from . import expression as ae
 from . import transformations as at
 from . import representations as ar
 
-from .properties import Property as properties
+from .properties import Property
 from .validity import check_validity
 from .consistency import check_consistency
 
@@ -93,10 +93,10 @@ class Equations():
             data = 0
             for operand in operands:
                 rows, cols = operand.size
-                if not operand.has_property(properties.CONSTANT):
-                    if operand.has_property(properties.DIAGONAL):
+                if not operand.has_property(Property.CONSTANT):
+                    if operand.has_property(Property.DIAGONAL):
                         data += min(rows, cols)
-                    elif operand.has_property(properties.SYMMETRIC) or operand.has_property(properties.TRIANGULAR):
+                    elif operand.has_property(Property.SYMMETRIC) or operand.has_property(Property.TRIANGULAR):
                         data += rows * cols/2
                     else:
                         data += rows * cols
@@ -214,7 +214,7 @@ class Equations():
         for equation in self.equations:
             # look at rhs
             for node, pos in equation.rhs.preorder_iter():
-                if isinstance(node, ae.Symbol) and not node.has_property(properties.CONSTANT):
+                if isinstance(node, ae.Symbol) and not node.has_property(Property.CONSTANT):
                     seen_before.add(node.name)
                     if node.name in replacements:
                         equation.rhs.set_successor(pos, replacements[node.name])
@@ -239,7 +239,7 @@ class Equations():
         # IMPORTANT: eqn can NOT be renamed to equation. Otherwise,
         # "equation.rhs in the lambda function refers to the wrong equation.
         for eqn in self.equations:
-            if eqn.lhs.has_property(properties.AUXILIARY):
+            if eqn.lhs.has_property(Property.AUXILIARY):
                 rule = (matchpy.Pattern(eqn.lhs), lambda **_: eqn.rhs)
                 replacement_rules.append(rule)
                 remove.append(eqn)
@@ -254,7 +254,7 @@ class Equations():
         output_operands = set()
         for equation in self.equations:
             operand = equation.lhs
-            for property in properties:
+            for property in Property:
                 if equation.rhs.has_property(property):
                     operand.set_property(property)
 
@@ -267,7 +267,7 @@ class Equations():
         All operands are treated as unique mathematical objects, that this,
         they only represent one value. As a result, 1) operands cannot be
         redefined, and 2) input operands cannot be overwritten. Since at
-        present, Linnea does not use any properties or labels to annotate what
+        present, Linnea does not use any Property or labels to annotate what
         is input and what is output, the two requirements are checked by
         analyzing the dataflow: Requirement 2) is checked by testing that the
         first use of an operands takes place after its definition (if there is

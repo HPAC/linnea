@@ -1,5 +1,5 @@
 from . import expression as ae
-from .properties import Property as properties
+from .properties import Property
 
 import operator
 import matchpy
@@ -35,7 +35,7 @@ def simplify(expr):
         # Product is zero if there is one zero factor.
 
         for operand in expr.operands:
-            if operand.has_property(properties.ZERO) or (isinstance(operand, ae.ConstantScalar) and operand.value == 0):
+            if operand.has_property(Property.ZERO) or (isinstance(operand, ae.ConstantScalar) and operand.value == 0):
                 return ae.ZeroMatrix(*expr.size)
 
         scalars, non_scalars = expr.split_operands()
@@ -44,7 +44,7 @@ def simplify(expr):
         # Remove identity matrix
 
         if len(non_scalars) > 1:
-            non_scalars = [operand for operand in non_scalars if not operand.has_property(properties.IDENTITY)]
+            non_scalars = [operand for operand in non_scalars if not operand.has_property(Property.IDENTITY)]
 
         ############################
         # Computing product of ConstantScalars, sorting symbolic scalars.
@@ -79,7 +79,7 @@ def simplify(expr):
 
         i = 0;
         while i < len(non_scalars):
-            if non_scalars[i].has_property(properties.ORTHOGONAL_COLUMNS):
+            if non_scalars[i].has_property(Property.ORTHOGONAL_COLUMNS):
                 if i > 0 and isinstance(non_scalars[i-1], ae.Transpose) and non_scalars[i-1].operand == non_scalars[i]:
                     del non_scalars[i]
                     del non_scalars[i-1]
@@ -88,7 +88,7 @@ def simplify(expr):
                         break
             i += 1
 
-        if len(non_scalars) == 0 and not expr.has_property(properties.SCALAR):
+        if len(non_scalars) == 0 and not expr.has_property(Property.SCALAR):
             non_scalars.append(ae.IdentityMatrix(*expr.size))
 
         ############################
@@ -133,7 +133,7 @@ def simplify(expr):
         return ae.Times(*operands)
     elif isinstance(expr, ae.Plus):
 
-        if expr.has_property(properties.SCALAR):
+        if expr.has_property(Property.SCALAR):
 
             # print("before", expr)
 
@@ -323,7 +323,7 @@ def simplify(expr):
 
             remove = []
             for i, operand in enumerate(operands):
-                if operand.has_property(properties.ZERO):
+                if operand.has_property(Property.ZERO):
                     # print("operand", operand)
                     remove.append(i)
 
@@ -371,10 +371,10 @@ def invert(expr):
     elif isinstance(expr, ae.Symbol):
         if isinstance(expr, ae.ConstantScalar):
             return ae.ConstantScalar(1/expr.value)
-        elif expr.has_property(properties.ORTHOGONAL):
+        elif expr.has_property(Property.ORTHOGONAL):
             # is it possible for an orthogonal matrix to be symmetric?
             return ae.Transpose(expr)
-        elif expr.has_property(properties.UNITARY):
+        elif expr.has_property(Property.UNITARY):
             return ae.ConjugateTranspose(expr)
         else:
             return ae.Inverse(expr)
@@ -422,9 +422,9 @@ def transpose(expr):
         operands = [transpose(operand) for operand in expr.operands]
         return ae.Plus(*operands)
     elif isinstance(expr, ae.Symbol):
-        if expr.has_property(properties.SCALAR):
+        if expr.has_property(Property.SCALAR):
             return expr
-        elif expr.has_property(properties.SYMMETRIC):
+        elif expr.has_property(Property.SYMMETRIC):
             return expr
         else:
             return ae.Transpose(expr)
@@ -457,13 +457,13 @@ def invert_transpose(expr):
     elif isinstance(expr, ae.InverseConjugateTranspose):
         return conjugate(expr.operand)
     elif isinstance(expr, ae.Symbol):
-        if expr.has_property(properties.SCALAR):
+        if expr.has_property(Property.SCALAR):
             return ae.Inverse(expr)
-        elif expr.has_property(properties.SYMMETRIC):
+        elif expr.has_property(Property.SYMMETRIC):
             return ae.Inverse(expr)
-        elif expr.has_property(properties.ORTHOGONAL):
+        elif expr.has_property(Property.ORTHOGONAL):
             return expr
-        elif expr.has_property(properties.UNITARY):
+        elif expr.has_property(Property.UNITARY):
             return ae.Conjugate(expr)
         else:
             return ae.InverseTranspose(expr)
@@ -553,9 +553,9 @@ def conjugate_transpose(expr):
         operands = [conjugate_transpose(operand) for operand in expr.operands]
         return ae.Plus(*operands)
     elif isinstance(expr, ae.Symbol):
-        if expr.has_property(properties.SCALAR):
+        if expr.has_property(Property.SCALAR):
             return ae.Conjugate(expr)
-        elif expr.has_property(properties.HERMITIAN):
+        elif expr.has_property(Property.HERMITIAN):
             return expr
         else:
             return ae.ConjugateTranspose(expr)
@@ -588,7 +588,7 @@ def invert_conjugate(expr):
     elif isinstance(expr, ae.InverseConjugateTranspose):
         return transpose(expr.operand)
     elif isinstance(expr, ae.Symbol):
-        if expr.has_property(properties.UNITARY):
+        if expr.has_property(Property.UNITARY):
             return ae.Transpose(expr)
         # TODO hermitian missing
         else:
@@ -627,11 +627,11 @@ def invert_conjugate_transpose(expr):
     elif isinstance(expr, ae.InverseConjugateTranspose):
         return expr.operand
     elif isinstance(expr, ae.Symbol):
-        if expr.has_property(properties.SCALAR):
+        if expr.has_property(Property.SCALAR):
             return ae.InverseConjugate(expr)
-        elif expr.has_property(properties.UNITARY):
+        elif expr.has_property(Property.UNITARY):
             return expr
-        elif expr.has_property(properties.HERMITIAN):
+        elif expr.has_property(Property.HERMITIAN):
             return ae.Inverse(expr)
         else:
             return ae.InverseConjugateTranspose(expr)
@@ -696,14 +696,14 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
     # print("distribute IN", expr)
     # print("SCALARS", scalars)
     # print(non_scalars)
-    # print([op for op in non_scalars if op.has_property(properties.SQUARE)])
+    # print([op for op in non_scalars if op.has_property(Property.SQUARE)])
 
     # The operands are stored in a list. The operator can be distributed
     # over the expressions at the first level of the list. The nested list
     # contain those parts where the operator can not be distributed (because
     # the operands in those parts are not square).
     operands = []
-    if expr.has_property(properties.SQUARE):
+    if expr.has_property(Property.SQUARE):
         # For square products, all square sub-sequences are collected in
         # sub-lists.
         # Example:
@@ -716,7 +716,7 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
         pos = None
         for n, operand in enumerate(non_scalars):
             if not size:
-                if operand.has_property(properties.SQUARE):
+                if operand.has_property(Property.SQUARE):
                     operands.append(operand)
                 else:
                     size = operand.size[0]
@@ -732,11 +732,11 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
         pos1 = None
         pos2 = None
         for n, operand in enumerate(non_scalars):
-            if not operand.has_property(properties.SQUARE):
+            if not operand.has_property(Property.SQUARE):
                 pos1 = n
                 break
         for n, operand in enumerate(reversed(non_scalars)):
-            if not operand.has_property(properties.SQUARE):
+            if not operand.has_property(Property.SQUARE):
                 pos2 = len(non_scalars) - n
                 break
         operands = non_scalars[0:pos1] + [non_scalars[pos1:pos2]] + non_scalars[pos2:]

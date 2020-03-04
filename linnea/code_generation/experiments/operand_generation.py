@@ -5,34 +5,34 @@ import textwrap
 from ... import config
 from .. import utils
 
-from ...algebra.properties import Property as properties
+from ...algebra.properties import Property
 
 
-operands_mapping_julia = {properties.SYMMETRIC: "Shape.Symmetric",
-                          properties.DIAGONAL: "Shape.Diagonal",
-                          properties.LOWER_TRIANGULAR: "Shape.LowerTriangular",
-                          properties.UPPER_TRIANGULAR: "Shape.UpperTriangular",
-                          properties.SPD: "Properties.SPD",
-                          properties.SPSD: "Properties.SPD", # TODO does this make sense?
-                          properties.ORTHOGONAL: "Properties.Orthogonal"
+operands_mapping_julia = {Property.SYMMETRIC: "Shape.Symmetric",
+                          Property.DIAGONAL: "Shape.Diagonal",
+                          Property.LOWER_TRIANGULAR: "Shape.LowerTriangular",
+                          Property.UPPER_TRIANGULAR: "Shape.UpperTriangular",
+                          Property.SPD: "Property.SPD",
+                          Property.SPSD: "Property.SPD", # TODO does this make sense?
+                          Property.ORTHOGONAL: "Property.ORTHOGONAL"
                          }
 
-operands_mapping_matlab = {properties.SYMMETRIC: "Shape.Symmetric()",
-                          properties.DIAGONAL: "Shape.Diagonal()",
-                          properties.LOWER_TRIANGULAR: "Shape.LowerTriangular()",
-                          properties.UPPER_TRIANGULAR: "Shape.UpperTriangular()",
-                          properties.SPD: "Properties.SPD()",
-                          properties.SPSD: "Properties.SPD()", # TODO does this make sense?
-                          properties.ORTHOGONAL: "Properties.Orthogonal()"
+operands_mapping_matlab = {Property.SYMMETRIC: "Shape.Symmetric()",
+                          Property.DIAGONAL: "Shape.Diagonal()",
+                          Property.LOWER_TRIANGULAR: "Shape.LowerTriangular()",
+                          Property.UPPER_TRIANGULAR: "Shape.UpperTriangular()",
+                          Property.SPD: "Property.SPD()",
+                          Property.SPSD: "Property.SPD()", # TODO does this make sense?
+                          Property.ORTHOGONAL: "Property.ORTHOGONAL()"
                          }
 
-operands_mapping_cpp = {properties.SYMMETRIC: "generator::shape::self_adjoint{}",
-                        properties.DIAGONAL: "generator::shape::diagonal{}",
-                        properties.LOWER_TRIANGULAR: "generator::shape::lower_triangular{}",
-                        properties.UPPER_TRIANGULAR: "generator::shape::upper_triangular{}",
-                        properties.SPD: "generator::property::spd{}",
-                        properties.SPSD: "generator::property::spd{}", # TODO does this make sense?
-                        properties.ORTHOGONAL: "generator::property::orthogonal{}"
+operands_mapping_cpp = {Property.SYMMETRIC: "generator::shape::self_adjoint{}",
+                        Property.DIAGONAL: "generator::shape::diagonal{}",
+                        Property.LOWER_TRIANGULAR: "generator::shape::lower_triangular{}",
+                        Property.UPPER_TRIANGULAR: "generator::shape::upper_triangular{}",
+                        Property.SPD: "generator::property::spd{}",
+                        Property.SPSD: "generator::property::spd{}", # TODO does this make sense?
+                        Property.ORTHOGONAL: "generator::property::orthogonal{}"
                         }
 
 operands_mapping = {config.Language.Julia: operands_mapping_julia,
@@ -89,7 +89,7 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
         replacement["type"] = utils.operand_type(operand, True)
 
         # Special case - scalar generation for C++
-        if language == config.Language.Cpp and operand.has_property(properties.SCALAR):
+        if language == config.Language.Cpp and operand.has_property(Property.SCALAR):
             op_gen_lines.append("{0} {1} = std::uniform_real_distribution<{0}>()(gen.rng());".format(
                 "double" if config.float64 else "float",
                 operand.name
@@ -97,34 +97,34 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
             continue
 
         property_replacements = []
-        for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR,
-                     properties.UPPER_TRIANGULAR, properties.ORTHOGONAL]:
+        for prop in [Property.SYMMETRIC, Property.DIAGONAL, Property.LOWER_TRIANGULAR,
+                     Property.UPPER_TRIANGULAR, Property.ORTHOGONAL]:
             if prop in operand.properties:
                 property_replacements.append(map_operand(language, prop))
-        if properties.SPD in operand.properties or properties.SPSD in operand.properties:
-            property_replacements.append(map_operand(language, properties.SPD))
-        if not any((prop in operand.properties) for prop in [properties.SYMMETRIC, properties.DIAGONAL, properties.LOWER_TRIANGULAR, properties.UPPER_TRIANGULAR]):
+        if Property.SPD in operand.properties or Property.SPSD in operand.properties:
+            property_replacements.append(map_operand(language, Property.SPD))
+        if not any((prop in operand.properties) for prop in [Property.SYMMETRIC, Property.DIAGONAL, Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR]):
             if language == config.Language.Julia:
                 property_replacements.append("Shape.General")
             elif language == config.Language.Matlab:
                 property_replacements.append("Shape.General()")
 
-        if not properties.SPD in operand.properties and not properties.SPSD in operand.properties and not properties.ORTHOGONAL in operand.properties:
-            if properties.DIAGONAL in operand.properties:
+        if not Property.SPD in operand.properties and not Property.SPSD in operand.properties and not Property.ORTHOGONAL in operand.properties:
+            if Property.DIAGONAL in operand.properties:
                 property_replacements.append(random_operand(10, 11))
-            elif properties.LOWER_TRIANGULAR in operand.properties:
+            elif Property.LOWER_TRIANGULAR in operand.properties:
                 property_replacements.append(random_operand(10, 11))
-            elif properties.UPPER_TRIANGULAR in operand.properties:
+            elif Property.UPPER_TRIANGULAR in operand.properties:
                 property_replacements.append(random_operand(10, 11))
-            elif properties.SYMMETRIC in operand.properties:
+            elif Property.SYMMETRIC in operand.properties:
                 property_replacements.append(random_operand(10, 11))
-            elif operand.has_property(properties.SCALAR):
+            elif operand.has_property(Property.SCALAR):
                 property_replacements.append(random_operand(0.5, 1.5))
             else:
                 property_replacements.append(random_operand(-1, 1))
 
         if language == config.Language.Cpp:
-            if properties.VECTOR in operand.properties:
+            if Property.VECTOR in operand.properties:
                 if operand.size[0] == 1:
                     property_replacements.append("generator::shape::row_vector{}")
                 else:

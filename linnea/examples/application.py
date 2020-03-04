@@ -4,7 +4,7 @@ from ..algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar,
                                  InverseConjugateTranspose, \
                                  ConjugateTranspose, Index, IdentityMatrix
 
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 
 from ..algebra.equations import Equations
 
@@ -22,7 +22,7 @@ class Example01():
         m = 500
 
         X = Matrix("X", (n, m))
-        X.set_property(properties.FULL_RANK)
+        X.set_property(Property.FULL_RANK)
 
         y = Vector("y", (n, 1))
 
@@ -41,10 +41,10 @@ class Example02():
         m = 500
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         X = Matrix("X", (n, m))
-        X.set_property(properties.FULL_RANK)
+        X.set_property(Property.FULL_RANK)
 
         z = Vector("z", (m, 1))
 
@@ -62,13 +62,13 @@ class Example03():
         m = 1000
 
         A = Matrix("A", (m, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         W = Matrix("W", (n, n))
         # W is positive
-        W.set_property(properties.FULL_RANK)
-        W.set_property(properties.DIAGONAL)
-        W.set_property(properties.SPD)
+        W.set_property(Property.FULL_RANK)
+        W.set_property(Property.DIAGONAL)
+        W.set_property(Property.SPD)
 
         b = Vector("b", (m, 1))
 
@@ -102,13 +102,13 @@ class Example04():
         m = 1000
 
         A = Matrix("A", (m, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         W = Matrix("W", (n, n))
         # W is positive
-        W.set_property(properties.FULL_RANK)
-        W.set_property(properties.DIAGONAL)
-        W.set_property(properties.SPD)
+        W.set_property(Property.FULL_RANK)
+        W.set_property(Property.DIAGONAL)
+        W.set_property(Property.SPD)
 
         b = Vector("b", (m, 1))
 
@@ -154,13 +154,13 @@ class Example05():
 
         # signal processing
 
-        A = Matrix("A", (N, N), properties = [properties.FULL_RANK])
+        A = Matrix("A", (N, N), properties = [Property.FULL_RANK])
         # A - tridiagonal, full rank, something even more specific
-        B = Matrix("B", (N, N), properties = [properties.FULL_RANK])
+        B = Matrix("B", (N, N), properties = [Property.FULL_RANK])
         # B - tridiagonal, full rank, something even more specific
-        R = Matrix("R", (N - 1, N), properties = [properties.FULL_RANK, properties.UPPER_TRIANGULAR])
+        R = Matrix("R", (N - 1, N), properties = [Property.FULL_RANK, Property.UPPER_TRIANGULAR])
         # R - upper bidiagonal
-        L = Matrix("L", (N - 1, N - 1), properties = [properties.FULL_RANK, properties.DIAGONAL])
+        L = Matrix("L", (N - 1, N - 1), properties = [Property.FULL_RANK, Property.DIAGONAL])
 
         y = Vector("y", (N, 1))
         x = Vector("x", (N, 1))
@@ -203,12 +203,12 @@ class Example06():
         m = 200
         k = 2000
 
-        L00 = Matrix("L00", (n, n), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR])
-        L11 = Matrix("L11", (m, m), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR])
-        L22 = Matrix("L22", (k, k), properties = [properties.FULL_RANK, properties.LOWER_TRIANGULAR])
-        L21 = Matrix("L21", (k, m), properties = [properties.FULL_RANK])
-        L10 = Matrix("L10", (m, n), properties = [properties.FULL_RANK])
-        L20 = Matrix("L20", (k, n), properties = [properties.FULL_RANK])
+        L00 = Matrix("L00", (n, n), properties = [Property.FULL_RANK, Property.LOWER_TRIANGULAR])
+        L11 = Matrix("L11", (m, m), properties = [Property.FULL_RANK, Property.LOWER_TRIANGULAR])
+        L22 = Matrix("L22", (k, k), properties = [Property.FULL_RANK, Property.LOWER_TRIANGULAR])
+        L21 = Matrix("L21", (k, m), properties = [Property.FULL_RANK])
+        L10 = Matrix("L10", (m, n), properties = [Property.FULL_RANK])
+        L20 = Matrix("L20", (k, n), properties = [Property.FULL_RANK])
 
         X21 = Matrix("X21", (k, m))
         X11 = Matrix("X11", (m, m))
@@ -267,12 +267,12 @@ class Example07():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (nsd, nsd), properties = [properties.SPSD]) # covariance matrix
-        H = Matrix("H", (msd, nsd), properties = [properties.FULL_RANK])
-        R = Matrix("R", (msd, msd), properties = [properties.SPSD]) # covariance matrix
-        Y = Matrix("Y", (msd, N), properties = [properties.FULL_RANK])
-        Xb = Matrix("Xb", (nsd, N), properties = [properties.FULL_RANK])
-        Xa = Matrix("Xa", (nsd, N), properties = [properties.FULL_RANK])
+        B = Matrix("B", (nsd, nsd), properties = [Property.SPSD]) # covariance matrix
+        H = Matrix("H", (msd, nsd), properties = [Property.FULL_RANK])
+        R = Matrix("R", (msd, msd), properties = [Property.SPSD]) # covariance matrix
+        Y = Matrix("Y", (msd, N), properties = [Property.FULL_RANK])
+        Xb = Matrix("Xb", (nsd, N), properties = [Property.FULL_RANK])
+        Xa = Matrix("Xa", (nsd, N), properties = [Property.FULL_RANK])
 
         self.eqns = Equations(
                             Equal(
@@ -299,12 +299,12 @@ class Example08():
 
         minus1 = ConstantScalar(-1.0)
 
-        B = Matrix("B", (n, n), properties = [properties.SPSD]) # covariance matrix
-        H = Matrix("H", (m, n), properties = [properties.FULL_RANK])
-        R = Matrix("R", (m, m), properties = [properties.SPSD]) # covariance matrix
-        Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK])
-        Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK])
-        dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK])
+        B = Matrix("B", (n, n), properties = [Property.SPSD]) # covariance matrix
+        H = Matrix("H", (m, n), properties = [Property.FULL_RANK])
+        R = Matrix("R", (m, m), properties = [Property.SPSD]) # covariance matrix
+        Y = Matrix("Y", (m, N), properties = [Property.FULL_RANK])
+        Xb = Matrix("Xb", (n, N), properties = [Property.FULL_RANK])
+        dX = Matrix("dX", (n, N), properties = [Property.FULL_RANK])
 
         self.eqns = Equations(
                         Equal(dX,
@@ -328,12 +328,12 @@ class Example09():
 
         minus1 = ConstantScalar(-1.0)
 
-        H = Matrix("H", (m, n), properties = [properties.FULL_RANK])
-        R = Matrix("R", (m, m), properties = [properties.SPSD]) # covariance matrix
-        Y = Matrix("Y", (m, N), properties = [properties.FULL_RANK])
-        X = Matrix("X", (n, N), properties = [properties.FULL_RANK])
-        Xb = Matrix("Xb", (n, N), properties = [properties.FULL_RANK])
-        dX = Matrix("dX", (n, N), properties = [properties.FULL_RANK])
+        H = Matrix("H", (m, n), properties = [Property.FULL_RANK])
+        R = Matrix("R", (m, m), properties = [Property.SPSD]) # covariance matrix
+        Y = Matrix("Y", (m, N), properties = [Property.FULL_RANK])
+        X = Matrix("X", (n, N), properties = [Property.FULL_RANK])
+        Xb = Matrix("Xb", (n, N), properties = [Property.FULL_RANK])
+        dX = Matrix("dX", (n, N), properties = [Property.FULL_RANK])
 
         self.eqns = Equations(
                         Equal(dX,
@@ -357,11 +357,11 @@ class Example10():
 
         minus1 = ConstantScalar(-1.0)
         lambda_ = Scalar("lambda")
-        lambda_.set_property(properties.POSITIVE)
+        lambda_.set_property(Property.POSITIVE)
         sigma_ = Scalar("sigma_sq")
-        sigma_.set_property(properties.POSITIVE)
+        sigma_.set_property(Property.POSITIVE)
 
-        H = Matrix("H", (m, n), properties = [properties.FULL_RANK])
+        H = Matrix("H", (m, n), properties = [Property.FULL_RANK])
         I = IdentityMatrix(n, n)
 
         v_k = Vector("v_k", (n, 1))
@@ -419,12 +419,12 @@ class Example11():
 
         minus1 = ConstantScalar(-1.0)
         lambda_ = Scalar("lambda")
-        lambda_.set_property(properties.POSITIVE)
+        lambda_.set_property(Property.POSITIVE)
         sigma_ = Scalar("sigma_sq")
-        sigma_.set_property(properties.POSITIVE)
+        sigma_.set_property(Property.POSITIVE)
 
-        H = Matrix("H", (m, n), properties = [properties.FULL_RANK])
-        H_dag = Matrix("H_dag", (n, m), properties = [properties.FULL_RANK])
+        H = Matrix("H", (m, n), properties = [Property.FULL_RANK])
+        H_dag = Matrix("H_dag", (n, m), properties = [Property.FULL_RANK])
         I = IdentityMatrix(n, n)
 
         y_k = Vector("y_k", (n, 1))
@@ -479,20 +479,20 @@ class Example12():
         q = 500
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.SPD)
+        W.set_property(Property.SPD)
 
         S = Matrix("S", (n, q))
-        S.set_property(properties.FULL_RANK)
+        S.set_property(Property.FULL_RANK)
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         Lambda = Matrix("Lambda", (n, n))
-        Lambda.set_property(properties.SYMMETRIC)
-        Lambda.set_property(properties.FULL_RANK)
+        Lambda.set_property(Property.SYMMETRIC)
+        Lambda.set_property(Property.FULL_RANK)
 
         Xin = Matrix("Xin", (n, n))
-        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(Property.FULL_RANK)
 
         Xout = Matrix("Xout", (n, n))
 
@@ -522,20 +522,20 @@ class Example13():
         q = 500
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.SPD)
+        W.set_property(Property.SPD)
 
         S = Matrix("S", (n, q))
-        S.set_property(properties.FULL_RANK)
+        S.set_property(Property.FULL_RANK)
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         Lambda = Matrix("Lambda", (n, n))
-        Lambda.set_property(properties.SYMMETRIC)
-        Lambda.set_property(properties.FULL_RANK)
+        Lambda.set_property(Property.SYMMETRIC)
+        Lambda.set_property(Property.FULL_RANK)
 
         Xin = Matrix("Xin", (n, n))
-        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(Property.FULL_RANK)
 
         Xout = Matrix("Xout", (n, n))
 
@@ -566,28 +566,28 @@ class Example14():
         q = 500
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.SPD)
+        W.set_property(Property.SPD)
 
         S = Matrix("S", (n, q))
-        S.set_property(properties.FULL_RANK)
+        S.set_property(Property.FULL_RANK)
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SYMMETRIC)
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.SYMMETRIC)
+        A.set_property(Property.FULL_RANK)
 
         Lambda = Matrix("Lambda", (n, n))
-        Lambda.set_property(properties.SYMMETRIC)
-        Lambda.set_property(properties.FULL_RANK)
+        Lambda.set_property(Property.SYMMETRIC)
+        Lambda.set_property(Property.FULL_RANK)
 
         Theta = Matrix("Theta", (n, n))
-        Theta.set_property(properties.FULL_RANK)
+        Theta.set_property(Property.FULL_RANK)
 
         Mk = Matrix("Mk", (n, n))
-        Mk.set_property(properties.FULL_RANK)
+        Mk.set_property(Property.FULL_RANK)
 
         Xin = Matrix("Xin", (n, n))
-        Xin.set_property(properties.SYMMETRIC)
-        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(Property.SYMMETRIC)
+        Xin.set_property(Property.FULL_RANK)
 
         Xout = Matrix("Xout", (n, n))
 
@@ -623,18 +623,18 @@ class Example15():
         q = 500
 
         S = Matrix("S", (n, q))
-        S.set_property(properties.FULL_RANK)
+        S.set_property(Property.FULL_RANK)
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SPD)
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.SPD)
+        A.set_property(Property.FULL_RANK)
 
         Xin = Matrix("Xin", (n, n))
-        Xin.set_property(properties.SYMMETRIC)
-        Xin.set_property(properties.FULL_RANK)
+        Xin.set_property(Property.SYMMETRIC)
+        Xin.set_property(Property.FULL_RANK)
 
         Xout = Matrix("Xout", (n, n))
-        Xout.set_property(properties.FULL_RANK)
+        Xout.set_property(Property.FULL_RANK)
 
         I = IdentityMatrix(n, n)
         minus1 = ConstantScalar(-1.0)
@@ -667,26 +667,26 @@ class Example16():
         m = 5000
 
         Wk = Matrix("Wk", (m, l))
-        Wk.set_property(properties.FULL_RANK)
+        Wk.set_property(Property.FULL_RANK)
 
         A = Matrix("A", (m, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         Bin = Matrix("Bin", (n, n))
-        Bin.set_property(properties.SPD)
+        Bin.set_property(Property.SPD)
 
         Bout = Matrix("Bout", (n, n))
-        Bout.set_property(properties.SPD)
+        Bout.set_property(Property.SPD)
 
         In = IdentityMatrix(n, n)
         Il = IdentityMatrix(l, l)
         k = Scalar("k")
-        k.set_property(properties.POSITIVE)
+        k.set_property(Property.POSITIVE)
         minus1 = ConstantScalar(-1.0)
         kminus1 = Plus(k, minus1) # this is positive too, but using special_properties doesn't work
 
         # This works:
-        # special_properties.add_expression(Plus(Times(kminus1, Il), Times(Transpose(Wk), A, Bin, Transpose(A), Wk)), [properties.SPD])
+        # special_properties.add_expression(Plus(Times(kminus1, Il), Times(Transpose(Wk), A, Bin, Transpose(A), Wk)), [Property.SPD])
         
         self.eqns = Equations(
                         Equal(Bout,
@@ -721,18 +721,18 @@ class Example17():
         m = 5000
 
         Wk = Matrix("Wk", (m, l))
-        Wk.set_property(properties.FULL_RANK)
+        Wk.set_property(Property.FULL_RANK)
 
         A = Matrix("A", (m, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SPD)
+        B.set_property(Property.SPD)
 
         In = IdentityMatrix(n, n)
         Il = IdentityMatrix(l, l)
         lambda_ = Scalar("lambda")
-        lambda_.set_property(properties.POSITIVE)
+        lambda_.set_property(Property.POSITIVE)
         minus1 = ConstantScalar(-1.0)
 
         self.eqns = Equations(
@@ -763,8 +763,8 @@ class Example18():
         n = 3000
         m = 200
 
-        A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
-        Gamma = Matrix("Gamma", (m , m), properties = [properties.FULL_RANK])
+        A = Matrix("A", (n, m), properties = [Property.FULL_RANK])
+        Gamma = Matrix("Gamma", (m , m), properties = [Property.FULL_RANK])
         b = Vector("b", (n, 1))
         x = Vector("x", (m, 1))
 
@@ -783,12 +783,12 @@ class Example19():
         n = 3000
         m = 200
 
-        A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
+        A = Matrix("A", (n, m), properties = [Property.FULL_RANK])
         I = IdentityMatrix(m, m)
         b = Vector("b", (n, 1))
         x = Vector("x", (m, 1))
         alpha = Scalar("alpha_sq")
-        alpha.set_property(properties.POSITIVE)
+        alpha.set_property(Property.POSITIVE)
 
         self.eqns = Equations(
                             Equal(x,
@@ -805,9 +805,9 @@ class Example20():
         n = 3000
         m = 200
 
-        A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
-        P = Matrix("P", (n, n), properties = [properties.SPD]) # covariance matrix
-        Q = Matrix("Q", (m, m), properties = [properties.SPD]) # covariance matrix
+        A = Matrix("A", (n, m), properties = [Property.FULL_RANK])
+        P = Matrix("P", (n, n), properties = [Property.SPD]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [Property.SPD]) # covariance matrix
         b = Vector("b", (n, 1))
         x0 = Vector("x0", (m, 1))
         x = Vector("x", (m, 1))
@@ -830,9 +830,9 @@ class Example21():
         n = 3000
         m = 200
 
-        A = Matrix("A", (n, m), properties = [properties.FULL_RANK])
-        P = Matrix("P", (n, n), properties = [properties.SPD]) # covariance matrix
-        Q = Matrix("Q", (m, m), properties = [properties.SPD]) # covariance matrix
+        A = Matrix("A", (n, m), properties = [Property.FULL_RANK])
+        P = Matrix("P", (n, n), properties = [Property.SPD]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [Property.SPD]) # covariance matrix
         b = Vector("b", (n, 1))
         x0 = Vector("x0", (m, 1))
         x = Vector("x", (m, 1))
@@ -858,9 +858,9 @@ class Example22():
         n = 2000
         m = 1500
 
-        A = Matrix("A", (m, n), properties = [properties.FULL_RANK])
-        Cx = Matrix("Cx", (n, n), properties = [properties.SPD]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [properties.SPD]) # covariance matrix
+        A = Matrix("A", (m, n), properties = [Property.FULL_RANK])
+        Cx = Matrix("Cx", (n, n), properties = [Property.SPD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [Property.SPD]) # covariance matrix
         y = Vector("y", (m, 1))
         x = Vector("x", (n, 1))
         xout = Vector("xout", (n, 1))
@@ -886,9 +886,9 @@ class Example23():
         n = 2000
         m = 1500
 
-        A = Matrix("A", (m, n), properties = [properties.FULL_RANK])
-        Cx = Matrix("Cx", (n, n), properties = [properties.SPSD]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [properties.SPSD]) # covariance matrix
+        A = Matrix("A", (m, n), properties = [Property.FULL_RANK])
+        Cx = Matrix("Cx", (n, n), properties = [Property.SPSD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [Property.SPSD]) # covariance matrix
         y = Vector("y", (m, 1))
         x = Vector("x", (n, 1))
         xout = Vector("xout", (n, 1))
@@ -915,10 +915,10 @@ class Example24():
         n = 2000
         m = 1500
 
-        A = Matrix("A", (m, n), properties = [properties.FULL_RANK])
-        K = Matrix("K", (n, m), properties = [properties.FULL_RANK])
-        Cin = Matrix("Cin", (n, n), properties = [properties.SPD]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [properties.SPD]) # covariance matrix
+        A = Matrix("A", (m, n), properties = [Property.FULL_RANK])
+        K = Matrix("K", (n, m), properties = [Property.FULL_RANK])
+        Cin = Matrix("Cin", (n, n), properties = [Property.SPD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [Property.SPD]) # covariance matrix
         y = Vector("y", (m, 1))
         x = Vector("x", (n, 1))
 
@@ -946,11 +946,11 @@ class Example25():
         m = 400
         minus1 = ConstantScalar(-1.0)
 
-        Kk = Matrix("Kk", (n, m), properties = [properties.FULL_RANK])
-        P_b = Matrix("P_b", (n, n), properties = [properties.SPD])
+        Kk = Matrix("Kk", (n, m), properties = [Property.FULL_RANK])
+        P_b = Matrix("P_b", (n, n), properties = [Property.SPD])
         P_a = Matrix("P_a", (n, n))
-        H = Matrix("H", (m, n), properties = [properties.FULL_RANK])
-        R = Matrix("R", (m, m), properties = [properties.SPSD]) # covariance matrix
+        H = Matrix("H", (m, n), properties = [Property.FULL_RANK])
+        R = Matrix("R", (m, m), properties = [Property.SPSD]) # covariance matrix
         I = IdentityMatrix(n, n)
 
         x_a = Vector("x_a", (n, 1))

@@ -2,7 +2,7 @@ from ..algebra.expression import Scalar, Matrix, \
                                 Equal, Plus, Times, Transpose, Inverse, \
                                 Symbol, ConstantScalar
 
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 from ..algebra.transformations import simplify
 from ..algebra.representations import to_SOP
 from ..algebra.equations import Equations
@@ -41,10 +41,10 @@ eigen1 = matchpy.Pattern(
             Plus(Times(Transpose(SYM1), SYM2, SYM1), Times(WD1, SYM3), WS1),
             matchpy.CustomConstraint(
                 lambda SYM1, SYM2, SYM3, WD1:
-                    SYM1.has_property(properties.ORTHOGONAL) and
-                    SYM2.has_property(properties.DIAGONAL) and
-                    WD1.has_property(properties.SCALAR) and
-                    SYM3.has_property(properties.IDENTITY)
+                    SYM1.has_property(Property.ORTHOGONAL) and
+                    SYM2.has_property(Property.DIAGONAL) and
+                    WD1.has_property(Property.SCALAR) and
+                    SYM3.has_property(Property.IDENTITY)
             )
         )
 
@@ -77,10 +77,10 @@ eigen2 = matchpy.Pattern(
             Plus(Times(SYM1, SYM2, Transpose(SYM1)), Times(WD1, SYM3), WS1),
             matchpy.CustomConstraint(
                 lambda SYM1, SYM2, SYM3, WD1:
-                    SYM1.has_property(properties.ORTHOGONAL) and
-                    SYM2.has_property(properties.DIAGONAL) and
-                    WD1.has_property(properties.SCALAR) and
-                    SYM3.has_property(properties.IDENTITY)
+                    SYM1.has_property(Property.ORTHOGONAL) and
+                    SYM2.has_property(Property.DIAGONAL) and
+                    WD1.has_property(Property.SCALAR) and
+                    SYM3.has_property(Property.IDENTITY)
             )
         )
 
@@ -113,7 +113,7 @@ def eigen2_callback(substitution, equations, eqn_idx, position):
 def symmetric_product_constraint(WP1, WP2, _A):
     p1 = Times(*WP1)
     p2 = Times(*WP2)
-    return _A.has_property(properties.ADMITS_FACTORIZATION) and _A.has_property(properties.SPD) and p1.transpose_of(p2)
+    return _A.has_property(Property.ADMITS_FACTORIZATION) and _A.has_property(Property.SPD) and p1.transpose_of(p2)
 
 symmetric_product = matchpy.Pattern(
                         Times(WP1, _A, WP2),
@@ -164,7 +164,7 @@ def trick3_callback(substitution, equations, eqn_idx, position):
 trick4 = matchpy.Pattern(
             Plus(Times(Transpose(WD1), WD2), Times(Transpose(WD2), WD1), Times(Transpose(WD1), WD3, WD1), WS1),
             matchpy.CustomConstraint(
-                lambda WD1, WD2, WD3, WS1: WD3.has_property(properties.SYMMETRIC)
+                lambda WD1, WD2, WD3, WS1: WD3.has_property(Property.SYMMETRIC)
             )
         )
 

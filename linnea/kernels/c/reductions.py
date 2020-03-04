@@ -237,7 +237,7 @@ gemv = KernelDescription(
 # TRSV
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 x = Vector("x", (n, 1))
 cf = lambda d: d["N"]**2
 
@@ -248,7 +248,7 @@ trsv = KernelDescription(
     ),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ],
     x, # return value
     cf, # cost function
@@ -256,7 +256,7 @@ trsv = KernelDescription(
     "${type_prefix}trsv($uplo, $transA, $diag, $N, $A, $ldA, $x, $incx);",
     "",
     [SizeArgument("N", A, "rows"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"]),
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"]),
      StrideArgument("incx", x, "rows"),
      StrideArgument("ldA", A, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -301,7 +301,7 @@ gemm = KernelDescription(
 # TRSM
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
 cf = lambda d: (d["N"]**2)*d["M"]
@@ -315,7 +315,7 @@ trsm = KernelDescription(
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         DefaultValueKV(alpha, [NumericConstant(1)]),
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ],
     B, # return value
     cf, # cost function
@@ -324,7 +324,7 @@ trsm = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"]),
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"]),
      StrideArgument("ldA", A, "rows"),
      StrideArgument("ldB", B, "rows")], # Argument objects
     [KernelType.identity, KernelType.transpose]
@@ -350,9 +350,9 @@ lascl = KernelDescription(
     [
         PropertyKV(
             "type", # TODO this should be a property argument. But that's difficult.
-            {"G": properties.MATRIX, # this should be general/full/whatever. MATRIX works because there is scal for vectors.
-            "U": properties.UPPER_TRIANGULAR,
-            "L": properties.LOWER_TRIANGULAR}, # even more properties are possible
+            {"G": Property.MATRIX, # this should be general/full/whatever. MATRIX works because there is scal for vectors.
+            "U": Property.UPPER_TRIANGULAR,
+            "L": Property.LOWER_TRIANGULAR}, # even more properties are possible
             A),
         DefaultValueKV(cfrom, [NumericConstant(1)]),
         DefaultValueKV(cto, [NumericConstant(1)])
@@ -376,7 +376,7 @@ lascl = KernelDescription(
 # alone kernel, I need to pass the idendity 
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 cf = lambda d: 2*d["N"]**3
 
 getri = KernelDescription(
@@ -404,7 +404,7 @@ getri = KernelDescription(
 # trtri (triangular matrix inversion)
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 cf = lambda d: (d["N"]**3)/3
 
 trtri = KernelDescription(
@@ -413,7 +413,7 @@ trtri = KernelDescription(
         {None: Inverse(A)}
     ),
     [
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ],
     A, # return value
     cf, # cost function
@@ -422,7 +422,7 @@ trtri = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      StrideArgument("ldA", A, "rows"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 

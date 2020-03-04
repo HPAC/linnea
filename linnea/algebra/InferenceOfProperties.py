@@ -1,18 +1,17 @@
 import copy
 
 from . import expression as ae
-from .properties import Property as properties
-from .properties import implications, negative_implications
+from .properties import Property, implications, negative_implications
 from .. import temporaries
 
 def isAuxiliary(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.AUXILIARY, isAuxiliary)
+        return infer_property_symbol(expr, Property.AUXILIARY, isAuxiliary)
     return False
 
 def isIdentity(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.IDENTITY, isIdentity)
+        return infer_property_symbol(expr, Property.IDENTITY, isIdentity)
     if isinstance(expr, ae.Plus):
         return False
     if isinstance(expr, ae.Times):
@@ -27,13 +26,13 @@ def isIdentity(expr):
 
 def isConstant(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.CONSTANT, isConstant)
+        return infer_property_symbol(expr, Property.CONSTANT, isConstant)
     if isinstance(expr, ae.Operator):
         return all(isConstant(operand) for operand in expr.operands)
 
 def isFactor(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.FACTOR, isFactor)
+        return infer_property_symbol(expr, Property.FACTOR, isFactor)
     if isinstance(expr, ae.Transpose):
         return isFactor(expr.operand)
     if isinstance(expr, ae.Inverse):
@@ -44,7 +43,7 @@ def isFactor(expr):
 
 def isUnitDiagonal(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.UNIT_DIAGONAL, isUnitDiagonal)
+        return infer_property_symbol(expr, Property.UNIT_DIAGONAL, isUnitDiagonal)
     if isinstance(expr, ae.Plus):
         return False
     if isinstance(expr, ae.Times): # TODO Should check triangular as well?
@@ -61,7 +60,7 @@ def isUnitDiagonal(expr):
 
 def isPositive(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.POSITIVE, isPositive)
+        return infer_property_symbol(expr, Property.POSITIVE, isPositive)
     if isinstance(expr, ae.Plus):
         return all(isPositive(term) for term in expr.operands)
     if isinstance(expr, ae.Times):
@@ -76,11 +75,11 @@ def isPositive(expr):
 
 def isSymmetric(expr):
     if isinstance(expr, ae.Symbol):
-        if infer_property_symbol(expr, properties.SYMMETRIC, isSymmetric):
+        if infer_property_symbol(expr, Property.SYMMETRIC, isSymmetric):
             return True
         # if expr is not symmetric (stored in false_properties), the two test below are still executed. Can this be avoided? Is it necessary? 
         elif isSquare(expr) and isDiagonalB(expr):
-            expr.properties.add(properties.SYMMETRIC)
+            expr.properties.add(Property.SYMMETRIC)
             return True
         else:
             return False
@@ -91,7 +90,7 @@ def isSymmetric(expr):
 
 def isSPSD(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.SPSD, isSPSD)
+        return infer_property_symbol(expr, Property.SPSD, isSPSD)
     if isinstance(expr, ae.Plus):
         return all(isSPSD(term) for term in expr.operands)
     if isinstance(expr, ae.Times):
@@ -127,7 +126,7 @@ def isSPSDTimes(expr):
 
 def isSPD(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.SPD, isSPD)
+        return infer_property_symbol(expr, Property.SPD, isSPD)
     if isinstance(expr, ae.Plus):
         return all(isSPD(term) for term in expr.operands)
     if isinstance(expr, ae.Times): # related to "iif they commute" ... ?
@@ -163,12 +162,12 @@ def isSPDTimes(expr):
 
 def isNonSingular(expr):
     if isinstance(expr, ae.Symbol):
-        # if infer_property_symbol(expr, properties.SQUARE, isSquare) and infer_property_symbol(expr, properties.FULL_RANK, isFullRank):
+        # if infer_property_symbol(expr, Property.SQUARE, isSquare) and infer_property_symbol(expr, Property.FULL_RANK, isFullRank):
         if isSquare(expr) and isFullRank(expr):
-            expr.properties.add(properties.NON_SINGULAR)
+            expr.properties.add(Property.NON_SINGULAR)
             return True
         else:
-            return infer_property_symbol(expr, properties.NON_SINGULAR, isNonSingular)
+            return infer_property_symbol(expr, Property.NON_SINGULAR, isNonSingular)
     if isinstance(expr, ae.Times):
         return all(isNonSingular(factor) for factor in expr.operands)
     if isinstance(expr, ae.Plus): # ?
@@ -183,7 +182,7 @@ def isNonSingular(expr):
 
 def isOrthogonal(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.ORTHOGONAL, isOrthogonal)
+        return infer_property_symbol(expr, Property.ORTHOGONAL, isOrthogonal)
     if isinstance(expr, ae.Times):
         return all(isOrthogonal(factor) for factor in expr.operands)
     if isinstance(expr, ae.Transpose):
@@ -196,21 +195,21 @@ def isOrthogonal(expr):
 
 def isOrthogonalColumns(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.ORTHOGONAL_COLUMNS, isOrthogonalColumns)
+        return infer_property_symbol(expr, Property.ORTHOGONAL_COLUMNS, isOrthogonalColumns)
     if isinstance(expr, ae.Transpose):
         return isOrthogonalColumns(expr.operand)
     return False
 
 def isOrthogonalRows(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.ORTHOGONAL_ROWS, isOrthogonalRows)
+        return infer_property_symbol(expr, Property.ORTHOGONAL_ROWS, isOrthogonalRows)
     if isinstance(expr, ae.Transpose):
         return isOrthogonalRows(expr.operand)
     return False
 
 def isFullRank(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.FULL_RANK, isFullRank)
+        return infer_property_symbol(expr, Property.FULL_RANK, isFullRank)
     if isinstance(expr, ae.Times):
         return all(isFullRank(factor) for factor in expr.operands) and is_full_rank_product(expr)
     if isinstance(expr, ae.Plus):
@@ -242,7 +241,7 @@ def is_full_rank_product(expr):
     return min_interior_size >= max_rank
 
 def isSquare(expr):
-    return infer_property_test_function(expr, properties.SQUARE, isSquareTF)
+    return infer_property_test_function(expr, Property.SQUARE, isSquareTF)
 
 def isSquareTF(expr):
     if isinstance(expr, ae.Scalar):
@@ -255,7 +254,7 @@ def isSquareTF(expr):
             return False
 
 def isColumnPanel(expr):
-    return infer_property_test_function(expr, properties.COLUMN_PANEL, isColumnPanelTF)
+    return infer_property_test_function(expr, Property.COLUMN_PANEL, isColumnPanelTF)
 
 def isColumnPanelTF(expr):
     if isinstance(expr, ae.Scalar):
@@ -268,7 +267,7 @@ def isColumnPanelTF(expr):
             return False
 
 def isRowPanel(expr):
-    return infer_property_test_function(expr, properties.ROW_PANEL, isRowPanelTF)
+    return infer_property_test_function(expr, Property.ROW_PANEL, isRowPanelTF)
 
 def isRowPanelTF(expr):
     if isinstance(expr, ae.Scalar):
@@ -282,22 +281,22 @@ def isRowPanelTF(expr):
 
 def isUnitary(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.UNITARY, isUnitary)
+        return infer_property_symbol(expr, Property.UNITARY, isUnitary)
     return False
         
 def isNormal(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.NORMAL, isNormal)
+        return infer_property_symbol(expr, Property.NORMAL, isNormal)
     return False
         
 def isHermitian(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.HERMITIAN, isHermitian)
+        return infer_property_symbol(expr, Property.HERMITIAN, isHermitian)
     return False
         
 def isPermutation(expr):
     if isinstance(expr, ae.Symbol):
-        return infer_property_symbol(expr, properties.PERMUTATION, isPermutation)
+        return infer_property_symbol(expr, Property.PERMUTATION, isPermutation)
     if isinstance(expr, ae.Times):
         return all(isPermutation(factor) for factor in expr.operands)
     if isinstance(expr, ae.Transpose):
@@ -309,13 +308,13 @@ def isPermutation(expr):
     return False
 
 def admitsFactorization(expr):
-    return infer_property_test_function(expr, properties.ADMITS_FACTORIZATION, admitsFactorizationTF)
+    return infer_property_test_function(expr, Property.ADMITS_FACTORIZATION, admitsFactorizationTF)
 
 def admitsFactorizationTF(expr):
     return not (isDiagonalB(expr) or isTriangularB(expr) or isOrthogonal(expr) or isOrthogonalColumns(expr) or isOrthogonalRows(expr) or isPermutation(expr))
 
 def isScalar(expr):
-    return infer_property_test_function(expr, properties.SCALAR, isScalarTF)
+    return infer_property_test_function(expr, Property.SCALAR, isScalarTF)
 
 def isScalarTF(expr):
     size = expr.size
@@ -325,7 +324,7 @@ def isScalarTF(expr):
         return False
 
 def isVector(expr):
-    return infer_property_test_function(expr, properties.VECTOR, isVectorTF)
+    return infer_property_test_function(expr, Property.VECTOR, isVectorTF)
 
 def isVectorTF(expr):
     rows, columns = expr.size
@@ -335,7 +334,7 @@ def isVectorTF(expr):
         return False
 
 def isMatrix(expr):
-    return infer_property_test_function(expr, properties.MATRIX, isMatrixTF)
+    return infer_property_test_function(expr, Property.MATRIX, isMatrixTF)
 
 def isMatrixTF(expr):
     size = expr.size
@@ -345,7 +344,7 @@ def isMatrixTF(expr):
         return False
 
 def isLowerTriangular(expr):
-    return infer_property_test_function(expr, properties.LOWER_TRIANGULAR, isLowerTriangularB)
+    return infer_property_test_function(expr, Property.LOWER_TRIANGULAR, isLowerTriangularB)
 
 def isLowerTriangularB(expr):
     lb, ub = expr.bandwidth
@@ -355,7 +354,7 @@ def isLowerTriangularB(expr):
         return False
 
 def isUpperTriangular(expr):
-    return infer_property_test_function(expr, properties.UPPER_TRIANGULAR, isUpperTriangularB)
+    return infer_property_test_function(expr, Property.UPPER_TRIANGULAR, isUpperTriangularB)
 
 def isUpperTriangularB(expr):
     lb, ub = expr.bandwidth
@@ -365,7 +364,7 @@ def isUpperTriangularB(expr):
         return False
 
 def isTriangular(expr):
-    return infer_property_test_function(expr, properties.TRIANGULAR, isTriangularB)
+    return infer_property_test_function(expr, Property.TRIANGULAR, isTriangularB)
 
 def isTriangularB(expr):
     lb, ub = expr.bandwidth
@@ -375,7 +374,7 @@ def isTriangularB(expr):
         return False
 
 def isDiagonal(expr):
-    return infer_property_test_function(expr, properties.DIAGONAL, isDiagonalB)
+    return infer_property_test_function(expr, Property.DIAGONAL, isDiagonalB)
 
 def isDiagonalB(expr):
     lb, ub = expr.bandwidth
@@ -385,7 +384,7 @@ def isDiagonalB(expr):
         return False
 
 def isZero(expr):
-    return infer_property_test_function(expr, properties.ZERO, isZeroB)
+    return infer_property_test_function(expr, Property.ZERO, isZeroB)
 
 def isZeroB(expr):
     # Careful. Unless the bandwidth of the Zero matrix is set to something
@@ -400,17 +399,17 @@ def isZeroB(expr):
 
 def infer_property_test_function(expr, prop, test_func):
     if isinstance(expr, ae.Symbol):
-        _properties = expr.properties
-        _false_properties = expr.false_properties
-        if prop in _properties:
+        properties = expr.properties
+        false_properties = expr.false_properties
+        if prop in properties:
             return True
-        if prop in _false_properties:
+        if prop in false_properties:
             return False
         if test_func(expr):
-            _properties.add(prop)
+            properties.add(prop)
             return True
         else:
-            _false_properties.add(prop)
+            false_properties.add(prop)
             return False
     else:
         return test_func(expr)
@@ -421,11 +420,11 @@ def infer_property_symbol(expr, prop, test_func):
     TODO: Use partial ordering directly? Is that necessary if the implications
     are used (they are based on the ordering)?
     """
-    _properties = expr.properties
-    _false_properties = expr.false_properties
-    if prop in _properties:
+    properties = expr.properties
+    false_properties = expr.false_properties
+    if prop in properties:
         return True
-    elif prop in _false_properties:
+    elif prop in false_properties:
         return False
     else:
         try:
@@ -436,45 +435,45 @@ def infer_property_symbol(expr, prop, test_func):
             # print(expr, equivalent_expr, prop, infer_property(equivalent_expr, prop))
             has_property = test_func(equivalent_expr)
             if has_property:
-                _properties.add(prop)
-                _properties.update(implications.get(prop, tuple()))
-                _false_properties.update(negative_implications.get(prop, tuple()))
+                properties.add(prop)
+                properties.update(implications.get(prop, tuple()))
+                false_properties.update(negative_implications.get(prop, tuple()))
             else:
-                _false_properties.add(prop)
+                false_properties.add(prop)
             return has_property
 
 
 property_to_function = {
-    properties.AUXILIARY: isAuxiliary,
-    properties.ZERO: isZero,
-    properties.IDENTITY: isIdentity,
-    properties.DIAGONAL: isDiagonal,
-    properties.TRIANGULAR: isTriangular,
-    properties.LOWER_TRIANGULAR: isLowerTriangular,
-    properties.UPPER_TRIANGULAR: isUpperTriangular,
-    properties.UNIT_DIAGONAL: isUnitDiagonal,
-    properties.POSITIVE: isPositive,
-    properties.SYMMETRIC: isSymmetric,
-    properties.SPSD: isSPSD,
-    properties.SPD: isSPD,
-    properties.NON_SINGULAR: isNonSingular,
-    properties.ORTHOGONAL: isOrthogonal,
-    properties.FULL_RANK: isFullRank,
-    properties.SQUARE: isSquare,
-    properties.SCALAR: isScalar,
-    properties.VECTOR: isVector,
-    properties.MATRIX: isMatrix,
-    properties.COLUMN_PANEL: isColumnPanel,
-    properties.ROW_PANEL: isRowPanel,
-    properties.UNITARY: isUnitary,
-    properties.NORMAL: isNormal,
-    properties.HERMITIAN: isHermitian,
-    properties.ORTHOGONAL_COLUMNS: isOrthogonalColumns,
-    properties.ORTHOGONAL_ROWS: isOrthogonalRows,
-    properties.PERMUTATION: isPermutation,
-    properties.ADMITS_FACTORIZATION: admitsFactorization,
-    properties.FACTOR: isFactor,
-    properties.CONSTANT: isConstant,
+    Property.AUXILIARY: isAuxiliary,
+    Property.ZERO: isZero,
+    Property.IDENTITY: isIdentity,
+    Property.DIAGONAL: isDiagonal,
+    Property.TRIANGULAR: isTriangular,
+    Property.LOWER_TRIANGULAR: isLowerTriangular,
+    Property.UPPER_TRIANGULAR: isUpperTriangular,
+    Property.UNIT_DIAGONAL: isUnitDiagonal,
+    Property.POSITIVE: isPositive,
+    Property.SYMMETRIC: isSymmetric,
+    Property.SPSD: isSPSD,
+    Property.SPD: isSPD,
+    Property.NON_SINGULAR: isNonSingular,
+    Property.ORTHOGONAL: isOrthogonal,
+    Property.FULL_RANK: isFullRank,
+    Property.SQUARE: isSquare,
+    Property.SCALAR: isScalar,
+    Property.VECTOR: isVector,
+    Property.MATRIX: isMatrix,
+    Property.COLUMN_PANEL: isColumnPanel,
+    Property.ROW_PANEL: isRowPanel,
+    Property.UNITARY: isUnitary,
+    Property.NORMAL: isNormal,
+    Property.HERMITIAN: isHermitian,
+    Property.ORTHOGONAL_COLUMNS: isOrthogonalColumns,
+    Property.ORTHOGONAL_ROWS: isOrthogonalRows,
+    Property.PERMUTATION: isPermutation,
+    Property.ADMITS_FACTORIZATION: admitsFactorization,
+    Property.FACTOR: isFactor,
+    Property.CONSTANT: isConstant,
 }
 
 def infer_property(expr, prop):

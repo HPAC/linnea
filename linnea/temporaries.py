@@ -1,5 +1,5 @@
 from .algebra import expression as ae
-from .algebra.properties import Property as properties
+from .algebra.properties import Property
 from .algebra import transformations as at
 from .algebra import representations as ar
 
@@ -54,7 +54,7 @@ def clear():
     # _counter = 0
 
 # @profile
-def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
+def create_tmp(expr, set_equivalent, equiv_expr=None, properties=None):
     # The value of set_equivalent does not matter if equiv_expr is not None.
 
 
@@ -67,7 +67,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
     elif set_equivalent:
         equiv_expr = _get_equivalent(expr)
 
-    # print(expr, set_equivalent, equiv_expr, _properties)
+    # print(expr, set_equivalent, equiv_expr, properties)
 
     try:
         tmp = _table_of_temporaries[equiv_expr]
@@ -75,11 +75,11 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
         name = "tmp{}".format(get_identifier())
         size = expr.size
 
-        if expr.has_property(properties.SCALAR):
+        if expr.has_property(Property.SCALAR):
             tmp = ae.Scalar(name)
-        elif expr.has_property(properties.VECTOR):
+        elif expr.has_property(Property.VECTOR):
             tmp = ae.Vector(name, size)
-        elif expr.has_property(properties.MATRIX):
+        elif expr.has_property(Property.MATRIX):
             tmp = ae.Matrix(name, size)
 
         tmp.indices = expr.indices
@@ -95,8 +95,8 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, _properties=None):
             _table_of_temporaries[equiv_expr] = tmp
 
     # for special properties
-    if _properties:
-        for prop in _properties:
+    if properties:
+        for prop in Property:
             tmp.set_property(prop)
 
     return tmp

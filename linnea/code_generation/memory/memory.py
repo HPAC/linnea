@@ -5,7 +5,7 @@ from .storage_format import StorageFormat, select_storage_format_conversion
 from .storage_format_conversions import in_place_conversion_dict, out_of_place_conversion_dict
 
 from ...algebra.expression import Symbol, Constant, ConstantScalar, IdentityMatrix, ZeroMatrix
-from ...algebra.properties import Property as properties
+from ...algebra.properties import Property
 
 import copy
 import itertools
@@ -670,7 +670,7 @@ class MemoryLocation():
         if storage_format < StorageFormat.as_vector:
             self.size = (min(operand.size),) # this has to be a tuple
             self.stride = (1,) # same here
-        elif operand.has_property(properties.VECTOR):
+        elif operand.has_property(Property.VECTOR):
             self.size = (max(operand.size),) # this has to be a tuple
             # max because operand.size is something like (10, 1)
             self.stride = (1,) # same here
@@ -796,11 +796,11 @@ if __name__ == "__main__":
     n = 10
     A = Matrix("A", (n, n))
     B = Matrix("B", (n, n))
-    # B.set_property(properties.SYMMETRIC)
+    # B.set_property(Property.SYMMETRIC)
     C = Matrix("C", (n, n))
     D = Matrix("D", (n, n))
     E = Matrix("E", (n, n))
-    # E.set_property(properties.SYMMETRIC)
+    # E.set_property(Property.SYMMETRIC)
     tmp1 = Matrix("tmp1", (n, n))
     L = Matrix("L", (n, n))
     U = Matrix("U", (n, n))

@@ -5,7 +5,7 @@ from ..algebra.expression import Plus, Times, Symbol, Matrix, \
                                       InverseTranspose, InverseConjugate, \
                                       InverseConjugateTranspose
 
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 
 from ..utils import clamp, window
 
@@ -104,7 +104,7 @@ def apply_partitioning(expr):
                 if _lb + _ub + 1 <= 0:
                     block = Zero(size)
                 else:
-                    if expr.has_property(properties.IDENTITY):
+                    if expr.has_property(Property.IDENTITY):
                         block = Identity(size)
                     else:
                         name = block_name.format(expr.name, row_IDs[i], col_IDs[j])
@@ -234,7 +234,7 @@ def _propagate_partitioning(expr):
     # TODO missing: Inverse, InverseConjugate, InverseTranspose, InverseConjugateTranspose
     # inverse with anything but (set(), set()) should probably cause an error
     elif isinstance(expr, Symbol):
-        if any(expr.has_property(prop) for prop in [properties.SYMMETRIC, properties.TRIANGULAR, properties.DIAGONAL]): # what if diagonal (...) and not square?
+        if any(expr.has_property(prop) for prop in [Property.SYMMETRIC, Property.TRIANGULAR, Property.DIAGONAL]): # what if diagonal (...) and not square?
             ret = ret or combine_sets(*expr.partitioning)
         if not expr.name in TOP:
             TOP[expr.name] = (set(), set())

@@ -10,7 +10,7 @@ from ..utils.general import SizeArgument, PropertyArgument, StrideArgument, \
 
 from ...code_generation.memory.storage_format import StorageFormat
 
-from ...algebra.properties import Property as properties
+from ...algebra.properties import Property
 
 from ...algebra.expression import Times, Plus, \
                                   Transpose, Inverse, InverseTranspose, \
@@ -377,7 +377,7 @@ gemv = KernelDescription(
 # SYMV
 
 A = Matrix("A", (m, n))
-A.set_property(properties.SYMMETRIC)
+A.set_property(Property.SYMMETRIC)
 x = Vector("x", (n, 1))
 y = Vector("y", (m, 1))
 alpha = Scalar("alpha")
@@ -417,7 +417,7 @@ TODO: Julia documentation wrong
 """
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 x = Vector("x", (n, 1))
 cf = lambda d: d["N"]**2
 
@@ -428,7 +428,7 @@ trmv = KernelDescription(
     ),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ],
     [InputOperand(A, StorageFormat.triangular_udiag_opt),
      InputOperand(x, StorageFormat.full),
@@ -439,7 +439,7 @@ trmv = KernelDescription(
     "trmv!($uplo, $transA, $diag, $A, $x)",
     "",
     [SizeArgument("N", A, "rows"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -447,7 +447,7 @@ trmv = KernelDescription(
 # TRSV
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 x = Vector("x", (n, 1))
 cf = lambda d: d["N"]**2
 
@@ -464,7 +464,7 @@ trsv = KernelDescription(
     ),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ],
     [InputOperand(A, StorageFormat.triangular_udiag_opt),
      InputOperand(x, StorageFormat.full),
@@ -475,7 +475,7 @@ trsv = KernelDescription(
     "trsv!($uplo, $transA, $diag, $A, $x)",
     "",
     [SizeArgument("N", A, "rows"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -531,7 +531,7 @@ gemm = KernelDescription(
 # SYMM
 
 A = Matrix("A", (m, k))
-A.set_property(properties.SYMMETRIC)
+A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (k, n))
 C = Matrix("C", (m, n))
 alpha = Scalar("alpha")
@@ -578,7 +578,7 @@ symm = KernelDescription(
 
 A = Matrix("A", (n, k))
 C = Matrix("C", (n, n))
-C.set_property(properties.SYMMETRIC)
+C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 cf = lambda d: d["K"]*(d["N"]**2)
@@ -615,7 +615,7 @@ syrk = KernelDescription(
 A = Matrix("A", (n, k))
 B = Matrix("B", (n, k))
 C = Matrix("C", (n, n))
-C.set_property(properties.SYMMETRIC)
+C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 cf = lambda d: d["K"]*(d["N"]**2)
@@ -652,7 +652,7 @@ syr2k = KernelDescription(
 # TRMM
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
 cf = lambda d: d["M"]*d["N"]*d["K"]
@@ -673,7 +673,7 @@ trmm = KernelDescription(
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ],
     [InputOperand(alpha, StorageFormat.full),
      InputOperand(A, StorageFormat.triangular_udiag_opt),
@@ -687,7 +687,7 @@ trmm = KernelDescription(
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -695,7 +695,7 @@ trmm = KernelDescription(
 # TRSM
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
 cf = lambda d: d["M"]*d["N"]*d["K"]
@@ -721,7 +721,7 @@ trsm = KernelDescription(
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ],
     [InputOperand(alpha, StorageFormat.full),
      InputOperand(A, StorageFormat.triangular_udiag_opt),
@@ -735,7 +735,7 @@ trsm = KernelDescription(
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -773,7 +773,7 @@ lascl = KernelDescription(
 
 A = Matrix("A", (n, n))
 B = Matrix("B", (n, n))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 cf = lambda d: 2*d["N"]**3
 
 getri = KernelDescription(
@@ -796,8 +796,8 @@ getri = KernelDescription(
 # trtri (triangular matrix inversion)
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
-A.set_property(properties.TRIANGULAR)
+A.set_property(Property.SQUARE)
+A.set_property(Property.TRIANGULAR)
 cf = lambda d: (d["N"]**3)/3
 
 # TODO this can not be used at the moment because of StorageFormat.as_overwritten
@@ -809,7 +809,7 @@ trtri = KernelDescription(
         {None: Inverse(A)}
     ),
     [
-        PropertyKV("uplo", {"U": properties.UPPER_TRIANGULAR, "L": properties.LOWER_TRIANGULAR}, A)
+        PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ], # variants
     [InputOperand(A, StorageFormat.triangular_udiag_opt),
     ],
@@ -819,7 +819,7 @@ trtri = KernelDescription(
     "LinearAlgebra.LAPACK.trtri!($uplo, $diag, $A)",
     "",
     [SizeArgument("N", A, "rows"),
-     PropertyArgument("diag", A, properties.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
+     PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     [KernelType.identity, KernelType.transpose]
     )
 
@@ -827,8 +827,8 @@ trtri = KernelDescription(
 # symmetric matrix inversion)
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
-A.set_property(properties.SYMMETRIC)
+A.set_property(Property.SQUARE)
+A.set_property(Property.SYMMETRIC)
 cf = lambda d: (d["N"]**3)/3
 
 syinv = KernelDescription(
@@ -858,8 +858,8 @@ syinv = KernelDescription(
 # POSV
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
-A.set_property(properties.SPD)
+A.set_property(Property.SQUARE)
+A.set_property(Property.SPD)
 B = Matrix("B", (m, n))
 cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -893,8 +893,8 @@ posv = KernelDescription(
 # POSV right
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
-A.set_property(properties.SPD)
+A.set_property(Property.SQUARE)
+A.set_property(Property.SPD)
 B = Matrix("B", (n, m))
 cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -934,8 +934,8 @@ posvr = KernelDescription(
 # sysv
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
-A.set_property(properties.SYMMETRIC)
+A.set_property(Property.SQUARE)
+A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
 cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -977,8 +977,8 @@ sysv = KernelDescription(
 # sysv right
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
-A.set_property(properties.SYMMETRIC)
+A.set_property(Property.SQUARE)
+A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (n, m))
 cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1020,7 +1020,7 @@ sysvr = KernelDescription(
 # gesv
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1055,7 +1055,7 @@ gesv = KernelDescription(
 # gesv right
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (n, m))
 cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1087,7 +1087,7 @@ gesvr = KernelDescription(
 # gesv right transpose
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (n, m))
 cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1123,8 +1123,8 @@ gesvrt = KernelDescription(
 # POSV vector
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
-A.set_property(properties.SPD)
+A.set_property(Property.SQUARE)
+A.set_property(Property.SPD)
 x = Vector("x", (m, 1))
 cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
 
@@ -1158,8 +1158,8 @@ posv_vec = KernelDescription(
 # # probably not necessary
 
 # A = Matrix("A", (m, m))
-# A.set_property(properties.SQUARE)
-# A.set_property(properties.SPD)
+# A.set_property(Property.SQUARE)
+# A.set_property(Property.SPD)
 # x = Vector("x", (m, 1))
 # cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1193,8 +1193,8 @@ posv_vec = KernelDescription(
 # sysv vector
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
-A.set_property(properties.SYMMETRIC)
+A.set_property(Property.SQUARE)
+A.set_property(Property.SYMMETRIC)
 x = Vector("x", (m, 1))
 cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
 
@@ -1235,8 +1235,8 @@ sysv_vec = KernelDescription(
 # # probably not necessary
 
 # A = Matrix("A", (m, m))
-# A.set_property(properties.SQUARE)
-# A.set_property(properties.SYMMETRIC)
+# A.set_property(Property.SQUARE)
+# A.set_property(Property.SYMMETRIC)
 # x = Vector("x", (m, 1))
 # cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1270,7 +1270,7 @@ sysv_vec = KernelDescription(
 # gesv vector
 
 A = Matrix("A", (m, m))
-A.set_property(properties.SQUARE)
+A.set_property(Property.SQUARE)
 x = Vector("x", (m, 1))
 cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)
 
@@ -1310,7 +1310,7 @@ gesv_vec = KernelDescription(
 # # probably not necessary
 
 # A = Matrix("A", (m, m))
-# A.set_property(properties.SQUARE)
+# A.set_property(Property.SQUARE)
 # x = Vector("x", (m, 1))
 # cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1343,7 +1343,7 @@ gesv_vec = KernelDescription(
 # # probably not necessary
 
 # A = Matrix("A", (m, m))
-# A.set_property(properties.SQUARE)
+# A.set_property(Property.SQUARE)
 # x = Vector("x", (m, 1))
 # cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 
@@ -1427,8 +1427,8 @@ invlascl = KernelDescription(
 # diaginv (diagonal matrix inversion)
 
 A = Matrix("A", (n, n))
-A.set_property(properties.SQUARE)
-A.set_property(properties.DIAGONAL)
+A.set_property(Property.SQUARE)
+A.set_property(Property.DIAGONAL)
 cf = lambda d: d["N"]
 
 diaginv = KernelDescription(
@@ -1552,7 +1552,7 @@ matrix_sum_transpose = KernelDescription(
 # scalar * diagonal
 
 X = Matrix("X", (m, n))
-X.set_property(properties.DIAGONAL)
+X.set_property(Property.DIAGONAL)
 alpha = Scalar("alpha")
 cf = lambda d: min(d["M"], d["N"])
 
@@ -1593,9 +1593,9 @@ specific, even if the number of FLOPS is the same.
 """
 
 A = Matrix("A", (m, k))
-A.set_property(properties.DIAGONAL)
+A.set_property(Property.DIAGONAL)
 B = Matrix("B", (k, n))
-B.set_property(properties.DIAGONAL)
+B.set_property(Property.DIAGONAL)
 C = Matrix("C", (m, n))
 cf = lambda d: min(d["M"], d["K"], d["N"])
 
@@ -1640,10 +1640,10 @@ square, it could happen.
 """
 
 A = Matrix("A", (m, m))
-A.set_property(properties.DIAGONAL)
-A.set_property(properties.SQUARE)
+A.set_property(Property.DIAGONAL)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
-B.set_property(properties.DIAGONAL)
+B.set_property(Property.DIAGONAL)
 cf = lambda d: min(d["M"], d["N"])
 
 diagdiagsolve = KernelDescription(
@@ -1676,8 +1676,8 @@ TODO: what about transB?
 """
 
 A = Matrix("A", (m, m))
-A.set_property(properties.DIAGONAL)
-A.set_property(properties.SQUARE)
+A.set_property(Property.DIAGONAL)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
@@ -1716,8 +1716,8 @@ TODO: what about transB?
 """
 
 A = Matrix("A", (m, m))
-A.set_property(properties.DIAGONAL)
-A.set_property(properties.SQUARE)
+A.set_property(Property.DIAGONAL)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
@@ -1748,8 +1748,8 @@ TODO: does the transpose variant get simplified correctly? (i.e. A is symmetric)
 """
 
 A = Matrix("A", (m, m))
-A.set_property(properties.DIAGONAL)
-A.set_property(properties.SQUARE)
+A.set_property(Property.DIAGONAL)
+A.set_property(Property.SQUARE)
 x = Vector("x", (m, 1))
 cf = lambda d: d["M"]
 
@@ -1783,8 +1783,8 @@ scale!(A, b) is deprecated
 """
 
 A = Matrix("A", (m, m))
-A.set_property(properties.DIAGONAL)
-A.set_property(properties.SQUARE)
+A.set_property(Property.DIAGONAL)
+A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
@@ -1825,12 +1825,12 @@ scale!(b, A) is deprecated
 """
 
 A = Matrix("A", (m, m))
-A.set_property(properties.DIAGONAL)
+A.set_property(Property.DIAGONAL)
 """Symmetric used to be square. While square might be more intuitive, it results
 in a property set that is not in canonical form. With symmetric, the set is in
 canonical form.
 """
-A.set_property(properties.SYMMETRIC)
+A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
@@ -1867,8 +1867,8 @@ TODO: does the transpose variant get simplified correctly? (i.e. A is symmetric)
 """
 
 A = Matrix("A", (m, m))
-A.set_property(properties.DIAGONAL)
-A.set_property(properties.SQUARE)
+A.set_property(Property.DIAGONAL)
+A.set_property(Property.SQUARE)
 x = Vector("x", (m, 1))
 cf = lambda d: d["M"]
 
@@ -1893,9 +1893,9 @@ diagmv = KernelDescription(
 # diag + diag
 
 A = Matrix("A", (m, n))
-A.set_property(properties.DIAGONAL)
+A.set_property(Property.DIAGONAL)
 B = Matrix("B", (m, n))
-B.set_property(properties.DIAGONAL)
+B.set_property(Property.DIAGONAL)
 alpha = Scalar("alpha")
 cf = lambda d: min(d["M"], d["N"])
 
@@ -1923,7 +1923,7 @@ diagdiagadd = KernelDescription(
 # diag + full
 
 A = Matrix("A", (m, n))
-A.set_property(properties.DIAGONAL)
+A.set_property(Property.DIAGONAL)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
 cf = lambda d: min(d["M"], d["N"])
@@ -1960,7 +1960,7 @@ diagfulladd = KernelDescription(
 # permutation * matrix
 
 P = Matrix("P", (n, n))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
@@ -1988,7 +1988,7 @@ pmm = KernelDescription(
 # transpose(permutation) * matrix
 
 P = Matrix("P", (n, n))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
@@ -2017,7 +2017,7 @@ ptmm = KernelDescription(
 
 A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
 
@@ -2045,7 +2045,7 @@ mpm = KernelDescription(
 
 A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
 
@@ -2071,7 +2071,7 @@ mptm = KernelDescription(
 # permutation * vector
 
 P = Matrix("P", (n, n))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
 cf = lambda d: d["N"]
@@ -2098,7 +2098,7 @@ pvm = KernelDescription(
 # transpose(permutation) * vector
 
 P = Matrix("P", (n, n))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
 cf = lambda d: d["N"]
@@ -2124,9 +2124,9 @@ ptvm = KernelDescription(
 # permutation * permutation
 
 P = Matrix("P", (n, n))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
-Q.set_property(properties.PERMUTATION)
+Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
 cf = lambda d: 0
 
@@ -2152,9 +2152,9 @@ ppm = KernelDescription(
 # transpose(permutation) * permutation
 
 P = Matrix("P", (n, n))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
-Q.set_property(properties.PERMUTATION)
+Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
 cf = lambda d: 0
 
@@ -2180,7 +2180,7 @@ ptpm = KernelDescription(
 # transpose(permutation)
 
 P = Matrix("P", (n, n))
-P.set_property(properties.PERMUTATION)
+P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
 cf = lambda d: 0
 

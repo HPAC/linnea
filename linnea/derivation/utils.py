@@ -1,4 +1,4 @@
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 
 import matchpy
 import math
@@ -24,12 +24,12 @@ def is_blocked(operation):
         bool: False if this operation is not allowed, True otherwise.
 
     """
-    if not operation.has_property(properties.ADMITS_FACTORIZATION):
+    if not operation.has_property(Property.ADMITS_FACTORIZATION):
         return False
-    elif operation.has_property(properties.CONSTANT):
+    elif operation.has_property(Property.CONSTANT):
         return False
     else:
-        return all((operand.factorization_labels or operand.has_property(properties.CONSTANT)) for operand in operation.operands)
+        return all((operand.factorization_labels or operand.has_property(Property.CONSTANT)) for operand in operation.operands)
 
 
 def apply_kernel_with_context(expr, many_to_one_matcher):

@@ -21,7 +21,7 @@ from ... import config
 from ...code_generation.memory import storage_format
 from ...code_generation.utils import MatchedKernel, KernelIO
 
-from ...algebra.properties import Property as properties
+from ...algebra.properties import Property
 
 from ... import temporaries
 
@@ -107,7 +107,7 @@ class ReductionKernel(Kernel):
             pattern_expr = transpose(pattern_expr)
             # TODO ugly hack
             for constraint in self.pattern.constraints:
-                if isinstance(constraint, PropertyConstraint) and ((properties.SQUARE in constraint.properties and properties.DIAGONAL in constraint.properties) or properties.SYMMETRIC in constraint.properties):
+                if isinstance(constraint, PropertyConstraint) and ((Property.SQUARE in constraint.properties and Property.DIAGONAL in constraint.properties) or Property.SYMMETRIC in constraint.properties):
                     pattern_expr = remove_transpose(pattern_expr, constraint.variable)
             self.replacement_template = transpose(self.replacement_template)
         elif type == KernelType.conjugate_transpose:
@@ -576,7 +576,7 @@ class KernelDescription():
                     if operand.properties or _wildcard_name in constraints_dict:
                         property_set = operand.properties.union(constraints_dict.get(_wildcard_name, set()))
                         # Those properties can be removed because variables use symbol_type
-                        property_set.difference_update((properties.MATRIX, properties.VECTOR, properties.SCALAR))
+                        property_set.difference_update((Property.MATRIX, Property.VECTOR, Property.SCALAR))
                         if property_set:
                             constraints_list.append(PropertyConstraint(_wildcard_name, property_set))
 
@@ -661,7 +661,7 @@ if __name__ == "__main__":
 
 
     A = KMatrix("A")
-    A.set_property(properties.SQUARE)
+    A.set_property(Property.SQUARE)
     B = KMatrix("B")
     alpha = KScalar("alpha")
     # one = NumericConstant(0)
@@ -701,8 +701,8 @@ if __name__ == "__main__":
                                 ),
                               PropertyKV(
                                 "uplo",
-                                {"U": properties.UPPER_TRIANGULAR,
-                                 "L": properties.LOWER_TRIANGULAR},
+                                {"U": Property.UPPER_TRIANGULAR,
+                                 "L": Property.LOWER_TRIANGULAR},
                                 A
                                 )
                              ],

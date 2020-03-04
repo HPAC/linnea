@@ -6,7 +6,7 @@ from ..algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar,
                                  InverseConjugateTranspose, \
                                  ConjugateTranspose, Index, IdentityMatrix
 
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 
 from ..algebra.equations import Equations
 
@@ -69,7 +69,7 @@ class Example003():
         n = 10
 
         L = Matrix("L", (n, n))
-        L.set_property(properties.LOWER_TRIANGULAR)
+        L.set_property(Property.LOWER_TRIANGULAR)
 
         v = Vector("v", (n, 1))
 
@@ -112,9 +112,9 @@ class Example005():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SPD)
-        A.set_property(properties.SQUARE)
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.SPD)
+        A.set_property(Property.SQUARE)
+        A.set_property(Property.NON_SINGULAR)
 
         B = Matrix("B", (n, n))
 
@@ -134,14 +134,14 @@ class Example006():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SYMMETRIC)
-        A.set_property(properties.SQUARE)
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.SYMMETRIC)
+        A.set_property(Property.SQUARE)
+        A.set_property(Property.NON_SINGULAR)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SYMMETRIC)
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SYMMETRIC)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         # B = A^-1
         self.eqns = Equations(Equal(B, Inverse(A)))
@@ -158,7 +158,7 @@ class Example007():
         m = 1000
 
         X = Matrix("X", (n, m))
-        X.set_property(properties.FULL_RANK)
+        X.set_property(Property.FULL_RANK)
 
         y = Vector("y", (n, 1))
 
@@ -203,7 +203,7 @@ class Example009():
         n = 10
 
         L = Matrix("L", (n, n))
-        L.set_property(properties.LOWER_TRIANGULAR)
+        L.set_property(Property.LOWER_TRIANGULAR)
 
         A = Matrix("A", (n, n))
 
@@ -228,11 +228,11 @@ class Example010():
         m = 5
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         CP = Matrix("CP", (n, m))
-        CP.set_property(properties.COLUMN_PANEL)
-        CP.set_property(properties.FULL_RANK)
+        CP.set_property(Property.COLUMN_PANEL)
+        CP.set_property(Property.FULL_RANK)
 
         Y = Matrix("Y", (m, m))
 
@@ -249,11 +249,11 @@ class Example011():
         m = 5
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         CP = Matrix("CP", (n, m))
-        CP.set_property(properties.COLUMN_PANEL)
-        CP.set_property(properties.FULL_RANK)
+        CP.set_property(Property.COLUMN_PANEL)
+        CP.set_property(Property.FULL_RANK)
 
         Y = Matrix("Y", (m, m))
 
@@ -286,13 +286,13 @@ class Example013():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -309,8 +309,8 @@ class Example014():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         W = Matrix("W", (n, n))
 
@@ -328,13 +328,13 @@ class Example015():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -352,10 +352,10 @@ class Example016():
         A = Matrix("A", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         W = Matrix("W", (n, n))
 
@@ -373,10 +373,10 @@ class Example017():
         A = Matrix("A", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         W = Matrix("W", (n, n))
 
@@ -394,13 +394,13 @@ class Example018():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -416,13 +416,13 @@ class Example019():
         n = 10
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -438,7 +438,7 @@ class Example020():
         n = 10
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         W = Matrix("W", (n, n))
 
@@ -456,9 +456,9 @@ class Example021():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
-        # B.set_property(properties.SPD)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
+        # B.set_property(Property.SPD)
 
         x = Vector("x", (n, 1))
 
@@ -476,8 +476,8 @@ class Example022():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SQUARE)
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.SQUARE)
+        A.set_property(Property.NON_SINGULAR)
 
         x = Vector("x", (n, 1))
 
@@ -495,8 +495,8 @@ class Example023():
         n = 1000
 
         L = Matrix("L", (n, n))
-        L.set_property(properties.LOWER_TRIANGULAR)
-        L.set_property(properties.NON_SINGULAR)
+        L.set_property(Property.LOWER_TRIANGULAR)
+        L.set_property(Property.NON_SINGULAR)
 
         x = Vector("x", (n, 1))
 
@@ -514,7 +514,7 @@ class Example024():
         n = 10
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         x = Vector("x", (n, 1))
 
@@ -534,11 +534,11 @@ class Example025():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         W = Matrix("W", (n, n))
 
@@ -556,13 +556,13 @@ class Example026():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -578,8 +578,8 @@ class Example027():
         n = 10
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
@@ -597,8 +597,8 @@ class Example028():
         n = 10
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
@@ -616,8 +616,8 @@ class Example029():
         n = 10
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         x = Vector("x", (n, 1))
 
@@ -639,8 +639,8 @@ class Example030():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         x = Vector("x", (n, 1))
 
@@ -666,13 +666,13 @@ class Example031():
         k = 10
 
         L00 = Matrix("L00", (n, n))
-        L00.set_property(properties.LOWER_TRIANGULAR)
+        L00.set_property(Property.LOWER_TRIANGULAR)
 
         L11 = Matrix("L11", (m, m))
-        L11.set_property(properties.LOWER_TRIANGULAR)
+        L11.set_property(Property.LOWER_TRIANGULAR)
 
         L22 = Matrix("L22", (k, k))
-        L22.set_property(properties.LOWER_TRIANGULAR)
+        L22.set_property(Property.LOWER_TRIANGULAR)
 
         L10 = Matrix("L10", (m, n))
 
@@ -772,7 +772,7 @@ class Example034():
         Y = Matrix("Y", (n, n))
 
         Z = Matrix("Z", (n, n))
-        Z.set_property(properties.AUXILIARY)
+        Z.set_property(Property.AUXILIARY)
 
         self.eqns = Equations(
                         Equal(Z, Plus(A, B)),
@@ -818,7 +818,7 @@ class Example036():
         n3 = 15
 
         A = Matrix("A", (n1, n1))
-        A.set_property(properties.SPD)
+        A.set_property(Property.SPD)
 
         B = Matrix("B", (n1, n2))
 
@@ -930,9 +930,9 @@ class Example039():
         # H = Matrix("H", (n1, n2), set([]))
 
 
-        A.set_property(properties.LOWER_TRIANGULAR)
-        B.set_property(properties.LOWER_TRIANGULAR)
-        F.set_property(properties.LOWER_TRIANGULAR)
+        A.set_property(Property.LOWER_TRIANGULAR)
+        B.set_property(Property.LOWER_TRIANGULAR)
+        F.set_property(Property.LOWER_TRIANGULAR)
 
 
         X = Matrix("X", (n1, n2), set([i, j ,k]))
@@ -1006,11 +1006,11 @@ class Example042():
         m = 5
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         CP = Matrix("CP", (n, m))
-        CP.set_property(properties.COLUMN_PANEL)
-        CP.set_property(properties.FULL_RANK)
+        CP.set_property(Property.COLUMN_PANEL)
+        CP.set_property(Property.FULL_RANK)
 
         z = Vector("z", (m, 1))
 
@@ -1032,10 +1032,10 @@ class Example043():
         B = Matrix("B", (n1, n1))
         C = Matrix("C", (n1, n1))
 
-        A.set_property(properties.LOWER_TRIANGULAR)
-        A.set_property(properties.SQUARE)
-        B.set_property(properties.LOWER_TRIANGULAR)
-        B.set_property(properties.SQUARE)
+        A.set_property(Property.LOWER_TRIANGULAR)
+        A.set_property(Property.SQUARE)
+        B.set_property(Property.LOWER_TRIANGULAR)
+        B.set_property(Property.SQUARE)
 
         X = Matrix("X", (n1, n1))
 
@@ -1060,10 +1060,10 @@ class Example044():
         B = Matrix("B", (n1, n1))
         C = Matrix("C", (n1, n1))
 
-        A.set_property(properties.LOWER_TRIANGULAR)
-        A.set_property(properties.SQUARE)
-        B.set_property(properties.LOWER_TRIANGULAR)
-        B.set_property(properties.SQUARE)
+        A.set_property(Property.LOWER_TRIANGULAR)
+        A.set_property(Property.SQUARE)
+        B.set_property(Property.LOWER_TRIANGULAR)
+        B.set_property(Property.SQUARE)
 
         X = Matrix("X", (n1, n1))
 
@@ -1187,7 +1187,7 @@ class Example049():
         A = Matrix("A", (n1, n1))
         B = Matrix("B", (n1, n1))
 
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n1, n1))
 
@@ -1339,7 +1339,7 @@ class Example055():
         n3 = 10
 
         A = Matrix("A", (n1, n1))
-        A.set_property(properties.SPD)
+        A.set_property(Property.SPD)
 
         B = Matrix("B", (n1, n2))
 
@@ -1432,7 +1432,7 @@ class Example058():
         C = Matrix("C", (n1, n1))
         D = Matrix("D", (n1, n1))
 
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         X = Matrix("X", (n1, n1))
 
@@ -1513,8 +1513,8 @@ class Example061():
         m = 5
 
         X = Matrix("X", (n, m))
-        X.set_property(properties.FULL_RANK)
-        X.set_property(properties.COLUMN_PANEL)
+        X.set_property(Property.FULL_RANK)
+        X.set_property(Property.COLUMN_PANEL)
 
         y = Vector("y", (n, 1))
 
@@ -1561,17 +1561,17 @@ class Example063():
         m = 5 # 5
 
         S = Matrix("S", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         X = Matrix("X", (n, m))
-        # X.set_property(properties.COLUMN_PANEL)
-        X.set_property(properties.FULL_RANK)
+        # X.set_property(Property.COLUMN_PANEL)
+        X.set_property(Property.FULL_RANK)
 
         z = Vector("z", (m, 1))
 
         y = Vector("y", (n, 1))
 
-        # clak.special_properties.add_expression(Times(Transpose(X), Inverse(S), X ), set([properties.SPD))
+        # clak.special_properties.add_expression(Times(Transpose(X), Inverse(S), X ), set([Property.SPD))
 
         self.eqns = Equations(Equal(z, Times(Inverse(Times(Transpose(X), Inverse(S), X ) ), Transpose(X), Inverse(S), y)))
 
@@ -1587,8 +1587,8 @@ class Example064():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         x = Vector("x", (n, 1))
 
@@ -1702,10 +1702,10 @@ class Example068():
         B = Matrix("B", (n1, n1))
         C = Matrix("C", (n1, n1))
 
-        A.set_property(properties.LOWER_TRIANGULAR)
-        A.set_property(properties.SQUARE)
-        B.set_property(properties.LOWER_TRIANGULAR)
-        B.set_property(properties.SQUARE)
+        A.set_property(Property.LOWER_TRIANGULAR)
+        A.set_property(Property.SQUARE)
+        B.set_property(Property.LOWER_TRIANGULAR)
+        B.set_property(Property.SQUARE)
 
         X = Matrix("X", (n1, n1))
 
@@ -1729,10 +1729,10 @@ class Example069():
         B = Matrix("B", (n1, n1))
         C = Matrix("C", (n1, n1))
 
-        A.set_property(properties.LOWER_TRIANGULAR)
-        A.set_property(properties.SQUARE)
-        B.set_property(properties.LOWER_TRIANGULAR)
-        B.set_property(properties.SQUARE)
+        A.set_property(Property.LOWER_TRIANGULAR)
+        A.set_property(Property.SQUARE)
+        B.set_property(Property.LOWER_TRIANGULAR)
+        B.set_property(Property.SQUARE)
 
         X = Matrix("X", (n1, n1))
 
@@ -1754,7 +1754,7 @@ class Example070():
         A = Matrix("A", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -1772,7 +1772,7 @@ class Example071():
         A = Matrix("A", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -1807,7 +1807,7 @@ class Example073():
         A = Matrix("A", (n, n))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n, n))
 
@@ -1823,10 +1823,10 @@ class Example074():
         n = 10
 
         Q = Matrix("Q", (n, n))
-        Q.set_property(properties.ORTHOGONAL)
+        Q.set_property(Property.ORTHOGONAL)
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.DIAGONAL)
+        W.set_property(Property.DIAGONAL)
 
         I = IdentityMatrix(n, n)
 
@@ -1871,10 +1871,10 @@ class Example076():
         B = Matrix("B", (n, n))
 
         Q = Matrix("Q", (n, n))
-        Q.set_property(properties.ORTHOGONAL)
+        Q.set_property(Property.ORTHOGONAL)
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.DIAGONAL)
+        W.set_property(Property.DIAGONAL)
 
         I = IdentityMatrix(n, n)
 
@@ -1900,10 +1900,10 @@ class Example077():
         B = Matrix("B", (n, n))
 
         Q = Matrix("Q", (n, n))
-        Q.set_property(properties.ORTHOGONAL)
+        Q.set_property(Property.ORTHOGONAL)
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.DIAGONAL)
+        W.set_property(Property.DIAGONAL)
 
         I = IdentityMatrix(n, n)
 
@@ -1937,7 +1937,7 @@ class Example078():
         S = Matrix("S", (n1, n1))
 
 
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         X = Matrix("X", (n1, n1))
 
@@ -2005,8 +2005,8 @@ class Example081():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
@@ -2026,8 +2026,8 @@ class Example082():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
@@ -2048,8 +2048,8 @@ class Example083():
         D = Matrix("D", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
@@ -2069,8 +2069,8 @@ class Example084():
         A = Matrix("A", (n, n))
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         C = Matrix("C", (n, n))
 
@@ -2114,9 +2114,9 @@ class Example086():
         C = Matrix("C", (n1, n1))
 
 
-        A.set_property(properties.LOWER_TRIANGULAR)
-        B.set_property(properties.LOWER_TRIANGULAR)
-        C.set_property(properties.LOWER_TRIANGULAR)
+        A.set_property(Property.LOWER_TRIANGULAR)
+        B.set_property(Property.LOWER_TRIANGULAR)
+        C.set_property(Property.LOWER_TRIANGULAR)
 
         X = Matrix("X", (n1, n1))
 
@@ -2186,10 +2186,10 @@ class Example089():
         B = Matrix("B", (n, n))
 
         Q = Matrix("Q", (n, n))
-        Q.set_property(properties.ORTHOGONAL)
+        Q.set_property(Property.ORTHOGONAL)
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.DIAGONAL)
+        W.set_property(Property.DIAGONAL)
 
         I = IdentityMatrix(n, n)
 
@@ -2216,7 +2216,7 @@ class Example090():
         B.partitioning = (set([5]), set([5]))
 
         D = Matrix("D", (n, n))
-        # D.set_property(properties.DIAGONAL)
+        # D.set_property(Property.DIAGONAL)
 
         alpha = Scalar("alpha")
 
@@ -2242,7 +2242,7 @@ class Example091():
         B = Matrix("B", (n, n), set([i]))
 
         C = Matrix("C", (2*n, n))
-        # D.set_property(properties.DIAGONAL)
+        # D.set_property(Property.DIAGONAL)
 
         alpha = Scalar("alpha")
 
@@ -2263,7 +2263,7 @@ class Example092():
         m = 10
 
         V = Matrix("V", (n, m))
-        V.set_property(properties.FULL_RANK)
+        V.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (m, m))
 
@@ -2281,10 +2281,10 @@ class Example093():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.ORTHOGONAL)
+        A.set_property(Property.ORTHOGONAL)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.DIAGONAL)
+        B.set_property(Property.DIAGONAL)
 
         C = Matrix("C", (n, n))
         D = Matrix("D", (n, n))
@@ -2323,7 +2323,7 @@ class Example094():
         # # G = Matrix("G", (10, 10), set([]))
         # # H = Matrix("H", (10, 10), set([]))
 
-        A.set_property(properties.SPD)
+        A.set_property(Property.SPD)
 
         X = Matrix("X", (n1, n5), set([i, j]))
 
@@ -2371,13 +2371,13 @@ class Example096():
         A = Matrix("A", (n1, n2))
 
         B = Matrix("B", (n2, n2))
-        B.set_property(properties.LOWER_TRIANGULAR)
+        B.set_property(Property.LOWER_TRIANGULAR)
 
         C = Matrix("C", (n2, n2))
-        C.set_property(properties.UPPER_TRIANGULAR)
+        C.set_property(Property.UPPER_TRIANGULAR)
 
         D = Matrix("D", (n2, n3))
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.DIAGONAL)
 
         W = Matrix("W", (n1, n3))
 
@@ -2403,17 +2403,17 @@ class Example097():
         # n5 = 1000
 
         A = Matrix("A", (n1, n1))
-        A.set_property(properties.SPD)
+        A.set_property(Property.SPD)
 
         B = Matrix("B", (n1, n2))
 
         C = Matrix("C", (n2, n3))
 
         D = Matrix("D", (n3, n3))
-        D.set_property(properties.UPPER_TRIANGULAR)
+        D.set_property(Property.UPPER_TRIANGULAR)
 
         E = Matrix("E", (n3, n4))
-        E.set_property(properties.UPPER_TRIANGULAR)
+        E.set_property(Property.UPPER_TRIANGULAR)
 
         F = Matrix("F", (n4, n5))
 
@@ -2521,9 +2521,9 @@ class Example103():
         n3 = 250
 
         A = Matrix("A", (n2, n1))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
         B = Matrix("B", (n3, n1))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
         y = Vector("y", (n1, 1))
 
         x = Vector("x", (n1, 1))
@@ -2648,10 +2648,10 @@ class Example110():
         n = 10
 
         Q = Matrix("Q", (n, n))
-        Q.set_property(properties.ORTHOGONAL)
+        Q.set_property(Property.ORTHOGONAL)
 
         W = Matrix("W", (n, n))
-        W.set_property(properties.DIAGONAL)
+        W.set_property(Property.DIAGONAL)
 
         I = IdentityMatrix(n, n)
 
@@ -2675,9 +2675,9 @@ class Example111():
         n3 = 250
 
         A = Matrix("A", (n2, n1))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
         B = Matrix("B", (n3, n1))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
         y = Vector("y", (n1, 1))
 
         x = Vector("x", (n1, 1))
@@ -2699,7 +2699,7 @@ class Example112():
         I = IdentityMatrix(n1, n1)
 
         S = Matrix("S", (n1, n1))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         y = Vector("y", (n1, 1))
 
@@ -2764,17 +2764,17 @@ class Example115():
         n5 = 1000
 
         A = Matrix("A", (n1, n1))
-        A.set_property(properties.LOWER_TRIANGULAR)
+        A.set_property(Property.LOWER_TRIANGULAR)
 
         B = Matrix("B", (n1, n2))
 
         C = Matrix("C", (n2, n3))
 
         D = Matrix("D", (n3, n3))
-        D.set_property(properties.UPPER_TRIANGULAR)
+        D.set_property(Property.UPPER_TRIANGULAR)
 
         E = Matrix("E", (n3, n4))
-        E.set_property(properties.UPPER_TRIANGULAR)
+        E.set_property(Property.UPPER_TRIANGULAR)
 
         F = Matrix("F", (n4, n5))
 
@@ -2819,7 +2819,7 @@ class Example117():
         n = 10
 
         S = Matrix("B", (n, n))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         x = Vector("x", (n, 1))
 
@@ -2837,7 +2837,7 @@ class Example118():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -2853,7 +2853,7 @@ class Example119():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SPD)
+        A.set_property(Property.SPD)
 
         X = Matrix("X", (n, n))
 
@@ -2890,10 +2890,10 @@ class Example121():
         n1 = 10
 
         S = Matrix("S", (n1, n1))
-        S.set_property(properties.SPD)
+        S.set_property(Property.SPD)
 
         P = Matrix("P", (n1, n1))
-        P.set_property(properties.SPD)
+        P.set_property(Property.SPD)
 
         x = Vector("x", (n1, 1))
         m = Vector("m", (n1, 1))
@@ -2947,7 +2947,7 @@ class Example123():
         m = 1000 # 5
 
         A = Matrix("A", (n, m))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         b = Vector("b", (n, 1))
 
@@ -2977,9 +2977,9 @@ class Example124():
         C = Matrix("C", (n1, n1))
         D = Matrix("D", (n1, n1))
 
-        B.set_property(properties.NON_SINGULAR)
-        # B.set_property(properties.SPD)
-        B.set_property(properties.LOWER_TRIANGULAR)
+        B.set_property(Property.NON_SINGULAR)
+        # B.set_property(Property.SPD)
+        B.set_property(Property.LOWER_TRIANGULAR)
 
         X = Matrix("X", (n1, n1))
 
@@ -3048,17 +3048,17 @@ class Example126():
         n = 1500
 
         A = Matrix("A", (m, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         W = Matrix("W", (n, n))
         # C = Matrix("C", (n1, n1))
 
         # W is positive
-        W.set_property(properties.FULL_RANK)
-        W.set_property(properties.DIAGONAL)
-        W.set_property(properties.SPD)
-        W.set_property(properties.SYMMETRIC)
-        W.set_property(properties.NON_SINGULAR)
+        W.set_property(Property.FULL_RANK)
+        W.set_property(Property.DIAGONAL)
+        W.set_property(Property.SPD)
+        W.set_property(Property.SYMMETRIC)
+        W.set_property(Property.NON_SINGULAR)
 
         b = Vector("b", (m, 1))
 
@@ -3068,7 +3068,7 @@ class Example126():
 
         minu1 = ConstantScalar(-1.0)
 
-        # derivation.special_properties.add_expression(Times(A, W, Transpose(A)), {properties.SPD})
+        # derivation.special_properties.add_expression(Times(A, W, Transpose(A)), {Property.SPD})
 
         self.eqns = Equations(
                             Equal(
@@ -3096,7 +3096,7 @@ class Example127():
         C = Matrix("C", (n1, n1))
         D = Matrix("D", (n1, n1))
 
-        D.set_property(properties.SYMMETRIC)
+        D.set_property(Property.SYMMETRIC)
 
         X = Matrix("X", (n1, n1))
 
@@ -3151,7 +3151,7 @@ class Example129():
         B = Matrix("B", (n, n))
         C = Matrix("C", (n, n))
 
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3174,7 +3174,7 @@ class Example130():
         B = Matrix("B", (n, n))
         C = Matrix("C", (n, n))
 
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3196,7 +3196,7 @@ class Example131():
         C = Matrix("C", (n, n))
         D = Matrix("D", (n, n))
 
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3218,7 +3218,7 @@ class Example132():
         C = Matrix("C", (n, n))
         D = Matrix("D", (n, n))
 
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3240,8 +3240,8 @@ class Example133():
         C = Matrix("C", (n, n))
         D = Matrix("D", (n, n))
 
-        A.set_property(properties.NON_SINGULAR)
-        B.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
+        B.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3260,13 +3260,13 @@ class Example134():
         m = 1000
 
         A = Matrix("A", (m, m))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (m, m))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, m))
-        X.set_property(properties.FULL_RANK)
+        X.set_property(Property.FULL_RANK)
 
         y = Vector("y", (n, 1))
 
@@ -3515,7 +3515,7 @@ class Example142():
         E = Matrix("E", (n1, n1))
         S = Matrix("S", (n1, n1))
 
-        S.set_property(properties.SYMMETRIC)
+        S.set_property(Property.SYMMETRIC)
 
 
         X = Matrix("X", (n1, n1))
@@ -3545,12 +3545,12 @@ class Example143():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SQUARE)
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.SQUARE)
+        A.set_property(Property.NON_SINGULAR)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3567,11 +3567,11 @@ class Example144():
         m = 5 # 5
 
         M = Matrix("M", (n, n))
-        M.set_property(properties.SPD)
+        M.set_property(Property.SPD)
 
         X = Matrix("X", (n, m))
-        # X.set_property(properties.COLUMN_PANEL)
-        X.set_property(properties.FULL_RANK)
+        # X.set_property(Property.COLUMN_PANEL)
+        X.set_property(Property.FULL_RANK)
 
         z = Vector("z", (m, 1))
 
@@ -3634,16 +3634,16 @@ class Example147():
         n = 100
 
         L1 = Matrix("L1", (n, n))
-        L1.set_property(properties.LOWER_TRIANGULAR)
-        L1.set_property(properties.FULL_RANK)
+        L1.set_property(Property.LOWER_TRIANGULAR)
+        L1.set_property(Property.FULL_RANK)
 
         L2 = Matrix("L2", (n, n))
-        L2.set_property(properties.LOWER_TRIANGULAR)
-        L2.set_property(properties.FULL_RANK)
+        L2.set_property(Property.LOWER_TRIANGULAR)
+        L2.set_property(Property.FULL_RANK)
 
         U = Matrix("U", (n, n))
-        U.set_property(properties.UPPER_TRIANGULAR)
-        U.set_property(properties.FULL_RANK)
+        U.set_property(Property.UPPER_TRIANGULAR)
+        U.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
 
@@ -3663,16 +3663,16 @@ class Example148():
         n = 100
 
         L = Matrix("L", (n, n))
-        L.set_property(properties.LOWER_TRIANGULAR)
-        L.set_property(properties.FULL_RANK)
+        L.set_property(Property.LOWER_TRIANGULAR)
+        L.set_property(Property.FULL_RANK)
 
         U1 = Matrix("U1", (n, n))
-        U1.set_property(properties.UPPER_TRIANGULAR)
-        U1.set_property(properties.FULL_RANK)
+        U1.set_property(Property.UPPER_TRIANGULAR)
+        U1.set_property(Property.FULL_RANK)
 
         U2 = Matrix("U2", (n, n))
-        U2.set_property(properties.UPPER_TRIANGULAR)
-        U2.set_property(properties.FULL_RANK)
+        U2.set_property(Property.UPPER_TRIANGULAR)
+        U2.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
 
@@ -3714,13 +3714,13 @@ class Example150():
         n = 1000
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.SQUARE)
-        D.set_property(properties.DIAGONAL)
-        D.set_property(properties.FULL_RANK)
+        D.set_property(Property.SQUARE)
+        D.set_property(Property.DIAGONAL)
+        D.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.SQUARE)
-        B.set_property(properties.NON_SINGULAR)
+        B.set_property(Property.SQUARE)
+        B.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3739,7 +3739,7 @@ class Example151():
         B = Matrix("B", (n, n))
         C = Matrix("C", (n, n))
 
-        A.set_property(properties.NON_SINGULAR)
+        A.set_property(Property.NON_SINGULAR)
 
         X = Matrix("X", (n, n))
 
@@ -3758,7 +3758,7 @@ class Example152():
         n2 = 10 
 
         S = Matrix("S", (n1, n1))
-        S.set_property(properties.SYMMETRIC)
+        S.set_property(Property.SYMMETRIC)
 
         B = Matrix("B", (n1, n1))
 
@@ -3796,12 +3796,12 @@ class Example154():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.NON_SINGULAR)
-        A.set_property(properties.SYMMETRIC)
+        A.set_property(Property.NON_SINGULAR)
+        A.set_property(Property.SYMMETRIC)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.NON_SINGULAR)
-        B.set_property(properties.SYMMETRIC)
+        B.set_property(Property.NON_SINGULAR)
+        B.set_property(Property.SYMMETRIC)
 
         X = Matrix("X", (n, n))
 
@@ -3849,14 +3849,14 @@ class Example156():
         n = 1000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.SPD)
+        A.set_property(Property.SPD)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.LOWER_TRIANGULAR)
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.LOWER_TRIANGULAR)
+        C.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, n))
 
@@ -3874,10 +3874,10 @@ class Example157():
         n = 10
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.DIAGONAL)
+        A.set_property(Property.DIAGONAL)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.DIAGONAL)
+        B.set_property(Property.DIAGONAL)
 
         alpha = Scalar("alpha")
 
@@ -3900,10 +3900,10 @@ class Example158():
         # n2 = 50
 
         A = Matrix("A", (n1, n2))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n2, n1))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n1, n1))
 
@@ -3926,10 +3926,10 @@ class Example159():
         # n2 = 50
 
         A = Matrix("A", (n1, n2))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n2, n1))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n1, n1))
 
@@ -3952,16 +3952,16 @@ class Example160():
         n = 5000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.FULL_RANK)
+        D.set_property(Property.FULL_RANK)
 
         alpha = Scalar("alpha")
 
@@ -3981,17 +3981,17 @@ class Example161():
         n = 5000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         # C = Matrix("C", (n, n))
-        # C.set_property(properties.FULL_RANK)
+        # C.set_property(Property.FULL_RANK)
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.FULL_RANK)
-        D.set_property(properties.DIAGONAL)
+        D.set_property(Property.FULL_RANK)
+        D.set_property(Property.DIAGONAL)
 
         alpha = Scalar("alpha")
 
@@ -4014,8 +4014,8 @@ class Example162():
         A = Matrix("A", (n, m))
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.SYMMETRIC)
-        D.set_property(properties.FULL_RANK)
+        D.set_property(Property.SYMMETRIC)
+        D.set_property(Property.FULL_RANK)
 
         W = Matrix("W", (n, m))
 
@@ -4031,16 +4031,16 @@ class Example163():
         n = 1000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         D = Matrix("D", (n, n))
-        D.set_property(properties.FULL_RANK)
+        D.set_property(Property.FULL_RANK)
 
 
         X = Matrix("X", (n, n))
@@ -4062,13 +4062,13 @@ class Example164():
         n = 1000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, n))
 
@@ -4088,13 +4088,13 @@ class Example165():
         n = 1000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, n))
         Y = Matrix("Y", (n, n))
@@ -4113,13 +4113,13 @@ class Example166():
         n = 1000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, n))
         Y = Matrix("Y", (n, n))
@@ -4139,13 +4139,13 @@ class Example167():
         n = 1000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, n))
         Y = Matrix("Y", (n, n))
@@ -4165,13 +4165,13 @@ class Example168():
         n = 1000
 
         A = Matrix("A", (n, n))
-        A.set_property(properties.FULL_RANK)
+        A.set_property(Property.FULL_RANK)
 
         B = Matrix("B", (n, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, n))
         Y = Matrix("Y", (n, n))
@@ -4192,14 +4192,14 @@ class Example169():
         m = 2000
 
         A = Matrix("A", (n, m))
-        A.set_property(properties.FULL_RANK)
-        A.set_property(properties.SPD)
+        A.set_property(Property.FULL_RANK)
+        A.set_property(Property.SPD)
 
         B = Matrix("B", (m, n))
-        B.set_property(properties.FULL_RANK)
+        B.set_property(Property.FULL_RANK)
 
         C = Matrix("C", (n, n))
-        C.set_property(properties.FULL_RANK)
+        C.set_property(Property.FULL_RANK)
 
         X = Matrix("X", (n, n))
         Y = Matrix("Y", (n, n))
@@ -4219,7 +4219,7 @@ class Example170():
         n2 = 10 
 
         A = Matrix("A", (n1, n1))
-        A.set_property(properties.SPD)
+        A.set_property(Property.SPD)
 
         B = Matrix("B", (n1, n1))
 

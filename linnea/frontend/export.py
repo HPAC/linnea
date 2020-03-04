@@ -1,5 +1,5 @@
 from ..algebra import expression as ae
-from ..algebra.properties import Property as properties
+from ..algebra.properties import Property
 
 
 _BINARY = {
@@ -34,7 +34,7 @@ def export(equations):
                         '{}_rows = {}'.format(expr.name, expr.size[0]))
                     var_declarations.append(
                         '{}_cols = {}'.format(expr.name, expr.size[1]))
-                    if expr.has_property(properties.IDENTITY):
+                    if expr.has_property(Property.IDENTITY):
                         var_declarations.append(
                             'IdentityMatrix {0} ({0}_rows, {0}_cols)'.format(expr.name))
                     else:

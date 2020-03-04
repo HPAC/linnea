@@ -1,8 +1,6 @@
 from ...algebra.expression import Times, Plus, Transpose, \
                                   Scalar, Matrix
 
-# from patternmatcher.functional import Pattern
-
 from ..utils.general import SizeArgument, \
                                        StrideArgument, \
                                        StorageFormatArgument, \
@@ -14,7 +12,7 @@ from ...utils import CodeTemplate
 
 from ...code_generation.memory.storage_format import StorageFormat
 
-from ...algebra.properties import Property as properties
+from ...algebra.properties import Property
 
 from ...algebra import expression as ae
 
@@ -35,11 +33,11 @@ cf = lambda d: (d["N"]**3)/3
 
 cholesky = FactorizationKernel(
     matchpy.Pattern(_A,
-                    matchpy.CustomConstraint(lambda _A: _A.has_property(properties.SPSD))
+                    matchpy.CustomConstraint(lambda _A: _A.has_property(Property.SPSD))
                     ),
     [InputOperand(_A, StorageFormat.symmetric_triangular)],
     Times(_L, Transpose(_L)),
-    [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.NON_SINGULAR], StorageFormat.lower_triangular)],
+    [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.NON_SINGULAR], StorageFormat.lower_triangular)],
     cf,
     None,
     CodeTemplate("""LinearAlgebra.LAPACK.potrf!('L', $_A)"""),
@@ -61,14 +59,14 @@ cf = lambda d: 2*(d["N"]**3)/3
 plu = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(properties.NON_SINGULAR)
+                        lambda _A: _A.has_property(Property.NON_SINGULAR)
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
     Times(Transpose(_P), _L, _U),
-    [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.UNIT_DIAGONAL, properties.NON_SINGULAR], StorageFormat.lower_triangular_udiag),
-     OutputOperand(_U, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.NON_SINGULAR], StorageFormat.upper_triangular),
-     OutputOperand(_P, None, ("N", "N"), [properties.PERMUTATION], StorageFormat.ipiv)
+    [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.UNIT_DIAGONAL, Property.NON_SINGULAR], StorageFormat.lower_triangular_udiag),
+     OutputOperand(_U, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.NON_SINGULAR], StorageFormat.upper_triangular),
+     OutputOperand(_P, None, ("N", "N"), [Property.PERMUTATION], StorageFormat.ipiv)
     ],
     cf,
     CodeTemplate(),
@@ -96,14 +94,14 @@ def cf_qr_square(d):
 qr_square = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(properties.FULL_RANK) and \
-                              _A.has_property(properties.SQUARE)
+                        lambda _A: _A.has_property(Property.FULL_RANK) and \
+                              _A.has_property(Property.SQUARE)
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
     Times(_Q, _R),
-    [OutputOperand(_Q, _A, ("N", "N"), [properties.FULL_RANK, properties.SQUARE, properties.ORTHOGONAL], StorageFormat.QRfact_Q),
-     OutputOperand(_R, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.SQUARE], StorageFormat.QRfact_R)
+    [OutputOperand(_Q, _A, ("N", "N"), [Property.FULL_RANK, Property.SQUARE, Property.ORTHOGONAL], StorageFormat.QRfact_Q),
+     OutputOperand(_R, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
     ],
     cf_qr_square,
     CodeTemplate(),
@@ -132,14 +130,14 @@ def cf_qr_column(d):
 qr_column = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(properties.FULL_RANK) and \
-                          _A.has_property(properties.COLUMN_PANEL)
+                        lambda _A: _A.has_property(Property.FULL_RANK) and \
+                          _A.has_property(Property.COLUMN_PANEL)
                     )
     ),
     [InputOperand(_A, StorageFormat.full)],
     Times(_Q, _R),
-    [OutputOperand(_Q, _A, ("M", "N"), [properties.FULL_RANK, properties.COLUMN_PANEL, properties.ORTHOGONAL_COLUMNS], StorageFormat.QRfact_Q),
-     OutputOperand(_R, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.SQUARE], StorageFormat.QRfact_R)
+    [OutputOperand(_Q, _A, ("M", "N"), [Property.FULL_RANK, Property.COLUMN_PANEL, Property.ORTHOGONAL_COLUMNS], StorageFormat.QRfact_Q),
+     OutputOperand(_R, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
     ],
     cf_qr_column,
     None,
@@ -168,13 +166,13 @@ def cf_eigen(d):
 eigendecomposition = FactorizationKernel(
     matchpy.Pattern(_A,
                     matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(properties.SYMMETRIC)
+                        lambda _A: _A.has_property(Property.SYMMETRIC)
                     )
     ),
     [InputOperand(_A, StorageFormat.symmetric_triangular)],
     Times(_Z, _W, Transpose(_Z)),
-    [OutputOperand(_Z, _A, ("N", "N"), [properties.ORTHOGONAL], StorageFormat.full),
-     OutputOperand(_W, None, ("N", "N"), [properties.DIAGONAL, properties.SQUARE], StorageFormat.diagonal_vector)
+    [OutputOperand(_Z, _A, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full),
+     OutputOperand(_W, None, ("N", "N"), [Property.DIAGONAL, Property.SQUARE], StorageFormat.diagonal_vector)
     ],
     cf_eigen,
     None,
@@ -201,9 +199,9 @@ singular_value = FactorizationKernel(
     matchpy.Pattern(_A),
     [InputOperand(_A, StorageFormat.full)],
     Times(_U, _S, _V),
-    [OutputOperand(_U, _A, ("M", "M"), [properties.ORTHOGONAL], StorageFormat.svdfact_U),
-     OutputOperand(_S, _A, ("M", "N"), [properties.DIAGONAL], StorageFormat.svdfact_S), # for economy SVD, sizes do not depend on rank. Remember to simplify storage format transformation.
-     OutputOperand(_V, _A, ("N", "N"), [properties.ORTHOGONAL], StorageFormat.svdfact_V) # this changes to OrthogonalRows for economy SVD
+    [OutputOperand(_U, _A, ("M", "M"), [Property.ORTHOGONAL], StorageFormat.svdfact_U),
+     OutputOperand(_S, _A, ("M", "N"), [Property.DIAGONAL], StorageFormat.svdfact_S), # for economy SVD, sizes do not depend on rank. Remember to simplify storage format transformation.
+     OutputOperand(_V, _A, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.svdfact_V) # this changes to OrthogonalRows for economy SVD
     ],
     cf,
     None,

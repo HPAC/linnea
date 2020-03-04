@@ -31,10 +31,10 @@ cf = lambda d: d["N"]**3/3
 cholesky = FactorizationKernel(
     Pattern(
         _A,
-        lambda d: d["_A"].has_property(properties.SPD)
+        lambda d: d["_A"].has_property(Property.SPD)
         ),
     Times(_L, Transpose(_L)),
-    [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR])],
+    [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR])],
     cf,
     None,
     CodeTemplate("""${type_prefix}potrf("L", $N, $_A, $ldA, &info); // cholesky"""),
@@ -62,13 +62,13 @@ cf = lambda d: 0 # TODO missing n^3/3 (Golub, van Loan)
 ldl = FactorizationKernel(
     Pattern(
         _A,
-        lambda d: d["_A"].has_property(properties.SYMMETRIC) and \
-                  not d["_A"].has_property(properties.DIAGONAL) and \
-                  not d["_A"].has_property(properties.SPD)
+        lambda d: d["_A"].has_property(Property.SYMMETRIC) and \
+                  not d["_A"].has_property(Property.DIAGONAL) and \
+                  not d["_A"].has_property(Property.SPD)
         ),
     Times(_L, _D, Transpose(_L)),
-    [OutputOperand(_L, None, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.FULL_RANK, properties.NON_SINGULAR, properties.SQUARE]),
-     OutputOperand(_D, None, ("N", "N"), [properties.DIAGONAL, properties.SQUARE])
+    [OutputOperand(_L, None, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.FULL_RANK, Property.NON_SINGULAR, Property.SQUARE]),
+     OutputOperand(_D, None, ("N", "N"), [Property.DIAGONAL, Property.SQUARE])
     ],
     cf,
     CodeTemplate(),
@@ -100,16 +100,16 @@ cf = lambda d: 2*d["N"]**2/3
 plu = FactorizationKernel(
     Pattern(
         _A,
-        lambda d: d["_A"].has_property(properties.NON_SINGULAR) and \
-                  not d["_A"].has_property(properties.DIAGONAL) and \
-                  not d["_A"].has_property(properties.TRIANGULAR) and \
-                  not d["_A"].has_property(properties.ORTHOGONAL) and \
-                  not d["_A"].has_property(properties.SYMMETRIC)
+        lambda d: d["_A"].has_property(Property.NON_SINGULAR) and \
+                  not d["_A"].has_property(Property.DIAGONAL) and \
+                  not d["_A"].has_property(Property.TRIANGULAR) and \
+                  not d["_A"].has_property(Property.ORTHOGONAL) and \
+                  not d["_A"].has_property(Property.SYMMETRIC)
         ),
     Times(_P, _L, _U),
-    [OutputOperand(_L, _A, ("N", "N"), [properties.LOWER_TRIANGULAR, properties.UNIT_DIAGONAL]),
-     OutputOperand(_U, _A, ("N", "N"), [properties.UPPER_TRIANGULAR]),
-     OutputOperand(_P, None, ("N", "N"), [properties.PERMUTATION])
+    [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.UNIT_DIAGONAL]),
+     OutputOperand(_U, _A, ("N", "N"), [Property.UPPER_TRIANGULAR]),
+     OutputOperand(_P, None, ("N", "N"), [Property.PERMUTATION])
     ],
     cf,
     CodeTemplate(),
@@ -149,16 +149,16 @@ def cf_qr_square(d):
 qr_square = FactorizationKernel(
     Pattern(
         _A,
-        lambda d: d["_A"].has_property(properties.FULL_RANK) and \
-                  d["_A"].has_property(properties.SQUARE) \
-                  and not d["_A"].has_property(properties.TRIANGULAR) \
-                  and not d["_A"].has_property(properties.DIAGONAL) \
-                  and not d["_A"].has_property(properties.ORTHOGONAL) \
-                  and not d["_A"].has_property(properties.ORTHOGONAL_COLUMNS)
+        lambda d: d["_A"].has_property(Property.FULL_RANK) and \
+                  d["_A"].has_property(Property.SQUARE) \
+                  and not d["_A"].has_property(Property.TRIANGULAR) \
+                  and not d["_A"].has_property(Property.DIAGONAL) \
+                  and not d["_A"].has_property(Property.ORTHOGONAL) \
+                  and not d["_A"].has_property(Property.ORTHOGONAL_COLUMNS)
         ),
     Times(_Q, _R),
-    [OutputOperand(_Q, None, ("N", "N"), [properties.FULL_RANK, properties.SQUARE, properties.ORTHOGONAL]),
-     OutputOperand(_R, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.SQUARE])
+    [OutputOperand(_Q, None, ("N", "N"), [Property.FULL_RANK, Property.SQUARE, Property.ORTHOGONAL]),
+     OutputOperand(_R, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.SQUARE])
     ],
     cf_qr_square,
     CodeTemplate(),
@@ -193,16 +193,16 @@ def cf_qr_column(d):
 qr_column = FactorizationKernel(
     Pattern(
         _A,
-        lambda d: d["_A"].has_property(properties.FULL_RANK) and \
-                  d["_A"].has_property(properties.COLUMN_PANEL) \
-                  and not d["_A"].has_property(properties.TRIANGULAR) \
-                  and not d["_A"].has_property(properties.DIAGONAL) \
-                  and not d["_A"].has_property(properties.ORTHOGONAL) \
-                  and not d["_A"].has_property(properties.ORTHOGONAL_COLUMNS)
+        lambda d: d["_A"].has_property(Property.FULL_RANK) and \
+                  d["_A"].has_property(Property.COLUMN_PANEL) \
+                  and not d["_A"].has_property(Property.TRIANGULAR) \
+                  and not d["_A"].has_property(Property.DIAGONAL) \
+                  and not d["_A"].has_property(Property.ORTHOGONAL) \
+                  and not d["_A"].has_property(Property.ORTHOGONAL_COLUMNS)
         ),
     Times(_Q, _R),
-    [OutputOperand(_Q, None, ("M", "N"), [properties.FULL_RANK, properties.COLUMN_PANEL, properties.ORTHOGONAL_COLUMNS]),
-     OutputOperand(_R, _A, ("N", "N"), [properties.UPPER_TRIANGULAR, properties.SQUARE])
+    [OutputOperand(_Q, None, ("M", "N"), [Property.FULL_RANK, Property.COLUMN_PANEL, Property.ORTHOGONAL_COLUMNS]),
+     OutputOperand(_R, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.SQUARE])
     ],
     cf_qr_column,
     CodeTemplate(),
@@ -236,14 +236,14 @@ def cf_eigen(d):
 eigendecomposition = FactorizationKernel(
     Pattern(
         _A,
-        lambda d: d["_A"].has_property(properties.SPD) or 
-                  (d["_A"].has_property(properties.SYMMETRIC) \
-                    and not d["_A"].has_property(properties.DIAGONAL)
+        lambda d: d["_A"].has_property(Property.SPD) or 
+                  (d["_A"].has_property(Property.SYMMETRIC) \
+                    and not d["_A"].has_property(Property.DIAGONAL)
                   )
         ),
     Times(_Z, _W, Transpose(_Z)),
-    [OutputOperand(_Z, _A, ("N", "N"), [properties.ORTHOGONAL]),
-     OutputOperand(_W, None, ("N", "N"), [properties.DIAGONAL, properties.SQUARE])
+    [OutputOperand(_Z, _A, ("N", "N"), [Property.ORTHOGONAL]),
+     OutputOperand(_W, None, ("N", "N"), [Property.DIAGONAL, Property.SQUARE])
     ],
     cf_eigen,
     CodeTemplate("""\
@@ -280,18 +280,18 @@ cf = lambda d: 14*d["M"]*d["N"]**2 + 8*d["N"]**3
 singular_value = FactorizationKernel(
     Pattern(
         _A,
-        # lambda d: d["_A"].has_property(properties.MATRIX)
+        # lambda d: d["_A"].has_property(Property.MATRIX)
         # checking those properties is important when applying
         # factorizations to special properties
-        lambda d: not d["_A"].has_property(properties.DIAGONAL) and \
-                  not d["_A"].has_property(properties.TRIANGULAR) and \
-                  not d["_A"].has_property(properties.ORTHOGONAL_COLUMNS) and \
-                  not d["_A"].has_property(properties.ORTHOGONAL)
+        lambda d: not d["_A"].has_property(Property.DIAGONAL) and \
+                  not d["_A"].has_property(Property.TRIANGULAR) and \
+                  not d["_A"].has_property(Property.ORTHOGONAL_COLUMNS) and \
+                  not d["_A"].has_property(Property.ORTHOGONAL)
     ),
     Times(_U, _S, _V),
-    [OutputOperand(_U, None, ("M", "M"), [properties.ORTHOGONAL]),
-     OutputOperand(_S, None, ("M", "N"), [properties.DIAGONAL]),
-     OutputOperand(_V, None, ("N", "N"), [properties.ORTHOGONAL])
+    [OutputOperand(_U, None, ("M", "M"), [Property.ORTHOGONAL]),
+     OutputOperand(_S, None, ("M", "N"), [Property.DIAGONAL]),
+     OutputOperand(_V, None, ("N", "N"), [Property.ORTHOGONAL])
     ],
     cf,
     CodeTemplate("""\

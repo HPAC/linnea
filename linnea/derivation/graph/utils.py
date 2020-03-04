@@ -8,7 +8,7 @@ from ...algebra.transformations import transpose, invert, undistribute_inverse, 
                                        admits_undistribution
 from ...algebra.representations import to_POS
 from ...algebra import equations as aeq
-from ...algebra.properties import Property as properties
+from ...algebra.properties import Property
 
 from ...utils import is_inverse, is_transpose
 
@@ -92,7 +92,7 @@ def find_operands_to_factor(equations, eqn_idx=None):
         equation = equations[_eqn_idx]
         for inv_expr, inv_pos in inverse_positions(equation.rhs, (1,)):
             for expr, pos in inv_expr.preorder_iter():
-                if isinstance(expr, Symbol) and expr.has_property(properties.ADMITS_FACTORIZATION):
+                if isinstance(expr, Symbol) and expr.has_property(Property.ADMITS_FACTORIZATION):
                     operands_to_factor.add(expr)
 
     """Operands that have not been computed yet can not be factored. An operand
@@ -337,7 +337,7 @@ def inverse_type(expr):
         op_type = OperationType.plus
 
     if isinstance(first_operand, Symbol):
-        if not first_operand.has_property(properties.ADMITS_FACTORIZATION):
+        if not first_operand.has_property(Property.ADMITS_FACTORIZATION):
             # if expr is an inverse of a symbol but has a property
             # that makes factorization unnecessary, skip this inverse
             #print(" ".join(["don't factor:", str(first_operand)]) )
@@ -351,7 +351,7 @@ def inverse_type(expr):
         for tmp_expr, pos in expr.preorder_iter():
             # search for operands that could be factored
             if isinstance(tmp_expr, Matrix):
-                if first_operand.has_property(properties.ADMITS_FACTORIZATION):
+                if first_operand.has_property(Property.ADMITS_FACTORIZATION):
                     # if there is one, use factorizations
                     #print(" ".join(["compound, factor because of:", str(tmp_expr)]) )
                     return (ExpressionType.compound_inverse, op_type)
@@ -418,7 +418,7 @@ def is_explicit_inversion(matrix_chain):
 def is_dead_end(equations, factored_operands):
     for equation in equations:
         for expr, _ in equation.rhs.preorder_iter():
-            if is_inverse(expr) and expr.operand.has_property(properties.ADMITS_FACTORIZATION) and expr.operand in factored_operands:
+            if is_inverse(expr) and expr.operand.has_property(Property.ADMITS_FACTORIZATION) and expr.operand in factored_operands:
                 return True
             if isinstance(expr, Times) and is_blocked(expr) and not is_explicit_inversion(expr):
                 return True
@@ -433,7 +433,7 @@ def is_scalar(expr):
         products with vectors, an expression can be scalar even though it does
         not exclusively consist of scalars.
     """
-    return all(e.has_property(properties.SCALAR) for e in expr.iterate_preorder())
+    return all(e.has_property(Property.SCALAR) for e in expr.iterate_preorder())
 
 
 def is_simple_plus(expr):
@@ -469,7 +469,7 @@ def _is_simple_times(expr):
     if isinstance(expr, Symbol):
         return True
     # order is important here because is_transpose includes invers
-    elif is_inverse(expr) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(properties.ADMITS_FACTORIZATION):
+    elif is_inverse(expr) and isinstance(expr.operand, Symbol) and not expr.operand.has_property(Property.ADMITS_FACTORIZATION):
         return True
     elif is_transpose(expr) and isinstance(expr.operand, Symbol):
         return True
