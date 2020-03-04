@@ -9,7 +9,7 @@ import copy
 import operator
 
 def to_normalform(expr):
-    return to_SOP(at.simplify(to_SOP(expr)))
+    return at.simplify(to_SOP(at.simplify(expr)))
 
 def to_SOP(expr):
     """Brings an expression to the "sum of products" form.
