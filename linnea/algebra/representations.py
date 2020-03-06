@@ -19,43 +19,36 @@ def to_normalform(expr):
 def to_SOP(expr):
     """Brings an expression to the "sum of products" form.
 
-    TODO think about implementing the following
-    Note that this function does not consider scalar sums. Scalar sums are
-    treated as single scalars. The reason is that there is probably no case
-    where transforming (alpha + beta)*A into alpha*A + beta*A is useful.
+    This function does not consider scalar sums for the conversion to SOP form,
+    that is, (alpha + beta)*A is not converted to alpha*A + beta*A. This is
+    because there is no reason to expect that alpha*A + beta*A is useful. As
+    a consequence, the SOP form is compatible with the normal form in the sense
+    that in the normal form converts alpha*A + beta*A to (alpha + beta)*A, and
+    the SOP form does not change (alpha + beta)*A.
 
-    IMPORTANT: This function modifies expr. Since it is possible that the
-    outermost operator changes, it is possible that the variable originally
-    passed to this function points to a wrong node in the expression tree.
-    To avoid any problems, use this fuction as follows:
+    If new features are added that require to consider alpha*A + beta*A, this
+    function should be changed to also consider scalar sums. If the normal form
+    is not changed, this would mean that the normal form and SOP form are not
+    compatible anymore. In that case, one solution might be to make the
+    generate_variants return an additional expression in SOP form that can be
+    different from the expression in normal form.
 
-    expr = to_SOP(expr)
+    Args:
+        expr (Expression): The input expression.
+
+    Returns:
+        Expression: The expression rewritten to the sum of products form.
     """
 
-    # TODO should this be part of simplify()?
-
-    # if isinstance(expr, Times) and any(isinstance(operand, Plus) and not operand.has_property(Property.SCALAR) for operand in expr.operands):
-    if isinstance(expr, ae.Times) and any(isinstance(operand, ae.Plus) for operand in expr.operands):
+    if isinstance(expr, ae.Times) and any(isinstance(operand, ae.Plus) and not operand.has_property(Property.SCALAR) for operand in expr.operands):
         factors = []
         for operand in expr.operands:
-            # REMARK: It's possible to do
-            # operand = to_SOP(operand)
-            # here instead of in the return line.
-            # I would say that conceptually, it's more elegant, because this
-            # version starts transforming to SOP from the inside out (i.e.
-            # bottom to top in the expression tree), while the other version
-            # works in the opposite direction. Intuitively, I would say that
-            # the bottom-up approach should be faster because the expressions
-            # that are copied are simpler, but it's not the case.
-
-            # if isinstance(operand, Plus) and not operand.has_property(Property.SCALAR):
-            if isinstance(operand, ae.Plus):
+            if isinstance(operand, ae.Plus) and not operand.has_property(Property.SCALAR):
                 factors.append(operand.operands)
             else:
                 factors.append([operand])
 
         return ae.Plus(*(to_SOP(ae.Times(*product)) for product in itertools.product(*factors)))
-        # return Plus(factors)
 
     elif isinstance(expr, ae.Operator):
         return type(expr)(*map(to_SOP, expr.operands))
