@@ -312,11 +312,11 @@ class Operator(matchpy.Operation, Expression):
     @property
     def indices(self):
         # this doesn't make sense for Equal
-        return set.union(*[op.indices for op in self.operands])
+        return set.union(*(op.indices for op in self.operands))
 
     @property
     def factorization_labels(self):
-        return set.union(*[op.factorization_labels for op in self.operands])
+        return set.union(*(op.factorization_labels for op in self.operands))
 
     def to_dot(self, out):
         node_name = "".join(["node", str(Expression.counter)])
@@ -493,7 +493,7 @@ class Plus(Operator):
 
     @property
     def bandwidth(self):
-        bands = list(zip(*[operand.bandwidth for operand in self.operands]))
+        bands = list(zip(*(operand.bandwidth for operand in self.operands)))
         return (max(bands[0]), max(bands[1]))
 
     def to_matlab_expression(self):
@@ -604,8 +604,8 @@ class Times(Operator):
         # to use split_operands here.
         scalars, non_scalars = self.split_operands()
         if non_scalars:
-            sizes = [operand.size for operand in non_scalars]
-            bands = [operand.bandwidth for operand in non_scalars]
+            sizes = tuple(operand.size for operand in non_scalars)
+            bands = tuple(operand.bandwidth for operand in non_scalars)
             l = len(non_scalars)
             # print(self, bands, sizes)
             lb = bands[-1][0]
@@ -629,9 +629,6 @@ class Times(Operator):
     def __str__(self):
         operand_str = ' '.join(map(str, self.operands))
         return "({0})".format(operand_str)
-
-    def is_inverse_type(self, type):
-        return type in [Inverse, InverseTranspose]
 
     def to_matlab_expression(self):
         return '*'.join(map(operator.methodcaller("to_matlab_expression"), self.operands))

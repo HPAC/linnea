@@ -252,7 +252,7 @@ def remove_transpose(expr, name):
     elif isinstance(expr, matchpy.Wildcard):
         return expr
     else:
-        return type(expr)(*[remove_transpose(op, name) for op in expr.operands])
+        return type(expr)(*(remove_transpose(op, name) for op in expr.operands))
     
 class OutputOperand():
     """docstring for OutputOperand"""
@@ -516,7 +516,7 @@ class KernelDescription():
 
             # Dealing with the remaining kernel variants
             # Step 1: Generating all combinations.
-            for arg_val_pairs in itertools.product(*[variant.arg_vals.items() for variant in self.variants]):
+            for arg_val_pairs in itertools.product(*(variant.arg_vals.items() for variant in self.variants)):
                 expr_copy2 = expr
                 arguments_copy2 = [copy.copy(arg) for arg in arguments_copy1] # copy is not enough, deepcopy is not necessary
 
@@ -627,7 +627,7 @@ def replace_symbol(expr, old, new):
     elif isinstance(expr, matchpy.Wildcard):
         return expr
     else:
-        return type(expr)(*[replace_symbol(operand, old, new) for operand in expr.operands])
+        return type(expr)(*(replace_symbol(operand, old, new) for operand in expr.operands))
 
 def replace_symbols(expr, mapping):
     if isinstance(expr, Symbol): # only symbols have names
@@ -638,7 +638,7 @@ def replace_symbols(expr, mapping):
     elif isinstance(expr, matchpy.Wildcard):
         return expr
     else:
-        return type(expr)(*[replace_symbols(operand, mapping) for operand in expr.operands])
+        return type(expr)(*(replace_symbols(operand, mapping) for operand in expr.operands))
 
 def replace_operator(expr, old, new):
     # print(expr)
@@ -647,7 +647,7 @@ def replace_operator(expr, old, new):
     # if type(expr) == old:
         return replace_operator(new(*expr.operands), old, new)
     elif not isinstance(expr, Symbol) and not isinstance(expr, matchpy.Wildcard):
-        return type(expr)(*[replace_operator(operand, old, new) for operand in expr.operands])
+        return type(expr)(*(replace_operator(operand, old, new) for operand in expr.operands))
     else:
         return expr
 

@@ -208,7 +208,7 @@ def _to_POS(expr, side):
     
     # TODO does this make it faster?
     if not isinstance(expr, ae.Plus) and not isinstance(expr, ae.Symbol):
-        return type(expr)(*[_to_POS(operand, side) for operand in expr.operands])
+        return type(expr)(*(_to_POS(operand, side) for operand in expr.operands))
     elif expr.has_property(Property.SCALAR) or isinstance(expr, ae.Symbol):
         # This function doesn't do anything with scalar
         return expr

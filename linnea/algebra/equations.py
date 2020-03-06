@@ -68,13 +68,13 @@ class Equations():
         return Equations(*equations)
 
     def simplify(self):
-        return Equations(*[at.simplify(equation) for equation in self.equations])
+        return Equations(*map(at.simplify, self.equations))
 
     def to_SOP(self):
-        return Equations(*[ar.to_SOP(equation) for equation in self.equations])
+        return Equations(*map(ar.to_SOP, self.equations))
 
     def to_normalform(self):
-        return Equations(*[ar.to_normalform(equation) for equation in self.equations])
+        return Equations(*map(ar.to_normalform, self.equations))
 
     def get_data(self):
         """Counts the number of floating point values for calculating intensity.
