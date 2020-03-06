@@ -800,9 +800,6 @@ A.set_property(Property.SQUARE)
 A.set_property(Property.TRIANGULAR)
 cf = lambda d: (d["N"]**3)/3
 
-# TODO this can not be used at the moment because of StorageFormat.as_overwritten
-# and storage format conversions
-
 trtri = KernelDescription(
     ExpressionKV(
         None,
