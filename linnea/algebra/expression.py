@@ -784,10 +784,6 @@ class Identity(Operator):
     def operand(self):
         return self.operands[0]
 
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
-
     @property
     def bandwidth(self):
         return self.operands[0].bandwidth
@@ -820,10 +816,6 @@ class Transpose(Operator):
     @property
     def operand(self):
         return self.operands[0]
-
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -875,10 +867,6 @@ class Conjugate(Operator):
     def operand(self):
         return self.operands[0]
 
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
-
     @property
     def bandwidth(self):
         return self.operands[0].bandwidth
@@ -912,10 +900,6 @@ class ConjugateTranspose(Operator):
     @property
     def operand(self):
         return self.operands[0]
-
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -966,10 +950,6 @@ class Inverse(Operator):
     @property
     def operand(self):
         return self.operands[0]
-
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
 
     @property
     def bandwidth(self):
@@ -1035,10 +1015,6 @@ class InverseTranspose(Operator):
     def operand(self):
         return self.operands[0]
 
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
-
     @property
     def bandwidth(self):
         bands = tuple(reversed(self.operands[0].bandwidth))
@@ -1095,10 +1071,6 @@ class InverseConjugate(Operator):
     def operand(self):
         return self.operands[0]
 
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
-
     @property
     def bandwidth(self):
         bands = self.operands[0].bandwidth
@@ -1132,10 +1104,6 @@ class InverseConjugateTranspose(Operator):
     @property
     def operand(self):
         return self.operands[0]
-
-    @operand.setter
-    def operand(self, value):
-        self.operands[0] = value
 
     @property
     def bandwidth(self):
