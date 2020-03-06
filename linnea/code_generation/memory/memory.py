@@ -361,6 +361,10 @@ class Memory():
                 # Something is overwritten, and the operand is still needed.
                 # The overwritten operand is copied into a new MemoryLocation.
                 # We overwrite the operand in the existing location.
+                # TODO To deal with the case where multiple operands are in this
+                #      location, wouldn't it be easier to overwrite the operand
+                #      in the new location? Then we don't need to move all other
+                #      operands.
                 existing_location = self.lookup[overwriting.name]
                 existing_location_copy = copy.deepcopy(existing_location)
 
@@ -371,6 +375,10 @@ class Memory():
                 # Move overwritten operand to new location.
                 new_location.content.append(overwriting)
                 # This loop seems to be completely unnecessary.
+                # TODO I'm not so sure anymore that this loop is unnecessary.
+                #      What if there are mutliple operands in the overwritten
+                #      location? The loop should take care of that. Is it
+                #      possible that it simply never happens?
                 # for _operand in new_location.content:
                 #     self.lookup[_operand.name] = new_location
                 self.lookup[overwriting.name] = new_location
