@@ -419,8 +419,7 @@ def transpose(expr):
         operands = scalars + [transpose(operand) for operand in reversed(non_scalars)]
         return ae.Times(*operands)
     elif isinstance(expr, ae.Plus):
-        operands = [transpose(operand) for operand in expr.operands]
-        return ae.Plus(*operands)
+        return ae.Plus(*map(transpose, expr.operands))
     elif isinstance(expr, ae.Symbol):
         if expr.has_property(Property.SCALAR):
             return expr
@@ -470,8 +469,7 @@ def invert_transpose(expr):
     elif isinstance(expr, ae.ConstantScalar):
         return ae.ConstantScalar(1/expr.value)
     elif isinstance(expr, ae.Plus):
-        operands = [transpose(operand) for operand in expr.operands]
-        return ae.Inverse(ae.Plus(*operands))
+        return ae.Inverse(ae.Plus(*map(transpose, expr.operands)))
     elif isinstance(expr, ae.Times):
         return _distribute_inverse(expr, ae.InverseTranspose, invert_transpose, False)
     elif isinstance(expr, matchpy.Wildcard): # For Wildcards
