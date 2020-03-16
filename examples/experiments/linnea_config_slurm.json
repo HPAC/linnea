@@ -12,19 +12,19 @@
         "generate":
         {
             "time": "2:00:00",
-            "memory": "4000M",
-            "group": " ",
-            "model": "skx8160"
+            "memory": "8000M",
+            "group": "aices",
+            "model": "hwx2680"
         },
         "time":
         {
             "time_generation": "2:00:00",
-            "time_execution": "3:00:00",
-            "memory": "4000M",
-            "group": " ",
-            "model": "skx8160",
-            "exclusive": false,
-            "node": "linuxihdc074",
+            "time_execution": "48:00:00",
+            "memory": "16000M",
+            "group": "aices",
+            "model": "hwx2680",
+            "exclusive": true,
+            "node": "",
             "repetitions": 1
         },
         "path":
@@ -44,7 +44,6 @@
         "julia_data_type": "Float64",
         "merging_branches": true,
         "dead_ends": true,
-        "pruning_factor": 1.0,
         "algorithms_limit": 100,
         "output_name": "tmp",
         "generate_graph": false,
@@ -53,6 +52,6 @@
         "generate_experiments": false,
         "verbosity": 1,
         "graph_style": "full",
-        "output_code_path": "."
+        "output_code_path": "$HOME/Linnea/output/code"
     }
 }
