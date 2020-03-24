@@ -213,9 +213,10 @@ class CSE():
     def is_subexpression(self, other):
         """Tests if self is a subexpression of other.
 
-        The test is based on the positions of the subexpressions of self and
-        other. If any subexpression of self is a subexpression of one in other,
-        this function returns True.
+        The test is based on the positions (occurrences) of the subexpressions
+        of self and other. If for every occurrence in self, there is an
+        occurrence in other where the occurrence in self is subexpression of the
+        occurrence in other, this function returns True.
 
         This function defines a transitive relation.
 
@@ -225,10 +226,7 @@ class CSE():
         Returns:
             True if self is a subexpression of other, False otherwise.
         """
-        for self_subexpr, other_subexpr in itertools.product(self.subexprs, other.subexprs):
-            if self_subexpr.is_subexpression(other_subexpr):
-                return True
-        return False
+        return all(any(self_subexpr.is_subexpression(other_subexpr) for other_subexpr in other.subexprs) for self_subexpr in self.subexprs)
 
     def is_compatible(self, other):
         """Tests if self is compatible with other.
