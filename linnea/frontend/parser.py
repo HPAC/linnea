@@ -17,7 +17,8 @@ import sys
 
 from tatsu.buffering import Buffer
 from tatsu.parsing import Parser
-from tatsu.parsing import tatsumasu
+from tatsu.parsing import tatsumasu, leftrec, nomemo
+from tatsu.parsing import leftrec, nomemo  # noqa
 from tatsu.util import re, generic_main  # noqa
 
 
@@ -155,6 +156,8 @@ class LinneaParser(Parser):
                 self._matrix_()
             with self._option():
                 self._identity_matrix_()
+            with self._option():
+                self._zero_matrix_()
             self._error('no available options')
 
     @tatsumasu('Scalar')
@@ -260,6 +263,19 @@ class LinneaParser(Parser):
             []
         )
 
+    @tatsumasu('ZeroMatrix')
+    def _zero_matrix_(self):  # noqa
+        self._token('ZeroMatrix')
+        self._cut()
+        self._identifier_()
+        self.name_last_node('name')
+        self._dim_matrix_()
+        self.name_last_node('dims')
+        self.ast._define(
+            ['dims', 'name'],
+            []
+        )
+
     @tatsumasu()
     def _dim_vector_(self):  # noqa
         self._token('(')
@@ -336,6 +352,18 @@ class LinneaParser(Parser):
             with self._option():
                 self._token('Positive')
                 self.name_last_node('@')
+            with self._option():
+                self._token('SPSD')
+                self.name_last_node('@')
+            with self._option():
+                self._token('OrthogonalColumns')
+                self.name_last_node('@')
+            with self._option():
+                self._token('OrthogonalRows')
+                self.name_last_node('@')
+            with self._option():
+                self._token('Permutation')
+                self.name_last_node('@')
             self._error('no available options')
 
     @tatsumasu('Equation')
@@ -352,6 +380,7 @@ class LinneaParser(Parser):
         )
 
     @tatsumasu()
+    @nomemo
     def _expression_(self):  # noqa
         with self._choice():
             with self._option():
@@ -363,6 +392,7 @@ class LinneaParser(Parser):
             self._error('no available options')
 
     @tatsumasu('Plus')
+    @nomemo
     def _addition_(self):  # noqa
         self._term_()
         self.name_last_node('left')
@@ -391,6 +421,7 @@ class LinneaParser(Parser):
         )
 
     @tatsumasu()
+    @nomemo
     def _term_(self):  # noqa
         with self._choice():
             with self._option():
@@ -400,6 +431,7 @@ class LinneaParser(Parser):
             self._error('no available options')
 
     @tatsumasu('Times')
+    @nomemo
     def _multiplication_(self):  # noqa
         self._factor_()
         self.name_last_node('left')
@@ -414,6 +446,7 @@ class LinneaParser(Parser):
         )
 
     @tatsumasu()
+    @leftrec
     def _factor_(self):  # noqa
         with self._choice():
             with self._option():
@@ -437,6 +470,7 @@ class LinneaParser(Parser):
         self._token(')')
 
     @tatsumasu('Transpose')
+    @nomemo
     def _transposed_expr_(self):  # noqa
         with self._choice():
             with self._option():
@@ -525,6 +559,9 @@ class LinneaSemantics(object):
         return ast
 
     def identity_matrix(self, ast):  # noqa
+        return ast
+
+    def zero_matrix(self, ast):  # noqa
         return ast
 
     def dim_vector(self, ast):  # noqa

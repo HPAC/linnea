@@ -16,12 +16,13 @@ equations = { @+:equation } ;
 
 var_declaration::Size = name:identifier "=" ~ value:integer ;
 
-symbol_declaration = scalar | row_vector | column_vector | matrix | identity_matrix ;
+symbol_declaration = scalar | row_vector | column_vector | matrix | identity_matrix | zero_matrix ;
 scalar::Scalar = "Scalar" ~ name:identifier "<" ','%{ properties+:properties }* ">";
 row_vector::RowVector = "RowVector" ~ name:identifier dims:dim_vector "<" ','%{ properties+:properties }* ">";
 column_vector::ColumnVector = "ColumnVector" ~ name:identifier dims:dim_vector "<" ','%{ properties+:properties }* ">";
 matrix::Matrix = "Matrix" ~ name:identifier dims:dim_matrix "<" ','%{ properties+:properties }* ">";
 identity_matrix::IdentityMatrix = "IdentityMatrix" ~ name:identifier dims:dim_matrix;
+zero_matrix::ZeroMatrix = "ZeroMatrix" ~ name:identifier dims:dim_matrix;
 
 dim_vector = "(" length:identifier ")";
 dim_matrix = "(" rows:identifier "," columns:identifier ")";
@@ -31,7 +32,8 @@ properties =
         | @:"Banded"            | @:"LowerTriangular"   | @:"UpperTriangular"
         | @:"UnitDiagonal"      | @:"Symmetric"         | @:"Hessenberg"
         | @:"Orthogonal"        | @:"FullRank"          | @:"Non-singular"
-        | @:"Positive" ;
+        | @:"Positive"          | @:"SPSD"              | @:"OrthogonalColumns"
+        | @:"OrthogonalRows"    | @:"Permutation";
 
 equation::Equation = lhs:symbol "=" ~ rhs:expression ;
 

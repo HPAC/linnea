@@ -54,7 +54,12 @@ class LinneaWalker(NodeWalker):
     def walk_IdentityMatrix(self, node):
         size = (self._variables[node.dims.rows], self._variables[node.dims.columns])
         self.symbolic_operand_sizes[node.name] = (node.dims.rows, node.dims.columns)
-        self._set_symbol(ae.IdentityMatrix(*size), node)
+        self._symbols[node.name] = ae.IdentityMatrix(*size)
+
+    def walk_ZeroMatrix(self, node):
+        size = (self._variables[node.dims.rows], self._variables[node.dims.columns])
+        self.symbolic_operand_sizes[node.name] = (node.dims.rows, node.dims.columns)
+        self._symbols[node.name] = ae.ZeroMatrix(*size)
 
     def walk_Scalar(self, node):
         self._set_symbol(ae.Scalar(node.name), node)
