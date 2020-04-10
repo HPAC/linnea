@@ -82,6 +82,9 @@ class LinneaWalker(NodeWalker):
     def walk_Inverse(self, node):
         return ae.Inverse(self.walk(node.arg))
 
+    def walk_Minus(self, node):
+        return ae.Times(ae.ConstantScalar(-1), self.walk(node.arg))
+
     def walk_Symbol(self, node):
         return self._symbols[node.name]
 

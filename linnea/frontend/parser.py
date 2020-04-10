@@ -456,6 +456,8 @@ class LinneaParser(Parser):
             with self._option():
                 self._inverted_expr_()
             with self._option():
+                self._minus_expr_()
+            with self._option():
                 self._literal_expr_()
             with self._option():
                 self._symbol_()
@@ -494,6 +496,16 @@ class LinneaParser(Parser):
         self._expression_()
         self.name_last_node('arg')
         self._token(')')
+        self.ast._define(
+            ['arg'],
+            []
+        )
+
+    @tatsumasu('Minus')
+    def _minus_expr_(self):  # noqa
+        self._token('-')
+        self._factor_()
+        self.name_last_node('arg')
         self.ast._define(
             ['arg'],
             []
@@ -601,6 +613,9 @@ class LinneaSemantics(object):
         return ast
 
     def inverted_expr(self, ast):  # noqa
+        return ast
+
+    def minus_expr(self, ast):  # noqa
         return ast
 
     def literal_expr(self, ast):  # noqa

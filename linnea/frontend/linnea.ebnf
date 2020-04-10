@@ -44,10 +44,11 @@ subtraction::Subtract = left:term op:'-' ~ right:expression ;
 term = multiplication | factor ;
 multiplication::Times = left:factor op:'*' ~ right:term ;
 
-factor = subexpression | transposed_expr | inverted_expr | literal_expr | symbol ;
+factor = subexpression | transposed_expr | inverted_expr | minus_expr | literal_expr | symbol ;
 subexpression = "(" ~ @:expression ")" ;
 transposed_expr::Transpose =  "trans(" arg:expression ")" | arg:factor "'" ;
 inverted_expr::Inverse =  "inv(" arg:expression ")" ;
+minus_expr::Minus = "-" arg:factor ;
 literal_expr::Number = value:constant ;
 symbol::Symbol = name:identifier ;
 
