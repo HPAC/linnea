@@ -390,15 +390,10 @@ def invert(expr):
 def transpose(expr):
     """Returns the transpose of expr.
 
-    This function automatically distributes the transpose across operators.
-    It does not change the canonical form of this expression.
-
-    IMPORTANT: This function modifies expr. Since it is possible that the
-    outermost operator changes, it is possible that the variable originally
-    passed to this function points to a wrong node in the expression tree.
-    To avoid any problems, use this fuction as follows:
-
-    expr = transpose(expr)
+    This funtion transposes the input expression. It is important to note that
+    it does not fully distribute (push down) the transpose operator. The reason
+    is that for expressions of the form Transpose(expr), it simply returns expr.
+    As an example, for (A*(B*C)^T)^T, it returns A*(B*C)^T.
     """
     if isinstance(expr, ae.Transpose):
         return expr.operand
