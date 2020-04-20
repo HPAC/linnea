@@ -4234,3 +4234,40 @@ class Example170():
                             Equal(X, Plus(Times(Inverse(A), B, C), Times(D, E)))
                             # Equal(X, Times(Inverse(A), B, C))
                             )
+
+
+class Example171():
+    def __init__(self):
+
+        # TAGS
+        # scalar subexpressions
+
+        n1 = 10
+        n2 = 10 
+
+        A = Matrix("A", (n1, n1))
+
+        x = Vector("x", (n1, 1))
+        y = Vector("y", (n1, 1))
+
+        B = Matrix("B", (n1, n1))
+
+        C = Matrix("C", (n1, n1))
+        
+        D = Matrix("D", (n1, n1))
+        E = Matrix("E", (n1, n1))
+        alpha = Scalar("alpha")
+        beta = Scalar("beta")
+
+        X = Matrix("X", (n1, n1))
+
+        self.eqns = Equations(
+                Equal(X, Times(A, alpha, C)),
+                # Equal(X, Times(A, alpha, beta, C)),
+                # Equal(X, Times(A, Transpose(x), B, x, C)),
+                # Equal(X, Times(A, Transpose(x), B, x, Transpose(x), x, C))
+                # Equal(X, Times(A, Transpose(x), Transpose(y), y, x, B)),
+                # Equal(X, Times(A, Transpose(x), B, x)),
+                # Equal(X, Times(Transpose(x), B, x, A)),
+                # Equal(X, Times(Transpose(x), B, x, A, Transpose(x), C, x)),
+            )
