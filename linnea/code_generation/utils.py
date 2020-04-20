@@ -403,6 +403,8 @@ class Algorithm():
                     Compute
                     {}.
 
+                    Requires at least Julia v1.0.
+
                     # Arguments
                     {}
                     \"\"\"\
