@@ -4258,16 +4258,24 @@ class Example171():
         E = Matrix("E", (n1, n1))
         alpha = Scalar("alpha")
         beta = Scalar("beta")
+        gamma = Scalar("gamma")
 
         X = Matrix("X", (n1, n1))
 
         self.eqns = Equations(
-                Equal(X, Times(A, alpha, C)),
+                # Equal(gamma, Times(alpha)),
+                # Equal(gamma, Times(alpha, beta)),
+                # Equal(gamma, Times(Transpose(x), A, x)),
+                # Equal(X, Times(alpha, A, C)),
+                # Equal(X, Times(alpha, beta, A, C)),
+                # Equal(X, Times(Transpose(x), B, x, A)),
+                # Equal(X, Times(Transpose(x), Transpose(y), y, x, A, B)),
+                # Equal(X, Times(Transpose(x), Transpose(y), C, y, x, A, B)),
+                # Equal(X, Times(Transpose(x), B, x, A, Transpose(x), C, x)),
+                # Equal(X, Times(A, alpha, C)),
                 # Equal(X, Times(A, alpha, beta, C)),
                 # Equal(X, Times(A, Transpose(x), B, x, C)),
                 # Equal(X, Times(A, Transpose(x), B, x, Transpose(x), x, C))
                 # Equal(X, Times(A, Transpose(x), Transpose(y), y, x, B)),
-                # Equal(X, Times(A, Transpose(x), B, x)),
-                # Equal(X, Times(Transpose(x), B, x, A)),
-                # Equal(X, Times(Transpose(x), B, x, A, Transpose(x), C, x)),
+                Equal(X, Times(A, Transpose(x), B, x)),
             )
