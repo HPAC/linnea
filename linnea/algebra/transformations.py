@@ -110,7 +110,7 @@ def simplify(expr):
                         if l > 2:
                             del non_scalars[i:i+2]
                         else:
-                            size = (non_scalars[i].size[0], non_scalars[i+1].size[1])
+                            size = (non_scalars[i].rows, non_scalars[i+1].columns)
                             non_scalars[i:i+2] = [ae.IdentityMatrix(*size)]
                             pass
                         # since indices change after removing something, we have
@@ -120,7 +120,7 @@ def simplify(expr):
                         if l > 2:
                             del non_scalars[i+1:i+3]
                         else:
-                            size = (non_scalars[i+1].size[0], non_scalars[i+2].size[1])
+                            size = (non_scalars[i+1].rows, non_scalars[i+2].columns)
                             non_scalars[i+1:i+3] = [ae.IdentityMatrix(*size)]
                             pass
                         # since indices change after removing something, we have
@@ -712,10 +712,10 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
                 if operand.has_property(Property.SQUARE):
                     operands.append(operand)
                 else:
-                    size = operand.size[0]
+                    size = operand.rows
                     pos = n
 
-            if size == operand.size[1]:
+            if size == operand.columns:
                 operands.append(non_scalars[pos:n+1])
                 size = None
     else:

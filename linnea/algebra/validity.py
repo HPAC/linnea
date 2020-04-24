@@ -70,7 +70,7 @@ def check_validity(expr):
                 # if scalar at the end of product, don't check
                 if compare_with == len(factors):
                     valid_dims = True
-                elif factor.size[1]==factors[compare_with].size[0]:
+                elif factor.columns == factors[compare_with].rows:
                     valid_dims = True
             # if current position is end of scalar expression, don't check if
             # dimension match
@@ -79,7 +79,7 @@ def check_validity(expr):
             # normal check
             else:
                 compare_with = n+1
-                if factor.size[1]==factors[compare_with].size[0]:
+                if factor.columns == factors[compare_with].rows:
                     valid_dims = True
             if not valid_dims:
                 raise SizeMismatch("Size mismatch in product: %s * %s with sizes %s and %s" \

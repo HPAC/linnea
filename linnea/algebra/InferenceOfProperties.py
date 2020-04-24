@@ -237,7 +237,7 @@ def is_full_rank_product(expr):
     """
     max_rank = min(expr.size)
     _, non_scalars = expr.split_operands()
-    min_interior_size = min(operand.size[1] for operand in non_scalars[:-1])
+    min_interior_size = min(operand.columns for operand in non_scalars[:-1])
     return min_interior_size >= max_rank
 
 def isSquare(expr):

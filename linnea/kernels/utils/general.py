@@ -122,13 +122,13 @@ class SizeArgument(Argument):
     def get_value(self, match_dict, memory=None):
         # size = self.operand.replace_copy(match_dict).size
         # TODO don't use substitute here
-        size = matchpy.substitute(self.operand, match_dict).size
+        op = matchpy.substitute(self.operand, match_dict)
         if self.dimension == "rows":
-            return size[0]
+            return op.rows
         elif self.dimension == "columns":
-            return size[1]
+            return op.columns
         elif self.dimension == "entries":
-            return size[0]*size[1]
+            return op.rows*op.columns
         else:
             raise ValueError("{} is not a valid dimension.".format(self.dimension))
         # return operator.attrgetter(self.dimension)(match_dict[self.operand.name])

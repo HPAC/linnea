@@ -677,15 +677,15 @@ class MemoryLocation():
         self.name = "".join(["ml", str(self.id)])
         if storage_format < StorageFormat.as_vector:
             self.size = (min(operand.size),) # this has to be a tuple
-            self.stride = (1,) # same here
+            # self.stride = (1,) # same here
         elif operand.has_property(Property.VECTOR):
             self.size = (max(operand.size),) # this has to be a tuple
             # max because operand.size is something like (10, 1)
-            self.stride = (1,) # same here
+            # self.stride = (1,) # same here
         else:
             size = operand.size
             self.size = size
-            self.stride = (size[0], 1)
+            # self.stride = (size[0], 1)
         self.content = []
 
     @staticmethod
@@ -705,7 +705,7 @@ class MemoryLocation():
         MemoryLocation._counter += 1
         new_location.name = "".join(["ml", str(new_location.id)])
         new_location.size = existing_location.size
-        new_location.stride = existing_location.stride
+        # new_location.stride = existing_location.stride
         new_location.content = []
         return new_location
 
@@ -718,7 +718,7 @@ class MemoryLocation():
         cpy.name = self.name
         cpy.content = self.content.copy()
         cpy.size = self.size
-        cpy.stride = self.stride
+        # cpy.stride = self.stride
         return cpy
 
 # """

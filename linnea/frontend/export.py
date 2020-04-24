@@ -31,9 +31,9 @@ def export(equations):
                 prop_str = ', '.join(props)
                 if isinstance(expr, ae.Matrix):
                     var_declarations.append(
-                        '{}_rows = {}'.format(expr.name, expr.size[0]))
+                        '{}_rows = {}'.format(expr.name, expr.rows))
                     var_declarations.append(
-                        '{}_cols = {}'.format(expr.name, expr.size[1]))
+                        '{}_cols = {}'.format(expr.name, expr.columns))
                     if expr.has_property(Property.IDENTITY):
                         var_declarations.append(
                             'IdentityMatrix {0} ({0}_rows, {0}_cols)'.format(expr.name))
@@ -44,7 +44,7 @@ def export(equations):
                     var_declarations.append(
                         '{}_size = {}'.format(expr.name, max(expr.size)))
                     op_declarations.append('{2}Vector {0} ({0}_size) <{1}>'.format(
-                        expr.name, prop_str, 'Row' if expr.size[0] == 1 else 'Column'))
+                        expr.name, prop_str, 'Row' if expr.rows == 1 else 'Column'))
                 elif isinstance(expr, ae.Scalar):
                     op_declarations.append('Scalar {} <{}>'.format(expr.name, prop_str))
                 else:

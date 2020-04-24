@@ -524,77 +524,46 @@ class Times(Operator):
 
     @property
     def size(self):
-        # return (self.rows, self.columns)
-        return self._calc_size()
-
-    # @profile
-    def _calc_size(self):
-        scalar_expressions = utils.scalar_subexpressions(self)
-
-        rows = 0
-        cols = 0
-        factors = self.operands
-        length = len(factors)
-        for pair in scalar_expressions:
-            if pair[0] == 0:
-                pos = pair[1]
-                if pos == length-1:
-                    rows = 1
-                else:
-                    rows = factors[pos+1].size[0]
-            if pair[1] == length-1:
-                pos = pair[0]
-                if pos == 0:
-                    cols = 1
-                else:
-                    cols = factors[pos-1].size[1]
-
-        if rows == 0:
-            rows = factors[0].size[0]
-        if cols == 0:
-            cols = factors[-1].size[1]
-
-        return (rows, cols)
-
+        return (self.rows, self.columns)
 
     @property
     # @profile
     def rows(self):
-        stack = []
-        factors = self.operands
-        pos = -1 # With this initialization, even products with one operand work.
-        for n, factor in enumerate(factors):
-            if factor.rows == 1:
-                stack.append(n)
-            if factor.columns == 1 and stack:
-                stack.pop()
-                pos = n
-            if not stack:
-                break
-
-        if pos == len(factors)-1:
-            return 1
-        else:
-            return factors[pos+1].rows
+        n = 0 # Counts inner products.
+        for op in self.operands:
+            if op.rows == 1:
+                if op.columns != 1:
+                    # row vector
+                    n += 1
+            else:
+                if op.columns == 1:
+                    # column vector
+                    n -= 1
+                else:
+                    # matrix
+                    if n == 0:
+                        return op.rows
+        # If we get here, the entire product is a scalar.
+        return 1
 
     @property
     def columns(self):
-        stack = []
-        factors = self.operands
-        pos = len(factors) # With this initialization, even products with one operand work.
-        for n, factor in zip(itertools.count(pos-1, -1), reversed(self.operands)):
-            if factor.columns == 1:
-                stack.append(n)
-            if factor.rows == 1 and stack:
-                stack.pop()
-                pos = n
-            if not stack:
-                break
-
-        if pos == 0:
-            return 1
-        else:
-            return factors[pos-1].columns
+        n = 0 # Counts inner products.
+        for op in reversed(self.operands):
+            if op.columns == 1:
+                if op.rows != 1:
+                    # column vector
+                    n += 1
+            else:
+                if op.rows == 1:
+                    # row vector
+                    n -= 1
+                else:
+                    # matrix
+                    if n == 0:
+                        return op.columns
+        # If we get here, the entire product is a scalar.
+        return 1
 
     @property
     def bandwidth(self):
@@ -612,14 +581,14 @@ class Times(Operator):
             for i in range(l-2, -1, -1):
                 lb = min(lb + bands[i][0], sizes[i][0]-1)
                 if -sizes[i+1][1] >= lb:
-                    lb = -self.size[1]
+                    lb = -self.columns
                     break
 
             ub = bands[0][1]
             for i in range(1, l):
                 ub = min(ub + bands[i][1], sizes[i][1]-1)
                 if -sizes[i-1][0] >= ub:
-                    ub = -self.size[0]
+                    ub = -self.rows
                     break
             # print((lb, ub))
             return (lb, ub)
@@ -655,15 +624,15 @@ class LinSolveL(Operator):
 
     @property
     def size(self):
-        return (self.operands[0].size[1], self.operands[1].size[1])
+        return (self.operands[0].columns, self.operands[1].columns)
 
     @property
     def rows(self):
-        return self.operands[0].size[1]
+        return self.operands[0].columns
 
     @property
     def columns(self):
-        return self.operands[1].size[1]
+        return self.operands[1].columns
 
     @property
     def bandwidth(self):
@@ -723,15 +692,15 @@ class LinSolveR(Operator):
 
     @property
     def size(self):
-        return (self.operands[0].size[0], self.operands[1].size[0])
+        return (self.operands[0].rows, self.operands[1].rows)
 
     @property
     def rows(self):
-        return self.operands[0].size[0]
+        return self.operands[0].rows
 
     @property
     def columns(self):
-        return self.operands[1].size[0]
+        return self.operands[1].rows
 
     @property
     def bandwidth(self):
@@ -800,7 +769,8 @@ class Transpose(Operator):
 
     @property
     def size(self):
-        return tuple(reversed(self.operands[0].size))
+        rows, columns = self.operands[0].size
+        return (columns, rows)
 
     @property
     def rows(self):
@@ -816,7 +786,8 @@ class Transpose(Operator):
 
     @property
     def bandwidth(self):
-        return tuple(reversed(self.operands[0].bandwidth))
+        lb, ub = self.operands[0].bandwidth
+        return (ub, lb)
 
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
@@ -900,7 +871,8 @@ class ConjugateTranspose(Operator):
 
     @property
     def bandwidth(self):
-        return tuple(reversed(self.operands[0].bandwidth))
+        lb, ub = self.operands[0].bandwidth
+        return (ub, lb)
 
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
@@ -934,7 +906,8 @@ class Inverse(Operator):
 
     @property
     def size(self):
-        return tuple(reversed(self.operands[0].size))
+        rows, columns = self.operands[0].size
+        return (columns, rows)
 
     @property
     def rows(self):
@@ -1014,8 +987,8 @@ class InverseTranspose(Operator):
 
     @property
     def bandwidth(self):
-        bands = tuple(reversed(self.operands[0].bandwidth))
-        return utils._inverse_bandwidth(bands, self.size)
+        lb, ub = self.operands[0].bandwidth
+        return utils._inverse_bandwidth((ub, lb), self.size)
 
     def __str__(self):
         return "{0}{1}".format(self.operands[0], self.name)
@@ -1054,7 +1027,8 @@ class InverseConjugate(Operator):
 
     @property
     def size(self):
-        return tuple(reversed(self.operands[0].size))
+        rows, columns = self.operands[0].size
+        return (columns, rows)
 
     @property
     def rows(self):
@@ -1104,8 +1078,8 @@ class InverseConjugateTranspose(Operator):
 
     @property
     def bandwidth(self):
-        bands = tuple(reversed(self.operands[0].bandwidth))
-        return utils._inverse_bandwidth(bands, self.size)
+        lb, ub = self.operands[0].bandwidth
+        return utils._inverse_bandwidth((ub, lb), self.size)
 
     def __str__(self):
          return "{0}{1}".format(self.operands[0], self.name)
@@ -1129,10 +1103,10 @@ class Vector(Symbol):
             raise ValueError("Symbol with size {} is not a vector.".format(size))
 
     def __repr__(self):
-        if self.size[0] == 1:
-            return 'Vector({!r}, cols={})'.format(self.name, self.size[1])
+        if self.rows == 1:
+            return 'Vector({!r}, cols={})'.format(self.name, self.columns)
         else:
-            return 'Vector({!r}, rows={})'.format(self.name, self.size[0])
+            return 'Vector({!r}, rows={})'.format(self.name, self.rows)
 
 
 class Matrix(Symbol):
@@ -1194,7 +1168,7 @@ class IdentityMatrix(ConstantMatrix):
     def to_cpp_expression(self, lib):
         if lib is CppLibrary.Blaze:
             # IdentityMatrix can only be symmetric in Blaze
-            if self.size[0] != self.size[1]:
+            if self.rows != self.columns:
                 raise ExpressionError("Non-square identity matrix not supported for Blaze")
             data_type_str = "double" if config.float64 else "float"
             return "blaze::IdentityMatrix<{0}>({1})".format(data_type_str, *self.size)

@@ -125,11 +125,11 @@ def operand_generator_to_file(output_name, operands, output_str, language = conf
 
         if language == config.Language.Cpp:
             if Property.VECTOR in operand.properties:
-                if operand.size[0] == 1:
+                if operand.rows == 1:
                     property_replacements.append("generator::shape::row_vector{}")
                 else:
                     property_replacements.append("generator::shape::col_vector{}")
-            if operand.size[0] != operand.size[1]:
+            if operand.rows != operand.columns:
                 property_replacements.append("generator::shape::not_square{}")
                 
         replacement["size"] = ",".join(map(str, operand.size))
