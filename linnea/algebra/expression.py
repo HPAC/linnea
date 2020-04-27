@@ -536,14 +536,14 @@ class Times(Operator):
                     # row vector
                     n += 1
             else:
+                if n == 0:
+                    # column vector or matrix
+                    return op.rows
                 if op.columns == 1:
                     # column vector
                     n -= 1
-                else:
-                    # matrix
-                    if n == 0:
-                        return op.rows
-        # If we get here, the entire product is a scalar.
+        # If we get here, the entire product is a scalar, or the first operand is a
+        # row vector that is not part of an inner product.
         return 1
 
     @property
@@ -555,14 +555,14 @@ class Times(Operator):
                     # column vector
                     n += 1
             else:
+                if n == 0:
+                    # row vector or matrix
+                    return op.columns
                 if op.rows == 1:
                     # row vector
                     n -= 1
-                else:
-                    # matrix
-                    if n == 0:
-                        return op.columns
-        # If we get here, the entire product is a scalar.
+        # If we get here, the entire product is a scalar, or the last operand is a
+        # column vector that is not part of an inner product.
         return 1
 
     @property
