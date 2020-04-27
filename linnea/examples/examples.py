@@ -4249,6 +4249,10 @@ class Example171():
 
         x = Vector("x", (n1, 1))
         y = Vector("y", (n1, 1))
+        z = Vector("z", (n1, 1))
+
+        u = Vector("u", (1, n1))
+        v = Vector("v", (1, n1))
 
         B = Matrix("B", (n1, n1))
 
@@ -4277,5 +4281,14 @@ class Example171():
                 # Equal(X, Times(A, Transpose(x), B, x, C)),
                 # Equal(X, Times(A, Transpose(x), B, x, Transpose(x), x, C))
                 # Equal(X, Times(A, Transpose(x), Transpose(y), y, x, B)),
-                Equal(X, Times(A, Transpose(x), B, x)),
+                # Equal(X, Times(A, Transpose(x), B, x)),
+                Equal(x, Times(A, y)),
+                # Equal(u, Times(v, A)),
+                # Equal(u, Times(v, x, Transpose(y), A)),
+                # Equal(u, Times(v, Transpose(x), y, A)),
+                # Equal(u, Times(v, Transpose(x), B, y, A)),
+                # Equal(X, Times(A, x, Transpose(y), B)),
+                # Equal(X, Times(x, Transpose(y), B)),
+                # Equal(z, Times(u, x, y)),
+                # Equal(v, Times(u, Transpose(x), y)),
             )
