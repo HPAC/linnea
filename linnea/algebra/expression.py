@@ -361,7 +361,7 @@ class Symbol(matchpy.Symbol, Expression):
         elif prop == Property.MATRIX:
             return
         elif prop == Property.POSITIVE and isinstance(self, (Vector, Matrix)):
-            raise PropertyError("Property 'positive' is only defined for scalars.")
+            raise PropertyError("Property 'positive' is only defined for scalars, not for {}".format(repr(self)))
 
         self.properties.add(prop)
         self.properties.update(implications.get(prop, tuple()))
