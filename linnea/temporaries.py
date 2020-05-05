@@ -95,7 +95,7 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, properties=None):
 
     # for special properties
     if properties:
-        for prop in Property:
+        for prop in properties:
             tmp.set_property(prop)
 
     return tmp
