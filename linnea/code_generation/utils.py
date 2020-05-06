@@ -1,6 +1,7 @@
 from ..algebra.expression import Symbol, Times, \
                                  Inverse, InverseTranspose, Transpose, \
-                                 LinSolveL, LinSolveR
+                                 LinSolveL, LinSolveR, \
+                                 Matrix, Vector, Scalar
 from ..algebra.equations import Equations
 from ..algebra.properties import Property
 from ..utils import PropertyConstraint, is_inverse
@@ -392,8 +393,16 @@ class Algorithm():
                     properties_str = " with property {}".format(properties_list)
             else:
                 properties_str = ""
-            size = " x ".join([str(s) for s in operand.size if s != 1])
-            description = "- `{}::{}`: Operand {} of size {}{}.".format(memory.lookup[operand.name].name, operand_type(operand), operand.name, size, properties_str)
+            
+            if isinstance(operand, Matrix):
+                op_str = "Matrix {} of size {} x {}".format(operand.name, operand.rows, operand.columns)
+            elif isinstance(operand, Vector):
+                length = operand.columns if operand.columns != 1 else operand.rows
+                op_str = "Vector {} of size {}".format(operand.name, length)
+            elif isinstance(operand, Scalar):
+                op_str = "Scalar {}".format(operand.name)
+
+            description = "- `{}::{}`: {}{}.".format(memory.lookup[operand.name].name, operand_type(operand), op_str, properties_str)
             operand_description.append(description)
         template = textwrap.dedent(
                     """\
