@@ -364,7 +364,9 @@ class Memory():
                 # TODO To deal with the case where multiple operands are in this
                 #      location, wouldn't it be easier to overwrite the operand
                 #      in the new location? Then we don't need to move all other
-                #      operands.
+                #      operands. Maybe not, because the memory locations in the
+                #      signature are determined by the operand_mapping dict,
+                #      which was constructed already.
                 existing_location = self.lookup[overwriting.name]
                 existing_location_copy = copy.deepcopy(existing_location)
 
