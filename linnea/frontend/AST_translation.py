@@ -74,7 +74,7 @@ class LinneaWalker(NodeWalker):
         return ae.Times(self.walk(node.left), self.walk(node.right))
 
     def walk_Subtract(self, node):
-        return ae.Plus(self.walk(node.left), ae.Times(ae.ConstantScalar(-1), self.walk(node.right)))
+        return ae.Plus(self.walk(node.left), ae.Times(ae.ConstantScalar(-1.0), self.walk(node.right)))
 
     def walk_Transpose(self, node):
         return ae.Transpose(self.walk(node.arg))
@@ -83,7 +83,7 @@ class LinneaWalker(NodeWalker):
         return ae.Inverse(self.walk(node.arg))
 
     def walk_Minus(self, node):
-        return ae.Times(ae.ConstantScalar(-1), self.walk(node.arg))
+        return ae.Times(ae.ConstantScalar(-1.0), self.walk(node.arg))
 
     def walk_Symbol(self, node):
         return self._symbols[node.name]
