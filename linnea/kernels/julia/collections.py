@@ -173,6 +173,9 @@ scaling_kernels = list(itertools.chain(
                 scal,
                 lascl,
                 diagscal,
+                # It's debatable whether scalar_product belongs here. It's here
+                # to make decompose_sum work for something like alpha+2*beta.
+                scalar_product,  
             ))
 
 
