@@ -239,7 +239,7 @@ set_generate_code(True)
 set_generate_experiments(False)
 set_output_code_path('.')
 set_verbosity(1)
-set_time_limit(math.inf)
+set_time_limit(60)
 set_graph_style(GraphStyle.full)
 
 def load_config(config_file=''):
