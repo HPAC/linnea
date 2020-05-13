@@ -506,6 +506,9 @@ class Memory():
         - in place
         - out of place
         - copy
+
+        Instead of using the if below to identify when a conversion has to be
+        done out of place, try to incorporate this into the selection process.
         """
 
         """
