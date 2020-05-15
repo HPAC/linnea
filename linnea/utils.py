@@ -1,4 +1,5 @@
 from .algebra import expression as ae
+from .algebra import properties
 
 import string
 import textwrap
@@ -312,6 +313,165 @@ class InequalityConstraint(matchpy.Constraint):
     @property
     def variables(self):
         return frozenset([self.x1, self.x2])
+
+
+class Element(object):
+    """Element for UnionFind."""
+    def __init__(self, elem):
+        super(Element, self).__init__()
+        self.content = elem
+        self.parent = self
+        self.rank = 0
+        
+
+class UnionFind(object):
+    """docstring for UnionFind"""
+    def __init__(self):
+        super(UnionFind, self).__init__()
+        self.elements = dict()
+        self.components = dict()
+
+    def add_element(self, elem):
+        if not elem in self.elements:
+            obj = Element(elem)
+            # self.content.append(obj)
+            self.elements[elem] = obj
+            self.components[elem] = [obj]
+
+    # def find(self, elem):
+    #     root = self.elements[elem]
+    #     while root.parent != root:
+    #         root = root.parent
+
+    #     # while elem.parent != root:
+    #     #     parent = elem.parent
+    #     #     elem.parent = root
+    #     #     elem = parent
+
+    #     return root
+
+    def find(self, elem):
+        """
+
+        Implements the path halving optimization.
+        """
+        node = self.elements[elem]
+        while node.parent != node:
+            node.parent = node.parent.parent
+            node = node.parent
+        return node
+        
+    def union(self, elem1, elem2):
+        root1 = self.find(elem1)
+        root2 = self.find(elem2)
+
+        if root1 == root2:
+            return
+
+        if root1.rank < root2.rank:
+            root1, root2 = root2, root1
+
+        self.components[root1.content].extend(self.components[root2.content])
+        del self.components[root2.content]
+
+        root2.parent = root1
+        if root1.rank == root2.rank:
+            root1.rank = root1.rank + 1
+
+    def sets(self):
+        return [set(elem.content for elem in components) for components in self.components.values()]
+            
+
+def collect_dependent_dimensions(expr, union_find):
+    if isinstance(expr, ae.Symbol):
+        rows = (expr.name, 0)
+        cols = (expr.name, 1)
+        union_find.add_element(rows)
+        union_find.add_element(cols)
+        if expr.has_property(properties.Property.SYMMETRIC):
+            union_find.union(rows, cols)
+        return (rows, cols)
+    elif isinstance(expr, ae.Transpose):
+        rows, cols = collect_dependent_dimensions(expr.operand, union_find)
+        return (cols, rows)
+    elif isinstance(expr, ae.InverseTranspose):
+        rows, cols = collect_dependent_dimensions(expr.operand, union_find)
+        union_find.union(rows, cols) # inverted expressions have to be square
+        return (rows, cols)
+    elif isinstance(expr, ae.Inverse):
+        rows, cols = collect_dependent_dimensions(expr.operand, union_find)
+        union_find.union(rows, cols) # inverted expressions have to be square
+        return (cols, rows)
+    elif isinstance(expr, ae.Times):
+        dimension_list = [collect_dependent_dimensions(op, union_find) for op in expr.operands]
+        stack = []
+        n = len(expr.operands)
+        rows = None
+        cols = None
+        for i in range(1, n):
+            current_op = expr.operands[i]
+            previous_op = expr.operands[i-1]
+            if current_op.rows != 1:
+                if previous_op.columns != 1:
+                    # no scalars
+                    union_find.union(dimension_list[i-1][1], dimension_list[i][0])
+                else:
+                    # end of scalar subexpression
+                    if stack:
+                        last_dim = stack.pop()
+                        union_find.union(last_dim, dimension_list[i][0])
+                    else:
+                        # expressions starts with scalar subexpression
+                        rows = dimension_list[i][0]
+            else:
+                if previous_op.columns != 1:
+                    # beginning of scalar subexpression
+                    stack.append(dimension_list[i-1][1])
+                # else: consecutive scalar subexpressions
+
+        if stack:
+            # expression ends with scalar subexpression
+            cols = stack.pop()
+        else:
+            # expression does not end with scalar subexpression
+            cols = dimension_list[-1][1]
+        if not rows:
+            # expression does not start with scalar subexpression
+            rows = dimension_list[0][0]
+
+        return (rows, cols)
+    elif isinstance(expr, ae.Plus):
+        dimension_list = [collect_dependent_dimensions(op, union_find) for op in expr.operands]
+        for op1, op2 in window(dimension_list):
+            union_find.union(op1[0], op2[0])
+            union_find.union(op1[1], op2[1])
+        return dimension_list[0]
+    elif isinstance(expr, ae.Equal):
+        rhs_dimensions = collect_dependent_dimensions(expr.rhs, union_find)
+        lhs_dimensions = collect_dependent_dimensions(expr.lhs, union_find)
+        union_find.union(rhs_dimensions[0], lhs_dimensions[0])
+        union_find.union(rhs_dimensions[1], lhs_dimensions[1])
+        return rhs_dimensions
+
+
+def dependent_dimensions(equations):
+    """Computes dependent dimensions.
+
+    The dependent dimensions are all sets of dimensions that have to be the same
+    for the input equations to be valid. Dimensions are represented as tuples of
+    two elements: The first element is the name of the operand, the second
+    element is an integer; 0 stands for rows, 1 for columns.
+
+    Args:
+        equations (Equations): Input equations
+
+    Returns:
+        list: A list of sets. All dimensions in one set have to be the same.
+    """
+    uf = UnionFind()
+    for eqn in equations:
+        collect_dependent_dimensions(eqn, uf)
+    return uf.sets()
 
 
 def window(seq, n=2):
