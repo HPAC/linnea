@@ -203,12 +203,15 @@ class CSE():
                 adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
 
         self.all_cliques = list(find_max_cliques(adj))
-        self.max_clique_size = max((len(clique) for clique in self.all_cliques), default=0)
         """int: This number gives the maximal number of subexpressions that can
         be replaced at the same time. It is given by the size the largest
         maximal clique in a graph where subexpressions are nodes, and edges
         represents which subexpressions are compatible.
+        I suspect that for products, those graphs are (proper) intervals graphs.
+        For interval graphs, cliques can be computed in polynomial time. Do
+        graphs for sums have special properties too?
         """
+        self.max_clique_size = max((len(clique) for clique in self.all_cliques), default=0)
 
     def is_subexpression(self, other):
         """Tests if self is a subexpression of other.
@@ -453,6 +456,13 @@ class CSEDetector():
             # to the same CSE, and there are no cliques with less than two
             # nodes.
             for clique in CSEs[0].all_cliques:
+                # TODO We yield maximal cliques here. Maximal cliques might
+                # be smaller than maximum cliques. However, for the definition
+                # of maximal CSEs, we rely on the clique number, that is, the
+                # size of a maximum clique. So does it make sense to return
+                # smaller cliques here? Probably not. However, maximal cliques
+                # that are not maximum cliques are rare. The simplest case I can
+                # come up with is X = AAAA, Y = AA.
                 yield [self.all_subexpressions[id] for id in clique]
         else:
             subexprs = list(itertools.chain.from_iterable([node.subexprs for node in CSEs]))
@@ -466,6 +476,8 @@ class CSEDetector():
 
             cliques = []
             for clique in find_max_cliques(adj):
+                # TODO Do maximal cliques that are not maximum cliques make
+                # sense here?
 
                 counter = Counter(self.subexpr_to_CSE[id] for id in clique)
 
