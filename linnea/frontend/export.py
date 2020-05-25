@@ -1,6 +1,8 @@
 from ..algebra import expression as ae
 from ..algebra.properties import Property
 
+from ..utils import dependent_dimensions
+
 
 _BINARY = {
     ae.Plus: ' + ',
@@ -13,44 +15,79 @@ _UNARY = {
 }
 
 _SUPPORTED_PROPERTIES = {
-    'Square', 'SPD', 'ColumnPanel', 'RowPanel', 'Diagonal', 'Tridiagonal',
-    'Banded', 'LowerTriangular', 'UpperTriangular', 'UnitDiagonal', 'Symmetric',
-    'Hessenberg', 'Orthogonal', 'FullRank', 'Non-singular'
+    'SPD', 'SPSD', 'Diagonal', 'Permutation', 'Positive',
+    'LowerTriangular', 'UpperTriangular', 'UnitDiagonal', 'Symmetric',
+    'Orthogonal', 'OrthogonalRows', 'OrthogonalColumns', 'FullRank', 'Non-singular'
 }
 
 def export(equations):
     """Export a set of equations to the input string format."""
-    # TODO: Add support for names of sizes once they are saved with the symbols
-    var_declarations = []
-    op_declarations = []
-    symbols = set()
+    dimensions_dict = dict()
+
+    operands = set()
+    required_dimensions = set()
     for eq in equations:
-        for expr, _ in eq.preorder_iter(lambda e: isinstance(e, ae.Symbol)):
-            if expr not in symbols:
-                props = ['InOut'] + [p.value for p in expr.properties if p.value in _SUPPORTED_PROPERTIES]
-                prop_str = ', '.join(props)
-                if isinstance(expr, ae.Matrix):
-                    var_declarations.append(
-                        '{}_rows = {}'.format(expr.name, expr.rows))
-                    var_declarations.append(
-                        '{}_cols = {}'.format(expr.name, expr.columns))
-                    if expr.has_property(Property.IDENTITY):
-                        var_declarations.append(
-                            'IdentityMatrix {0} ({0}_rows, {0}_cols)'.format(expr.name))
-                    else:
-                        op_declarations.append(
-                            'Matrix {0} ({0}_rows, {0}_cols) <{1}>'.format(expr.name, prop_str))
-                elif isinstance(expr, ae.Vector):
-                    var_declarations.append(
-                        '{}_size = {}'.format(expr.name, max(expr.size)))
-                    op_declarations.append('{2}Vector {0} ({0}_size) <{1}>'.format(
-                        expr.name, prop_str, 'Row' if expr.rows == 1 else 'Column'))
-                elif isinstance(expr, ae.Scalar):
-                    op_declarations.append('Scalar {} <{}>'.format(expr.name, prop_str))
-                else:
-                    raise TypeError(
-                        'Unsupported operand type: {!r}'.format(type(expr)))
-                symbols.add(expr)
+        for op, _ in eq.preorder_iter(lambda e: isinstance(e, ae.Symbol) and not isinstance(e, ae.ConstantScalar)):
+            operands.add(op)
+            if op.rows != 1:
+                required_dimensions.add((op.name, 0))
+            if op.columns != 1:
+                required_dimensions.add((op.name, 1))
+
+    # print(required_dimensions)
+
+    i = 1
+    for dims in dependent_dimensions(equations):
+        if not dims.isdisjoint(required_dimensions):
+            # print(dims)
+            var = "n{}".format(i)
+            i += 1
+            for op_name, dim in dims:
+                dimensions_dict[(op_name, dim)] = var
+
+    # print(dimensions_dict)
+    var_values = dict() # mapping of variable names to their values
+    op_declarations = []
+    for expr in operands:
+        props = [p.value for p in expr.properties if p.value in _SUPPORTED_PROPERTIES]
+        prop_str = ', '.join(props)
+        if isinstance(expr, ae.Matrix):
+            rows = dimensions_dict[(expr.name, 0)]
+            columns = dimensions_dict[(expr.name, 1)]
+            var_values[rows] = expr.rows
+            var_values[columns] = expr.columns
+
+            # TODO for identity and zero matrix, we cannot use their original name.
+            # Use something like I_n2
+            if expr.has_property(Property.IDENTITY):
+                op_declarations.append(
+                    'IdentityMatrix {0}({1}, {2})'.format(expr.name, rows, columns))
+            elif expr.has_property(Property.ZERO):
+                op_declarations.append(
+                    'ZeroMatrix {0}({1}, {2})'.format(expr.name, rows, columns))
+            else:
+                op_declarations.append(
+                    'Matrix {0}({1}, {2}) <{3}>'.format(expr.name, rows, columns, prop_str))
+        elif isinstance(expr, ae.Vector):
+            if expr.columns == 1:
+                length = dimensions_dict[(expr.name, 0)]
+                var_values[length] = expr.rows
+                op_declarations.append('ColumnVector {0}({1}) <{2}>'.format(
+                    expr.name, dimensions_dict[(expr.name, 0)], prop_str))
+            else:
+                length = dimensions_dict[(expr.name, 1)]
+                var_values[length] = expr.columns
+                op_declarations.append('RowVector {0}({1}) <{2}>'.format(
+                    expr.name, dimensions_dict[(expr.name, 1)], prop_str))
+        elif isinstance(expr, ae.Scalar):
+            op_declarations.append('Scalar {} <{}>'.format(expr.name, prop_str))
+        else:
+            raise TypeError(
+                'Unsupported operand type: {!r}'.format(type(expr)))
+
+    var_declarations = []
+    for variable, value in var_values.items():
+        var_declarations.append('{} = {}'.format(variable, value))
 
     assignments = [export_expression(e) for e in equations]
 
