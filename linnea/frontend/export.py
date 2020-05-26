@@ -20,6 +20,7 @@ _SUPPORTED_PROPERTIES = {
     'Orthogonal', 'OrthogonalRows', 'OrthogonalColumns', 'FullRank', 'Non-singular'
 }
 
+
 def export(equations):
     """Export a set of equations to the input string format."""
     dimensions_dict = dict()
@@ -48,6 +49,7 @@ def export(equations):
     # print(dimensions_dict)
     var_values = dict() # mapping of variable names to their values
     op_declarations = []
+    const_names = dict()
     for expr in operands:
         props = [p.value for p in expr.properties if p.value in _SUPPORTED_PROPERTIES]
         prop_str = ', '.join(props)
@@ -59,12 +61,20 @@ def export(equations):
 
             # TODO for identity and zero matrix, we cannot use their original name.
             # Use something like I_n2
+            if expr.has_property(Property.CONSTANT):
+                if rows != columns:
+                    name_suffix = "_{}_{}".format(rows, columns)
+                else:
+                    name_suffix = "_{}".format(rows)
+
             if expr.has_property(Property.IDENTITY):
                 op_declarations.append(
-                    'IdentityMatrix {0}({1}, {2})'.format(expr.name, rows, columns))
+                    'IdentityMatrix I{0}({1}, {2})'.format(name_suffix, rows, columns))
+                const_names[expr] = "I{}".format(name_suffix)
             elif expr.has_property(Property.ZERO):
                 op_declarations.append(
-                    'ZeroMatrix {0}({1}, {2})'.format(expr.name, rows, columns))
+                    'ZeroMatrix Zero{0}({1}, {2})'.format(name_suffix, rows, columns))
+                const_names[expr] = "Zero{}".format(name_suffix)
             else:
                 op_declarations.append(
                     'Matrix {0}({1}, {2}) <{3}>'.format(expr.name, rows, columns, prop_str))
@@ -89,7 +99,7 @@ def export(equations):
     for variable, value in var_values.items():
         var_declarations.append('{} = {}'.format(variable, value))
 
-    assignments = [export_expression(e) for e in equations]
+    assignments = [export_expression(e, const_names) for e in equations]
 
     return '{}\n\n{}\n\n{}'.format(
         '\n'.join(sorted(var_declarations)),
@@ -98,24 +108,27 @@ def export(equations):
     )
 
 
-def export_expression(expression):
+def export_expression(expression, const_names):
     """Convert an expression to the input string format."""
     # TODO: Add support for conjugate etc. once they are in the input language
     if isinstance(expression, ae.Symbol):
-        return expression.name
+        if expression in const_names:
+            return const_names[expression]
+        else:
+            return expression.name
     if isinstance(expression, ae.ConstantScalar):
         return str(expression.value)
     if isinstance(expression, ae.Equal):
         return '{} = {}'.format(
-            export_expression(expression.lhs),
-            export_expression(expression.rhs)
+            export_expression(expression.lhs, const_names),
+            export_expression(expression.rhs, const_names)
         )
     for op_type, op_str in _BINARY.items():
         if isinstance(expression, op_type):
-            return '({})'.format(op_str.join(export_expression(e) for e in expression.operands))
+            return '({})'.format(op_str.join(export_expression(e, const_names) for e in expression.operands))
     for op_type, op_str in _UNARY.items():
         if isinstance(expression, op_type):
-            return '{}({})'.format(op_str, export_expression(expression.operand))
+            return '{}({})'.format(op_str, export_expression(expression.operand, const_names))
     if isinstance(expression, ae.InverseTranspose):
-        return 'inv(trans({}))'.format(export_expression(expression.operand))
+        return 'inv(trans({}))'.format(export_expression(expression.operand, const_names))
     raise TypeError("Unknown expression type: {!r}".format(type(expression)))
