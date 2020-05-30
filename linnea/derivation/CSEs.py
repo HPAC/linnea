@@ -57,8 +57,6 @@ class Subexpression():
         self.type = type
         self.level = level
 
-        self.compatible_count = 0
-
         self.id = Subexpression._counter
         Subexpression._counter +=1
 
@@ -189,19 +187,7 @@ class CSE():
         self.id = CSE._counter
         CSE._counter +=1
 
-        self.compatible_count = 0
-
-        # Contain the predeccessors and successors in the CSE lattice.
-        self.predeccessors = []
-        self.successors = []
-
-        adj = dict()
-        for subexpr1, subexpr2 in itertools.combinations(self.subexprs, 2):
-            if subexpr1.is_compatible(subexpr2):
-                # print(subexpr1.expr, subexpr2.expr)
-                adj.setdefault(subexpr1.id, set()).add(subexpr2.id)
-                adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
-
+        adj = construct_graph(self.subexprs)
         self.all_cliques = list(find_max_cliques(adj))
         """int: This number gives the maximal number of subexpressions that can
         be replaced at the same time. It is given by the size the largest
@@ -316,126 +302,23 @@ class CSEDetector():
         # print("construct CSEs", [(str(cse.expr), len(cse.subexprs)) for cse in self.all_CSEs.values()])
 
 
-    def transitive_reduction(self):
-        """Computes the transitive reduction of the CSE lattice.
-
-        In practice, this means removing CSEs (nodes) from the predeccessor and
-        successor list.
-        """
-
-        while True:
-            remove_edge = []
-            for node in self.all_CSEs.values():
-                for pre in node.predeccessors:
-                    for prepre in pre.predeccessors:
-                        if prepre in node.predeccessors:
-                            edge = (node, prepre)
-                            if edge not in remove_edge:
-                                remove_edge.append((node, prepre))
-                                # print("tr", str(node.expr), str(prepre.expr))
-
-            if not remove_edge:
-                break
-
-            for node1, node2 in remove_edge:
-                node1.predeccessors.remove(node2)
-                node2.successors.remove(node1)
-
-
-    def remove_not_maximal_CSEs(self, nodes):
-        """Removes CSEs from the CSE lattice which are not maximal.
-
-        A CSE is maximal if there is a predecessor that has a smaller number of
-        occurrences (subexpressions). However, instead of the number of
-        occurrences, we use the maximum number of subexpressions that can be
-        replaced at the same time, which is given by CSE.max_clique_size.
-
-        One of the reasons for this is the common subexpression in Example063
-        after the Cholesky factorization is applied to S. The CSE that leads to
-        the optimal solution is not maximal based on the number of
-        subexpression. However, for the "larger" CSE, only two subexpression can
-        be replaced at the same time, because two of them overlap.
-        
-        Args:
-            nodes (list): The list of nodes (CSE objects) of the CSE lattice.
-        """
-
-        while True:
-            remove = []
-            for node in nodes:
-                if node.predeccessors and not node.successors:
-                    # if not any(len(predeccessor.subexprs) < len(node.subexprs) for predeccessor in node.predeccessors):
-                    if not any(predeccessor.max_clique_size < node.max_clique_size for predeccessor in node.predeccessors):
-                        # print("not maximal", node.expr)
-                        # if not any(predeccessor.compatible_count < node.compatible_count for predeccessor in node.predeccessors):
-                        remove.append(node)
-
-            if not remove:
-                break
-
-            for node in remove:
-                nodes.remove(node)
-                for predeccessor in node.predeccessors:
-                    predeccessor.successors.remove(node)
-
-    # TODO remove
-    def remove_invalid_CSEs(self, nodes):
-        """Removes invalid CSEs.
-
-        A common subexpression is invalid if there are no two subexpressions
-        that can be replaced at the same time. This is given by
-        CSE.max_clique_size.
-
-        Args:
-            nodes (list): The list of nodes (CSE objects) of the CSE lattice.
-        """
-
-        remove = []
-        for cse in nodes:
-            if cse.max_clique_size < 2:
-                remove.append(cse)
-
-        for cse in remove:
-            nodes.remove(cse)
-            for predeccessor in cse.predeccessors:
-                predeccessor.successors.remove(cse)
-            for successor in cse.successors:
-                successor.predeccessors.remove(cse)
-
-
     def maximal_CSEs(self):
-        """Returns all maximal CSEs.
+        """Returns all maximal-replaceable CSEs.
 
-        For a description of what "maximal" means here, see the docstring of
-        self.remove_not_maximal_CSEs.
+        A common subexpression is maximal-replaceable if for all common
+        subexpressions that subsume it, the number of replaceable occurrences
+        is smaller.
 
         Returns:
             list: The list of maximal CSEs.
         """
-        current_nodes = [node for node in self.all_CSEs.values()]
 
-        # Not necessary anymore, now that invalid CSEs are not constructed in
-        # the first place.
-        # self.remove_invalid_CSEs(current_nodes)
-        self.remove_not_maximal_CSEs(current_nodes)
+        maximal_CSEs = []
+        for cse in self.all_CSEs.values():
+            if all(not cse.is_subexpression(_cse) or cse.max_clique_size > _cse.max_clique_size for _cse in self.all_CSEs.values()):
+                maximal_CSEs.append(cse)
 
-        CSEs = []
-        while current_nodes:
-            new_CSEs = []
-            for node in current_nodes:
-                if not node.successors:
-                    new_CSEs.append(node)
-
-            for node in new_CSEs:
-                current_nodes.remove(node)
-                for predeccessor in node.predeccessors:
-                    predeccessor.successors.remove(node)
-
-            self.remove_not_maximal_CSEs(current_nodes)
-
-            CSEs.extend(new_CSEs)
-
-        return CSEs
+        return maximal_CSEs
 
 
     def replaceable_CSEs(self, CSEs):
@@ -466,13 +349,7 @@ class CSEDetector():
                 yield [self.all_subexpressions[id] for id in clique]
         else:
             subexprs = list(itertools.chain.from_iterable([node.subexprs for node in CSEs]))
-
-            adj = dict()
-            for subexpr1, subexpr2 in itertools.combinations(subexprs, 2):
-                if subexpr1.is_compatible(subexpr2):
-                    # print(subexpr1.expr, subexpr2.expr)
-                    adj.setdefault(subexpr1.id, set()).add(subexpr2.id)
-                    adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
+            adj = construct_graph(subexprs)
 
             cliques = []
             for clique in find_max_cliques(adj):
@@ -507,55 +384,6 @@ class CSEDetector():
             for clique in cliques:
                 yield [self.all_subexpressions[id] for id in clique]
 
-
-    def construct_lattice(self):
-        """Constructs CSE lattice.
-
-        The CSE lattice describes the "is subexpression" relation between CSEs.
-
-        In practice, this means setting predeccessors and successors for all
-        CSEs.
-        """
-        for cse1, cse2 in itertools.product(self.all_CSEs.values(), repeat=2):
-            if cse1.is_subexpression(cse2):
-                cse1.predeccessors.append(cse2)
-                cse2.successors.append(cse1)
-                # print(str(cse1.expr), str(cse2.expr))
-
-    def count_compatible(self):
-        """Counts the number of compatible subexpressions for each subexpression.
-
-        This is done in two steps. First, we take all combinations of two CSEs.
-        Then, for each subexpression of one CSE, we count the number of
-        subexpressions of the other CSE which are compatible.
-
-        In the second step, for each CSE we count how many of its subexpressions
-        are compatible.
-        
-        The number of compatible subexpressions can be used in the CSE lattice
-        to decide which CSEs to use and which to discard.
-        """
-        for cse1, cse2 in itertools.combinations(self.all_CSEs.values(), 2):
-            # print("CSE", str(cse1.expr), str(cse2.expr), len(cse2.subexprs))
-            for subexpr1, subexpr2 in itertools.product(cse1.subexprs, cse2.subexprs):
-                if subexpr1.is_compatible(subexpr2):
-                    # print(str(subexpr1.expr), subexpr1.eqn_idx, subexpr1.positions, str(subexpr2.expr), subexpr2.eqn_idx, subexpr2.positions)
-                    subexpr1.compatible_count += 1
-                    subexpr2.compatible_count += 1
-
-        for cse in self.all_CSEs.values():
-            for subexpr1, subexpr2 in itertools.combinations(cse.subexprs, 2):
-                if subexpr1.is_compatible(subexpr2):
-                    # print(str(subexpr1.expr), subexpr1.eqn_idx, str(subexpr2.expr), subexpr2.eqn_idx)
-                    subexpr1.compatible_count += 1
-                    subexpr2.compatible_count += 1
-
-        for CSE in self.all_CSEs.values():
-            CSE.compatible_count = sum(subexpr.compatible_count for subexpr in CSE.subexprs)
-
-        # print("compatible count", [(str(cse.expr), cse.compatible_count) for cse in self.all_CSEs.values()])
-
-
     def CSEs(self):
         """Generates all detected CSEs.
 
@@ -573,9 +401,6 @@ class CSEDetector():
 
         # TODO should all of this happen in maximal_CSEs()?
         self.construct_CSEs()
-        self.construct_lattice()
-        # self.count_compatible()
-        self.transitive_reduction()
         maximal_CSEs = self.maximal_CSEs()
 
         # adding pairs of CSEs that are compatible
@@ -599,6 +424,26 @@ class CSEDetector():
         for group in grouped_CSEs:
             # print("group", [str(cse.expr) for cse in group])
             yield from self.replaceable_CSEs(group)
+
+
+def construct_graph(subexprs):
+    """Constructs compatibility graph of subexpressions.
+
+    Args:
+        subexprs (list): List of subexpressions.
+
+    Returns:
+        dict: Maps subexpression IDs to sets of IDs of compatible
+              subexpressions.
+    """
+
+    adj = dict()
+    for subexpr1, subexpr2 in itertools.combinations(subexprs, 2):
+        if subexpr1.is_compatible(subexpr2):
+            adj.setdefault(subexpr1.id, set()).add(subexpr2.id)
+            adj.setdefault(subexpr2.id, set()).add(subexpr1.id)
+    return adj
+
 
 def find_max_cliques(G):
     """Returns all maximal cliques in an undirected graph.
