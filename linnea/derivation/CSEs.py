@@ -351,46 +351,23 @@ class CSEDetector():
             subexprs = list(itertools.chain.from_iterable([node.subexprs for node in CSEs]))
             adj = construct_graph(subexprs)
 
-            cliques = []
             for clique in find_max_cliques(adj):
                 # TODO Do maximal cliques that are not maximum cliques make
                 # sense here?
-
                 counter = Counter(self.subexpr_to_CSE[id] for id in clique)
 
-                # if for a CSE there is only one subexpression, this subexpression is removed
-                remove = set()
-                for id in clique:
-                    if counter[self.subexpr_to_CSE[id]] == 1:
-                        remove.add(id)
-                clique_no_singles = set(clique) - remove
-                cliques.append(clique_no_singles)
-
-            # Removing cliques that are subsets of other cliques.
-            # Those cases can happen because of the previous step.
-            remove = []
-            for clique1, clique2 in itertools.combinations(cliques, 2):
-                if clique1 <= clique2:
-                    remove.append(clique1)
-                elif clique2 < clique1:
-                    remove.append(clique2)
-
-            for clique in remove:
-                try:
-                    cliques.remove(clique)
-                except ValueError:
-                    pass
-
-            for clique in cliques:
-                yield [self.all_subexpressions[id] for id in clique]
+                # Subsets are only used if there are at least two occurrences of
+                # each CSE.
+                if len(counter) == 2 and all(v >= 2 for v in counter.values()):
+                    yield [self.all_subexpressions[id] for id in clique]
 
     def CSEs(self):
         """Generates all detected CSEs.
 
         This function generates the following replaceable common subexpressions:
         - Maximal common subexpressions.
-        - Pairs of two (potentially not maximal) common subexpression where all
-          subexpressions are compatible.
+        - Pairs of two maximal common subexpression where that are not
+          subexpressions of each other and have overlapping occurrences.
 
         For all of those subexpressions, all subsets of subexpressions are
         generated which are replaceable.
@@ -398,28 +375,17 @@ class CSEDetector():
         Yields:
             list: Sets of replaceable CSEs, as a list of subexpressions.
         """
-
-        # TODO should all of this happen in maximal_CSEs()?
         self.construct_CSEs()
-        maximal_CSEs = self.maximal_CSEs()
-
-        # adding pairs of CSEs that are compatible
-        # Here, we also consider CSEs which would not be considered otherwise because they are not maximal.
-        # there is no reason not to go for larger groups, but they are probably very unlikely
+        
         grouped_CSEs = []
-        for cse1, cse2 in itertools.combinations(self.all_CSEs.values(), 2):
-            if cse1.is_compatible(cse2):
-                grouped_CSEs.append((cse1, cse2))
 
-        for group in grouped_CSEs:
-            for cse in group:
-                try:
-                    maximal_CSEs.remove(cse)
-                except ValueError:
-                    pass
-
+        maximal_CSEs = self.maximal_CSEs()
         for cse in maximal_CSEs:
-            grouped_CSEs.append((cse,))      
+            grouped_CSEs.append((cse,))  
+
+        for cse1, cse2 in itertools.combinations(maximal_CSEs, 2):
+            if (not (cse1.is_subexpression(cse2) or cse2.is_subexpression(cse1))) and not cse1.is_compatible(cse2):
+                grouped_CSEs.append((cse1, cse2))
 
         for group in grouped_CSEs:
             # print("group", [str(cse.expr) for cse in group])
