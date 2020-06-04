@@ -182,6 +182,8 @@ class DerivationGraphBase(base.GraphBase):
             yield from reductions.apply_matrix_chain_algorithm(equations, eqn_idx, pos, is_explicit_inversion(equation[pos]))
         elif op_type == OperationType.plus:
             yield from reductions.apply_sum_algorithm(equations, eqn_idx, pos)
+        elif op_type == OperationType.unary:
+            yield from reductions.apply_unary_kernels(equations, eqn_idx, pos)
 
 
     def TR_kernels(self, equations):
