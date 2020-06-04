@@ -190,14 +190,13 @@ class DerivationGraphBase(base.GraphBase):
         equation, eqn_idx = equations.process_next()
         if not equation:
             return
-        """
-        process_next_simple is used here only to identify matrix chains that are
-        explicit inversions.
-        """
+
         pos, op_type = process_next_simple(equation)
 
-        if op_type == OperationType.times and is_explicit_inversion(equation[pos]):
-            yield from reductions.apply_matrix_chain_algorithm(equations, eqn_idx, pos, True)
+        if op_type == OperationType.unary:
+            # There is no need to do anything in this case here because
+            # TR_kernels_constructive does it already.
+            return
         else:
             # yield_from can't be used in this case, because we need to know if a reduction was yielded
             reduction_yielded = False
