@@ -10,6 +10,8 @@ from ..algebra.equations import Equations
 from .. import config
 from .. import temporaries
 
+from ..utils import is_inverse
+
 from .reductions import decompose_sum
 
 import matchpy
@@ -23,7 +25,9 @@ def apply_tricks(equations):
         return
     for expr, position in equation.rhs.preorder_iter():
         for callback_func, substitution in trick_MA.match(expr):
-            yield callback_func(substitution, equations, eqn_idx, position)
+            result = callback_func(substitution, equations, eqn_idx, position)
+            if result:
+                yield result
 
 
 WD1 = matchpy.Wildcard.dot("WD1")
@@ -123,6 +127,15 @@ symmetric_product = matchpy.Pattern(
 def symmetric_product_callback(substitution, equations, eqn_idx, position):
     # symmetric product
     equations_list = list(equations.equations)
+
+    # This trick is not applied if the current position is inside an inverse
+    # because Cholesky is applied in that case anyway.
+    expr = equations_list[eqn_idx].rhs
+    for p in position:
+        if is_inverse(expr):
+            return
+        expr = expr[p]
+    # There is no need to check the type of expr here again because it is Times.
 
     matched_kernel = collections_module.cholesky.set_match({"_A": substitution["_A"]}, False)
 

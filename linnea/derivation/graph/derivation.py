@@ -71,16 +71,16 @@ class DerivationGraph(derivation.DerivationGraphBase):
         factorizations = map(functools.partial(self.DFS_factorizations, node), gen_var2)
 
         if DS_step.factorizations in node.applied_DS_steps:
-            funs = [kernels_constructive, kernels, CSE_replacement, tricks]
+            funs = [kernels_constructive, CSE_replacement, kernels, tricks]
         elif DS_step.kernels in node.applied_DS_steps:
-            funs = [kernels_constructive, kernels, CSE_replacement, factorizations, tricks]
+            funs = [kernels_constructive, CSE_replacement, factorizations, kernels, tricks]
         elif DS_step.CSE in node.applied_DS_steps:
             # there are cases where doing CSE replacement twice results in better solutions
-            funs = [kernels_constructive, kernels, CSE_replacement, factorizations, tricks]
+            funs = [kernels_constructive, CSE_replacement, factorizations, kernels, tricks]
         elif DS_step.tricks in node.applied_DS_steps:
-            funs = [kernels_constructive, kernels, CSE_replacement, factorizations]
+            funs = [kernels_constructive, CSE_replacement, factorizations, kernels]
         else:
-            funs = [CSE_replacement, kernels_constructive, kernels, factorizations, tricks]
+            funs = [CSE_replacement, kernels_constructive, factorizations, kernels, tricks]
 
         yield from roundrobin(*roundrobin(*funs))
 

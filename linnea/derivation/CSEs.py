@@ -383,9 +383,9 @@ class CSEDetector():
         for cse in maximal_CSEs:
             grouped_CSEs.append((cse,))  
 
-        for cse1, cse2 in itertools.combinations(maximal_CSEs, 2):
-            if (not (cse1.is_subexpression(cse2) or cse2.is_subexpression(cse1))) and not cse1.is_compatible(cse2):
-                grouped_CSEs.append((cse1, cse2))
+        # for cse1, cse2 in itertools.combinations(maximal_CSEs, 2):
+        #     if (not (cse1.is_subexpression(cse2) or cse2.is_subexpression(cse1))) and not cse1.is_compatible(cse2):
+        #         grouped_CSEs.append((cse1, cse2))
 
         for group in grouped_CSEs:
             # print("group", [str(cse.expr) for cse in group])
