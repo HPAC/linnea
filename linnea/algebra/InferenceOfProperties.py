@@ -15,7 +15,7 @@ def isIdentity(expr):
     if isinstance(expr, ae.Plus):
         return False
     if isinstance(expr, ae.Times):
-        return all(isIdentity(factor) for factor in expr.operands)
+        return all(map(isIdentity, expr.operands))
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
         return isIdentity(expr.operand)
     return False
@@ -24,7 +24,7 @@ def isConstant(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.CONSTANT, isConstant)
     if isinstance(expr, ae.Operator):
-        return all(isConstant(operand) for operand in expr.operands)
+        return all(map(isConstant, expr.operands))
 
 def isFactor(expr):
     if isinstance(expr, ae.Symbol):
@@ -39,9 +39,9 @@ def isUnitDiagonal(expr):
     if isinstance(expr, ae.Plus):
         return False
     if isinstance(expr, ae.Times): # TODO Should check triangular as well?
-        return all(isUnitDiagonal(factor) for factor in expr.operands) and \
-                (all(isLowerTriangular(factor) for factor in expr.operands) or
-                 all(isUpperTriangular(factor) for factor in expr.operands))
+        return all(map(isUnitDiagonal, expr.operands)) and \
+                (all(map(isLowerTriangular, expr.operands)) or
+                 all(map(isUpperTriangular, expr.operands)))
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
         return isUnitDiagonal(expr.operand)
     return False
@@ -49,10 +49,8 @@ def isUnitDiagonal(expr):
 def isPositive(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.POSITIVE, isPositive)
-    if isinstance(expr, ae.Plus):
-        return all(isPositive(term) for term in expr.operands)
-    if isinstance(expr, ae.Times):
-        return all(isPositive(term) for term in expr.operands)
+    if isinstance(expr, (ae.Plus, ae.Times)):
+        return all(map(isPositive, expr.operands))
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
         return isPositive(expr.operand)
     return False
@@ -76,7 +74,7 @@ def isSPSD(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.SPSD, isSPSD)
     if isinstance(expr, ae.Plus):
-        return all(isSPSD(term) for term in expr.operands)
+        return all(map(isSPSD, expr.operands))
     if isinstance(expr, ae.Times):
         return isSPSDTimes(expr)
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
@@ -108,7 +106,7 @@ def isSPD(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.SPD, isSPD)
     if isinstance(expr, ae.Plus):
-        return all(isSPD(term) for term in expr.operands)
+        return all(map(isSPD, expr.operands))
     if isinstance(expr, ae.Times): # related to "iif they commute" ... ?
         return isSPDTimes(expr)
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
@@ -145,9 +143,9 @@ def isNonSingular(expr):
         else:
             return infer_property_symbol(expr, Property.NON_SINGULAR, isNonSingular)
     if isinstance(expr, ae.Times):
-        return all(isNonSingular(factor) for factor in expr.operands)
+        return all(map(isNonSingular, expr.operands))
     if isinstance(expr, ae.Plus): # ?
-        return any(isNonSingular(operand) for operand in expr.operands)
+        return any(map(isNonSingular, expr.operands))
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
         return isNonSingular(expr.operand)
     return False
@@ -156,7 +154,7 @@ def isOrthogonal(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.ORTHOGONAL, isOrthogonal)
     if isinstance(expr, ae.Times):
-        return all(isOrthogonal(factor) for factor in expr.operands)
+        return all(map(isOrthogonal, expr.operands))
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
         return isOrthogonal(expr.operand)
     return False
@@ -179,9 +177,9 @@ def isFullRank(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.FULL_RANK, isFullRank)
     if isinstance(expr, ae.Times):
-        return all(isFullRank(factor) for factor in expr.operands) and is_full_rank_product(expr)
+        return all(map(isFullRank, expr.operands)) and is_full_rank_product(expr)
     if isinstance(expr, ae.Plus):
-        return any(isFullRank(operand) for operand in expr.operands)
+        return any(map(isFullRank, expr.operands))
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
         return isFullRank(expr.operand)
     return False
@@ -262,7 +260,7 @@ def isPermutation(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.PERMUTATION, isPermutation)
     if isinstance(expr, ae.Times):
-        return all(isPermutation(factor) for factor in expr.operands)
+        return all(map(isPermutation, expr.operands))
     if isinstance(expr, (ae.Transpose, ae.Inverse, ae.InverseTranspose)):
         return isPermutation(expr.operand)
     return False
