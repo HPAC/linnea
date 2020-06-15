@@ -4,7 +4,7 @@ import operator
 import itertools
 
 from . import InferenceOfProperties
-from .properties import Property, implications, PropertyError
+from .properties import Property, implications, negative_implications, PropertyError
 from . import utils
 
 from .. import config
@@ -354,20 +354,14 @@ class Symbol(matchpy.Symbol, Expression):
         elif prop == Property.DIAGONAL:
             self.bandwidth = (0, 0)
 
-        if prop == Property.SCALAR:
-            return
-        elif prop == Property.VECTOR:
-            return
-        elif prop == Property.MATRIX:
+        if prop in {Property.SCALAR, Property.VECTOR, Property.MATRIX}:
             return
         elif prop == Property.POSITIVE and isinstance(self, (Vector, Matrix)):
             raise PropertyError("Property 'positive' is only defined for scalars, not for {}".format(repr(self)))
 
         self.properties.add(prop)
-        self.properties.update(implications.get(prop, tuple()))
-
-        self.false_properties.discard(prop)
-        self.false_properties.difference_update(implications.get(prop, tuple()))
+        self.properties.update(implications.get(prop, set()))
+        self.false_properties.update(negative_implications.get(prop, set()))
 
     @property
     def rows(self):

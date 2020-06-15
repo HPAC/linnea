@@ -365,6 +365,8 @@ def infer_property_test_function(expr, prop, test_func):
             return False
         if test_func(expr):
             properties.add(prop)
+            properties.update(implications.get(prop, set()))
+            false_properties.update(negative_implications.get(prop, set()))
             return True
         else:
             false_properties.add(prop)
@@ -374,10 +376,6 @@ def infer_property_test_function(expr, prop, test_func):
 
 
 def infer_property_symbol(expr, prop, test_func):
-    """
-    TODO: Use partial ordering directly? Is that necessary if the implications
-    are used (they are based on the ordering)?
-    """
     properties = expr.properties
     false_properties = expr.false_properties
     if prop in properties:
@@ -394,8 +392,8 @@ def infer_property_symbol(expr, prop, test_func):
             has_property = test_func(equivalent_expr)
             if has_property:
                 properties.add(prop)
-                properties.update(implications.get(prop, tuple()))
-                false_properties.update(negative_implications.get(prop, tuple()))
+                properties.update(implications.get(prop, set()))
+                false_properties.update(negative_implications.get(prop, set()))
             else:
                 false_properties.add(prop)
             return has_property
