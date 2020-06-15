@@ -354,11 +354,6 @@ class Symbol(matchpy.Symbol, Expression):
         elif prop == Property.DIAGONAL:
             self.bandwidth = (0, 0)
 
-        if prop in {Property.SCALAR, Property.VECTOR, Property.MATRIX}:
-            return
-        elif prop == Property.POSITIVE and isinstance(self, (Vector, Matrix)):
-            raise PropertyError("Property 'positive' is only defined for scalars, not for {}".format(repr(self)))
-
         self.properties.add(prop)
         self.properties.update(implications.get(prop, set()))
         self.false_properties.update(negative_implications.get(prop, set()))
