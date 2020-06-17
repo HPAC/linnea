@@ -8,7 +8,7 @@ from ..utils.general import SizeArgument, \
                                        
 from ..utils.factorizations import FactorizationKernel, OutputOperand
 
-from ...utils import CodeTemplate
+from ...utils import CodeTemplate, PropertyConstraint
 
 from ...code_generation.memory.storage_format import StorageFormat
 
@@ -32,9 +32,7 @@ _L = matchpy.Wildcard.symbol("_L")
 cf = lambda d: (d["N"]**3)/3
 
 cholesky = FactorizationKernel(
-    matchpy.Pattern(_A,
-                    matchpy.CustomConstraint(lambda _A: _A.has_property(Property.SPSD))
-                    ),
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SPSD})),
     [InputOperand(_A, StorageFormat.symmetric_triangular)],
     Times(_L, Transpose(_L)),
     [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.NON_SINGULAR], StorageFormat.lower_triangular)],
@@ -57,11 +55,7 @@ _U = matchpy.Wildcard.symbol("_U")
 cf = lambda d: 2*(d["N"]**3)/3
 
 plu = FactorizationKernel(
-    matchpy.Pattern(_A,
-                    matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(Property.NON_SINGULAR)
-                    )
-    ),
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.NON_SINGULAR})),
     [InputOperand(_A, StorageFormat.full)],
     Times(Transpose(_P), _L, _U),
     [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.UNIT_DIAGONAL, Property.NON_SINGULAR], StorageFormat.lower_triangular_udiag),
@@ -92,12 +86,7 @@ def cf_qr_square(d):
 # TODO I think A does not have to be a full rank matrix. In that case, I don't get a full Q.
 
 qr_square = FactorizationKernel(
-    matchpy.Pattern(_A,
-                    matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(Property.FULL_RANK) and \
-                              _A.has_property(Property.SQUARE)
-                    )
-    ),
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.FULL_RANK, Property.SQUARE})),
     [InputOperand(_A, StorageFormat.full)],
     Times(_Q, _R),
     [OutputOperand(_Q, _A, ("N", "N"), [Property.FULL_RANK, Property.SQUARE, Property.ORTHOGONAL], StorageFormat.QRfact_Q),
@@ -128,12 +117,7 @@ def cf_qr_column(d):
 # TODO I think A does not have to be a full rank matrix. In that case, I don't get a full Q.
 
 qr_column = FactorizationKernel(
-    matchpy.Pattern(_A,
-                    matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(Property.FULL_RANK) and \
-                          _A.has_property(Property.COLUMN_PANEL)
-                    )
-    ),
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.FULL_RANK, Property.COLUMN_PANEL})),
     [InputOperand(_A, StorageFormat.full)],
     Times(_Q, _R),
     [OutputOperand(_Q, _A, ("M", "N"), [Property.FULL_RANK, Property.COLUMN_PANEL, Property.ORTHOGONAL_COLUMNS], StorageFormat.QRfact_Q),
@@ -164,11 +148,7 @@ def cf_eigen(d):
     return cost
 
 eigendecomposition = FactorizationKernel(
-    matchpy.Pattern(_A,
-                    matchpy.CustomConstraint(
-                        lambda _A: _A.has_property(Property.SYMMETRIC)
-                    )
-    ),
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SYMMETRIC})),
     [InputOperand(_A, StorageFormat.symmetric_triangular)],
     Times(_Z, _W, Transpose(_Z)),
     [OutputOperand(_Z, _A, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full),
