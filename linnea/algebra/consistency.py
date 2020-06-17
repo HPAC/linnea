@@ -40,7 +40,7 @@ def check_consistency(expression):
                 expr.set_property(Property.ROW_PANEL)
             elif rows > columns:
                 expr.set_property(Property.COLUMN_PANEL)
-            else:
+            elif rows != 1: # Scalars must not be square.
                 expr.set_property(Property.SQUARE)
             properties = expr.properties
             false_properties = expr.false_properties
