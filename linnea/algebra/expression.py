@@ -1082,6 +1082,7 @@ class Scalar(Symbol):
     """docstring for Scalar"""
     def __init__(self, name, indices=set()):
         super().__init__(name, (1, 1), indices)
+        self.set_property(Property.SCALAR)
 
 
 class Vector(Symbol):
@@ -1090,6 +1091,7 @@ class Vector(Symbol):
         super().__init__(name, size, indices, properties)
         if (size[0]==1 and size[1]==1) or (size[0]!=1 and size[1]!=1):
             raise ValueError("Symbol with size {} is not a vector.".format(size))
+        self.set_property(Property.VECTOR)
 
     def __repr__(self):
         if self.rows == 1:
@@ -1102,6 +1104,7 @@ class Matrix(Symbol):
     """docstring for Matrix"""
     def __init__(self, name, size, indices=set(), properties = []):
         super().__init__(name, size, indices, properties)
+        self.set_property(Property.MATRIX)
         """TODO
         While this makes a lot of sense, it completely breaks the application
         of kernels. The reason is that in the KernelDescription objects, we use
@@ -1138,11 +1141,12 @@ class IdentityMatrix(ConstantMatrix):
     def __init__(self, rows, columns):
         super().__init__("I({}, {})".format(rows, columns), (rows, columns))
         # print(self)
+        # All other properties (e.g. diagonal, symmetric, orthogonal) are added
+        # automatically by implications.
         self.set_property(Property.IDENTITY)
-        self.set_property(Property.DIAGONAL)
         if rows == columns:
             self.set_property(Property.SPD)
-            self.set_property(Property.SYMMETRIC)
+            self.set_property(Property.PERMUTATION)
 
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)

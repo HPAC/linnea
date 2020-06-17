@@ -10,7 +10,6 @@ class ConflictingIndices(Exception):
     pass
 
 def check_consistency(expression):
-
     if isinstance(expression, Equal):
         if expression.rhs.indices != expression.lhs.indices:
             msg = "Conflicting indices in {}".format(expression)
@@ -18,10 +17,9 @@ def check_consistency(expression):
 
     for expr, _ in expression.preorder_iter():
         if isinstance(expr, Symbol):
-            """has_property is used here to make sure that certain types of
-            errors (for example rectangular SPD matrices) are detected. If the
-            operand has one of those properties, it is added by has_property to
-            its property set.
+            """Properties SQUARE, ROW_PANEL, and COLUMN_PANEL are set here to
+            make sure that certain types of errors (for example rectangular SPD
+            matrices) are detected.
             The more elegant solution would be to set those properties in
             Matrix.__init__(). However, this is currently not possible because
             the properties of matrices are used in the kernel description to
@@ -37,18 +35,24 @@ def check_consistency(expression):
             implications currently do not exist for sets of properties
             (for example "diagonal and SPD implies symmetric").
             """
-            expr.has_property(Property.SQUARE)
-            expr.has_property(Property.ROW_PANEL)
-            expr.has_property(Property.COLUMN_PANEL)
+            rows, columns = expr.size
+            if rows < columns:
+                expr.set_property(Property.ROW_PANEL)
+            elif rows > columns:
+                expr.set_property(Property.COLUMN_PANEL)
+            else:
+                expr.set_property(Property.SQUARE)
             properties = expr.properties
             false_properties = expr.false_properties
-            intersection = properties.intersection(false_properties)
-            if intersection:
-                msg = "Property sets of {} have non-empty intersection: {{{}}}".format(expr, ", ".join(p.value for p in intersection))
-                raise ConflictingProperties(msg)
-            # print(expr, properties)
+
             for prop in properties:
                 intersection = properties.intersection(negative_implications[prop])
                 if intersection:
-                    msg = "{} has conflicting properties: {} contradicts {{{}}}".format(expr, prop.value, ", ".join(p.value for p in intersection))
+                    msg = "{} has conflicting properties: {} contradicts {}.".format(expr, prop.value, ", ".join(p.value for p in intersection))
                     raise ConflictingProperties(msg)
+
+            intersection = properties.intersection(false_properties)
+            if intersection:
+                msg = "{} has conflicting properties {}.".format(expr, ", ".join(p.value for p in intersection))
+                raise ConflictingProperties(msg)
+    return True

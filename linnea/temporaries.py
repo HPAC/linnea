@@ -77,13 +77,10 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, properties=None):
         # Properties are set here for performance reasons only.
         if expr.has_property(Property.SCALAR):
             tmp = ae.Scalar(name)
-            tmp.set_property(Property.SCALAR)
         elif expr.has_property(Property.VECTOR):
             tmp = ae.Vector(name, size)
-            tmp.set_property(Property.VECTOR)
         elif expr.has_property(Property.MATRIX):
             tmp = ae.Matrix(name, size)
-            tmp.set_property(Property.MATRIX)
 
         tmp.indices = expr.indices
         tmp.bandwidth = expr.bandwidth
