@@ -353,6 +353,8 @@ class Symbol(matchpy.Symbol, Expression):
             self.bandwidth = (0, self.bandwidth[1])
         elif prop in {Property.DIAGONAL, Property.IDENTITY}:
             self.bandwidth = (0, 0)
+        elif prop == Property.ZERO:
+            self.bandwidth = (-1, -1)
 
         self.properties.add(prop)
         self.properties.update(implications.get(prop, set()))
