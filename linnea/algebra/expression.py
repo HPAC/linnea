@@ -351,7 +351,7 @@ class Symbol(matchpy.Symbol, Expression):
             self.bandwidth = (self.bandwidth[0], 0)
         elif prop == Property.UPPER_TRIANGULAR:
             self.bandwidth = (0, self.bandwidth[1])
-        elif prop == Property.DIAGONAL:
+        elif prop in {Property.DIAGONAL, Property.IDENTITY}:
             self.bandwidth = (0, 0)
 
         self.properties.add(prop)
@@ -1142,7 +1142,7 @@ class IdentityMatrix(ConstantMatrix):
         super().__init__("I({}, {})".format(rows, columns), (rows, columns))
         # print(self)
         # All other properties (e.g. diagonal, symmetric, orthogonal) are added
-        # automatically by implications.
+        # automatically by implications. Bandwidth is set in set_property.
         self.set_property(Property.IDENTITY)
         if rows == columns:
             self.set_property(Property.SPD)
