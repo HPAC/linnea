@@ -93,8 +93,10 @@ negative_implications = {
     #
     Property.SQUARE      : {Property.ROW_PANEL, Property.COLUMN_PANEL},
     Property.ROW_PANEL   : {Property.SQUARE, Property.COLUMN_PANEL,
+                            Property.ORTHOGONAL_COLUMNS,
                             Property.SYMMETRIC, Property.SPSD, Property.SPD},
     Property.COLUMN_PANEL: {Property.SQUARE, Property.ROW_PANEL,
+                            Property.ORTHOGONAL_ROWS,
                             Property.SYMMETRIC, Property.SPSD, Property.SPD},
     #
     Property.ZERO            : {Property.IDENTITY, Property.NON_SINGULAR,
@@ -109,9 +111,12 @@ negative_implications = {
     Property.UNIT_DIAGONAL   : set(), # TODO missing
     #
     Property.POSITIVE : {Property.VECTOR, Property.MATRIX},
-    Property.SYMMETRIC: {Property.ROW_PANEL, Property.COLUMN_PANEL},
-    Property.SPSD     : {Property.ROW_PANEL, Property.COLUMN_PANEL},
-    Property.SPD      : {Property.ROW_PANEL, Property.COLUMN_PANEL},
+    Property.SYMMETRIC: {Property.ROW_PANEL, Property.COLUMN_PANEL,
+                         Property.VECTOR},
+    Property.SPSD     : {Property.ROW_PANEL, Property.COLUMN_PANEL,
+                         Property.VECTOR},
+    Property.SPD      : {Property.ROW_PANEL, Property.COLUMN_PANEL,
+                         Property.VECTOR},
     #
     Property.NON_SINGULAR: {Property.ROW_PANEL, Property.COLUMN_PANEL,
                             Property.ZERO},

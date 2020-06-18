@@ -1149,6 +1149,10 @@ class IdentityMatrix(ConstantMatrix):
         if rows == columns:
             self.set_property(Property.SPD)
             self.set_property(Property.PERMUTATION)
+        elif rows > colums:
+            self.set_property(Property.ORTHOGONAL_COLUMNS)
+        elif rows < columns:
+            self.set_property(Property.ORTHOGONAL_ROWS)
 
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
