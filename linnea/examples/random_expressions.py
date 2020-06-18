@@ -255,9 +255,14 @@ def generate_expression(n_ops, expr_size, parent=None, nonsingular=False):
 
 
 def generate_equation(n_ops):
-    expr_size = operand_sizes()
-    out = ae.Matrix("out", expr_size)
-    expr = simplify(generate_expression(n_ops, expr_size))
+    rows, columns = operand_sizes()
+    if rows == 1 and columns == 1:
+        out = ae.Scalar("out")
+    elif rows == 1 or columns == 1:
+        out = ae.Vector("out", (rows, columns))
+    else:
+        out = ae.Matrix("out", (rows, columns))
+    expr = simplify(generate_expression(n_ops, (rows, columns)))
     return aeq.Equations(ae.Equal(out, expr))
 
 
