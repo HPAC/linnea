@@ -4,6 +4,8 @@ from . import utils
 
 import linnea.config
 
+import json
+
 def run_linnea(input, time_limit=10):
     """Run Linnea code generation.
 
@@ -34,9 +36,12 @@ def dependent_dimensions(input):
     """Computes dependent dimensions.
 
     The dependent dimensions are all sets of dimensions that have to be the same
-    for the input equations to be valid. Dimensions are represented as tuples of
-    two elements: The first element is the name of the operand, the second
-    element is an integer; 0 stands for rows, 1 for columns.
+    for the input equations to be valid. The output is a JSON string, and
+    dependent dimensions are represented as nested arrays. The innermost arrays
+    represent the dimensions; they contain two elements: The first element is
+    the name of the operand as a string, the second element is an integer; 0
+    stands for rows, 1 for columns. All dimensions that have to be the same are
+    in the same array.
 
     For the input, the custom input language of Linnea has to be used.
     
@@ -44,7 +49,8 @@ def dependent_dimensions(input):
         input (str): Description of the input.
 
     Returns:
-        list: A list of sets. All dimensions in one set have to be the same.
+        string: A JSON string of nested arrays.
     """
     equations = parse_input(input)
-    return utils.dependent_dimensions(equations)
+    dimensions = utils.dependent_dimensions(equations)
+    return json.dumps(list(map(list, dimensions)))
