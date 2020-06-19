@@ -1,7 +1,8 @@
 import copy
 
 from . import expression as ae
-from .properties import Property, implications, negative_implications
+from .properties import Property, implications, negative_implications, \
+                        binary_implications_backwards
 from .. import temporaries
 
 def is_auxiliary(expr):
@@ -57,14 +58,14 @@ def is_positive(expr):
 
 def is_symmetric(expr):
     if isinstance(expr, ae.Symbol):
-        if infer_property_symbol(expr, Property.SYMMETRIC, is_symmetric):
-            return True
-        # if expr is not symmetric (stored in false_properties), the two test below are still executed. Can this be avoided? Is it necessary? 
-        elif is_square(expr) and is_diagonal_B(expr):
-            expr.properties.add(Property.SYMMETRIC)
-            return True
-        else:
-            return False
+        return infer_property_symbol(expr, Property.SYMMETRIC, is_symmetric)
+        # if infer_property_symbol(expr, Property.SYMMETRIC, is_symmetric):
+        #     return True
+        # elif is_square(expr) and is_diagonal_B(expr):
+        #     expr.properties.add(Property.SYMMETRIC)
+        #     return True
+        # else:
+        #     return False
     else:
         # TODO As a shortcut, test if square, test bandwidth?
         return expr.transpose_of(expr)
@@ -136,12 +137,13 @@ def is_SPD_product(expr):
 
 def is_nonsingular(expr):
     if isinstance(expr, ae.Symbol):
-        # if infer_property_symbol(expr, Property.SQUARE, is_square) and infer_property_symbol(expr, Property.FULL_RANK, is_full_rank):
-        if is_square(expr) and is_full_rank(expr):
-            expr.properties.add(Property.NON_SINGULAR)
-            return True
-        else:
-            return infer_property_symbol(expr, Property.NON_SINGULAR, is_nonsingular)
+        return infer_property_symbol(expr, Property.NON_SINGULAR, is_nonsingular)
+        # # if infer_property_symbol(expr, Property.SQUARE, is_square) and infer_property_symbol(expr, Property.FULL_RANK, is_full_rank):
+        # if is_square(expr) and is_full_rank(expr):
+        #     expr.properties.add(Property.NON_SINGULAR)
+        #     return True
+        # else:
+        #     return infer_property_symbol(expr, Property.NON_SINGULAR, is_nonsingular)
     if isinstance(expr, ae.Times):
         return all(map(is_nonsingular, expr.operands))
     if isinstance(expr, ae.Plus): # ?
@@ -382,21 +384,44 @@ def infer_property_symbol(expr, prop, test_func):
         return True
     elif prop in false_properties:
         return False
+
+    try:
+        equivalent_expr = temporaries._equivalent_expressions[expr.name]
+    except KeyError:
+        pass
     else:
-        try:
-            equivalent_expr = temporaries._equivalent_expressions[expr.name]
-        except KeyError:
-            return False
+        # print(expr, equivalent_expr, prop, infer_property(equivalent_expr, prop))
+        has_property = test_func(equivalent_expr)
+        if has_property:
+            properties.add(prop)
+            properties.update(implications.get(prop, set()))
+            false_properties.update(negative_implications.get(prop, set()))
         else:
-            # print(expr, equivalent_expr, prop, infer_property(equivalent_expr, prop))
-            has_property = test_func(equivalent_expr)
+            false_properties.add(prop)
+        if has_property: # TODO merge both ifs
+            return True
+
+    try:
+        property_sets = binary_implications_backwards[prop]
+    except KeyError:
+        pass
+    else:
+        for required_properties in property_sets:
+            # print(prop, ss)
+            has_property = all(infer_property_symbol(expr, prop, property_to_function[prop]) for prop in required_properties)
+            # print(r)
             if has_property:
                 properties.add(prop)
                 properties.update(implications.get(prop, set()))
                 false_properties.update(negative_implications.get(prop, set()))
             else:
                 false_properties.add(prop)
-            return has_property
+            # If is necessary here because of the loop. There could be more than
+            # one rule.
+            if has_property:
+                return True
+    return False
+            
 
 
 property_to_function = {

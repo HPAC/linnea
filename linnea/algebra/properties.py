@@ -76,12 +76,36 @@ class Property(enum.Enum):
 # Property.to_dot_file(Property)
 
 
-# TODO what about coobinations of properties?
-#   lower and upper triangular -> diagonal
 
 implications = dict()
 for p1, p2 in Property.__transitive_closure__:
     implications.setdefault(Property(p1), set()).add(Property(p2))
+
+
+binary_implications = {
+    # This is already covered by how bandwidth is set.
+    # frozenset({Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR}): Property.DIAGONAL,
+    frozenset({Property.SQUARE, Property.DIAGONAL}): Property.SYMMETRIC, # ESSENTIAL
+    # Orthogonal rows and columns is only possible if the matrix is square. Redundant?
+    # frozenset({Property.ORTHOGONAL_ROWS, Property.ORTHOGONAL_COLUMNS}): Property.ORTHOGONAL,
+    # frozenset({Property.ORTHOGONAL_ROWS, Property.SQUARE}): Property.ORTHOGONAL,
+    # frozenset({Property.ORTHOGONAL_COLUMNS, Property.SQUARE}): Property.ORTHOGONAL,
+    # frozenset({Property.SPSD, Property.NON_SINGULAR}): Property.SPD,
+    # TODO problem: key is the same here. Right now, those four are covered by construction of IdentityMatrix.
+    # frozenset({Property.IDENTITY, Property.SQUARE}): Property.SPD, # ESSENTIAL
+    # frozenset({Property.IDENTITY, Property.SQUARE}): Property.PERMUTATION, # ESSENTIAL
+    # frozenset({Property.IDENTITY, Property.COLUMN_PANEL}): Property.ORTHOGONAL_COLUMNS,
+    # frozenset({Property.IDENTITY, Property.ROW_PANEL}): Property.ORTHOGONAL_ROWS,
+    frozenset({Property.FULL_RANK, Property.SQUARE}): Property.NON_SINGULAR, # ESSENTIAL
+}
+
+binary_implications_backwards = dict()
+for s, p in binary_implications.items():
+    binary_implications_backwards.setdefault(p, []).append(s)
+
+# for k, v in binary_implications_backwards.items():
+#     print(k, v)
+# print(binary_implications_backwards)
 
 negative_implications = {
     Property.AUXILIARY: set(),
