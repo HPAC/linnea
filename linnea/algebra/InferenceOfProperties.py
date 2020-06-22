@@ -408,7 +408,9 @@ def infer_property_symbol(expr, prop, test_func):
     else:
         for required_properties in property_sets:
             # print(prop, ss)
-            has_property = all(infer_property_symbol(expr, prop, property_to_function[prop]) for prop in required_properties)
+            has_property = all(property_to_function[prop](expr) for prop in required_properties)
+            # has_property = all(infer_property(expr, prop) for prop in required_properties)
+            # has_property = all(infer_property_symbol(expr, prop, property_to_function[prop]) for prop in required_properties)
             # print(r)
             if has_property:
                 properties.add(prop)
