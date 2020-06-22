@@ -388,7 +388,7 @@ def collect_dependent_dimensions(expr, union_find):
         cols = (expr.name, 1)
         union_find.add_element(rows)
         union_find.add_element(cols)
-        if expr.has_property(properties.Property.SYMMETRIC):
+        if expr.has_property(properties.Property.SYMMETRIC) and not expr.has_property(properties.Property.DIAGONAL):
             union_find.union(rows, cols)
         return (rows, cols)
     elif isinstance(expr, ae.Transpose):
