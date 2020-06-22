@@ -357,32 +357,32 @@ def is_zero_B(expr):
         return False
 
 
+def add_property(expr, property, has_property):
+    if has_property:
+        expr.properties.add(property)
+        expr.properties.update(implications.get(property, set()))
+        expr.false_properties.update(negative_implications.get(property, set()))
+    else:
+        expr.false_properties.add(property)
+
+
 def infer_property_test_function(expr, prop, test_func):
     if isinstance(expr, ae.Symbol):
-        properties = expr.properties
-        false_properties = expr.false_properties
-        if prop in properties:
+        if prop in expr.properties:
             return True
-        if prop in false_properties:
+        if prop in expr.false_properties:
             return False
-        if test_func(expr):
-            properties.add(prop)
-            properties.update(implications.get(prop, set()))
-            false_properties.update(negative_implications.get(prop, set()))
-            return True
-        else:
-            false_properties.add(prop)
-            return False
+        has_property = test_func(expr)
+        add_property(expr, prop, has_property)
+        return has_property
     else:
         return test_func(expr)
 
 
 def infer_property_symbol(expr, prop, test_func):
-    properties = expr.properties
-    false_properties = expr.false_properties
-    if prop in properties:
+    if prop in expr.properties:
         return True
-    elif prop in false_properties:
+    elif prop in expr.false_properties:
         return False
 
     try:
@@ -392,13 +392,8 @@ def infer_property_symbol(expr, prop, test_func):
     else:
         # print(expr, equivalent_expr, prop, infer_property(equivalent_expr, prop))
         has_property = test_func(equivalent_expr)
+        add_property(expr, prop, has_property)
         if has_property:
-            properties.add(prop)
-            properties.update(implications.get(prop, set()))
-            false_properties.update(negative_implications.get(prop, set()))
-        else:
-            false_properties.add(prop)
-        if has_property: # TODO merge both ifs
             return True
 
     try:
@@ -409,15 +404,8 @@ def infer_property_symbol(expr, prop, test_func):
         for required_properties in property_sets:
             # print(prop, ss)
             has_property = all(property_to_function[prop](expr) for prop in required_properties)
-            # has_property = all(infer_property(expr, prop) for prop in required_properties)
-            # has_property = all(infer_property_symbol(expr, prop, property_to_function[prop]) for prop in required_properties)
             # print(r)
-            if has_property:
-                properties.add(prop)
-                properties.update(implications.get(prop, set()))
-                false_properties.update(negative_implications.get(prop, set()))
-            else:
-                false_properties.add(prop)
+            add_property(expr, prop, has_property)
             # If is necessary here because of the loop. There could be more than
             # one rule.
             if has_property:

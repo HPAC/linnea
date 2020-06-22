@@ -20,11 +20,11 @@ class DerivationGraph(derivation.DerivationGraphBase):
         # or use time_limit == 0?
 
         self.root.equations.check_validity()
+        self.root.equations.check_consistency()
         self.root.equations = self.root.equations.to_normalform()
         self.root.equations.infer_lhs_properties()
 
         self.init_temporaries(self.root.equations)
-        self.root.equations.check_consistency()
 
         trace_data, terminal_nodes = self.best_first_search(time_limit=time_limit, merging=merging, dead_ends=dead_ends, pruning_factor=pruning_factor)
                 
