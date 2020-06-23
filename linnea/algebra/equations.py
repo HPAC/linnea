@@ -5,7 +5,7 @@ from . import expression as ae
 from . import transformations as at
 from . import representations as ar
 
-from .properties import Property
+from .properties import Property, binary_implications
 from .validity import check_validity
 from .consistency import check_consistency
 
@@ -251,7 +251,6 @@ class Equations():
 
 
     def infer_lhs_properties(self):
-        output_operands = set()
         for equation in self.equations:
             operand = equation.lhs
             for property in Property:
@@ -259,8 +258,47 @@ class Equations():
                     operand.set_property(property)
 
 
+    def infer_missing_properties(self):
+        """Infers missing properties of operands.
+
+        Infers properties of input operands that follow from combinations of
+        other properties. Those properties might be missing if the user did not
+        use the most specific properties.
+
+        In addition, this function adds the properties SQUARE, ROW_PANEL, and
+        COLUMN_PANEL. The more elegant solution would be to set those properties
+        in Matrix.__init__(). However, this is currently not possible because
+        the properties of matrices are used in the kernel description to
+        generate the constraints for variables. There are many kernels that do
+        not require a specific shape, but since we are using actual Matrix
+        objects for the kernel description, they do have exactly one of those
+        three shapes, leading to unwanted constraints.
+        To fix this, the way KernelDescription objects work needs to be changed.
+        """
+        input, _ = self.input_output()
+        for operand in input:
+            
+            rows, columns = operand.size
+            if rows < columns:
+                operand.set_property(Property.ROW_PANEL)
+            elif rows > columns:
+                operand.set_property(Property.COLUMN_PANEL)
+            elif rows != 1: # Scalars must not be square.
+                operand.set_property(Property.SQUARE)
+
+            new_property = True
+            while new_property:
+                for property_set, property in binary_implications.items():
+                    if property not in operand.properties and property_set <= operand.properties:
+                        operand.properties.add(property)
+                        new_property = True
+                        break
+                else:
+                    new_property = False
+
+
     def check_validity(self):
-        """Checks if the objects is valid.
+        """Checks if the object is valid.
 
         In addition to checking that the individual equations are well-formed,
         this function also checks that the sequence of equations is valid.

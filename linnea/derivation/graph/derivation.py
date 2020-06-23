@@ -19,10 +19,11 @@ class DerivationGraph(derivation.DerivationGraphBase):
         # TODO add argument for stopping as soon as first solution is found
         # or use time_limit == 0?
 
+        self.root.equations.infer_missing_properties()
+        self.root.equations.infer_lhs_properties()
         self.root.equations.check_validity()
         self.root.equations.check_consistency()
         self.root.equations = self.root.equations.to_normalform()
-        self.root.equations.infer_lhs_properties()
 
         self.init_temporaries(self.root.equations)
 

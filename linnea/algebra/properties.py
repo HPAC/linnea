@@ -81,26 +81,42 @@ implications = dict()
 for p1, p2 in Property.__transitive_closure__:
     implications.setdefault(Property(p1), set()).add(Property(p2))
 
-
-binary_implications = {
-    # This is already covered by how bandwidth is set.
-    # frozenset({Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR}): Property.DIAGONAL,
-    frozenset({Property.SQUARE, Property.DIAGONAL}): Property.SYMMETRIC, # ESSENTIAL
-    # Orthogonal rows and columns is only possible if the matrix is square. Redundant?
-    # frozenset({Property.ORTHOGONAL_ROWS, Property.ORTHOGONAL_COLUMNS}): Property.ORTHOGONAL,
-    # frozenset({Property.ORTHOGONAL_ROWS, Property.SQUARE}): Property.ORTHOGONAL,
-    # frozenset({Property.ORTHOGONAL_COLUMNS, Property.SQUARE}): Property.ORTHOGONAL,
-    # frozenset({Property.SPSD, Property.NON_SINGULAR}): Property.SPD,
-    # TODO problem: key is the same here. Right now, those four are covered by construction of IdentityMatrix.
-    # frozenset({Property.IDENTITY, Property.SQUARE}): Property.SPD, # ESSENTIAL
-    # frozenset({Property.IDENTITY, Property.SQUARE}): Property.PERMUTATION, # ESSENTIAL
-    # frozenset({Property.IDENTITY, Property.COLUMN_PANEL}): Property.ORTHOGONAL_COLUMNS,
-    # frozenset({Property.IDENTITY, Property.ROW_PANEL}): Property.ORTHOGONAL_ROWS,
-    frozenset({Property.FULL_RANK, Property.SQUARE}): Property.NON_SINGULAR, # ESSENTIAL
+binary_implications_1 = {
+    frozenset({Property.DIAGONAL, Property.SQUARE}): Property.SYMMETRIC,
+    frozenset({Property.FULL_RANK, Property.SQUARE}): Property.NON_SINGULAR,
 }
 
+# These rules are only used to infer properties of the input operands, in case
+# the user does not use the most specific properties. They are not used for the
+# inference of properties because there do not seem to be any cases where the
+# properties on the left-hand side can be inferred from the expression, while
+# the property on the right-hand side cannot be inferred. If cases like this are
+# found, the respective rules should be moved to binary_implications_1.
+binary_implications_2 = {
+    # Orthogonal rows and columns is only possible if the matrix is square. Redundant?
+    frozenset({Property.ORTHOGONAL_ROWS, Property.ORTHOGONAL_COLUMNS}): Property.ORTHOGONAL,
+    frozenset({Property.ORTHOGONAL_ROWS, Property.SQUARE}): Property.ORTHOGONAL,
+    frozenset({Property.ORTHOGONAL_COLUMNS, Property.SQUARE}): Property.ORTHOGONAL,
+    frozenset({Property.SPSD, Property.NON_SINGULAR}): Property.SPD,
+}
+
+# These rules are currently not used.
+binary_implications_3 = {
+    # This is already covered by how bandwidth is set.
+    frozenset({Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR}): Property.DIAGONAL,
+    # Those four are covered by construction of IdentityMatrix.
+    frozenset({Property.IDENTITY, Property.SQUARE}): Property.SPD,
+    # TODO key is the same.
+    frozenset({Property.IDENTITY, Property.SQUARE}): Property.PERMUTATION,
+    frozenset({Property.IDENTITY, Property.COLUMN_PANEL}): Property.ORTHOGONAL_COLUMNS,
+    frozenset({Property.IDENTITY, Property.ROW_PANEL}): Property.ORTHOGONAL_ROWS,
+}
+
+binary_implications = binary_implications_1.copy()
+binary_implications.update(binary_implications_2)
+
 binary_implications_backwards = dict()
-for s, p in binary_implications.items():
+for s, p in binary_implications_1.items():
     binary_implications_backwards.setdefault(p, []).append(s)
 
 # for k, v in binary_implications_backwards.items():
