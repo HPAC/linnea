@@ -310,6 +310,8 @@ def is_lower_triangular(expr):
     return infer_property_test_function(expr, Property.LOWER_TRIANGULAR, is_lower_triangular_B)
 
 def is_lower_triangular_B(expr):
+    if not is_matrix(expr):
+        return False
     lb, ub = expr.bandwidth
     if ub <= 0:
         return True
@@ -320,6 +322,8 @@ def is_upper_triangular(expr):
     return infer_property_test_function(expr, Property.UPPER_TRIANGULAR, is_upper_triangular_B)
 
 def is_upper_triangular_B(expr):
+    if not is_matrix(expr):
+        return False
     lb, ub = expr.bandwidth
     if lb <= 0:
         return True
@@ -330,6 +334,8 @@ def is_triangular(expr):
     return infer_property_test_function(expr, Property.TRIANGULAR, is_triangular_B)
 
 def is_triangular_B(expr):
+    if not is_matrix(expr):
+        return False
     lb, ub = expr.bandwidth
     if lb <= 0 or ub <= 0:
         return True
@@ -340,6 +346,8 @@ def is_diagonal(expr):
     return infer_property_test_function(expr, Property.DIAGONAL, is_diagonal_B)
 
 def is_diagonal_B(expr):
+    if not is_matrix(expr):
+        return False
     lb, ub = expr.bandwidth
     if lb == 0 and ub == 0:
         return True
