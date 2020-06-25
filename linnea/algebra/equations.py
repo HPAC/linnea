@@ -275,7 +275,7 @@ class Equations():
         three shapes, leading to unwanted constraints.
         To fix this, the way KernelDescription objects work needs to be changed.
         """
-        input, _ = self.input_output()
+        input, output = self.input_output()
         for operand in input:
             
             rows, columns = operand.size
@@ -296,6 +296,14 @@ class Equations():
                 else:
                     new_property = False
 
+        for operand in output:
+            rows, columns = operand.size
+            if rows < columns:
+                operand.set_property(Property.ROW_PANEL)
+            elif rows > columns:
+                operand.set_property(Property.COLUMN_PANEL)
+            elif rows != 1: # Scalars must not be square.
+                operand.set_property(Property.SQUARE)
 
     def check_validity(self):
         """Checks if the object is valid.
