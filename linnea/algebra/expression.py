@@ -3,7 +3,7 @@ import functools
 import operator
 import itertools
 
-from . import InferenceOfProperties
+from . import property_inference
 from .properties import Property, implications, negative_implications, PropertyError
 from . import utils
 
@@ -60,8 +60,8 @@ class Expression(matchpy.Expression):
                 operand.delete_partitioning()
 
     def has_property(self, prop):
-        # print(self, prop, InferenceOfProperties.infer_property(self, prop))
-        return InferenceOfProperties.infer_property(self, prop)
+        # print(self, prop, property_inference.infer_property(self, prop))
+        return property_inference.infer_property(self, prop)
 
     def index_range(self):
         return functools.reduce(operator.mul, [index.value for index in self.indices], 1)
