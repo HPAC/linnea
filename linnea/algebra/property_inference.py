@@ -59,13 +59,6 @@ def is_positive(expr):
 def is_symmetric(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.SYMMETRIC, is_symmetric)
-        # if infer_property_symbol(expr, Property.SYMMETRIC, is_symmetric):
-        #     return True
-        # elif is_square(expr) and is_diagonal_B(expr):
-        #     expr.properties.add(Property.SYMMETRIC)
-        #     return True
-        # else:
-        #     return False
     else:
         # TODO As a shortcut, test if square, test bandwidth?
         return expr.transpose_of(expr)
@@ -138,12 +131,6 @@ def is_SPD_product(expr):
 def is_nonsingular(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.NON_SINGULAR, is_nonsingular)
-        # # if infer_property_symbol(expr, Property.SQUARE, is_square) and infer_property_symbol(expr, Property.FULL_RANK, is_full_rank):
-        # if is_square(expr) and is_full_rank(expr):
-        #     expr.properties.add(Property.NON_SINGULAR)
-        #     return True
-        # else:
-        #     return infer_property_symbol(expr, Property.NON_SINGULAR, is_nonsingular)
     if isinstance(expr, ae.Times):
         return all(map(is_nonsingular, expr.operands))
     if isinstance(expr, ae.Plus): # ?
