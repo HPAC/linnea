@@ -271,7 +271,10 @@ def admits_factorization(expr):
     return infer_property_test_function(expr, Property.ADMITS_FACTORIZATION, admits_factorization_TF)
 
 def admits_factorization_TF(expr):
-    return not (is_vector(expr) or is_scalar(expr) or is_diagonal_B(expr) or is_triangular_B(expr) or is_orthogonal(expr) or is_orthogonal_columns(expr) or is_orthogonal_rows(expr) or is_permutation(expr))
+    if not is_matrix(expr):
+        return False
+    return not (is_triangular_B(expr) or is_orthogonal_columns(expr) or is_orthogonal_rows(expr))
+    # return not (is_diagonal_B(expr) or is_triangular_B(expr) or is_orthogonal(expr) or is_orthogonal_columns(expr) or is_orthogonal_rows(expr) or is_permutation(expr))
 
 def is_scalar(expr):
     return infer_property_test_function(expr, Property.SCALAR, is_scalar_TF)
