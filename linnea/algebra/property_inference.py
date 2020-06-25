@@ -271,10 +271,23 @@ def admits_factorization(expr):
     return infer_property_test_function(expr, Property.ADMITS_FACTORIZATION, admits_factorization_TF)
 
 def admits_factorization_TF(expr):
+    """Tests if an factorization can be applied to an expression.
+
+    Factorizations can only be applied to matrices that are not
+    - upper or lower triangular
+    - diagonal
+    - permutation matrices
+    - orthogonal
+    - have orthogonal rows or columns
+
+    Since diagonal is a special case of triangular, and both orthogonal and
+    permutation matrices have orthogonal rows and columns, it is sufficient to
+    check that the expression is not triangular or has orthogonal rows or
+    columns.
+    """
     if not is_matrix(expr):
         return False
     return not (is_triangular_B(expr) or is_orthogonal_columns(expr) or is_orthogonal_rows(expr))
-    # return not (is_diagonal_B(expr) or is_triangular_B(expr) or is_orthogonal(expr) or is_orthogonal_columns(expr) or is_orthogonal_rows(expr) or is_permutation(expr))
 
 def is_scalar(expr):
     return infer_property_test_function(expr, Property.SCALAR, is_scalar_TF)
