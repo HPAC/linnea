@@ -126,9 +126,13 @@ for s, p in binary_implications_1.items():
 negative_implications = {
     Property.AUXILIARY: set(),
     #
-    Property.SCALAR: {Property.VECTOR, Property.MATRIX},
+    Property.SCALAR: {Property.VECTOR, Property.MATRIX,
+                      Property.DIAGONAL, Property.TRIANGULAR,
+                      Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR},
     Property.VECTOR: {Property.SCALAR, Property.MATRIX,
-                      Property.SYMMETRIC, Property.SPSD, Property.SPD},
+                      Property.SYMMETRIC, Property.SPSD, Property.SPD,
+                      Property.DIAGONAL, Property.TRIANGULAR,
+                      Property.LOWER_TRIANGULAR, Property.UPPER_TRIANGULAR},
     Property.MATRIX: {Property.SCALAR, Property.VECTOR},
     #
     Property.SQUARE      : {Property.ROW_PANEL, Property.COLUMN_PANEL},
