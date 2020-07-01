@@ -260,21 +260,25 @@ class CSEDetector():
         Args:
             subexpr (Subexpression): The subexpression to add.
         """
+        self.all_subexpressions[subexpr.id] = subexpr
+
+        subexprs = None
         for expr in subexpr.expr_var:
             try:
                 subexprs = self.CSE_detection_dict[expr]
             except KeyError:
-                subexprs = []
-                self.all_subexpr_lists.append(subexprs)
+                pass
             else:
                 break
 
-        subexprs.append(subexpr)
+        if subexprs is None:
+            subexprs = [subexpr]
+            self.all_subexpr_lists.append(subexprs)
+        else:    
+            subexprs.append(subexpr)
+
         for expr in subexpr.expr_var:
             self.CSE_detection_dict[expr] = subexprs
-
-        self.all_subexpressions[subexpr.id] = subexpr
-
 
     def print_self(self):
         for key, value in self.CSE_detection_dict.items():
