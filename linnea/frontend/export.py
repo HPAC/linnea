@@ -3,6 +3,7 @@ from ..algebra.properties import Property
 
 from ..utils import dependent_dimensions
 
+import itertools
 
 _BINARY = {
     ae.Plus: ' + ',
@@ -51,8 +52,16 @@ def export(equations):
     op_declarations = []
     const_names = dict()
     for expr in operands:
-        props = [p.value for p in expr.properties if p.value in _SUPPORTED_PROPERTIES]
-        prop_str = ', '.join(props)
+        props = {p for p in expr.properties if p.value in _SUPPORTED_PROPERTIES}
+        remove = set()
+        # removing properties that are implied by others
+        for p1, p2 in itertools.combinations(props, 2):
+            if p1 < p2:
+                remove.add(p2)
+            elif p1 > p2:
+                remove.add(p1)
+        props -= remove
+        prop_str = ', '.join(p.value for p in props)
         if isinstance(expr, ae.Matrix):
             rows = dimensions_dict[(expr.name, 0)]
             columns = dimensions_dict[(expr.name, 1)]
