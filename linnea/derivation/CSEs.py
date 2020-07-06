@@ -257,6 +257,38 @@ class CSEDetector():
     def add_subexpression(self, subexpr):
         """Adds a subexpression to the detector.
 
+        With future versions of Linnea, it could happen that the current way of
+        constructing the CSE_detection_dict is not sufficient. Right now, the
+        transposed and/or inverted variant of an expression is constructed only
+        if the expression contains the inverse and/or transpose. This is done to
+        avoid the relatively expensive construction of expressions. However,
+        there could be expressions where there are transposed or inverted common
+        subexpressions without the presence of transposition and/or inversion in
+        any subexpressions.
+
+        In that case, there are two possible alternative implementations. In
+        both cases, all variants of the subexpressions have to be constructed.
+
+        Option 1:
+        Go over all variants and test if any variant is in the dict.
+        If yes: Add expression to list.
+        If no: Create new list that contains the expressions. Add an entry for
+        the original expression to the dict that points to the new list.
+
+        There is no need to add additional entries that point to this list. If
+        there are equivalent expressions, testing if any is in the dict ensures
+        that equivalent expressions are detected.
+
+        Option 2:
+        Only test if the original variant is in the dict.
+        If yes: Add expression to list.
+        If no: Create new list that contains the expressions. Add an entry for
+        for every variant of the expression to the dict that points to the new
+        list.
+
+        Since all variants of an expression are added to the dict, it is
+        sufficient to test if one variant of an expression is in the dict.
+
         Args:
             subexpr (Subexpression): The subexpression to add.
         """
