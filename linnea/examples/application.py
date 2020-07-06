@@ -331,7 +331,7 @@ class Example09():
         H = Matrix("H", (m, n), properties = [Property.FULL_RANK])
         R = Matrix("R", (m, m), properties = [Property.SPSD]) # covariance matrix
         Y = Matrix("Y", (m, N), properties = [Property.FULL_RANK])
-        X = Matrix("X", (n, N), properties = [Property.FULL_RANK])
+        X = Matrix("X", (n, n), properties = [Property.FULL_RANK, Property.LOWER_TRIANGULAR])
         Xb = Matrix("Xb", (n, N), properties = [Property.FULL_RANK])
         dX = Matrix("dX", (n, N), properties = [Property.FULL_RANK])
 
