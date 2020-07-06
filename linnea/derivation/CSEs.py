@@ -357,75 +357,44 @@ class CSEDetector():
         return maximal_CSEs
 
 
-    def replaceable_CSEs(self, CSEs):
+    def replaceable_CSEs(self, CSE):
         """Finds replaceable CSEs.
         
-        A set of common subexpressions is replaceable if
-        - every subexpression is compatible with every other subexpression
-        - for each CSE, there are at least two subexpressions.
+        A common subexpressions is replaceable if all occurrences are
+        compatible. If some occurrences overlap, this function returns subsets
+        of occurrences where no occurrences overlap.
 
         Args:
-            CSEs (list): A list of CSEs.
+            CSEs (list): A common subexpression.
 
         Yields:
             list: Sets of replaceable CSEs, as a list of subexpressions.
         """
-        if len(CSEs) == 1:
-            # No constraints need to be checked here. All subexpressions belong
-            # to the same CSE, and there are no cliques with less than two
-            # nodes.
-            for clique in CSEs[0].all_cliques:
-                # TODO We yield maximal cliques here. Maximal cliques might
-                # be smaller than maximum cliques. However, for the definition
-                # of maximal CSEs, we rely on the clique number, that is, the
-                # size of a maximum clique. So does it make sense to return
-                # smaller cliques here? Probably not. However, maximal cliques
-                # that are not maximum cliques are rare. The simplest case I can
-                # come up with is X = AAAA, Y = AA.
-                yield [self.all_subexpressions[id] for id in clique]
-        else:
-            subexprs = list(itertools.chain.from_iterable([node.subexprs for node in CSEs]))
-            adj = construct_graph(subexprs)
-
-            for clique in find_max_cliques(adj):
-                # TODO Do maximal cliques that are not maximum cliques make
-                # sense here?
-                counter = Counter(self.subexpr_to_CSE[id] for id in clique)
-
-                # Subsets are only used if there are at least two occurrences of
-                # each CSE.
-                if len(counter) == 2 and all(v >= 2 for v in counter.values()):
-                    yield [self.all_subexpressions[id] for id in clique]
+        for clique in CSE.all_cliques:
+            # TODO We yield maximal cliques here. Maximal cliques might
+            # be smaller than maximum cliques. However, for the definition
+            # of maximal CSEs, we rely on the clique number, that is, the
+            # size of a maximum clique. So does it make sense to return
+            # smaller cliques here? Probably not. However, maximal cliques
+            # that are not maximum cliques are rare. The simplest case I can
+            # come up with is X = AAAA, Y = AA.
+            yield [self.all_subexpressions[id] for id in clique]
 
     def CSEs(self):
         """Generates all detected CSEs.
 
-        This function generates the following replaceable common subexpressions:
-        - Maximal common subexpressions.
-        - Pairs of two maximal common subexpression where that are not
-          subexpressions of each other and have overlapping occurrences.
-
-        For all of those subexpressions, all subsets of subexpressions are
-        generated which are replaceable.
+        This function generates maximal-replaceable common subexpressions. For
+        all of those subexpressions, all subsets of subexpressions are generated
+        which are replaceable.
 
         Yields:
             list: Sets of replaceable CSEs, as a list of subexpressions.
         """
         self.construct_CSEs()
-        
-        grouped_CSEs = []
 
         maximal_CSEs = self.maximal_CSEs()
         for cse in maximal_CSEs:
-            grouped_CSEs.append((cse,))  
-
-        # for cse1, cse2 in itertools.combinations(maximal_CSEs, 2):
-        #     if (not (cse1.is_subexpression(cse2) or cse2.is_subexpression(cse1))) and not cse1.is_compatible(cse2):
-        #         grouped_CSEs.append((cse1, cse2))
-
-        for group in grouped_CSEs:
-            # print("group", [str(cse.expr) for cse in group])
-            yield from self.replaceable_CSEs(group)
+            yield from self.replaceable_CSEs(cse)
 
 
 def construct_graph(subexprs):
