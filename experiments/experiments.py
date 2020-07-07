@@ -222,7 +222,7 @@ def main():
 
         linnea.config.set_verbosity(2)
 
-        for subdir in ["trace", "intensity", "intensity_k_best"]:
+        for subdir in ["intensity", "intensity_k_best"]:
             dir = os.path.join(linnea.config.results_path, args.experiment, subdir)
             if not os.path.exists(dir):
                 os.makedirs(dir, exist_ok=True) # exist_ok=True avoids errors when running experiments in parallel
