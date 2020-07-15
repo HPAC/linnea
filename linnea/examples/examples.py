@@ -4292,3 +4292,25 @@ class Example171():
                 # Equal(z, Times(u, x, y)),
                 # Equal(v, Times(u, Transpose(x), y)),
             )
+
+
+class Example172():
+    def __init__(self):
+
+        # TAGS
+        # syr2k trick
+
+        n1 = 1000
+        n2 = 1000
+
+        A = Matrix("A", (n2, n1))
+        B = Matrix("B", (n1, n1))
+        B.set_property(Property.SPD)
+
+        X = Matrix("X", (n2, n2))
+        Y = Matrix("Y", (n2, n1))
+
+        self.eqns = Equations(
+                Equal(X, Times(A, B, Transpose(A))),
+                Equal(Y, Times(A, B))
+            )
