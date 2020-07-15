@@ -204,6 +204,37 @@ def trick4_callback(substitution, equations, eqn_idx, position):
 
     return (new_equations, ())
 
+def syr2k1_constraint(WP1, WP2, _A):
+    p1 = Times(*WP1)
+    p2 = Times(*WP2)
+    return _A.has_property(Property.SYMMETRIC) and p1.transpose_of(p2)
+
+syr2k1 = matchpy.Pattern(
+                        Times(WP1, _A, WP2),
+                        matchpy.CustomConstraint(syr2k1_constraint)
+                    )
+
+def syr2k1_callback(substitution, equations, eqn_idx, position):
+    # A B A^T (B is symmetric)
+    # 1/2 A (A B)^T + 1/2 (A B) A^T
+    # TODO what about A^T B A? Is it necessary to treat it differently? 
+    equations_list = list(equations.equations)
+
+    one_half = ConstantScalar(0.5)
+    new_expr = Times(*substitution["WP1"], substitution["_A"])
+    tmp = temporaries.create_tmp(new_expr, True)
+    new_equation = Equal(tmp, new_expr)
+
+    A = Times(*substitution["WP1"])
+    replacement = Plus(Times(one_half, A, Transpose(tmp)), Times(one_half, tmp, Transpose(A)))
+
+    equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+position, replacement)
+
+    equations_list.insert(eqn_idx, new_equation)
+    new_equations = Equations(*equations_list)
+
+    return (new_equations, ())
+
 # patterns = [eigen1, eigen2, symmetric_product, trick3]
 
 trick_MA = matchpy.ManyToOneMatcher()
@@ -212,6 +243,7 @@ trick_MA.add(eigen2, label=eigen2_callback)
 trick_MA.add(symmetric_product, label=symmetric_product_callback)
 trick_MA.add(trick3, label=trick3_callback)
 trick_MA.add(trick4, label=trick4_callback)
+trick_MA.add(syr2k1, label=syr2k1_callback)
 
 # automaton = PMA()
 # automaton.add_patterns(patterns)
