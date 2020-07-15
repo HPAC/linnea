@@ -1,0 +1,8 @@
+n = 2500
+m = 500
+
+ColumnVector b(m) <>
+ColumnVector y(n) <>
+Matrix X(n, m) <FullRank>
+
+b = inv(trans(X)*X)*trans(X)*y

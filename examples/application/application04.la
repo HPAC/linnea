@@ -1,0 +1,13 @@
+m = 1000
+n = 2000
+
+ColumnVector b(m) <>
+ColumnVector c(n) <>
+ColumnVector x(n) <>
+ColumnVector xf(n) <>
+ColumnVector xo(n) <>
+Matrix A(m, n) <FullRank>
+Matrix W(n, n) <Diagonal, SPD>
+
+xf = W*trans(A)*inv(A*W*trans(A))*(b - A*x) 
+xo = W*(trans(A)*inv(A*W*trans(A))*A*x - c)

@@ -1,0 +1,12 @@
+n = 1000
+m = 5000
+l = 625
+
+IdentityMatrix I_n(n, n)
+IdentityMatrix I_l(l, l)
+Matrix A(m, n) <FullRank>
+Matrix B(n, n) <SPD>
+Matrix Wk(m, l) <FullRank>
+Scalar lambda <Positive>
+
+B = 1.0*inv(lambda)*(I_n - trans(A)*Wk*inv(lambda*I_l + (trans(Wk)*A*trans(A)*Wk))*trans(Wk)*A)

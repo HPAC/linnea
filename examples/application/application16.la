@@ -1,0 +1,13 @@
+n = 1000
+m = 5000
+l = 625
+
+IdentityMatrix I_n(n, n)
+IdentityMatrix I_l(l, l)
+Matrix A(m, n) <FullRank>
+Matrix Bin(n, n) <SPD>
+Matrix Bout(n, n) <>
+Matrix Wk(m, l) <FullRank>
+Scalar k <Positive>
+
+Bout = k*inv(k - 1)*Bin*(I_n - trans(A)*Wk*inv((k - 1)*I_l + trans(Wk)*A*Bin*trans(A)*Wk)*trans(Wk)*A*Bin)

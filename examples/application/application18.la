@@ -1,0 +1,9 @@
+n = 3000
+m = 200
+
+ColumnVector b(n) <>
+ColumnVector x(m) <>
+Matrix A(n, m) <FullRank>
+Matrix Gamma(m, m) <FullRank>
+
+x = inv(trans(A)*A + trans(Gamma)*Gamma)*trans(A)*b

@@ -1,0 +1,9 @@
+m = 500
+n = 2500
+
+ColumnVector y(n) <>
+ColumnVector b(m) <>
+Matrix M(n, n) <SPD>
+Matrix X(n, m) <FullRank>
+
+b = inv(trans(X)*inv(M)*X)*trans(X)*inv(M)*y

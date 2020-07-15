@@ -1,0 +1,13 @@
+n = 5000
+m = 1000
+
+ColumnVector u_k(n) <>
+ColumnVector v_k(n) <>
+ColumnVector x(n) <>
+ColumnVector y(m) <>
+IdentityMatrix I_n(n, n)
+Matrix H(m, n) <FullRank>
+Scalar lambda <Positive>
+Scalar sigma_sq <Positive>
+
+x = inv((trans(H)*H + lambda*sigma_sq*I_n))*(trans(H)*y + lambda*sigma_sq*(v_k - u_k))

@@ -1,0 +1,11 @@
+n = 2000
+m = 1999
+
+ColumnVector x(n) <>
+ColumnVector y(n) <>
+Matrix A(n, n) <FullRank>
+Matrix B(n, n) <FullRank>
+Matrix L(m, m) <FullRank, Diagonal>
+Matrix R(m, n) <UpperTriangular, FullRank>
+
+x = inv(inv(trans(A))*trans(B)*B*inv(A) + trans(R)*L*R)*inv(trans(A))*trans(B)*B*inv(A)*y

@@ -1,0 +1,12 @@
+N = 200
+n = 2000
+m = 2000
+
+Matrix B(n, n) <SPSD>
+Matrix H(m, n) <FullRank>
+Matrix R(m, m) <SPSD>
+Matrix Xa(n, N) <>
+Matrix Xb(n, N) <FullRank>
+Matrix Y(m, N) <FullRank>
+
+Xa = Xb + inv(inv(B) + trans(H)*inv(R)*H)*(Y - H*Xb)

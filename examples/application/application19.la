@@ -1,0 +1,10 @@
+n = 3000
+m = 200
+
+ColumnVector b(n) <>
+ColumnVector x(m) <>
+IdentityMatrix I_m(m, m)
+Matrix A(n, m) <FullRank>
+Scalar alpha_sq <Positive>
+
+x = inv(trans(A)*A + alpha_sq*I_m)*trans(A)*b

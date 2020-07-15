@@ -1,0 +1,12 @@
+n = 5000
+m = 1000
+
+ColumnVector x(n) <>
+ColumnVector y(m) <>
+ColumnVector y_k(n) <>
+IdentityMatrix I_n(n, n)
+Matrix H(m, n) <FullRank>
+Matrix H_dag(n, m) <FullRank>
+
+H_dag = trans(H)*inv(H*trans(H))
+y_k = H_dag*y + (I_n - H_dag*H)*x

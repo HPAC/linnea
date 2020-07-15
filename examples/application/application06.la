@@ -1,0 +1,19 @@
+n = 2000
+m = 200
+k = 2000
+
+Matrix L00(n, n) <LowerTriangular, FullRank>
+Matrix L10(m, n) <FullRank>
+Matrix L11(m, m) <LowerTriangular, FullRank>
+Matrix L20(k, n) <FullRank>
+Matrix L21(k, m) <FullRank>
+Matrix L22(k, k) <LowerTriangular, FullRank>
+Matrix X10(m, n) <>
+Matrix X11(m, m) <>
+Matrix X20(k, n) <>
+Matrix X21(k, m) <>
+
+X10 = L10*inv(L00)
+X20 = L20 + inv(L22)*L21*inv(L11)*L10
+X11 = inv(L11)
+X21 = - inv(L22)*L21

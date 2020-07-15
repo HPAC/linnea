@@ -1,0 +1,12 @@
+N = 200
+n = 5000
+m = 1000
+
+Matrix H(m, n) <FullRank>
+Matrix R(m, m) <SPSD>
+Matrix X(n, n) <FullRank, LowerTriangular>
+Matrix Xb(n, N) <FullRank>
+Matrix Y(m, N) <FullRank>
+Matrix dX(n, N) <>
+
+dX = X*trans(H*X)*inv(R + H*X*trans(H*X))*(Y - H*Xb)

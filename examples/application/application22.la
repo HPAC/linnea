@@ -1,0 +1,11 @@
+n = 2000
+m = 1500
+
+ColumnVector x(n) <>
+ColumnVector xout(n) <>
+ColumnVector y(m) <>
+Matrix A(m, n) <FullRank>
+Matrix Cx(n, n) <SPD>
+Matrix Cz(m, m) <SPD>
+
+xout = Cx*trans(A)*inv(A*Cx*trans(A) + Cz)*(y - A*x) + x

@@ -1,0 +1,13 @@
+n = 5000
+q = 500
+
+IdentityMatrix I_n(n, n)
+Matrix A(n, n) <FullRank>
+Matrix Lambda(n, n) <>
+Matrix S(n, q) <FullRank>
+Matrix W(n, n) <SPD>
+Matrix Xin(n, n) <FullRank>
+Matrix Xout(n, n) <>
+
+Lambda = S*inv(trans(S)*trans(A)*W*A*S)*trans(S)
+Xout = Xin + (I_n - Xin*trans(A))*Lambda*trans(A)*W

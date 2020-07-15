@@ -1,0 +1,11 @@
+n = 3000
+m = 200
+
+ColumnVector b(n) <>
+ColumnVector x(m) <>
+ColumnVector x0(m) <>
+Matrix A(n, m) <FullRank>
+Matrix P(n, n) <SPD>
+Matrix Q(m, m) <SPD>
+
+x =  x0 + inv(trans(A)*P*A + Q)*trans(A)*P*(b - A*x0)

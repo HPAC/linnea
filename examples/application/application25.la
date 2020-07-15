@@ -1,0 +1,16 @@
+n = 400
+m = 400
+
+ColumnVector x_a(n) <>
+ColumnVector x_b(n) <>
+ColumnVector zk(m) <>
+IdentityMatrix I_n(n, n)
+Matrix H(m, n) <FullRank>
+Matrix Kk(n, m) <>
+Matrix P_a(n, n) <>
+Matrix P_b(n, n) <SPD>
+Matrix R(m, m) <SPSD>
+
+Kk = P_b*trans(H)*inv(R + H*P_b*trans(H))
+x_a = x_b + Kk*(zk - H*x_b)
+P_a = (I_n - Kk*H)*P_b

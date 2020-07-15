@@ -1,0 +1,16 @@
+n = 2000
+m = 1500
+
+ColumnVector x(n) <>
+ColumnVector xout(n) <>
+ColumnVector y(m) <>
+IdentityMatrix I_n(n, n)
+Matrix A(m, n) <FullRank>
+Matrix Cin(n, n) <SPD>
+Matrix Cout(n, n) <>
+Matrix Cz(m, m) <SPD>
+Matrix K(n, m) <>
+
+K = Cin*trans(A)*inv(Cz + A*Cin*trans(A))
+xout = x + K*(y - A*x)
+Cout = (I_n - K*A)*Cin
