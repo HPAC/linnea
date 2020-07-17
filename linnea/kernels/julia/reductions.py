@@ -19,8 +19,10 @@ from ...algebra.expression import Times, Plus, \
                                   Scalar, Vector, Matrix
 
 from ...utils import InequalityConstraint
+from ... import temporaries
 
 import textwrap
+import matchpy
 
 n = 10
 m = 20
@@ -647,6 +649,88 @@ syr2k = KernelDescription(
     )
 
 
+# GEMMT (trans = N)
+
+A = Matrix("A", (n, k))
+B = Matrix("B", (n, k))
+C = Matrix("C", (n, n))
+C.set_property(Property.SYMMETRIC)
+alpha = Scalar("alpha")
+beta = Scalar("beta")
+cf = lambda d: d["K"]*(d["N"]**2)
+
+def gemmt_n_constraint(A, B):
+    expr = Times(A, Transpose(B))
+    tmp = temporaries.create_tmp(expr, True)
+    return tmp.has_property(Property.SYMMETRIC)
+
+gemmt_n = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Plus(Times(alpha, A, Transpose(B)), Times(beta, C))}
+    ),
+    [
+        DefaultValueKV(alpha, [ConstantScalar(1.0)]),
+        DefaultValueKV(beta, [ConstantScalar(0.0), ConstantScalar(1.0)])
+    ],
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+     InputOperand(beta, StorageFormat.full),
+     InputOperand(C, StorageFormat.symmetric_triangular),
+    ],
+    OutputOperand(C, StorageFormat.symmetric_triangular_out), # return value
+    cf, # cost function
+    "",
+    "syr2k!($uplo, 'N', $alpha/2, $A, $B, $beta, $C) # gemmt",
+    "",
+    [SizeArgument("N", A, "rows"),
+     SizeArgument("K", A, "columns"),
+     StorageFormatArgument("uplo", C, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+     constraints=[matchpy.CustomConstraint(gemmt_n_constraint), InequalityConstraint("A", "B")]
+    )
+
+
+# GEMMT (trans = T)
+
+A = Matrix("A", (k, n))
+B = Matrix("B", (k, n))
+C = Matrix("C", (n, n))
+C.set_property(Property.SYMMETRIC)
+alpha = Scalar("alpha")
+beta = Scalar("beta")
+cf = lambda d: d["K"]*(d["N"]**2)
+
+def gemmt_t_constraint(A, B):
+    expr = Times(Transpose(A), B)
+    tmp = temporaries.create_tmp(expr, True)
+    return tmp.has_property(Property.SYMMETRIC)
+
+gemmt_t = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Plus(Times(alpha, Transpose(A), B), Times(beta, C))}
+    ),
+    [
+        DefaultValueKV(alpha, [ConstantScalar(1.0)]),
+        DefaultValueKV(beta, [ConstantScalar(0.0), ConstantScalar(1.0)])
+    ],
+    [InputOperand(alpha, StorageFormat.full),
+     InputOperand(A, StorageFormat.full),
+     InputOperand(B, StorageFormat.full),
+     InputOperand(beta, StorageFormat.full),
+     InputOperand(C, StorageFormat.symmetric_triangular),
+    ],
+    OutputOperand(C, StorageFormat.symmetric_triangular_out), # return value
+    cf, # cost function
+    "",
+    "syr2k!($uplo, 'T', $alpha/2, $A, $B, $beta, $C) # gemmt",
+    "",
+    [SizeArgument("N", A, "columns"),
+     SizeArgument("K", A, "rows"),
+     StorageFormatArgument("uplo", C, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+     constraints=[matchpy.CustomConstraint(gemmt_t_constraint), InequalityConstraint("A", "B")]
+    )
 
 
 # TRMM

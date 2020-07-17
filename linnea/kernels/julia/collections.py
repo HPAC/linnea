@@ -33,6 +33,8 @@ matrix_sum_transpose = list(reductions.matrix_sum_transpose.generate_kernels())
 lascl = list(reductions.lascl.generate_kernels())
 syrk = list(reductions.syrk.generate_kernels())
 syr2k = list(reductions.syr2k.generate_kernels())
+gemmt_n = list(reductions.gemmt_n.generate_kernels())
+gemmt_t = list(reductions.gemmt_t.generate_kernels())
 symv = list(reductions.symv.generate_kernels())
 trmv = list(reductions.trmv.generate_kernels())
 syr = list(reductions.syr.generate_kernels())
@@ -94,6 +96,8 @@ reductions = list(itertools.chain(
                 symm,
                 syrk,
                 syr2k,
+                gemmt_n,
+                gemmt_t,
                 symv,
                 trmv,
                 syr,
