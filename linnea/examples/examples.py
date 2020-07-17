@@ -4292,3 +4292,27 @@ class Example171():
                 # Equal(z, Times(u, x, y)),
                 # Equal(v, Times(u, Transpose(x), y)),
             )
+
+
+class Example172():
+    def __init__(self):
+
+        # TAGS
+        # gemmt
+
+        n1 = 10
+        n2 = 20 
+
+        A = Matrix("A", (n1, n2))
+        C = Matrix("C", (n2, n1))
+        B = Matrix("B", (n2, n2))
+        B.set_property(Property.SYMMETRIC)
+
+        X = Matrix("X", (n1, n1))
+
+
+        self.eqns = Equations(
+                Equal(X, Times(A, B, Transpose(A))),
+                # Equal(X, Times(Transpose(C), B, C)),
+            )
+
