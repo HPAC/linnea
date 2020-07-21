@@ -17,7 +17,7 @@ setup(name="linnea",
     zip_safe=True,
     python_requires=">=3.6",
     install_requires=[
-        "matchpy >= 0.3",
+        "matchpy >= 0.5.2",
         "tatsu >= 4.4"
     ],
     entry_points = {
