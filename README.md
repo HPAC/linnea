@@ -121,19 +121,18 @@ There are the following options (those are the names used in Python, the command
 
 ## Publications
 
-A number of publications that discuss different aspects of Linnea can be found [here](http://hpac.rwth-aachen.de/publications/author/Barthels). If you want to cite Linnea, please reference [this paper](http://arxiv.org/abs/1907.02778):
+A number of publications that discuss different aspects of Linnea can be found [here](http://hpac.rwth-aachen.de/publications/author/Barthels). If you want to cite Linnea, please reference [this paper](http://arxiv.org/abs/1912.12924):
 
 ```
 @article{barthels2019,
     author      = {Henrik Barthels and Christos Psarras and Paolo Bientinesi},
-    title       = {{A}utomatic {G}eneration of {E}fficient {L}inear {A}lgebra {P}rograms},
+    title       = {{L}innea: {A}utomatic {G}eneration of {E}fficient {L}inear {A}lgebra {P}rograms},
     journal     = {CoRR},
-    volume      = {abs/1907.02778},
+    volume      = {abs/1912.12924},
     year        = {2019},
-    url         = {http://arxiv.org/abs/1907.02778},
+    url         = {http://arxiv.org/abs/1912.12924},
     eprinttype  = {arXiv},
-    eprint      = {1907.02778},
-    note        = {To appear in the Proceedings of the Platform for Advanced Scientific Computing Conference (PASC20)},
+    eprint      = {1912.12924},
 }
 ```
 
