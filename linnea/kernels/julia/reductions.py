@@ -620,7 +620,7 @@ C = Matrix("C", (n, n))
 C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: d["K"]*(d["N"]**2)
+cf = lambda d: 2*d["K"]*(d["N"]**2)
 
 syr2k = KernelDescription(
     ExpressionKV(
@@ -657,7 +657,7 @@ C = Matrix("C", (n, n))
 C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: d["K"]*(d["N"]**2)
+cf = lambda d: 2*d["K"]*(d["N"]**2)
 
 def gemmt_n_constraint(A, B):
     expr = Times(A, Transpose(B))
@@ -699,7 +699,7 @@ C = Matrix("C", (n, n))
 C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: d["K"]*(d["N"]**2)
+cf = lambda d: 2*d["K"]*(d["N"]**2)
 
 def gemmt_t_constraint(A, B):
     expr = Times(Transpose(A), B)
