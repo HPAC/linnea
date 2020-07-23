@@ -393,6 +393,9 @@ class Symbol(matchpy.Symbol, Expression):
     def factorization_labels(self, value):
         self._factorization_labels = value
 
+    def __copy__(self):
+        raise NotImplementedError()
+
 class Constant():
     """docstring for Constant"""
     def __init__(self):
@@ -700,7 +703,7 @@ class LinSolveR(Operator):
         return Times(op1, Inverse(op2)).bandwidth
 
     def to_cpp_expression(self, lib):
-        NotImplementedError()
+        raise NotImplementedError()
 
     def to_matlab_expression(self):
         return "({0}/({1}))".format(*map(operator.methodcaller("to_matlab_expression"), self.operands))
@@ -1086,6 +1089,9 @@ class Scalar(Symbol):
         super().__init__(name, (1, 1), indices)
         self.set_property(Property.SCALAR)
 
+    def __copy__(self):
+        return Scalar(self.name, self.indices)
+
 
 class Vector(Symbol):
     """docstring for Vector"""
@@ -1100,6 +1106,9 @@ class Vector(Symbol):
             return 'Vector({!r}, cols={})'.format(self.name, self.columns)
         else:
             return 'Vector({!r}, rows={})'.format(self.name, self.rows)
+
+    def __copy__(self):
+        return Vector(self.name, self.size, self.indices, self.properties)
 
 
 class Matrix(Symbol):
@@ -1126,6 +1135,8 @@ class Matrix(Symbol):
     def __repr__(self):
         return 'Matrix({!r}, size={})'.format(self.name, self.size)
 
+    def __copy__(self):
+        return Matrix(self.name, self.size, self.indices, self.properties)
 
 ######################
 # constant symbols
@@ -1178,7 +1189,10 @@ class IdentityMatrix(ConstantMatrix):
             data_type_str = "double" if config.float64 else "float"
             return "arma::eye< arma::Mat<{0}> >({1}, {2})".format(data_type_str, *self.size)
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
+
+    def __copy__(self):
+        return IdentityMatrix(*self.size)
 
 
 class ZeroMatrix(ConstantMatrix):
@@ -1196,6 +1210,10 @@ class ZeroMatrix(ConstantMatrix):
 
     def to_julia_expression(self):
         return "zeros({0}, {1}, {2})".format(config.data_type_string, *self.size)
+
+    def __copy__(self):
+        return ZeroMatrix(*self.size)
+
 
 class ConstantScalar(Scalar, Constant):
     """docstring for ConstantScalar"""
@@ -1217,6 +1235,9 @@ class ConstantScalar(Scalar, Constant):
 
     def to_cpp_expression(self, lib):
         return "{0}".format(self.value)
+
+    def __copy__(self):
+        return Scalar(self.value)
 
 
 class Index():
