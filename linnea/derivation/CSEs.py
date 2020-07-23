@@ -687,7 +687,7 @@ def find_CSEs(equations):
             min_eqn_idx = min(subexpr.eqn_idx for subexpr in subexprs)
 
             CSE_expr = subexprs[0].expr # this works because indentify_subexpression_types uses subexprs[0] as reference
-            tmp = temporaries.create_tmp(CSE_expr, True)
+            tmp = temporaries.create_tmp(CSE_expr)
             eqn = Equal(tmp, CSE_expr)
 
             insert_equations.append((min_eqn_idx, eqn))

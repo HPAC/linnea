@@ -158,24 +158,15 @@ class ReductionKernel(Kernel):
         # print("here", self.id, self.pattern)
 
     # @profile
-    def set_match(self, match_dict, context, blocked_products=False, set_equivalent=True, equiv_expr=None):
+    def set_match(self, match_dict, context, blocked_products=False):
         
         matched_kernel = super().set_match(match_dict)
 
         #############
         # operation
 
-        # I don't like this part. I would prefer not to use it at all and always
-        # use equivalent expression (even for matrix chain). It's exclusively
-        # a performance consideration.
-        if equiv_expr:
-            # equiv_expr = self.replacement_template.replace_copy({"_op": equiv_expr})    
-            equiv_expr = matchpy.substitute(self.replacement_template, {"_op": equiv_expr})
-            equiv_expr = simplify(equiv_expr)
-
-        # _operation = self.operation_template.replace_copy(match_dict)
         _operation = matchpy.substitute(self.operation_template, match_dict)
-        _tmp = temporaries.create_tmp(_operation, set_equivalent, equiv_expr)
+        _tmp = temporaries.create_tmp(_operation)
 
         matched_kernel.operation = Equal(_tmp, _operation)
 

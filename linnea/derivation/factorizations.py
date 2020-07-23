@@ -108,9 +108,7 @@ def apply_factorizations(equations, operands_to_factor, factorization_dict):
                     equations_list[eqn_idx] = matchpy.replace_many(equations_list[eqn_idx], replacements)
             
             equations_copy = Equations(*equations_list)
-            equations_copy = equations_copy.simplify()
-            equations_copy.set_equivalent(equations)
-            equations_copy = equations_copy.to_SOP().simplify()
+            equations_copy = equations_copy.to_normalform()
 
             yield (equations_copy, matched_kernels)
 

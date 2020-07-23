@@ -41,4 +41,4 @@ def add_expression(expr, properties):
 
     for node in graph.nodes:
         expr = node.equations[-1].rhs
-        tmp = temporaries.create_tmp(expr, True, properties=properties)
+        tmp = temporaries.create_tmp(expr, properties=properties)

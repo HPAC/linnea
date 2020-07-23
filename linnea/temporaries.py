@@ -39,11 +39,15 @@ _equivalent_expressions = dict()
 #  }
 _table_of_factors = dict()
 
+equivalence_replacer = matchpy.ManyToOneReplacer()
+
 def clear():
-    global _table_of_temporaries, _equivalent_expressions, _table_of_factors, _counter
+    global _table_of_temporaries, _equivalent_expressions, _table_of_factors, \
+           _counter, equivalence_replacer
     _table_of_temporaries.clear()
     _equivalent_expressions.clear()
     _table_of_factors.clear()
+    equivalence_replacer = matchpy.ManyToOneReplacer()
     """It is currently not possible to reset _counter here because MatchPy
     requires that variable names are unique. Without unique variable names, if
     the generation is run multiple times in the same program, it
@@ -52,47 +56,62 @@ def clear():
     """
     # _counter = 0
 
-# @profile
-def create_tmp(expr, set_equivalent, equiv_expr=None, properties=None):
-    # The value of set_equivalent does not matter if equiv_expr is not None.
+def create_tmp(expr, properties=None):
 
+    tmp = _table_of_temporaries.get(expr)
+    if tmp:
+        return tmp
 
-    if equiv_expr:
-        # This allows to explicitly specify the equivalent expression for expr.
-        # If there are temporaries, they are replaced (as a rule of thumb, this
-        # should always be done if there are any)
-        set_equivalent = True
-        equiv_expr = _get_equivalent(equiv_expr)
-    elif set_equivalent:
-        equiv_expr = _get_equivalent(expr)
+    equiv_expr = _flatten_equivalent(expr)
+    tmp = _table_of_temporaries.get(equiv_expr)
+    if tmp:
+        if expr != tmp:
+            # Is this necessary? What about the other cases?
+            _table_of_temporaries[expr] = tmp
+        return tmp
 
-    # print(expr, set_equivalent, equiv_expr, properties)
+    equiv_expr_normal = ar.to_normalform(equiv_expr)
+    tmp = _table_of_temporaries.get(equiv_expr_normal)
+    if tmp:
+        _table_of_temporaries[equiv_expr] = tmp
+        _table_of_temporaries[expr] = tmp
+        return tmp
 
-    try:
-        tmp = _table_of_temporaries[equiv_expr]
-    except KeyError:
-        name = "tmp{}".format(get_identifier())
-        size = expr.size
+    equiv_expr_normal_replaced = equivalence_replacer.replace(equiv_expr_normal)
+    tmp = _table_of_temporaries.get(equiv_expr_normal_replaced)
+    if tmp:
+        _table_of_temporaries[equiv_expr_normal] = tmp
+        _table_of_temporaries[equiv_expr] = tmp
+        _table_of_temporaries[expr] = tmp
+        return tmp
 
-        # Properties are set here for performance reasons only.
-        if expr.has_property(Property.SCALAR):
-            tmp = ae.Scalar(name)
-        elif expr.has_property(Property.VECTOR):
-            tmp = ae.Vector(name, size)
-        elif expr.has_property(Property.MATRIX):
-            tmp = ae.Matrix(name, size)
+    # TODO what about another conversion to normal form?
 
-        tmp.indices = expr.indices
-        tmp.bandwidth = expr.bandwidth
-        if isinstance(expr, ae.Operator) and all(operand.factorization_labels for operand in expr.operands):
-            # This covers unary operations, but also the case when an operation
-            # is not blocked because the result does not admit factorizations.
-            tmp.factorization_labels = expr.factorization_labels
+    name = "tmp{}".format(get_identifier())
+    size = expr.size
 
-        if set_equivalent:
-            # This is effectively a two-way dictionary (or bijective mapping)
-            _equivalent_expressions[name] = equiv_expr
-            _table_of_temporaries[equiv_expr] = tmp
+    if expr.has_property(Property.SCALAR):
+        tmp = ae.Scalar(name)
+    elif expr.has_property(Property.VECTOR):
+        tmp = ae.Vector(name, size)
+    elif expr.has_property(Property.MATRIX):
+        tmp = ae.Matrix(name, size)
+
+    tmp.indices = expr.indices
+    tmp.bandwidth = expr.bandwidth
+    if isinstance(expr, ae.Operator) and all(operand.factorization_labels for operand in expr.operands):
+        # This covers unary operations, but also the case when an operation
+        # is not blocked because the result does not admit factorizations.
+        tmp.factorization_labels = expr.factorization_labels
+
+    # This is effectively a two-way dictionary (or bijective mapping)
+    _equivalent_expressions[name] = equiv_expr_normal_replaced
+    _table_of_temporaries[equiv_expr_normal_replaced] = tmp
+    _table_of_temporaries[equiv_expr_normal] = tmp
+    _table_of_temporaries[equiv_expr] = tmp
+    _table_of_temporaries[expr] = tmp
+
+    # print(tmp, expr, equiv_expr)
 
     # for special properties
     if properties:
@@ -102,9 +121,14 @@ def create_tmp(expr, set_equivalent, equiv_expr=None, properties=None):
     return tmp
 
 
+def get_equivalent(expr):
+    return _equivalent_expressions[create_tmp(expr).name]
+
+
 def _get_equivalent(expr):
-    # TODO: This is horrible. Is there any way to fix it?
     new_expr = _flatten_equivalent(expr)
+    new_expr = ar.to_normalform(new_expr)
+    new_expr = equivalence_replacer.replace(new_expr)
     return ar.to_normalform(new_expr)
 
 
@@ -148,12 +172,10 @@ def set_equivalent(expr_before, expr_after):
         expr_before (Expression)
         expr_after (Expression)
     """
-
-    # return
     path_before, path_after = expr_diff(expr_before, expr_after)
     # subexpr_before =
     # subexpr_after =
-    tmp = create_tmp(expr_before[path_before], True)
+    tmp = create_tmp(expr_before[path_before])
     _table_of_temporaries[_get_equivalent(expr_after[path_after])] = tmp
 
     # Looks like this is very expensive but rarely ever enables more merging.
@@ -188,8 +210,6 @@ def set_equivalent_upwards(expr_before, expr_after):
         expr_before (Expression)
         expr_after (Expression)
     """
-
-    # return
     path_before, path_after = expr_diff(expr_before, expr_after)
     for i in reversed(range(len(path_before))):
         # print(path_before[:i])

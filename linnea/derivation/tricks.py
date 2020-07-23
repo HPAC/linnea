@@ -62,7 +62,7 @@ def eigen1_callback(substitution, equations, eqn_idx, position):
     equations_list = list(equations.equations)
 
     diagonal_sum = Plus(substitution["SYM2"], Times(substitution["WD1"], substitution["SYM3"]))
-    tmp = temporaries.create_tmp(diagonal_sum, True)
+    tmp = temporaries.create_tmp(diagonal_sum)
     
     if substitution["WS1"]:
         replacement = Plus(Times(Transpose(substitution["SYM1"]), tmp, substitution["SYM1"]), *substitution["WS1"])
@@ -99,7 +99,7 @@ def eigen2_callback(substitution, equations, eqn_idx, position):
     equations_list = list(equations.equations)
 
     diagonal_sum = Plus(substitution["SYM2"], Times(substitution["WD1"], substitution["SYM3"]))
-    tmp = temporaries.create_tmp(diagonal_sum, True)
+    tmp = temporaries.create_tmp(diagonal_sum)
 
     if substitution["WS1"]:
         replacement = Plus(Times(substitution["SYM1"], tmp, Transpose(substitution["SYM1"])), *substitution["WS1"])
@@ -144,7 +144,6 @@ def symmetric_product_callback(substitution, equations, eqn_idx, position):
     equations_list[eqn_idx] = matchpy.replace(equations_list[eqn_idx], (1,)+tuple(position), replacement)
 
     new_equations = Equations(*equations_list)
-    new_equations.set_equivalent(equations)
     
     return (new_equations, (matched_kernel,))
 
@@ -192,7 +191,7 @@ def trick4_callback(substitution, equations, eqn_idx, position):
 
     one_half = ConstantScalar(0.5)
     sum_expr = Plus(Times(one_half, substitution["WD3"], substitution["WD1"]), substitution["WD2"])
-    tmp = temporaries.create_tmp(sum_expr, True)
+    tmp = temporaries.create_tmp(sum_expr)
     new_equation = Equal(tmp, sum_expr)
 
     replacement = Plus(Times(Transpose(substitution["WD1"]), tmp), Times(Transpose(tmp), substitution["WD1"]), *substitution["WS1"])

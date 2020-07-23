@@ -1,5 +1,6 @@
 from ...algebra.expression import Matrix, Equal, Times
-from ...algebra.transformations import transpose, conjugate_transpose, invert
+from ...algebra.transformations import transpose, conjugate_transpose, invert, \
+                                       invert_transpose
 from ...algebra.properties import Property
 
 from ... import temporaries
@@ -21,6 +22,9 @@ import itertools
 
 import matchpy
 
+ctx1 = matchpy.Wildcard.star("ctx1")
+ctx2 = matchpy.Wildcard.star("ctx2")
+
 class FactorizationKernel(Kernel):
     """docstring for FactorizationKernel"""
 
@@ -38,7 +42,7 @@ class FactorizationKernel(Kernel):
 
         # TODO for something like generalized schur decomposition, I potentially also need context
 
-    def set_match(self, match_dict, context, set_equivalent=True, equiv_expr=None):
+    def set_match(self, match_dict, context):
 
         matched_kernel = super().set_match(match_dict)
 
@@ -145,6 +149,15 @@ class FactorizationKernel(Kernel):
                 _partial_operand_dict[output_operand.operand.variable_name] = operand
 
         _output_expr = matchpy.substitute(self.replacement_template, replacement_dict)
+
+        input_equiv = temporaries.get_equivalent(input_expr)
+        temporaries.equivalence_replacer.add(matchpy.ReplacementRule(matchpy.Pattern(Times(ctx1, _output_expr, ctx2)), lambda ctx1, ctx2: Times(*ctx1, input_equiv, *ctx2)))
+        temporaries.equivalence_replacer.add(matchpy.ReplacementRule(matchpy.Pattern(Times(ctx1, invert(_output_expr), ctx2)), lambda ctx1, ctx2: Times(*ctx1, invert(input_equiv), *ctx2)))
+        # There is no need to generate transposed pattern for factorizations
+        # with symmetric output; Cholesky (id 0) and Eigen (id 4).
+        if self.id in {1, 2, 3, 5}: 
+            temporaries.equivalence_replacer.add(matchpy.ReplacementRule(matchpy.Pattern(Times(ctx1, transpose(_output_expr), ctx2)), lambda ctx1, ctx2: Times(*ctx1, transpose(input_equiv), *ctx2)))
+            temporaries.equivalence_replacer.add(matchpy.ReplacementRule(matchpy.Pattern(Times(ctx1, invert_transpose(_output_expr), ctx2)), lambda ctx1, ctx2: Times(*ctx1, invert_transpose(input_equiv), *ctx2)))
 
         return _output_expr, _arg_dict, _partial_operand_dict, kernel_io
 
