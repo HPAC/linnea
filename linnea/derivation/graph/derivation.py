@@ -25,7 +25,7 @@ class DerivationGraph(derivation.DerivationGraphBase):
         self.root.equations.check_consistency()
         self.root.equations = self.root.equations.to_normalform()
 
-        self.init_temporaries(self.root.equations)
+        # self.init_temporaries(self.root.equations)
 
         trace_data, terminal_nodes = self.best_first_search(time_limit=time_limit, merging=merging, dead_ends=dead_ends, pruning_factor=pruning_factor)
                 
