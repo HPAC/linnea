@@ -25,8 +25,6 @@ class DerivationGraph(derivation.DerivationGraphBase):
         self.root.equations.check_consistency()
         self.root.equations = self.root.equations.to_normalform()
 
-        # self.init_temporaries(self.root.equations)
-
         trace_data, terminal_nodes = self.best_first_search(time_limit=time_limit, merging=merging, dead_ends=dead_ends, pruning_factor=pruning_factor)
                 
         # file_name = os.path.join(config.output_code_path, config.output_name, config.language.name, "dfs_trace.csv")
@@ -102,22 +100,3 @@ class DerivationGraph(derivation.DerivationGraphBase):
 
     #     generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_variants(node.equations), funs)]
     #     yield from self.roundrobin(*generators)
-
-
-    def init_temporaries(self, equations):
-
-        seen_before = set()
-        operands_to_factor = find_operands_to_factor(equations)
-        for equations_var in generate_variants(equations):
-            for equation in equations_var:
-                for inv_expr, pos in find_explicit_symbol_inverse(equation.rhs):
-                    if inv_expr not in seen_before:
-                        special_properties.add_expression(inv_expr, [])
-                        seen_before.add(inv_expr)
-                for expr, pos in equation.rhs.preorder_iter():
-                    # if isinstance(expr, Times) and any(is_inverse(operand) and (not isinstance(operand.operand, Symbol) or operand.operand in operands_to_factor) for operand in expr.operands):
-                    if (isinstance(expr, ae.Times) and any(is_inverse(operand) and operand.operand in operands_to_factor for operand in expr.operands)) or (is_inverse(expr) and not isinstance(expr.operand, ae.Symbol)):
-                        # TODO is it dangerous to add inv(expr) here? It becomes explicit inversion, even if it originally wasn't.
-                        if expr not in seen_before:
-                            special_properties.add_expression(expr, [])
-                            seen_before.add(expr)
