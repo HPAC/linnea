@@ -56,7 +56,7 @@ def clear():
     """
     # _counter = 0
 
-def create_tmp(expr, properties=None):
+def create_tmp(expr):
 
     tmp = _table_of_temporaries.get(expr)
     if tmp:
@@ -112,11 +112,6 @@ def create_tmp(expr, properties=None):
     _table_of_temporaries[expr] = tmp
 
     # print(tmp, expr, equiv_expr)
-
-    # for special properties
-    if properties:
-        for prop in properties:
-            tmp.set_property(prop)
 
     return tmp
 
