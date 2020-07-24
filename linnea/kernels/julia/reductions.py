@@ -660,6 +660,8 @@ beta = Scalar("beta")
 cf = lambda d: 2*d["K"]*(d["N"]**2)
 
 def gemmt_n_constraint(A, B):
+    # TODO As performance optimization, first check that expr is square by
+    # looking at sizes of A and B. Implement as subclass of matchpy.Constraint?
     expr = Times(A, Transpose(B))
     tmp = temporaries.create_tmp(expr, True)
     return tmp.has_property(Property.SYMMETRIC)
@@ -702,6 +704,8 @@ beta = Scalar("beta")
 cf = lambda d: 2*d["K"]*(d["N"]**2)
 
 def gemmt_t_constraint(A, B):
+    # TODO As performance optimization, first check that expr is square by
+    # looking at sizes of A and B. Implement as subclass of matchpy.Constraint?
     expr = Times(Transpose(A), B)
     tmp = temporaries.create_tmp(expr, True)
     return tmp.has_property(Property.SYMMETRIC)
