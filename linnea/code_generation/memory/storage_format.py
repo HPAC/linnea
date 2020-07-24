@@ -38,6 +38,7 @@ class StorageFormat(enum.Enum):
     """
     symmetric_triangular_out = 25
     ipiv = 26
+    explicit_diagonal = 27 # Requirement only. For kernels that only change the diagonal.
 
     __ordering__ = {
         (triangular_udiag_opt, upper_triangular_udiag),
@@ -66,6 +67,11 @@ class StorageFormat(enum.Enum):
         (ipiv, as_vector),
         (symmetric_lower_triangular, symmetric_triangular_out),
         (symmetric_upper_triangular, symmetric_triangular_out),
+        (explicit_diagonal, full),
+        (explicit_diagonal, symmetric_upper_triangular),
+        (explicit_diagonal, symmetric_lower_triangular),
+        (explicit_diagonal, upper_triangular),
+        (explicit_diagonal, lower_triangular),
         }
 
 """

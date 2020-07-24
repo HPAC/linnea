@@ -1934,9 +1934,9 @@ diagfulladd = KernelDescription(
     ],
     [InputOperand(alpha, StorageFormat.full),
      InputOperand(A, StorageFormat.diagonal_vector),
-     InputOperand(B, StorageFormat.full)
+     InputOperand(B, StorageFormat.explicit_diagonal)
     ],
-    OutputOperand(B, StorageFormat.full), # return value
+    OutputOperand(B, StorageFormat.as_overwritten), # return value
     cf, # cost function
     "",
     textwrap.dedent(
