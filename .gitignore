@@ -97,10 +97,11 @@ ENV/
 # mkdocs documentation
 /site
 
-.DS_Store
-linnea.sublime-workspace
+# TeX
+*.aux
+*.out
+*.synctex.gz
 
-/workspace
+.DS_Store
 
 .idea
-experiments/jobscripts/config.json

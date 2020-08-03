@@ -1,0 +1,221 @@
+\documentclass[
+  12pt,
+  a4paper,
+]{scrartcl}
+
+\usepackage{mathpazo}
+\linespread{1.05}
+\usepackage[scaled]{berasans}
+\usepackage[scaled]{beramono}
+\usepackage[euler-digits]{eulervm}
+\normalfont
+\usepackage{microtype}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\addtokomafont{disposition}{\rmfamily}
+
+\title{The Linnea Language}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Linnea is a prototype of a compiler that translates the mathematical description of a linear algebra problem to an efficient sequence of calls to BLAS and LAPACK kernels.
+This document describes the language for the input to Linnea.
+
+\section{The Linnea Language}
+
+The Linnea language consists of three parts: The definition of dimensions, the definition of operands, and linear algebra expressions.
+
+\subsection{Definition of Dimensions}
+\label{sec:defdimensions}
+
+Dimensions are defined by assigning a positive integer to a variable:
+\begin{verbatim}
+  n = 1000
+  m = 2000
+\end{verbatim} 
+
+\subsection{Definition of Operands}
+
+As operands, matrices, vectors, and scalars can be used. The definition of an operand consists of up to four parts: The type of the operand, the name, the dimensions, and the properties. As an example, the definition of a matrix \texttt{M} with dimensions \texttt{m} by \texttt{n} and the property \texttt{FullRank} is written as:
+\begin{verbatim}
+  Matrix M(m, n) <FullRank>	
+\end{verbatim}
+Notice that for specifying the dimensions, variables as described in Sec.~\ref{sec:defdimensions} have to be used.
+There are three different types of matrices: General matrices (\texttt{Matrix}), the identity matrix (\texttt{IdentityMatrix}), and the zero matrix (\texttt{ZeroMatrix}). General matrices can be annotated with an arbitrary number of properties (properties are discussed in detail in Sec.~\ref{sec:properties}). Identity and zero matrices cannot be annotated with additional properties.
+
+There are two types of vectors: Row vectors (\texttt{RowVector}) and column vectors (\texttt{Column\-Vector}). A column vector \texttt{v} with length \texttt{n} is defined as:
+\begin{verbatim}
+  ColumnVector v(n) <>
+\end{verbatim}
+In contrast to matrices, vectors only require one dimensions; their lengths. Mathematically, a row vector with length \texttt{n} can be seen as a \texttt{1} by \texttt{n} matrix, a column vector as a \texttt{n} by \texttt{1} matrix.
+
+A scalar \texttt{alpha} with the property \texttt{Positive} is defined as:
+\begin{verbatim}
+  Scalar alpha <Positive>
+\end{verbatim}
+
+\subsection{Expressions}
+
+The actual mathematical problem is described as a sequence of assignments, where the left-hand side of each assignment is a single operand, and the right-hand side is an expression built from addition (\texttt{+}), multiplication (\texttt{*}), subtraction (\texttt{-}), transposition (\texttt{trans(A)}), and inversion (\texttt{inv(A)}). In addition, constant scalars such as \texttt{-1} or \texttt{0.5} can be used. Three examples are shown below:
+
+\begin{enumerate}
+\item
+\begin{verbatim}
+X = alpha*trans(A)*B + 2*C
+\end{verbatim}
+
+\item
+\begin{verbatim}
+b = inv(trans(X)*X)*trans(X)*y
+\end{verbatim}
+
+\item
+\begin{verbatim}
+H_dag = trans(H)*inv(H*trans(H))
+y_k   = H_dag*y + (I_n - H_dag*H)*x
+\end{verbatim}
+\end{enumerate}
+
+Operands are considered as unique, mathematical objects. For this reason, the value of an operand cannot change, and it is not possible to assign to an operand more than once.
+Which operands are input and which ones are output is determined from the sequence of assignments. All operands that appear on the left-hand side of an assignment are considered output, all other operands are input. As an example, in
+\begin{verbatim}
+  X = A*B
+  Y = C+D
+\end{verbatim}
+\texttt{A}, \texttt{B}, \texttt{C}, and \texttt{D} are input, \texttt{X}, and \texttt{Y} are output.
+Once a value has been assigned to an output operand, the operand can be used on the right-hand side in subsequent assignments:
+\begin{verbatim}
+  X = A*B
+  Y = C+X
+\end{verbatim}
+
+\subsubsection{Validity of Expressions}
+
+For an expression to be valid, Linnea applies the same rules that are used in linear algebra:
+\begin{enumerate}
+  \item The dimensions of the left- and right-hand side of an assignment have to be the same.
+  \item The dimensions of all operands in a sum have to be the same.
+  \item In a product \texttt{A*B}, where \texttt{A} and \texttt{B} are matrices or vectors, the number of columns of \texttt{A} has to be the same as the number of rows of \texttt{B}. Inner products are an exception. For instance, let \text{v} be a column vector and \texttt{A} be a matrix. The product \texttt{trans(v)*v*A} is valid because \texttt{trans(v)*v} forms an inner product and evaluates to a scalar. Notice that it is not necessary to use parenthesis around inner products; they are identified automatically.
+  \item Singular matrices or expressions cannot be inverted. An expression is considered singular if it is not possible to infer that it has the property \texttt{Non-singular} (see Sec.~\ref{sec:properties}).
+\end{enumerate}
+
+\subsubsection{Influence of Different Representations}
+
+For most expressions, multiple mathematically equivalent representation exist. As a trivial example, since addition is commutative, the sum of \texttt{A} and \texttt{B} can be written as \texttt{A+B} and \texttt{B+A}. As another example, both in sums and products, different parenthesizations are possible: A product of three matrices can be written as \texttt{A*B*C}, \texttt{A*(B*C)}, and \texttt{(A*B)*C}. In most cases, such different representations of the input expressions do not affect the generated code. Instead, many different representations are explored by Linnea, and the one is used that leads to the best algorithm. 
+Internally, input expressions are in a first step converted to a canonical representation, and not all possible representations are explored. As a result, it is possible that Linnea does not make use of a particularly favorable representation of the input provided by the user. However, those cases should be rare and only affect especially large and complicated expressions.
+
+Both the generation time and the generated code is affected by breaking down expressions into multiple assignments, and conversely plugging in intermediate operands.
+The reasons is that operands on the left-hand side of an assignment are always explicitly computed and returned as output.
+As an example, breaking down the assignment
+\begin{verbatim}
+  X = A*B*C
+\end{verbatim}
+into two assignments
+\begin{verbatim}
+  Y = A*B
+  X = Y*C
+\end{verbatim}
+forces Linnea to explicitly compute \texttt{Y}, which is equivalent to using the parenthesization \texttt{(A*B)*C}. If the optimal parenthesization is \texttt{A*(B*C)}, then the intermediate operand \texttt{Y} prevents Linnea from finding the optimal solution. This should be considered when using intermediate operands that are only used to simplify the input expressions and do not have to be computed explicitly.
+
+In general, plugging in such intermediate operands may allow Linnea to find better solutions. At the same time, it increases the size of the search space and may increase the generation time. On the other hand, breaking down a large and complex expression into multiple smaller assignments can be used to decrease the generation time, at the cost of potentially suboptimal solutions.
+
+\subsection{Properties}
+\label{sec:properties}
+
+Operands can be annotated with the properties shown in Tab.~\ref{tab:properties}.
+It is possible for operands to have more than one property, as long as their mathematical definitions do not contradict one another. For instance, a matrix can be diagonal and SPD, which implies that all diagonal elements are positive. 
+
+\begin{table}
+\centering
+\begin{tabular}{lp{7cm}}
+\toprule
+Property & Definition \\
+\midrule
+\texttt{Diagonal} & $a_{ij} = 0$ if $i \neq j$ \\
+\texttt{LowerTriangular} & $a_{ij} = 0$ if $i < j$ \\
+\texttt{UpperTriangular} & $a_{ij} = 0$ if $i > j$ \\
+\texttt{UnitDiagonal} & $a_{ij} = 1$ if $i = j$ (requires \texttt{Up\-per\-Tri\-an\-gu\-lar} or \texttt{LowerTriangular}) \\
+\texttt{Symmetric} & $m = n$ and $a_{ij} = a_{ji}$ \\
+\texttt{SPD} & $m = n$ and $x^T A x > 0$ for all $x \in \mathbb{R}^n$ \\
+\texttt{SPSD} & $m = n$ and $x^T A x \geq 0$ for all $x \in \mathbb{R}^n$ \\
+\texttt{Orthogonal} & $m = n$ and $A^T A = A A^T = I$ \\
+\texttt{OrthogonalColumns} & $m \geq n$ and $A^T A = I$ \\
+\texttt{OrthogonalRows} & $n \geq m$ and $A A^T = I$ \\
+\texttt{Permutation} & $m = n$ and there is exactly one $1$ in each row and column, all other entries are $0$ \\
+\texttt{Positive} & $\alpha > 0$ (only for scalars)  \\
+\texttt{FullRank} & $A$ has full rank \\
+\texttt{Non-singular} & $m = n$ and $A$ has full rank \\
+\bottomrule
+\end{tabular}
+\caption{Mathematical definitions of properties supported by Linnea. Let $A \in \mathbb{R}^{m \times n}$ be a real matrix. The elements of this matrix are denoted as $a_{ij}$ with $i \in \{0, \ldots, m-1\}$ and $j \in \{0, \ldots, n-1\}$. For scalars, $\alpha$ is used.}
+\label{tab:properties}
+\end{table}
+
+It is not necessary to annotate operands with redundant properties. As an example, it is not necessary to also use the property \texttt{Symmetric} for a matrix that is already has the property \texttt{SPD}; such properties are inferred automatically. This includes properties that follow from the combination of a property with a specific size. For instance, a matrix that is square and has the property \texttt{Diagonal} is automatically identified as symmetric.
+
+If intermediate operands are used in subsequent assignments, their properties are inferred from the right-hand side of their assignment. As an example, consider the following assignments:
+\begin{verbatim}
+  X = trans(A)*A
+  Y = X*B
+\end{verbatim}
+It is not necessary to specify that \texttt{X} is symmetric. Instead, this property is inferred from \texttt{trans(A)*A}. It is not possible to specify properties of output operands.
+
+It is not checked whether actual content of the input operands has the same properties that the operands were annotated with; it is up to the user to ensure that the specified properties hold. If the input operands do not have the specified properties, most likely the generated code produces incorrect results.
+
+\section{Grammar}
+
+The grammar of the Linnea language is shown in Fig.~\ref{fig:grammar}.
+
+\newcommand{\nt}[1]{\textit{#1}}
+\newcommand{\te}[1]{\texttt{#1}}
+
+\renewcommand{\arraystretch}{1.1}
+
+\begin{figure}
+\centering
+\begin{tabular}{rcl}
+\nt{model} &=& \{\nt{size\_decl}\}, \{\nt{op\_decl}\}, \{\nt{assignment}\};\\
+
+\nt{size\_decl} &=& \nt{id}, "\te{=}", \nt{int};\\
+
+\nt{op\_decl} &=& "\te{Matrix}",         \nt{id}, \nt{dim\_matrix}, \nt{properties} \\
+            &|& "\te{RowVector}",      \nt{id}, \nt{dim\_vector}, \nt{properties} \\
+            &|& "\te{ColumnVector}",   \nt{id}, \nt{dim\_vector}, \nt{properties} \\
+            &|& "\te{Scalar}",         \nt{id},             \nt{properties} \\
+            &|& "\te{IdentityMatrix}", \nt{id}, \nt{dim\_matrix} \\
+            &|& "\te{ZeroMatrix}",     \nt{id}, \nt{dim\_matrix}; \\
+
+\nt{dim\_vector} &=& "\te{(}", \nt{id}, "\te{)}"; \\
+\nt{dim\_matrix} &=& "\te{(}", \nt{id}, "\te{,}", \nt{id}, "\te{)}"; \\
+\nt{properties} &=& "\te{<}", [\nt{property}, \{"\te{,}", \nt{property}\}], "\te{>}"; \\
+
+\nt{assignment} &=& \nt{id}, "\te{=}", \nt{expr}; \\
+
+\nt{expr} &=& \nt{term}, \{( "\te{+}" | "\te{-}" ), \nt{term}\}; \\
+
+\nt{term} &=& \nt{factor}, \{"\te{*}", \nt{factor}\}; \\
+
+\nt{factor} &=& "\te{(}", \nt{expr}, "\te{)}" \\
+       &|& "\te{trans(}", \nt{expr}, "\te{)}" \\
+       &|& "\te{inv(}", \nt{expr}, "\te{)}" \\
+       &|& "\te{-}", \nt{factor} \\
+       &|& \nt{number} \\
+       &|& \nt{id}; \\
+       
+\nt{id} &=& ?"\verb|[a-zA-Z_][a-zA-Z0-9_]*|"?;\\
+\nt{number} &=& ?"\verb|[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?|"?;\\
+\nt{int} &=& ?"\verb|[0-9]+|"?;\\
+\end{tabular}
+\caption{Grammar of the Linnea language in extended Backus–Naur form. The nonterminal \nt{property} matches the properties defined in Tab.~\ref{tab:properties}. The strings enclosed in ?"\ldots"? are regular expressions in the syntax of the Python module \texttt{re}.}
+\label{fig:grammar}
+\end{figure}
+
+\end{document}
