@@ -135,8 +135,8 @@ class Equations():
         replace_eqns = []
         equations = list(self.equations)
         for n, equation in enumerate(equations):
-            if equation.rhs.name in temporaries._equivalent_expressions:
-                if equation.lhs.name in temporaries._equivalent_expressions:
+            if temporaries.is_temporary(equation.rhs):
+                if temporaries.is_temporary(equation.lhs):
                     remove.append(n)
                     if equation.lhs != equation.rhs:
                         replace_eqns.append(equation)

@@ -116,10 +116,18 @@ def create_tmp(expr):
     return tmp
 
 
+def is_temporary(expr):
+    if expr.name in _equivalent_expressions:
+        return True
+    else:
+        return False
+
+
 def get_equivalent(expr):
-    return _equivalent_expressions[create_tmp(expr).name]
-
-
+    if isinstance(expr, ae.Symbol) and not is_temporary(expr):
+        return expr
+    else:
+        return _equivalent_expressions[create_tmp(expr).name]
 
 
 def _flatten_equivalent(expr):
