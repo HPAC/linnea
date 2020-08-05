@@ -59,10 +59,6 @@ def apply_matrix_chain_algorithm(equations, eqn_idx, initial_pos, explicit_inver
     new_equation = matchpy.replace(equations[eqn_idx], initial_pos, replacement)
     equations_copy = equations.set(eqn_idx, new_equation)
     equations_copy = equations_copy.to_normalform()
-
-    temporaries.set_equivalent_upwards(equations[eqn_idx].rhs, equations_copy[eqn_idx].rhs)
-    # remove_identities has to be called after set_equivalent because
-    # after remove_identities, eqn_idx may not be correct anymore
     equations_copy = equations_copy.remove_identities()        
 
     yield (equations_copy, matched_kernels)

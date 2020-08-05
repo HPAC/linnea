@@ -104,16 +104,6 @@ class Equations():
 
         return all_data
 
-    def set_equivalent(self, equations_before):
-        """Applies temporaries.set_equivalent() to all equations.
- 
-        Args:
-            equations_before (Equations)       
-        """
-        for n, equation in enumerate(self.equations):
-            if equation.rhs != equations_before[n].rhs:
-                temporaries.set_equivalent(equations_before[n].rhs, equation.rhs)
-
     def remove_identities(self):
         """Removes equations where both sides are temporaries.
 
@@ -166,13 +156,6 @@ class Equations():
 
         # TODO do we want to manipulate the table of temporaries here?
         return Equations(*equations)
-
-    def replace_intermediates(self):
-        candidates = []
-        for equation in self.equations:
-            if (equation.rhs.name in temporaries._equivalent_expressions
-                and not equation.lhs.name in temporaries._equivalent_expressions):
-                candidates.append(equation)
 
     def process_next(self):
         for eqn_idx, equation in enumerate(self.equations):
