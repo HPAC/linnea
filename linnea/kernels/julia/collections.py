@@ -218,4 +218,8 @@ for kernel in addition_kernels:
 reduction_MA = matchpy.ManyToOneMatcher()
 for kernel in reductions:
     reduction_MA.add(kernel.pattern_with_context, label=kernel)
-    
+
+def clear():
+    global addition_kernel_MA, reduction_MA
+    addition_kernel_MA.clear()
+    reduction_MA.clear()
