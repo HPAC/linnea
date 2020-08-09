@@ -30,8 +30,8 @@ def to_SOP(expr):
     function should be changed to also consider scalar sums. If the normal form
     is not changed, this would mean that the normal form and SOP form are not
     compatible anymore. In that case, one solution might be to make the
-    generate_variants return an additional expression in SOP form that can be
-    different from the expression in normal form.
+    generate_representations return an additional expression in SOP form that
+    can be different from the expression in normal form.
 
     Args:
         expr (Expression): The input expression.

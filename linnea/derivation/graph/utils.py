@@ -119,28 +119,27 @@ def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
 
 
 # @profile
-def generate_variants(equations, eqn_idx=None):
-    """Generates UI (Undistribute Inverse) and POS (Product Of Sums) variants of equations.
+def generate_representations(equations, eqn_idx=None):
+    """Generates different representations of equations.
 
-    This function yields some variants of the given equations and returns all unique ones in the following order:
-        1. POS variant (left first)
-        2. POS variant (right first)
-        3. UI variant
-        4. Equations as passed to the function as an argument
+    This function yields the following representations of equations (if they are
+    unique), in the order given below:
+        1. POS variant (left first).
+        2. POS variant (right first).
+        3. UI variant.
+        4. Equations as passed to the function.
 
-    For each type of variant, first a list of equation indices where it can be applied are calculated.
-
-    The optional argument eqn_idx can be used to specify that variants are generated for a specific element
-    in equations.
+    If an eqn_idx is given, different representations are only generated for the
+    respective equation.
 
     Args:
-        equations (linnea.algebra.equations.Equations): Contains the set of equations to be processed.
+        equations (linnea.algebra.equations.Equations): Input equations.
 
-        eqn_idx (int, optional): Index of specific element in equations object to work on.
-            If None, all elements are used.
+        eqn_idx (int, optional): Index of equation to generate variants for.
 
     Yields:
-        linnea.algebra.equations.Equations: Contains the initial version of equations with variants applied to them.
+        linnea.algebra.equations.Equations: Different representations of
+            equations.
 
     """
 

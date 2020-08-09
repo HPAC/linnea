@@ -4,7 +4,7 @@ from ...utils import is_inverse, roundrobin
 
 from .. import special_properties
 
-from .utils import DS_step, generate_variants, find_operands_to_factor, \
+from .utils import DS_step, generate_representations, find_operands_to_factor, \
                    find_explicit_symbol_inverse
 
 from .base import derivation
@@ -60,8 +60,8 @@ class DerivationGraph(derivation.DerivationGraphBase):
         if not equation:
             eqn_idx = None
 
-        gen_var_single1, gen_var_single2, gen_var_single3 = itertools.tee(generate_variants(node.equations, eqn_idx), 3)
-        gen_var1, gen_var2 = itertools.tee(generate_variants(node.equations), 2)
+        gen_var_single1, gen_var_single2, gen_var_single3 = itertools.tee(generate_representations(node.equations, eqn_idx), 3)
+        gen_var1, gen_var2 = itertools.tee(generate_representations(node.equations), 2)
 
         kernels_constructive = map(functools.partial(self.DFS_kernels_constructive, node), gen_var_single1)
         kernels = map(functools.partial(self.DFS_kernels, node), gen_var_single2)
@@ -98,5 +98,5 @@ class DerivationGraph(derivation.DerivationGraphBase):
     #     else:
     #         funs = [self.DFS_CSE_replacement, self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_factorizations, self.DFS_tricks]
 
-    #     generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_variants(node.equations), funs)]
+    #     generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_representations(node.equations), funs)]
     #     yield from self.roundrobin(*generators)

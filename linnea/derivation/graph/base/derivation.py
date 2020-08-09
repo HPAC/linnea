@@ -9,7 +9,7 @@ from ... import CSEs
 from ... import factorizations
 from ... import reductions
 
-from ..utils import generate_variants, find_operands_to_factor, \
+from ..utils import generate_representations, find_operands_to_factor, \
                     DS_step, is_dead_end, PriorityStack, process_next_simple, \
                     OperationType, is_explicit_inversion
 
@@ -58,7 +58,7 @@ class DerivationGraphBase(base.GraphBase):
                 pruned_nodes[node.id] = (prio, node)
                 continue
 
-            if dead_ends and all(is_dead_end(equations, node.factored_operands) for equations in generate_variants(node.equations)):
+            if dead_ends and all(is_dead_end(equations, node.factored_operands) for equations in generate_representations(node.equations)):
                 node.labels.append("dead")
                 continue
 
