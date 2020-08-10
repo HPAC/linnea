@@ -22,7 +22,6 @@ class DerivationGraph(derivation.DerivationGraphBase):
         self.root.equations.infer_missing_properties()
         self.root.equations.infer_lhs_properties()
         self.root.equations.check_validity()
-        self.root.equations.check_consistency()
         self.root.equations = self.root.equations.to_normalform()
 
         trace_data, terminal_nodes = self.best_first_search(time_limit=time_limit, merging=merging, dead_ends=dead_ends, pruning_factor=pruning_factor)

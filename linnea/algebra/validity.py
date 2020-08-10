@@ -2,9 +2,14 @@ from .expression import Symbol, Matrix, Scalar, \
                         Equal, Plus, Times, Transpose, Inverse, \
                         Operator
 
+from .properties import Property, negative_implications
+
 from .utils import scalar_subexpressions
 
 import matchpy
+
+class ConflictingProperties(Exception):
+    pass
 
 class SizeMismatch(Exception):
     pass
@@ -15,17 +20,28 @@ def check_validity(expr):
     It is checked whether the dimensions in sums, products and equations match.
     If not, an exception is raised.
 
-    TODO: at the moment, this function does not consider conflicting properties
-    (that should probably happen in a seperate function)
-
     Returns:
         bool: True if the expression is valid, raises an exception otherwise.
 
     Raises:
         SizeMismatch: If operand sizes in any expression do not match.
+        ConflictingProperties: If operands have conflicting properties.
     """
 
     if isinstance(expr, Symbol):
+        properties = expr.properties
+        false_properties = expr.false_properties
+
+        for prop in properties:
+            intersection = properties.intersection(negative_implications[prop])
+            if intersection:
+                msg = "{} has conflicting properties: {} contradicts {}.".format(expr, prop.value, ", ".join(p.value for p in intersection))
+                raise ConflictingProperties(msg)
+
+        intersection = properties.intersection(false_properties)
+        if intersection:
+            msg = "{} has conflicting properties {}.".format(expr, ", ".join(p.value for p in intersection))
+            raise ConflictingProperties(msg)
         return True
 
     if isinstance(expr, Equal):

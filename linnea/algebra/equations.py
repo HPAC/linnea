@@ -7,7 +7,6 @@ from . import representations as ar
 
 from .properties import Property, binary_implications
 from .validity import check_validity
-from .consistency import check_consistency
 
 import copy
 import matchpy
@@ -346,11 +345,6 @@ class Equations():
                     raise InvalidInput("Input operands can not be overwritten: {}".format(operand.name))
         
         return all(check_validity(equation) for equation in self.equations)
-
-
-    def check_consistency(self):
-        return all(check_consistency(equation) for equation in self.equations)        
-
 
     def _copy_symbol(self, symbol):
         """Creates a copy of symbol with a unique name"""
