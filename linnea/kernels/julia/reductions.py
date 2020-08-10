@@ -1,7 +1,7 @@
 from ..utils.reductions import KernelDescription, \
                                Op1, Op2, \
                                ExpressionKV, PropertyKV, DefaultValueKV, OperatorKV, \
-                               KernelType, \
+                               KernelType, KernelOption, \
                                OutputOperand
 
 from ..utils.general import SizeArgument, PropertyArgument, StrideArgument, \
@@ -76,6 +76,7 @@ scalar_division = KernelDescription(
     "$out = $alpha / $beta",
     "",
     [], # Argument objects
+    options={KernelOption.no_simplifications}
     )
 
 # scalar inversion
@@ -160,7 +161,8 @@ cf = lambda d: d["N"]
 scal = KernelDescription(
     ExpressionKV(
         None,
-        {None: Times(alpha, x)}
+        {"L": Times(alpha, x),
+         "R": Times(x, alpha)}
     ),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
@@ -172,7 +174,7 @@ scal = KernelDescription(
     "scal!($N, $alpha, $x, 1)",
     "",
     [SizeArgument("N", x, "rows")], # Argument objects
-    [KernelType.identity, KernelType.scaling]
+    options={KernelOption.no_simplifications}
     )
 
 # AXPY
@@ -751,7 +753,8 @@ cf = lambda d: d["M"]*d["N"]
 lascl = KernelDescription(
     ExpressionKV(
         None,
-        {None: Times(alpha, X)}
+        {"L": Times(alpha, X),
+         "R": Times(X, alpha)}
     ),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
@@ -765,7 +768,7 @@ lascl = KernelDescription(
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns"),
      SizeArgument("MN", X, "entries")], # Argument objects
-     [KernelType.identity, KernelType.scaling]
+    options={KernelOption.no_simplifications}
     )
 
 
@@ -1381,7 +1384,8 @@ cf = lambda d: d["N"]
 invscal = KernelDescription(
     ExpressionKV(
         None,
-        {None: Times(Inverse(alpha), x)}
+        {"L": Times(Inverse(alpha), x),
+         "R": Times(x, Inverse(alpha))}
     ),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
@@ -1393,7 +1397,7 @@ invscal = KernelDescription(
     "$x ./= $alpha",
     "",
     [SizeArgument("N", x, "rows")], # Argument objects
-    [KernelType.identity, KernelType.scaling]
+    options={KernelOption.no_simplifications}
     )
 
 # inv(scalar) * matrix
@@ -1405,7 +1409,8 @@ cf = lambda d: d["M"]*d["N"]
 invlascl = KernelDescription(
     ExpressionKV(
         None,
-        {None: Times(Inverse(alpha), X)}
+        {"L": Times(Inverse(alpha), X),
+         "R": Times(X, Inverse(alpha))}
     ),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
@@ -1418,7 +1423,7 @@ invlascl = KernelDescription(
     "",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns")], # Argument objects
-     [KernelType.identity, KernelType.scaling]
+    options={KernelOption.no_simplifications}
     )
 
 # diaginv (diagonal matrix inversion)
@@ -1556,7 +1561,8 @@ cf = lambda d: min(d["M"], d["N"])
 diagscal = KernelDescription(
     ExpressionKV(
         None,
-        {None: Times(alpha, X)}
+        {"L": Times(alpha, X),
+         "R": Times(X, alpha)}
     ),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
@@ -1569,7 +1575,7 @@ diagscal = KernelDescription(
     "",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns")], # Argument objects
-    [KernelType.identity, KernelType.scaling]
+    options={KernelOption.no_simplifications}
     )
 
 # diagonal * diagonal

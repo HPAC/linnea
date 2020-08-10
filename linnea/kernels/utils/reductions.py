@@ -36,7 +36,9 @@ class KernelType(enum.Enum):
     identity = 0
     transpose = 1
     conjugate_transpose = 2
-    scaling = 3 # only for kernels Times(scalar, something), to also generate Times(something, scalar)
+
+class KernelOption(enum.Enum):
+    no_simplifications = 0
 
 _op = matchpy.Wildcard.symbol("_op")
 ctx1 = matchpy.Wildcard.star("ctx1")
@@ -446,7 +448,8 @@ class KernelDescription():
                  post_code,
                  arguments,
                  kernel_types=[KernelType.identity],
-                 constraints=[]):
+                 constraints=[],
+                 options=set()):
         self.expr_variant = expr_variant
         self.variants = variants
         self.input_operands = input_operands
@@ -454,6 +457,7 @@ class KernelDescription():
         self.kernel_types = kernel_types
         self.cost_function = cost_function
         self.constraints = constraints
+        self.options = options
 
         self.pre_code = CodeTemplate(pre_code)
         self.signature = CodeTemplate(signature)
@@ -542,7 +546,8 @@ class KernelDescription():
                                 argument.operand = replace_operator(argument.operand, self.variants[i].operator, new_operator)
                         arguments_copy2.append(ConstantArgument(self.variants[i].arg_name, arg))
                 
-                expr_copy2 = simplify(expr_copy2)
+                if not KernelOption.no_simplifications in self.options:
+                    expr_copy2 = simplify(expr_copy2)
 
                 remaining_operands = []
                 seen_before = set()
@@ -598,13 +603,7 @@ class KernelDescription():
 
                 kernel_io.replace_variables(self.wildcards)
                 for kernel_type in self.kernel_types:
-
-                    if kernel_type is KernelType.scaling:
-                        expr_copy3 = Times(*reversed(expr_copy2.operands))
-                    else:
-                        expr_copy3 = expr_copy2
-
-                    yield ReductionKernel(matchpy.Pattern(expr_copy3, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, kernel_type, kernel_io)        
+                    yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, kernel_type, kernel_io)        
 
 ############################
 # Auxiliary functions
