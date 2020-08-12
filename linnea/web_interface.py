@@ -3,8 +3,13 @@ from .derivation.graph.derivation import DerivationGraph
 from . import utils
 
 import linnea.config
+import linnea.algebra.validity as validity
+import linnea.algebra.expression as ae
 
 import json
+
+class SizeMismatch(Exception):
+    pass
 
 def run_linnea(input, time_limit=10):
     """Run Linnea code generation.
@@ -52,5 +57,14 @@ def dependent_dimensions(input):
         string: A JSON string of nested arrays.
     """
     equations = parse_input(input)
+    try:
+        equations.check_validity()
+    except validity.SizeMismatch as e:
+        if not e.error_info is None:
+            msg = "Size mismatch in {}: {} and {} are not compatible.".format(*e.error_info)
+            raise SizeMismatch(msg)
+        else:
+            raise e
+    
     dimensions = utils.dependent_dimensions(equations)
     return json.dumps(list(map(list, dimensions)))

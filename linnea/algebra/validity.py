@@ -1,6 +1,5 @@
-from .expression import Symbol, Matrix, Scalar, \
-                        Equal, Plus, Times, Transpose, Inverse, \
-                        Operator
+from .expression import Symbol, Matrix, Scalar, Equal, Plus, Times, Transpose, \
+                        Inverse, InverseTranspose, Operator
 
 from .properties import Property, negative_implications
 
@@ -11,8 +10,13 @@ import matchpy
 class ConflictingProperties(Exception):
     pass
 
+
 class SizeMismatch(Exception):
-    pass
+    def __init__(self, message, error_info=None):
+        super().__init__(message)
+
+        self.error_info = error_info
+
 
 def check_validity(expr):
     """Checks if an expression is valid.
@@ -47,9 +51,8 @@ def check_validity(expr):
     if isinstance(expr, Equal):
         expr1, expr2 = expr.operands
         if expr1.size != expr2.size:
-            raise SizeMismatch("Size mismatch in equation: %s = %s with sizes %s and %s" \
-                                % (expr1, expr2, expr1.size, \
-                                   expr2.size))
+            msg = "Size mismatch in equation: {} = {} with sizes {} and {}.".format(expr1, expr2, expr1.size, expr2.size)
+            raise SizeMismatch(msg, ("assignment", expr1, expr2))
 
         return check_validity(expr1) and check_validity(expr2)
 
@@ -61,9 +64,8 @@ def check_validity(expr):
         # compare size of first term with consecutive terms
         for term in expr.operands[1:]:
             if size != term.size:
-                raise SizeMismatch("Size mismatch in sum: %s + %s with sizes %s and %s" \
-                                    % (prev_term, term, prev_term.size, \
-                                       term.size))
+                msg = "Size mismatch in sum: {} + {} with sizes {} and {}.".format(prev_term, term, prev_term.size, term.size)
+                raise SizeMismatch(msg, ("sum", prev_term, term))
             prev_term = term
 
         return all(check_validity(term) for term in expr.operands)
@@ -98,12 +100,15 @@ def check_validity(expr):
                 if factor.columns == factors[compare_with].rows:
                     valid_dims = True
             if not valid_dims:
-                raise SizeMismatch("Size mismatch in product: %s * %s with sizes %s and %s" \
-                                    % (factor, factors[compare_with], \
-                                    factor.size, \
-                                    factors[compare_with].size))
+                msg = "Size mismatch in product: {} * {} with sizes {} and {}.".format(factor, factors[compare_with], factor.size, factors[compare_with].size)
+                raise SizeMismatch(msg, ("product", factor, factors[compare_with]))
 
         return all(check_validity(factor) for factor in factors)
+    if isinstance(expr, (Inverse, InverseTranspose)):
+        if not expr.has_property(Property.SQUARE):
+            msg = "Only square expressions can be inverted: {}.".format(expr)
+            raise SizeMismatch(msg)
+        return check_validity(expr.operand)
     if isinstance(expr, Operator) and expr.arity is matchpy.Arity.unary:
         return check_validity(expr.operand)
     return False
