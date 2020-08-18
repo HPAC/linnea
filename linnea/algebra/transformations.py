@@ -1,6 +1,8 @@
 from . import expression as ae
 from .properties import Property
 
+from ..utils import window
+
 import operator
 import matchpy
 import itertools
@@ -33,6 +35,7 @@ def simplify(expr):
 
         ############################
         # Product is zero if there is one zero factor.
+        # Merge this with the other loops?
 
         for operand in expr.operands:
             if operand.has_property(Property.ZERO) or (isinstance(operand, ae.ConstantScalar) and operand.value == 0):
@@ -44,90 +47,65 @@ def simplify(expr):
         # Remove identity matrix
 
         if len(non_scalars) > 1:
-            non_scalars = [operand for operand in non_scalars if not operand.has_property(Property.IDENTITY)]
+            non_scalars = [operand for operand in non_scalars if not (operand.has_property(Property.IDENTITY) and operand.has_property(Property.SQUARE))]
 
         ############################
         # Computing product of ConstantScalars, sorting symbolic scalars.
 
-        # TODO once expr^expr is possible, this should also compute compute
-        # products symbolic scalars (if possible)
-        if len(scalars) > 1:
-            numeric_scalars = [s for s in scalars if isinstance(s, ae.ConstantScalar)]
-            symbolic_scalars = [s for s in scalars if not isinstance(s, ae.ConstantScalar)]
+        if scalars:
+            numeric_scalars = []
+            symbolic_scalars = []
+            for s in scalars:
+                if isinstance(s, ae.ConstantScalar):
+                    if s.value != 1.0:
+                        numeric_scalars.append(s)
+                else:
+                    symbolic_scalars.append(s)
             symbolic_scalars.sort()
 
             if len(numeric_scalars) > 1:
                 new_value = 1
-                for i in range(len(numeric_scalars)):
-                    new_value *= numeric_scalars[i].value
+                for s in numeric_scalars:
+                    new_value *= s.value
+                # itertools.accumulate((s.value for s in numeric_scalars), *)
                 # itertools.accumulate(numeric_scalars, lambda x, y: x.value * y.value)
-                numeric_scalars = [ae.ConstantScalar(new_value)]
+                
+                if new_value != 1.0:
+                    numeric_scalars = [ae.ConstantScalar(new_value)]
+                else:
+                    numeric_scalars = []
 
             scalars = numeric_scalars + symbolic_scalars
 
-        # remove scalar 1
-        # It is sufficient to look at the first entry of scalars because if
-        # there was more than one numeric scalar, they would have been
-        # combined.
-        if scalars and isinstance(scalars[0], ae.ConstantScalar) and scalars[0].value == 1:
-            del scalars[0]
-
         ############################
-        # Removing Q^T Q where Q has OrthogonalColumns property
-        #
-        # TODO equivalent thing for orthogonal rows
-
-        i = 0;
-        while i < len(non_scalars):
-            if non_scalars[i].has_property(Property.ORTHOGONAL_COLUMNS):
-                if i > 0 and isinstance(non_scalars[i-1], ae.Transpose) and non_scalars[i-1].operand == non_scalars[i]:
-                    del non_scalars[i]
-                    del non_scalars[i-1]
-                    i -= 1
-                    if i >= len(non_scalars):
-                        break
-            i += 1
-
-        if len(non_scalars) == 0 and not expr.has_property(Property.SCALAR):
-            non_scalars.append(ae.IdentityMatrix(*expr.size))
-
-        ############################
-        # Removing expr * expr^{-1}
-        #
-        # To minimize the number of expressions that have to be inverted,
-        # only every second factor is inverted. So in a product
-        # Times([A, B, C, D]), only B and D are inverted, and then compared
-        # to the previous and next factors.
+        # Removing expr * expr^{-1}, Q^T Q when Q has property
+        # ORTHOGONAL_COLUMNS, and Q^T Q when Q has property ORTHOGONAL_ROWS.
 
         if len(non_scalars) > 1:
-            while True:
-                l = len(non_scalars)
-                # l-1 is used because for l = 3, we don't need i == 2 (i.e.
-                # the last position). In that case, range = [0], and for
-                # i == 0, A1 == A2^{-1} and A2^{-1} == A3 is checked.
-                for i in range(0, l-1, 2):
-                    if non_scalars[i].inverse_of(non_scalars[i+1]):
-                        if l > 2:
-                            del non_scalars[i:i+2]
-                        else:
-                            size = (non_scalars[i].rows, non_scalars[i+1].columns)
-                            non_scalars[i:i+2] = [ae.IdentityMatrix(*size)]
-                            pass
-                        # since indices change after removing something, we have
-                        # to start over
-                        break
-                    elif i+2 < l and non_scalars[i+1].inverse_of(non_scalars[i+2]):
-                        if l > 2:
-                            del non_scalars[i+1:i+3]
-                        else:
-                            size = (non_scalars[i+1].rows, non_scalars[i+2].columns)
-                            non_scalars[i+1:i+3] = [ae.IdentityMatrix(*size)]
-                            pass
-                        # since indices change after removing something, we have
-                        # to start over
-                        break
+            new_operands = []
+            drop_next = False
+            for op1, op2 in window(non_scalars):
+                if drop_next:
+                    drop_next = False
+                    continue
+                if isinstance(op1, ae.Transpose) and op1.operand == op2 and op2.has_property(Property.ORTHOGONAL_COLUMNS):
+                    drop_next = True
+                elif isinstance(op2, ae.Transpose) and op1 == op2.operand and op1.has_property(Property.ORTHOGONAL_ROWS):
+                    drop_next = True
+                elif op1.inverse_of(op2):
+                    drop_next = True
                 else:
-                    break
+                    new_operands.append(op1)
+            if not drop_next:
+                new_operands.append(non_scalars[-1])
+            non_scalars = new_operands
+
+        if not scalars and not non_scalars:
+            rows, columns = expr.size
+            if rows == 1 and columns == 1:
+                scalars = [ae.ConstantScalar(1.0)]
+            else:
+                non_scalars = [ae.IdentityMatrix(rows, columns)]
 
         operands = scalars + non_scalars
         return ae.Times(*operands)
@@ -316,24 +294,19 @@ def simplify(expr):
 
                 # print("terms", new_terms)
 
-            operands = new_terms
-
             ############################
             # Remove zero matrices in sums.
 
-            remove = []
-            for i, operand in enumerate(operands):
-                if operand.has_property(Property.ZERO):
-                    # print("operand", operand)
-                    remove.append(i)
+            operands = []
+            for term in new_terms:
+                if not term.has_property(Property.ZERO):
+                    operands.append(term)
 
-            for i in reversed(remove):
-                del operands[i]
-
+            if not operands:
+                return ae.ZeroMatrix(*expr.size)
 
         return ae.Plus(*operands)
     else:
-        # TODO anything missing?
         return expr
 
 def invert(expr):
@@ -371,6 +344,9 @@ def invert(expr):
     elif isinstance(expr, ae.Symbol):
         if isinstance(expr, ae.ConstantScalar):
             return ae.ConstantScalar(1/expr.value)
+        elif expr.has_property(Property.IDENTITY):
+            # assuming that the identity is square
+            return expr
         elif expr.has_property(Property.ORTHOGONAL):
             # is it possible for an orthogonal matrix to be symmetric?
             return ae.Transpose(expr)
@@ -422,8 +398,6 @@ def transpose(expr):
             return expr
         else:
             return ae.Transpose(expr)
-    elif isinstance(expr, ae.ConstantScalar): # TODO remove this. ConstantScalar is a scalar symbol, so the symbol branch already does the right thing
-        return expr
     elif isinstance(expr, matchpy.Wildcard): # For Wildcards
         return ae.Transpose(expr)
     else:
@@ -451,8 +425,13 @@ def invert_transpose(expr):
     elif isinstance(expr, ae.InverseConjugateTranspose):
         return conjugate(expr.operand)
     elif isinstance(expr, ae.Symbol):
-        if expr.has_property(Property.SCALAR):
+        if isinstance(expr, ae.ConstantScalar):
+            return ae.ConstantScalar(1/expr.value)
+        elif expr.has_property(Property.SCALAR):
             return ae.Inverse(expr)
+        elif expr.has_property(Property.IDENTITY):
+            # assuming that the identity is square
+            return expr
         elif expr.has_property(Property.SYMMETRIC):
             return ae.Inverse(expr)
         elif expr.has_property(Property.ORTHOGONAL):
@@ -461,8 +440,6 @@ def invert_transpose(expr):
             return ae.Conjugate(expr)
         else:
             return ae.InverseTranspose(expr)
-    elif isinstance(expr, ae.ConstantScalar):
-        return ae.ConstantScalar(1/expr.value)
     elif isinstance(expr, ae.Plus):
         return ae.Inverse(ae.Plus(*map(transpose, expr.operands)))
     elif isinstance(expr, ae.Times):
