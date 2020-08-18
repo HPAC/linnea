@@ -662,13 +662,13 @@ class LinSolveL(Operator):
             raise NotImplementedError()
 
     def to_matlab_expression(self):
-        return "(({0})\{1})".format(*map(operator.methodcaller("to_matlab_expression"), self.operands))
+        return "(({0})\\{1})".format(*map(operator.methodcaller("to_matlab_expression"), self.operands))
 
     def to_julia_expression(self):
-        return "(({0})\{1})".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
+        return "(({0})\\{1})".format(*map(operator.methodcaller("to_julia_expression"), self.operands))
 
     def __str__(self):
-        return "(({0})\{1})".format(*self.operands)
+        return "(({0})\\{1})".format(*self.operands)
 
 
 class LinSolveR(Operator):
@@ -1160,7 +1160,7 @@ class IdentityMatrix(ConstantMatrix):
         if rows == columns:
             self.set_property(Property.SPD)
             self.set_property(Property.PERMUTATION)
-        elif rows > colums:
+        elif rows > columns:
             self.set_property(Property.ORTHOGONAL_COLUMNS)
         elif rows < columns:
             self.set_property(Property.ORTHOGONAL_ROWS)
@@ -1200,6 +1200,8 @@ class ZeroMatrix(ConstantMatrix):
     def __init__(self, rows, columns):
         super().__init__("0({}, {})".format(rows, columns), (rows, columns))
         self.set_property(Property.ZERO)
+        if rows == columns:
+            self.set_property(Property.SYMMETRIC)
 
     def __repr__(self):
         return "{0}({1}, {2})".format(self.__class__.__name__, *self.size)
@@ -1223,6 +1225,14 @@ class ConstantScalar(Scalar, Constant):
         self.set_property(Property.CONSTANT)
         if value > 0:
             self.set_property(Property.POSITIVE)
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __eq__(self, other):
+        if not isinstance(other, ConstantScalar):
+            return NotImplemented
+        return self.value == other.value
 
     def __repr__(self):
         return "{0}({1})".format(self.__class__.__name__, self.value)

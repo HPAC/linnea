@@ -110,6 +110,8 @@ binary_implications_3 = {
     frozenset({Property.IDENTITY, Property.SQUARE}): Property.PERMUTATION,
     frozenset({Property.IDENTITY, Property.COLUMN_PANEL}): Property.ORTHOGONAL_COLUMNS,
     frozenset({Property.IDENTITY, Property.ROW_PANEL}): Property.ORTHOGONAL_ROWS,
+    # This is covered by construction of ZeroMatrix
+    frozenset({Property.ZERO, Property.SQUARE}): Property.SYMMETRIC,
 }
 
 binary_implications = binary_implications_1.copy()
