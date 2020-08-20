@@ -82,23 +82,49 @@ def simplify(expr):
         # ORTHOGONAL_COLUMNS, and Q^T Q when Q has property ORTHOGONAL_ROWS.
 
         if len(non_scalars) > 1:
-            new_operands = []
-            drop_next = False
-            for op1, op2 in window(non_scalars):
-                if drop_next:
-                    drop_next = False
-                    continue
-                if isinstance(op1, ae.Transpose) and op1.operand == op2 and op2.has_property(Property.ORTHOGONAL_COLUMNS):
-                    drop_next = True
-                elif isinstance(op2, ae.Transpose) and op1 == op2.operand and op1.has_property(Property.ORTHOGONAL_ROWS):
-                    drop_next = True
-                elif op1.inverse_of(op2):
-                    drop_next = True
+            # In terms of complexity, this algorithm is more efficient.
+            i = 0
+            while i < len(non_scalars)-1:
+                op1 = non_scalars[i]
+                op2 = non_scalars[i+1]
+                if ((op1.inverse_of(op2)) 
+                    or (isinstance(op2, ae.Transpose) and op1 == op2.operand and op1.has_property(Property.ORTHOGONAL_ROWS))
+                    or (isinstance(op1, ae.Transpose) and op1.operand == op2 and op2.has_property(Property.ORTHOGONAL_COLUMNS))):
+                    # Delete current and next operand.
+                    del non_scalars[i]
+                    del non_scalars[i]
+                    # If the current and next operand are deleted, it is
+                    # necessary to go back to the previous operand. The reason
+                    # is that this operand may cancel out with the next one.
+                    i -= 1
                 else:
-                    new_operands.append(op1)
-            if not drop_next:
-                new_operands.append(non_scalars[-1])
-            non_scalars = new_operands
+                    i += 1
+
+            # dropped = True
+            # while dropped:
+            #     dropped = False
+            #     new_operands = []
+            #     drop_next = False
+            #     # start = 0
+            #     # for i in range(start, len(non_scalars)-1):
+            #     for op1, op2 in window(non_scalars):
+            #         if drop_next:
+            #             drop_next = False
+            #             dropped = True
+            #             continue
+            #         # op1 = non_scalars[i]
+            #         # op2 = non_scalars[i+1]
+            #         if isinstance(op1, ae.Transpose) and op1.operand == op2 and op2.has_property(Property.ORTHOGONAL_COLUMNS):
+            #             drop_next = True
+            #         elif isinstance(op2, ae.Transpose) and op1 == op2.operand and op1.has_property(Property.ORTHOGONAL_ROWS):
+            #             drop_next = True
+            #         elif op1.inverse_of(op2):
+            #             drop_next = True
+            #         else:
+            #             new_operands.append(op1)
+            #     if not drop_next:
+            #         new_operands.append(non_scalars[-1])
+            #     non_scalars = new_operands
 
         if not scalars and not non_scalars:
             rows, columns = expr.size
