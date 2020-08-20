@@ -19,26 +19,17 @@ class StorageFormat(enum.Enum):
     symmetric_lower_triangular = 10
     factorization_obj = 11
     triangular_udiag_opt = 12 # requirement only
-    cholfact_L = 13
-    LUfact_L = 14
-    LUfact_U = 15
-    LUfact_P = 16
-    QRfact_Q = 17
-    QRfact_R = 18
-    eigfact_Z = 19
-    eigfact_W = 20
-    svdfact_U = 21
-    svdfact_S = 22
-    svdfact_V = 23
-    as_vector = 24
+    QRfact_Q = 13
+    QRfact_R = 14
+    as_vector = 15
     """
     Output only. Actual format will be either symmetric_upper_triangular or
     symmetric_lower_triangular. If both are possible, symmetric_lower_triangular
     will be chosen.
     """
-    symmetric_triangular_out = 25
-    ipiv = 26
-    explicit_diagonal = 27 # Requirement only. For kernels that only change the diagonal.
+    symmetric_triangular_out = 16
+    ipiv = 17
+    explicit_diagonal = 18 # Requirement only. For kernels that only change the diagonal.
 
     __ordering__ = {
         (triangular_udiag_opt, upper_triangular_udiag),
@@ -51,17 +42,8 @@ class StorageFormat(enum.Enum):
         (symmetric_lower_triangular, full),
         (symmetric_triangular, symmetric_upper_triangular),
         (symmetric_triangular, symmetric_lower_triangular),
-        (cholfact_L, factorization_obj),
-        (LUfact_L, factorization_obj),
-        (LUfact_U, factorization_obj),
-        (LUfact_P, factorization_obj),
         (QRfact_Q, factorization_obj),
         (QRfact_R, factorization_obj),
-        (eigfact_Z, factorization_obj),
-        (eigfact_W, factorization_obj),
-        (svdfact_U, factorization_obj),
-        (svdfact_S, factorization_obj),
-        (svdfact_V, factorization_obj),
         (diagonal_vector, as_vector),
         (permutation_vector, as_vector),
         (ipiv, as_vector),

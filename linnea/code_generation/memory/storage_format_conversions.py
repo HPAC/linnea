@@ -72,31 +72,6 @@ out_of_place_conversions = [
             ))
         ),
     sf.StorageFormatConversion(
-        sf.StorageFormat.cholfact_L,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = convert(Array{$type, 2}, $input.L)\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.LUfact_L,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input.L\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.LUfact_U,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input.U\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.LUfact_P,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input.P\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.LUfact_P,
-        sf.StorageFormat.permutation_vector,
-        utils.CodeTemplate("$output = $input.p\n")
-        ),
-    sf.StorageFormatConversion(
         sf.StorageFormat.QRfact_Q,
         sf.StorageFormat.full,
         utils.CodeTemplate("$output = Array($input.Q)\n")
@@ -105,49 +80,6 @@ out_of_place_conversions = [
         sf.StorageFormat.QRfact_R,
         sf.StorageFormat.full,
         utils.CodeTemplate("$output = $input.R\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.eigfact_Z,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input[:vectors]\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.eigfact_W,
-        sf.StorageFormat.diagonal_vector,
-        utils.CodeTemplate("$output = $input[:values]\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.eigfact_W,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = diagm($input[:values])\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.svdfact_U,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input.U\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.svdfact_S,
-        sf.StorageFormat.diagonal_vector,
-        utils.CodeTemplate("$output = $input.S\n")
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.svdfact_S,
-        sf.StorageFormat.full,
-        utils.CodeTemplate(textwrap.dedent(
-            """\
-            $output = zeros($type, $m, $n)
-            d = $input.S
-            for i = 1:min($m, $n);
-                $output[i, i] = d[i];
-            end\n
-            """
-            ))
-        ),
-    sf.StorageFormatConversion(
-        sf.StorageFormat.svdfact_V,
-        sf.StorageFormat.full,
-        utils.CodeTemplate("$output = $input.Vt\n")
         ),
 ]
 
