@@ -22,6 +22,7 @@ import matchpy
 #####################
 # Cholesky
 #
+# id 0
 # Note: We assume that all symmetric matrices are stored as lower triangular
 # matrices. Actually, that's not necessary in Julia, obtaining the other half is
 # just more expensive. Test which conversion is more expensive.
@@ -47,6 +48,7 @@ cholesky = FactorizationKernel(
 #####################
 # LU with pivoting
 #
+# id 1
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _P = matchpy.Wildcard.symbol("_P")
@@ -73,6 +75,9 @@ plu = FactorizationKernel(
 #####################
 # QR square
 #
+# id 2
+
+# TODO update indices in the generation of replacment rules
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _Q = matchpy.Wildcard.symbol("_Q")
@@ -104,6 +109,7 @@ qr_square = FactorizationKernel(
 #####################
 # QR column panel
 #
+# id 3
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _Q = matchpy.Wildcard.symbol("_Q")
@@ -134,8 +140,7 @@ qr_column = FactorizationKernel(
 #####################
 # Eigendecomposition
 #
-# syev
-# probably no problem
+# id 4
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _Z = matchpy.Wildcard.symbol("_Z")
@@ -166,8 +171,11 @@ eigendecomposition = FactorizationKernel(
 #####################
 # Singular value decomposition
 #
-# gesvd
-# probably no problem
+# id 5
+
+# TODO check number of FLOPs of economy SVD
+
+# SVD column panel
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _U = matchpy.Wildcard.symbol("_U")
@@ -175,19 +183,67 @@ _S = matchpy.Wildcard.symbol("_S")
 _V = matchpy.Wildcard.symbol("_V")
 cf = lambda d: 14*d["M"]*d["N"]**2 + 8*d["N"]**3
 
-singular_value = FactorizationKernel(
-    matchpy.Pattern(_A),
+singular_value_cp = FactorizationKernel(
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.COLUMN_PANEL})),
     [InputOperand(_A, StorageFormat.full)],
     Times(_U, _S, _V),
-    [OutputOperand(_U, _A, ("M", "M"), [Property.ORTHOGONAL], StorageFormat.svdfact_U),
-     OutputOperand(_S, _A, ("M", "N"), [Property.DIAGONAL], StorageFormat.svdfact_S), # for economy SVD, sizes do not depend on rank. Remember to simplify storage format transformation.
-     OutputOperand(_V, _A, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.svdfact_V) # this changes to OrthogonalRows for economy SVD
+    [OutputOperand(_U, _A, ("M", "N"), [Property.ORTHOGONAL_COLUMNS], StorageFormat.full),
+     OutputOperand(_S, None, ("N", "N"), [Property.DIAGONAL], StorageFormat.diagonal_vector),
+     OutputOperand(_V, None, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full)
     ],
     cf,
     None,
-    CodeTemplate("$_A = svd!($_A, full=true)"),
+    CodeTemplate("(_, $_S, $_V) = LAPACK.gesvd!('O', 'S', $_A)"),
     None,
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
     )
 
+# SVD square
+# id 6
+
+_A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
+_U = matchpy.Wildcard.symbol("_U")
+_S = matchpy.Wildcard.symbol("_S")
+_V = matchpy.Wildcard.symbol("_V")
+cf = lambda d: 22*d["N"]**3
+
+singular_value_sq = FactorizationKernel(
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SQUARE})),
+    [InputOperand(_A, StorageFormat.full)],
+    Times(_U, _S, _V),
+    [OutputOperand(_U, _A, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full),
+     OutputOperand(_S, None, ("N", "N"), [Property.DIAGONAL], StorageFormat.diagonal_vector),
+     OutputOperand(_V, None, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full)
+    ],
+    cf,
+    None,
+    CodeTemplate("(_, $_S, $_V) = LAPACK.gesvd!('O', 'S', $_A)"),
+    None,
+    [SizeArgument("N", _A, "rows")],
+    )
+
+# SVD row panel
+# id 7
+
+_A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
+_U = matchpy.Wildcard.symbol("_U")
+_S = matchpy.Wildcard.symbol("_S")
+_V = matchpy.Wildcard.symbol("_V")
+cf = lambda d: 14*d["M"]*d["N"]**2 + 8*d["N"]**3
+
+singular_value_rp = FactorizationKernel(
+    matchpy.Pattern(_A, PropertyConstraint("_A", {Property.ROW_PANEL})),
+    [InputOperand(_A, StorageFormat.full)],
+    Times(_U, _S, _V),
+    [OutputOperand(_U, None, ("M", "M"), [Property.ORTHOGONAL], StorageFormat.full),
+     OutputOperand(_S, None, ("M", "M"), [Property.DIAGONAL], StorageFormat.diagonal_vector),
+     OutputOperand(_V, _A, ("M", "N"), [Property.ORTHOGONAL_ROWS], StorageFormat.full)
+    ],
+    cf,
+    None,
+    CodeTemplate("($_U, $_S, _) = LAPACK.gesvd!('S', 'O', $_A)"),
+    None,
+    [SizeArgument("M", _A, "rows"),
+     SizeArgument("N", _A, "columns")],
+    )

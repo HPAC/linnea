@@ -156,7 +156,7 @@ class FactorizationKernel(Kernel):
             temporaries.equivalence_replacer.add(matchpy.ReplacementRule(matchpy.Pattern(Times(ctx1, invert(_output_expr), ctx2)), lambda ctx1, ctx2: Times(*ctx1, invert(input_equiv), *ctx2)))
         # There is no need to generate transposed pattern for factorizations
         # with symmetric output; Cholesky (id 0) and Eigen (id 4).
-        if self.id in {1, 2, 3, 5}: 
+        if self.id in {1, 2, 3, 5, 6, 7}:
             temporaries.equivalence_replacer.add(matchpy.ReplacementRule(matchpy.Pattern(Times(ctx1, transpose(_output_expr), ctx2)), lambda ctx1, ctx2: Times(*ctx1, transpose(input_equiv), *ctx2)))
             if input_expr.has_property(Property.SQUARE):
                 temporaries.equivalence_replacer.add(matchpy.ReplacementRule(matchpy.Pattern(Times(ctx1, invert_transpose(_output_expr), ctx2)), lambda ctx1, ctx2: Times(*ctx1, invert_transpose(input_equiv), *ctx2)))

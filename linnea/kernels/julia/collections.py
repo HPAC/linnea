@@ -183,16 +183,15 @@ matrix_chain_kernels = [kernel for kernel in reductions if kernel.is_matrix_chai
 
 cholesky = factorizations.cholesky
 eigendecomposition = factorizations.eigendecomposition
-# ldl = factorizations.ldl
 plu = factorizations.plu
-singular_value = factorizations.singular_value
+singular_value_sq = factorizations.singular_value_sq
+singular_value_cp = factorizations.singular_value_cp
+singular_value_rp = factorizations.singular_value_rp
 qr_square = factorizations.qr_square
 qr_column = factorizations.qr_column
 
-# factorizations = (cholesky, eigendecomposition, ldl, plu, singular_value, qr_square, qr_column)
-factorizations = (cholesky, eigendecomposition, plu, singular_value, qr_square, qr_column)
-# factorizations_by_type = ((cholesky, ldl, plu), (qr_square, qr_column), (eigendecomposition, singular_value))
-factorizations_by_type = ((cholesky, plu), (qr_square, qr_column), (eigendecomposition, singular_value))
+factorizations = (cholesky, eigendecomposition, plu, singular_value_sq, singular_value_cp, singular_value_rp, qr_square, qr_column)
+factorizations_by_type = ((cholesky, plu), (qr_square, qr_column), (eigendecomposition, singular_value_sq, singular_value_cp, singular_value_rp))
 
 matrix_chain_DN = matchpy.DiscriminationNet()
 for kernel in matrix_chain_kernels:
