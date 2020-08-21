@@ -91,8 +91,7 @@ def simplify(expr):
                     or (isinstance(op2, ae.Transpose) and op1 == op2.operand and op1.has_property(Property.ORTHOGONAL_ROWS))
                     or (isinstance(op1, ae.Transpose) and op1.operand == op2 and op2.has_property(Property.ORTHOGONAL_COLUMNS))):
                     # Delete current and next operand.
-                    del non_scalars[i]
-                    del non_scalars[i]
+                    del non_scalars[i:i+2]
                     # If the current and next operand are deleted, it is
                     # necessary to go back to the previous operand. The reason
                     # is that this operand may cancel out with the next one.
