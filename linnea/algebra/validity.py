@@ -17,6 +17,12 @@ class SizeMismatch(Exception):
 
         self.error_info = error_info
 
+class InvalidExpression(Exception):
+    def __init__(self, message, error_info=None):
+        super().__init__(message)
+
+        self.error_info = error_info
+
 
 def check_validity(expr):
     """Checks if an expression is valid.
@@ -107,7 +113,7 @@ def check_validity(expr):
     if isinstance(expr, (Inverse, InverseTranspose)):
         if not expr.has_property(Property.SQUARE):
             msg = "Only square expressions can be inverted: {}.".format(expr)
-            raise SizeMismatch(msg)
+            raise InvalidExpression(msg, expr)
         return check_validity(expr.operand)
     if isinstance(expr, Operator) and expr.arity is matchpy.Arity.unary:
         return check_validity(expr.operand)

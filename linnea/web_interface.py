@@ -1,4 +1,5 @@
 from .frontend.utils import parse_input
+from .frontend.export import export_expression
 from .derivation.graph.derivation import DerivationGraph
 from . import utils
 
@@ -9,6 +10,9 @@ import linnea.algebra.expression as ae
 import json
 
 class SizeMismatch(Exception):
+    pass
+
+class InvalidExpression(Exception):
     pass
 
 def run_linnea(input, time_limit=10):
@@ -61,10 +65,16 @@ def dependent_dimensions(input):
         equations.check_validity()
     except validity.SizeMismatch as e:
         if not e.error_info is None:
-            msg = "Size mismatch in {}: {} and {} are not compatible.".format(*e.error_info)
+            expr_type, expr1, expr2 = e.error_info
+            msg = "Size mismatch in {}: {} and {} are not compatible.".format(expr_type, export_expression(expr1, dict()), export_expression(expr2, dict()))
             raise SizeMismatch(msg)
         else:
             raise e
-    
+    except validity.InvalidExpression as e:
+        if not e.error_info is None:
+            msg = "Only square expressions can be inverted: {}.".format(export_expression(e.error_info, dict()))
+            raise InvalidExpression(msg)
+        else:
+            raise e
     dimensions = utils.dependent_dimensions(equations)
     return json.dumps(list(map(list, dimensions)))
