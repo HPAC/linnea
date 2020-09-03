@@ -23,10 +23,8 @@ import matchpy
 # Cholesky
 #
 # id 0
-# Note: We assume that all symmetric matrices are stored as lower triangular
-# matrices. Actually, that's not necessary in Julia, obtaining the other half is
-# just more expensive. Test which conversion is more expensive.
-# Actually, with storage format conversions, we don't need this assumption.
+#
+# It's not possible to use uplo = 'U' here because that changes the output.
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _L = matchpy.Wildcard.symbol("_L")
@@ -34,7 +32,7 @@ cf = lambda d: (d["N"]**3)/3
 
 cholesky = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SPSD})),
-    [InputOperand(_A, StorageFormat.symmetric_triangular)],
+    [InputOperand(_A, StorageFormat.symmetric_lower_triangular)],
     Times(_L, Transpose(_L)),
     [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.NON_SINGULAR], StorageFormat.lower_triangular)],
     cf,
