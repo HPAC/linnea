@@ -1787,7 +1787,11 @@ scale!(A, b) is deprecated
 
 A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
-A.set_property(Property.SQUARE)
+"""Symmetric used to be square. While square might be more intuitive, it results
+in a property set that is not in canonical form. With symmetric, the set is in
+canonical form.
+"""
+A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
@@ -1871,7 +1875,11 @@ TODO: does the transpose variant get simplified correctly? (i.e. A is symmetric)
 
 A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
-A.set_property(Property.SQUARE)
+"""Symmetric used to be square. While square might be more intuitive, it results
+in a property set that is not in canonical form. With symmetric, the set is in
+canonical form.
+"""
+A.set_property(Property.SYMMETRIC)
 x = Vector("x", (m, 1))
 cf = lambda d: d["M"]
 
