@@ -17,6 +17,21 @@ class UnknownSymbolType(Exception):
 class InvalidInput(Exception):
     pass
 
+
+class Replacer(object):
+    """An alternative for lambda functions in ReplacementRule objects.
+
+    This object can be used in ReplacementRule objects instead of constant
+    lambda functions. It avoids problems that can occur if the contents of
+    variables used in a lambda function changes in the current scope.
+    """
+    def __init__(self, replacement):
+        self.replacement = replacement
+
+    def __call__(self, **k):
+        return self.replacement
+
+
 class Equations():
 
     _counter = 0
@@ -104,11 +119,12 @@ class Equations():
         return all_data
 
     def remove_identities(self):
-        """Removes equations where both sides are temporaries.
+        """Removes equations of the form tmpX = tmpY.
 
-        There are three different cases.
-
-        If both sides of an equation are the same, it can simply be removed.
+        There are three different cases:
+        
+        If both sides of the equation are the same temporary, the equation can
+        simply be removed.
 
         If both sides are different temporaries, all occurrences of the
         temporary on the left-hand side in the other equations are replaced by
@@ -123,38 +139,81 @@ class Equations():
         Replacing the temporary in the other equations only works if the
         temporary that is replaced is not part of any computation yet.
 
-        Furthermore, it is assumed that there are no cases such as
+        Replacing temporaries even works if there are sequences of assignments
+        such as:
         tmp2 = tmp3
         tmp1 = tmp2
 
         Returns:
-            Equations: self with equations removed.
+            Equations: self without identities, and with replaced temporaries.
         """
-        remove = []
-        replace_eqns = []
-        equations = list(self.equations)
-        for n, equation in enumerate(equations):
+
+        new_equations = []
+        mapping = dict()
+        for equation in self.equations:
             if temporaries.is_temporary(equation.rhs):
-                if temporaries.is_temporary(equation.lhs):
-                    remove.append(n)
-                    if equation.lhs != equation.rhs:
-                        replace_eqns.append(equation)
+                if equation.lhs != equation.rhs:
+                    try:
+                        op = mapping[equation.rhs]
+                    except KeyError:
+                        mapping[equation.lhs] = equation.rhs
+                    else:
+                        mapping[equation.lhs] = op
+                    if temporaries.is_temporary(equation.lhs):
+                        continue
                 else:
-                    # TODO it would be better to only do this if the operand is known to be an intermediate.
-                    replace_eqns.append(equation)
+                    continue
 
-        for idx in reversed(remove):
-            del equations[idx]
+            if mapping:
+                rules = [matchpy.ReplacementRule(matchpy.Pattern(rhs), Replacer(lhs)) for rhs, lhs in mapping.items()]
+                new_equations.append(ae.Equal(equation.lhs, matchpy.replace_all(equation.rhs, rules)))
+            else:
+                new_equations.append(equation)
 
-        for replace_eqn in replace_eqns:
-            rule = matchpy.ReplacementRule(matchpy.Pattern(replace_eqn.lhs), lambda: replace_eqn.rhs)
-            equations_replaced = []
-            for equation in equations:
-                equations_replaced.append(ae.Equal(equation.lhs, matchpy.replace_all(equation.rhs, (rule,))))
-            equations = equations_replaced
+        return Equations(*new_equations)
 
-        # TODO do we want to manipulate the table of temporaries here?
-        return Equations(*equations)
+    def remove_explicit_transposition(self, eqn_idx=None):
+        """Removes equations of the form tmpX = tmpY^T.
+
+        With common subexpression elimination and the application of tranposed
+        operands, it is possible to reach assignments of the form tmpX = tmpY^T.
+        To avoid that an explicit transposition is computed, this function
+        replaces tmpX in all subsequent assignments with tmpY^T.
+
+        Args:
+            eqn_idx (int, optional): Only test if self.equations[eqn_idx] is an
+                explicit transposition.
+
+        Returns:
+            Equations: self with explicit transposition removed.
+        """              
+
+        indices = None
+        if eqn_idx:
+            indices = [eqn_idx]
+        else:
+            indices = range(len(self.equations))
+
+        replacement_rules = []
+        remove = set()
+        for idx in indices:
+            equation = self.equations[idx]
+            if temporaries.is_temporary(equation.lhs) and isinstance(equation.rhs, ae.Transpose) and isinstance(equation.rhs.operand, ae.Symbol):
+                replacement_rules.append(matchpy.ReplacementRule(matchpy.Pattern(equation.lhs), Replacer(equation.rhs)))
+                remove.add(idx)
+
+        if replacement_rules:
+            new_equations = []
+            for i, equation in enumerate(self.equations):
+                if not i in remove:
+                    if i < min(remove):
+                        # It is sufficient to start replacing at the smallest index in remove.
+                        new_equations.append(equation)
+                    else:
+                        new_equations.append(ae.Equal(equation.lhs, matchpy.replace_all(equation.rhs, replacement_rules)))
+            return Equations(*new_equations)
+        else:
+            return self
 
     def process_next(self):
         for eqn_idx, equation in enumerate(self.equations):

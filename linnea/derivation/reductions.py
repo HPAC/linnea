@@ -40,6 +40,7 @@ def apply_reductions(equations, eqn_idx, initial_pos):
             new_equation = matchpy.replace(equations[eqn_idx], pos, evaled_repl)
 
             equations_copy = equations.set(eqn_idx, new_equation)
+            equations_copy = equations_copy.remove_explicit_transposition(eqn_idx)
             equations_copy = equations_copy.to_normalform()
             equations_copy = equations_copy.remove_identities()
 
@@ -58,6 +59,7 @@ def apply_matrix_chain_algorithm(equations, eqn_idx, initial_pos, explicit_inver
 
     new_equation = matchpy.replace(equations[eqn_idx], initial_pos, replacement)
     equations_copy = equations.set(eqn_idx, new_equation)
+    equations_copy = equations_copy.remove_explicit_transposition(eqn_idx)
     equations_copy = equations_copy.to_normalform()
     equations_copy = equations_copy.remove_identities()        
 

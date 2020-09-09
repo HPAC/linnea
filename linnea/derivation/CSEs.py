@@ -717,6 +717,10 @@ def find_CSEs(equations):
         for min_eqn_idx, eqn in insert_equations:
             equations_list.insert(min_eqn_idx, eqn)
         new_equations = Equations(*equations_list)
+        # Identities and explicit transposition appear here if the a common
+        # subexpression is replaced for the second time.
+        new_equations = new_equations.remove_identities()
+        new_equations = new_equations.remove_explicit_transposition()
         new_equations = new_equations.to_normalform()
 
         yield new_equations
