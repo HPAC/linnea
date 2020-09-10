@@ -8,12 +8,16 @@ import linnea.algebra.validity as validity
 import linnea.algebra.expression as ae
 
 import json
+import re
 
 class SizeMismatch(Exception):
     pass
 
 class InvalidExpression(Exception):
     pass
+
+variable_regex = re.compile("([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([0-9]+)")
+matrix_reges = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)")
 
 def run_linnea(input, time_limit=10):
     """Run Linnea code generation.
@@ -76,5 +80,31 @@ def dependent_dimensions(input):
             raise InvalidExpression(msg)
         else:
             raise e
-    dimensions = utils.dependent_dimensions(equations)
-    return json.dumps(list(map(list, dimensions)))
+
+
+    # The internal names of constant matrices are replaced with their names in
+    # the input.
+    variables = dict()    
+    for name, val in variable_regex.findall(input):
+        variables[name] = val
+
+    renaming = dict()
+    for type, name, rows, cols in matrix_reges.findall(input):
+        if type == "IdentityMatrix":
+            prefix = "I"
+        elif type == "ZeroMatrix":
+            prefix = "0"
+        internal_name = "{}({}, {})".format(prefix, variables[rows], variables[cols])
+        renaming[internal_name] = name
+
+    dimensions = []
+    for l in utils.dependent_dimensions(equations):
+        new_l = []
+        for name, dim in l:
+            name = renaming.get(name, name)
+            new_l.append([name, dim])
+        dimensions.append(new_l)
+
+    return json.dumps(dimensions)
+
+
