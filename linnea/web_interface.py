@@ -67,20 +67,8 @@ def dependent_dimensions(input):
     equations = parse_input(input)
     try:
         equations.check_validity()
-    except validity.SizeMismatch as e:
-        if not e.error_info is None:
-            expr_type, expr1, expr2 = e.error_info
-            msg = "Size mismatch in {}: {} and {} are not compatible.".format(expr_type, export_expression(expr1, dict()), export_expression(expr2, dict()))
-            raise SizeMismatch(msg)
-        else:
-            raise e
-    except validity.InvalidExpression as e:
-        if not e.error_info is None:
-            msg = "Only square expressions can be inverted: {}.".format(export_expression(e.error_info, dict()))
-            raise InvalidExpression(msg)
-        else:
-            raise e
-
+    except validity.ExpressionException as e:
+        raise e.replace_expressions()       
 
     # The internal names of constant matrices are replaced with their names in
     # the input.

@@ -1,28 +1,38 @@
 from .expression import Symbol, Matrix, Scalar, Equal, Plus, Times, Transpose, \
-                        Inverse, InverseTranspose, Operator
+                        Inverse, InverseTranspose, Operator, Expression
 
 from .properties import Property, negative_implications
 
 from .utils import scalar_subexpressions
 
+from ..frontend.export import export_expression
+
 import matchpy
+
+class ExpressionException(Exception):
+    def __init__(self, message, *args):
+        self.message = message
+        self.args = args
+
+    def __str__(self):
+        return self.message.format(*self.args)
+
+    def replace_expressions(self):
+        new_args = []
+        for arg in self.args:
+            if isinstance(arg, Expression):
+                arg = export_expression(arg, dict())
+            new_args.append(arg)
+        return type(self)(self.message, *new_args)
 
 class ConflictingProperties(Exception):
     pass
 
+class SizeMismatch(ExpressionException):
+    pass
 
-class SizeMismatch(Exception):
-    def __init__(self, message, error_info=None):
-        super().__init__(message)
-
-        self.error_info = error_info
-
-class InvalidExpression(Exception):
-    def __init__(self, message, error_info=None):
-        super().__init__(message)
-
-        self.error_info = error_info
-
+class InvalidExpression(ExpressionException):
+    pass
 
 def check_validity(expr):
     """Checks if an expression is valid.
@@ -55,12 +65,15 @@ def check_validity(expr):
         return True
 
     if isinstance(expr, Equal):
-        expr1, expr2 = expr.operands
-        if expr1.size != expr2.size:
-            msg = "Size mismatch in equation: {} = {} with sizes {} and {}.".format(expr1, expr2, expr1.size, expr2.size)
-            raise SizeMismatch(msg, ("assignment", expr1, expr2))
+        lhs, rhs = expr.operands
+        if lhs.size != rhs.size:
+            msg = "Size mismatch in equation: {} = {} with sizes {} and {}."
+            raise SizeMismatch(msg, lhs, rhs, lhs.size, rhs.size)
+        if not isinstance(lhs, Symbol):
+            msg = "The left-hand side of an assignment cannot be an expression: {}."
+            raise InvalidExpression(msg, expr)
 
-        return check_validity(expr1) and check_validity(expr2)
+        return check_validity(lhs) and check_validity(rhs)
 
     if isinstance(expr, Plus):
         prev_term = expr.operands[0] # previous term is only stored for printing
@@ -70,8 +83,8 @@ def check_validity(expr):
         # compare size of first term with consecutive terms
         for term in expr.operands[1:]:
             if size != term.size:
-                msg = "Size mismatch in sum: {} + {} with sizes {} and {}.".format(prev_term, term, prev_term.size, term.size)
-                raise SizeMismatch(msg, ("sum", prev_term, term))
+                msg = "Size mismatch in sum: {} + {} with sizes {} and {}."
+                raise SizeMismatch(msg, prev_term, term, prev_term.size, term.size)
             prev_term = term
 
         return all(check_validity(term) for term in expr.operands)
@@ -106,13 +119,16 @@ def check_validity(expr):
                 if factor.columns == factors[compare_with].rows:
                     valid_dims = True
             if not valid_dims:
-                msg = "Size mismatch in product: {} * {} with sizes {} and {}.".format(factor, factors[compare_with], factor.size, factors[compare_with].size)
-                raise SizeMismatch(msg, ("product", factor, factors[compare_with]))
+                msg = "Size mismatch in product: {} * {} with sizes {} and {}."
+                raise SizeMismatch(msg, factor, factors[compare_with], factor.size, factors[compare_with].size)
 
         return all(check_validity(factor) for factor in factors)
     if isinstance(expr, (Inverse, InverseTranspose)):
         if not expr.has_property(Property.SQUARE):
-            msg = "Only square expressions can be inverted: {}.".format(expr)
+            msg = "Only square expressions can be inverted: {}."
+            raise InvalidExpression(msg, expr)
+        if not (expr.has_property(Property.FULL_RANK) or expr.has_property(Property.SPSD) or expr.has_property(Property.SCALAR)):
+            msg = "Singular expressions cannot be inverted: {}."
             raise InvalidExpression(msg, expr)
         return check_validity(expr.operand)
     if isinstance(expr, Operator) and expr.arity is matchpy.Arity.unary:

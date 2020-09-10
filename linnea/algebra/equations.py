@@ -235,9 +235,12 @@ class Equations():
     def infer_lhs_properties(self):
         for equation in self.equations:
             operand = equation.lhs
-            for property in Property:
-                if equation.rhs.has_property(property):
-                    operand.set_property(property)
+            if isinstance(operand, ae.Symbol):
+                # Checking if the operand is a symbol is necessary because when
+                # this function is called, correctnes has not been checked yet.
+                for property in Property:
+                    if equation.rhs.has_property(property):
+                        operand.set_property(property)
 
 
     def infer_missing_properties(self):
@@ -279,13 +282,16 @@ class Equations():
                     new_property = False
 
         for operand in output:
-            rows, columns = operand.size
-            if rows < columns:
-                operand.set_property(Property.ROW_PANEL)
-            elif rows > columns:
-                operand.set_property(Property.COLUMN_PANEL)
-            elif rows != 1: # Scalars must not be square.
-                operand.set_property(Property.SQUARE)
+            if isinstance(operand, ae.Symbol):
+                # Checking if the operand is a symbol is necessary because when
+                # this function is called, correctnes has not been checked yet.
+                rows, columns = operand.size
+                if rows < columns:
+                    operand.set_property(Property.ROW_PANEL)
+                elif rows > columns:
+                    operand.set_property(Property.COLUMN_PANEL)
+                elif rows != 1: # Scalars must not be square.
+                    operand.set_property(Property.SQUARE)
 
     def check_validity(self):
         """Checks if the object is valid.
