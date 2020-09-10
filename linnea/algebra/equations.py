@@ -199,7 +199,10 @@ class Equations():
         for idx in indices:
             equation = self.equations[idx]
             if temporaries.is_temporary(equation.lhs) and isinstance(equation.rhs, ae.Transpose) and isinstance(equation.rhs.operand, ae.Symbol):
-                replacement_rules.append(matchpy.ReplacementRule(matchpy.Pattern(equation.lhs), Replacer(equation.rhs)))
+                if equation.lhs != equation.rhs.operand:
+                    # In they are equal, the operand is symmetric, which means
+                    # that this assignment is an identity and can be removed.
+                    replacement_rules.append(matchpy.ReplacementRule(matchpy.Pattern(equation.lhs), Replacer(equation.rhs)))
                 remove.add(idx)
 
         if replacement_rules:
