@@ -87,6 +87,39 @@ class GraphBase():
             print("Generate graph file {}".format(file_path))
 
 
+    def show_subgraph(self, node_id, distance, direction="any", style=config.GraphStyle.full):
+
+        # TODO in the function that generates the dot representation of nodes,
+        # allow to pass a set of nodes (or ids). Edges are only generated for
+        # target nodes that are in the set
+        # if not s is None and node.id in s:
+
+        source = None
+        for node in self.nodes:
+            if node.id == node_id:
+                source = node
+                break
+        if source is None:
+            return
+
+        neighbors = source._visit_neighbors(distance, direction)
+        neighbor_ids = set(node.id for node in neighbors)
+
+        out = ["digraph G {", "ranksep=2.5;", "rankdir=TB;"]
+        out.extend([node.to_dot(style, neighbor_ids=neighbor_ids) for node in neighbors])
+        out.append("}")
+        dot_string = "\n".join(out)
+
+        file_path = os.path.join(config.output_code_path, "tmp", config.language.name, "subgraph.gv")
+        directory_name = os.path.dirname(file_path)
+        if not os.path.exists(directory_name):
+            os.makedirs(directory_name)
+        output_file = open(file_path, "wt")
+        output_file.write(dot_string)
+        output_file.close()
+        if config.verbosity >= 2:
+            print("Generate graph file {}".format(file_path))
+
     def all_algorithms(self):
         """Generates all paths in the graph.
 
@@ -429,7 +462,7 @@ class GraphNodeBase():
             out = " ".join([out, "\n    -[", str(edge_label.operation), "]->", str(successor.equations), "(", str(successor.name), ")"])
         return out
 
-    def to_dot(self, style, optimal_edges=set()):
+    def to_dot(self, style, optimal_edges=set(), neighbor_ids=None):
         
         eqns_str = str(self.get_payload())
         # TODO use html module?
@@ -445,13 +478,14 @@ class GraphNodeBase():
             out = ["{0} [shape=point];".format(self.name)]
 
         for successor, label in zip(self.successors, self.edge_labels):
-            if style is config.GraphStyle.minimal:
-                out.append("{} -> {};".format(self.name, successor.name))
-            else:
-                if (self.id, successor.id) in optimal_edges:
-                    out.append("""{} -> {} [style=bold, label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
+            if neighbor_ids is None or successor.id in neighbor_ids:
+                if style is config.GraphStyle.minimal:
+                    out.append("{} -> {};".format(self.name, successor.name))
                 else:
-                    out.append("""{} -> {} [label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
+                    if (self.id, successor.id) in optimal_edges:
+                        out.append("""{} -> {} [style=bold, label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
+                    else:
+                        out.append("""{} -> {} [label=\"{}\"];\n""".format(self.name, successor.name, str(label)))
         return "".join(out)
 
     def is_terminal(self):
@@ -597,6 +631,28 @@ class GraphNodeBase():
         perm = set()
         self._topological_sort_visit(temp, perm, stack)
         return list(stack)
+
+    def _visit_neighbors(self, distance, direction):
+        visited = set()
+        stack = collections.deque()
+        stack.appendleft((self, distance))
+        neighbors = []
+        while stack:
+            node, dist = stack.popleft()
+            visited.add(node.id)
+            neighbors.append(node)
+
+            if direction != "down":
+                for predecessor in node.predecessors:
+                    if not predecessor.id in visited and dist >= 1:
+                        stack.appendleft((predecessor, dist-1))
+
+            if direction != "up":
+                for successor in node.successors:
+                    if not successor.id in visited and dist >= 1:
+                        stack.appendleft((successor, dist-1))
+
+        return neighbors
 
 
 class EdgeLabel():
