@@ -87,7 +87,24 @@ class GraphBase():
             print("Generate graph file {}".format(file_path))
 
 
+    def write_subgraph(self, node_id, distance, direction="any", output_name="tmp", style=config.GraphStyle.full, file_name="graph"):
+        file_path = os.path.join(config.output_code_path, output_name, config.language.name, "{}.gv".format(file_name))
+        directory_name = os.path.dirname(file_path)
+        if not os.path.exists(directory_name):
+            os.makedirs(directory_name)
+        output_file = open(file_path, "wt")
+        output_file.write(self.subgraph_to_dot(node_id, distance, direction, style))
+        output_file.close()
+        if config.verbosity >= 2:
+            print("Generate graph file {}".format(file_path))
+
+
     def show_subgraph(self, node_id, distance, direction="any", style=config.GraphStyle.full):
+        from graphviz import Source
+        return Source(self.subgraph_to_dot(node_id, distance, direction, style))
+
+
+    def subgraph_to_dot(self, node_id, distance, direction="any", style=config.GraphStyle.full):
 
         # TODO in the function that generates the dot representation of nodes,
         # allow to pass a set of nodes (or ids). Edges are only generated for
@@ -110,15 +127,7 @@ class GraphBase():
         out.append("}")
         dot_string = "\n".join(out)
 
-        file_path = os.path.join(config.output_code_path, "tmp", config.language.name, "subgraph.gv")
-        directory_name = os.path.dirname(file_path)
-        if not os.path.exists(directory_name):
-            os.makedirs(directory_name)
-        output_file = open(file_path, "wt")
-        output_file.write(dot_string)
-        output_file.close()
-        if config.verbosity >= 2:
-            print("Generate graph file {}".format(file_path))
+        return dot_string
 
     def all_algorithms(self):
         """Generates all paths in the graph.
