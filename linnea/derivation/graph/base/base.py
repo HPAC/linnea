@@ -222,6 +222,10 @@ class GraphBase():
             float: The cost of the path.
         """
 
+        if len(self.nodes) == 1:
+            yield [], 0.0
+            return
+
         # initialization has to happen whenever the graph changed
         if self.k_best_state != len(self.nodes):
             for node in self.nodes:

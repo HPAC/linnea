@@ -139,7 +139,13 @@ class Algorithm():
                 liveness.setdefault(lhs_symbol.name, [None, None])[0] = line_number
 
         for equation in self.final_equations:
-            liveness[equation.rhs.name][1] = None
+            try:
+                liveness[equation.rhs.name][1] = None
+            except KeyError:
+                # If equation.rhs.name is not in liveness at this point, it must
+                # be an input operand that is not used in any kernel call. As a
+                # result, this operand is both input and output operand.
+                liveness[equation.rhs.name] = [None, None]
 
         return liveness
 
