@@ -293,7 +293,7 @@ class Equations():
                 elif rows != 1: # Scalars must not be square.
                     operand.set_property(Property.SQUARE)
 
-    def check_validity(self):
+    def check_validity(self, dependent_dimensions=False):
         """Checks if the object is valid.
 
         In addition to checking that the individual equations are well-formed,
@@ -315,6 +315,11 @@ class Equations():
 
         X = A
         X = B
+
+        Args:
+            dependent_dimensions (bool, optinal): If True, disables some checks
+                that are not applicable if the input is only used to compute
+                dependent dimensions.
 
         Returns:
             bool: True if the equations are valid, raises an exception
@@ -349,8 +354,7 @@ class Equations():
             else:
                 if first_use_line <= definition_line:
                     raise InvalidInput("Input operands can not be overwritten: {}".format(operand.name))
-        
-        return all(check_validity(equation) for equation in self.equations)
+        return all(check_validity(equation, dependent_dimensions) for equation in self.equations)
 
     def _copy_symbol(self, symbol):
         """Creates a copy of symbol with a unique name"""

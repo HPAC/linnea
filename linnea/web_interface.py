@@ -10,12 +10,6 @@ import linnea.algebra.expression as ae
 import json
 import re
 
-class SizeMismatch(Exception):
-    pass
-
-class InvalidExpression(Exception):
-    pass
-
 variable_regex = re.compile("([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([0-9]+)")
 matrix_reges = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)")
 
@@ -66,7 +60,7 @@ def dependent_dimensions(input):
     """
     equations = parse_input(input)
     try:
-        equations.check_validity()
+        equations.check_validity(dependent_dimensions=True)
     except validity.ExpressionException as e:
         raise e.replace_expressions()       
 

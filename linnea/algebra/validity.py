@@ -34,11 +34,16 @@ class SizeMismatch(ExpressionException):
 class InvalidExpression(ExpressionException):
     pass
 
-def check_validity(expr):
+def check_validity(expr, dependent_dimensions=False):
     """Checks if an expression is valid.
 
     It is checked whether the dimensions in sums, products and equations match.
     If not, an exception is raised.
+
+    Args:
+        dependent_dimensions (bool, optinal): If True, disables some checks
+            that are not applicable if the input is only used to compute
+            dependent dimensions.
 
     Returns:
         bool: True if the expression is valid, raises an exception otherwise.
@@ -73,7 +78,7 @@ def check_validity(expr):
             msg = "The left-hand side of an assignment cannot be an expression: {}."
             raise InvalidExpression(msg, expr)
 
-        return check_validity(lhs) and check_validity(rhs)
+        return check_validity(lhs, dependent_dimensions) and check_validity(rhs, dependent_dimensions)
 
     if isinstance(expr, Plus):
         prev_term = expr.operands[0] # previous term is only stored for printing
@@ -87,7 +92,7 @@ def check_validity(expr):
                 raise SizeMismatch(msg, prev_term, term, prev_term.size, term.size)
             prev_term = term
 
-        return all(check_validity(term) for term in expr.operands)
+        return all(check_validity(term, dependent_dimensions) for term in expr.operands)
 
     if isinstance(expr, Times):
 
@@ -122,15 +127,15 @@ def check_validity(expr):
                 msg = "Size mismatch in product: {} * {} with sizes {} and {}."
                 raise SizeMismatch(msg, factor, factors[compare_with], factor.size, factors[compare_with].size)
 
-        return all(check_validity(factor) for factor in factors)
+        return all(check_validity(factor, dependent_dimensions) for factor in factors)
     if isinstance(expr, (Inverse, InverseTranspose)):
         if not expr.has_property(Property.SQUARE):
             msg = "Only square expressions can be inverted: {}."
             raise InvalidExpression(msg, expr)
-        if not (expr.has_property(Property.FULL_RANK) or expr.has_property(Property.SPSD) or expr.has_property(Property.SCALAR)):
+        if not dependent_dimensions and not (expr.has_property(Property.FULL_RANK) or expr.has_property(Property.SPSD) or expr.has_property(Property.SCALAR)):
             msg = "Singular expressions cannot be inverted: {}."
             raise InvalidExpression(msg, expr)
-        return check_validity(expr.operand)
+        return check_validity(expr.operand, dependent_dimensions)
     if isinstance(expr, Operator) and expr.arity is matchpy.Arity.unary:
-        return check_validity(expr.operand)
+        return check_validity(expr.operand, dependent_dimensions)
     return False
