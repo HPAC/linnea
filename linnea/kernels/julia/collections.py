@@ -72,6 +72,7 @@ pvm = list(reductions.pvm.generate_kernels())
 ptvm = list(reductions.ptvm.generate_kernels())
 ppm = list(reductions.ppm.generate_kernels())
 ptpm = list(reductions.ptpm.generate_kernels())
+pptm = list(reductions.pptm.generate_kernels())
 transpose_perm = list(reductions.transpose_perm.generate_kernels())
 
 # Currently, this list is not used (except for obtaining matrix chain kernels.)
@@ -132,6 +133,7 @@ reductions = list(itertools.chain(
                 ptvm,
                 ppm,
                 ptpm,
+                pptm,
             ))
 
 unused = list(itertools.chain(

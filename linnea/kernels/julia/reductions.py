@@ -2184,7 +2184,33 @@ ptpm = KernelDescription(
     "$X = $Q[invperm($P)]",
     "",
     [SizeArgument("N", P, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    )
+
+
+# permutation * transpose(permutation)
+
+P = Matrix("P", (n, n))
+P.set_property(Property.PERMUTATION)
+Q = Matrix("Q", (n, n))
+Q.set_property(Property.PERMUTATION)
+X = Matrix("X", (n, n))
+cf = lambda d: 0
+
+pptm = KernelDescription(
+    ExpressionKV(
+        None,
+        {None: Times(P, Transpose(Q))}
+    ),
+    [], # variants
+    [InputOperand(P, StorageFormat.permutation_vector),
+     InputOperand(Q, StorageFormat.permutation_vector),
+    ],
+    OutputOperand(X, StorageFormat.permutation_vector), # return value
+    cf, # cost function
+    "",
+    "$X = invperm($Q)[$P]",
+    "",
+    [SizeArgument("N", P, "rows")], # Argument objects
     )
 
 
