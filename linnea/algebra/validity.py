@@ -1,5 +1,6 @@
-from .expression import Symbol, Matrix, Scalar, Equal, Plus, Times, Transpose, \
-                        Inverse, InverseTranspose, Operator, Expression
+from .expression import Symbol, Matrix, Vector, Scalar, Equal, Plus, Times, \
+                        Transpose, Inverse, InverseTranspose, Operator, \
+                        Expression
 
 from .properties import Property, negative_implications
 
@@ -56,6 +57,20 @@ def check_validity(expr, dependent_dimensions=False):
     if isinstance(expr, Symbol):
         properties = expr.properties
         false_properties = expr.false_properties
+
+        if isinstance(expr, Vector):
+            rows, columns = expr.size
+            if rows == 1 and columns == 1:
+                msg = "Vector {} has length 1."
+                raise InvalidExpression(msg, expr)
+        elif isinstance(expr, Matrix):
+            rows, columns = expr.size
+            if rows == 1:
+                msg = "Matrix {} has one row."
+                raise InvalidExpression(msg, expr)
+            if columns == 1:
+                msg = "Matrix {} has one column."
+                raise InvalidExpression(msg, expr)          
 
         for prop in properties:
             intersection = properties.intersection(negative_implications[prop])

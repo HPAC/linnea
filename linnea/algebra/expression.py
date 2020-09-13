@@ -1098,7 +1098,7 @@ class Vector(Symbol):
     def __init__(self, name, size, indices=set(), properties = []):
         super().__init__(name, size, indices, properties)
         if (size[0]==1 and size[1]==1) or (size[0]!=1 and size[1]!=1):
-            raise ValueError("Symbol with size {} is not a vector.".format(size))
+            raise ValueError("Vector {} has length 1.".format(self))
         self.set_property(Property.VECTOR)
 
     def __repr__(self):
