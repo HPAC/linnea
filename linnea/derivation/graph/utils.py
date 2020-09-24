@@ -392,9 +392,9 @@ def identify_inverses_eqns(equations):
 def is_explicit_inversion(matrix_chain):
     """Tests if matrix_chain is an explicit inversion.
 
-    A matrix chain is an explicit inversion if all operands come from the same
-    factorization and at least one operand is inverted. We do not require all
-    operands to be inverted because of orthogonal matrices.
+    A matrix chain is an explicit inversion if all operands that are not scalars
+    come from the same factorization and at least one operand is inverted. We do
+    not require all operands to be inverted because of orthogonal matrices.
 
     Args:
         matrix_chain (Times): The matrix chain to test.
@@ -402,14 +402,16 @@ def is_explicit_inversion(matrix_chain):
     Returns:
         bool: True if the chain is an explicit inversion, False otherwise.
     """
-    if any(is_inverse(operand) for operand in matrix_chain):
-        iterator = iter(matrix_chain.operands)
-        try:
-            first = next(iterator)
-        except StopIteration:
-            return False
-        # with "first.factorization_labels and" we make sure that first.factorization_labels is not the empty set
-        return first.factorization_labels and all(first.factorization_labels == rest.factorization_labels for rest in iterator)
+    if any(is_inverse(operand) for operand in matrix_chain.operands):
+        labels = set()
+        for operand in matrix_chain.operands:
+            if not operand.has_property(Property.SCALAR):
+                if operand.factorization_labels:
+                    labels.add(frozenset(operand.factorization_labels))
+                else:
+                    return False
+
+        return len(labels) == 1
     else:
         return False
 
