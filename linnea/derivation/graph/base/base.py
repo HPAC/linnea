@@ -87,7 +87,7 @@ class GraphBase():
             print("Generate graph file {}".format(file_path))
 
 
-    def write_subgraph(self, node_id, distance, direction="any", output_name="tmp", style=config.GraphStyle.full, file_name="graph"):
+    def write_subgraph(self, node_id, distance, direction="any", output_name="tmp", style=config.GraphStyle.full, file_name="subgraph"):
         file_path = os.path.join(config.output_code_path, output_name, config.language.name, "{}.gv".format(file_name))
         directory_name = os.path.dirname(file_path)
         if not os.path.exists(directory_name):
