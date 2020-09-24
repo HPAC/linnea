@@ -57,6 +57,9 @@ def apply_factorizations(equations, operands_to_factor, factorization_dict):
             candidate_occurrences.extend(oc_group)
 
     # collect all operands that show up
+    # TODO Is this really necessary? I can't think of a reason why it should be
+    # necessary. Except for the fact that ops contains strings, not symbols, it
+    # should always be the same as operands_to_factor.
     ops = set(oc.operand.name for oc in candidate_occurrences)
 
     # Symbols directely inside an inverse always have to be factored.
