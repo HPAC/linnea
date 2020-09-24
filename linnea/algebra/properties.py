@@ -187,6 +187,8 @@ negative_implications = {
                                     Property.ORTHOGONAL_ROWS,
                                     Property.PERMUTATION, Property.IDENTITY,
                                     Property.ZERO},
+    #
+    Property.FACTOR: set(),
 }
 
 if __name__ == "__main__":
