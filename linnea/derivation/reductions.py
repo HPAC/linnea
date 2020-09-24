@@ -92,6 +92,8 @@ def apply_unary_kernels(equations, eqn_idx, initial_pos):
 
         if kernel:
             matched_kernel = kernel.set_match(substitution, False)
+            if is_blocked(matched_kernel.operation.rhs):
+                continue
             evaled_repl = matched_kernel.replacement
 
             equations_copy = equations.set(eqn_idx, matchpy.replace(equations[eqn_idx], pos, evaled_repl))

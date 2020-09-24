@@ -24,7 +24,9 @@ def is_blocked(operation):
         bool: False if this operation is not allowed, True otherwise.
 
     """
-    if not operation.has_property(Property.ADMITS_FACTORIZATION):
+    if operation.arity == matchpy.Arity.unary and operation.factorization_labels:
+        return True
+    elif not operation.has_property(Property.ADMITS_FACTORIZATION):
         return False
     elif operation.has_property(Property.CONSTANT):
         return False
