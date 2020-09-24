@@ -93,7 +93,7 @@ qr_square = FactorizationKernel(
     [InputOperand(_A, StorageFormat.full)],
     Times(_Q, _R),
     [OutputOperand(_Q, _A, ("N", "N"), [Property.FULL_RANK, Property.SQUARE, Property.ORTHOGONAL], StorageFormat.QRfact_Q),
-     OutputOperand(_R, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
+     OutputOperand(_R, _A, ("N", "N"), [Property.FULL_RANK, Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
     ],
     cf_qr_square,
     CodeTemplate(),
@@ -125,7 +125,7 @@ qr_column = FactorizationKernel(
     [InputOperand(_A, StorageFormat.full)],
     Times(_Q, _R),
     [OutputOperand(_Q, _A, ("M", "N"), [Property.FULL_RANK, Property.COLUMN_PANEL, Property.ORTHOGONAL_COLUMNS], StorageFormat.QRfact_Q),
-     OutputOperand(_R, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
+     OutputOperand(_R, _A, ("N", "N"), [Property.FULL_RANK, Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
     ],
     cf_qr_column,
     None,
