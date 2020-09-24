@@ -151,6 +151,8 @@ def is_orthogonal(expr):
 def is_orthogonal_columns(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.ORTHOGONAL_COLUMNS, is_orthogonal_columns)
+    if isinstance(expr, ae.Times):
+        return all(map(is_orthogonal_columns, expr.operands))
     if isinstance(expr, ae.Transpose):
         return is_orthogonal_columns(expr.operand)
     return False
@@ -158,6 +160,8 @@ def is_orthogonal_columns(expr):
 def is_orthogonal_rows(expr):
     if isinstance(expr, ae.Symbol):
         return infer_property_symbol(expr, Property.ORTHOGONAL_ROWS, is_orthogonal_rows)
+    if isinstance(expr, ae.Times):
+        return all(map(is_orthogonal_rows, expr.operands))
     if isinstance(expr, ae.Transpose):
         return is_orthogonal_rows(expr.operand)
     return False
