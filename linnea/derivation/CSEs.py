@@ -610,7 +610,7 @@ def indentify_subexpression_types(subexprs):
         elif subexpr.is_inverse(ref_subexpr):
             return_types.append(CSEType.inverse)
         elif subexpr.is_inverse_transpose(ref_subexpr):
-            return_types.append(CSEType.invert_transpose)
+            return_types.append(CSEType.inverse_transpose)
     
     return return_types
 
