@@ -48,13 +48,7 @@ def clear():
     _equivalent_expressions.clear()
     _table_of_factors.clear()
     equivalence_replacer = matchpy.ManyToOneReplacer()
-    """It is currently not possible to reset _counter here because MatchPy
-    requires that variable names are unique. Without unique variable names, if
-    the generation is run multiple times in the same program, it
-    can happen that the substitute function returns a wrong variable with the
-    same name.
-    """
-    # _counter = 0
+    _counter = 0
 
 def create_tmp(expr):
 
