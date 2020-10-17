@@ -3,12 +3,20 @@ from .frontend.export import export_expression
 from .derivation.graph.derivation import DerivationGraph
 from . import utils
 
+from linnea.algebra.validity import ExpressionException, InvalidExpression, \
+                                    SizeMismatch, ConflictingProperties
+
 import linnea.config
-import linnea.algebra.validity as validity
 import linnea.algebra.expression as ae
 
 import json
 import re
+
+class SyntaxError(Exception):
+    pass
+
+class GenerationError(Exception):
+    pass
 
 variable_regex = re.compile("([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([0-9]+)")
 matrix_reges = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)")
@@ -31,12 +39,27 @@ def run_linnea(input, time_limit=10):
     
     linnea.config.set_verbosity(0)
 
-    equations = parse_input(input)
+    try:
+        equations = parse_input(input)
+    except:
+        raise SyntaxError()
+    
+    try:
+        graph = DerivationGraph(equations)
+        graph.derivation(time_limit=time_limit, merging=True, pruning_factor=1.)
+        output = graph.optimal_algorithm_to_str()
+    except ConflictingProperties as e:
+        raise e
+    except ExpressionException as e:
+        raise e.replace_expressions()
+    except:
+        raise GenerationError("An error occurred during the algorithm generation.")
 
-    graph = DerivationGraph(equations)
-    graph.derivation(time_limit=time_limit, merging=True, pruning_factor=1.)
+    if not output:
+        # TODO check for row vectors.
+        raise GenerationError("An error occurred during the algorithm generation.")
 
-    return graph.optimal_algorithm_to_str()
+    return output
 
 
 def dependent_dimensions(input):
@@ -58,11 +81,15 @@ def dependent_dimensions(input):
     Returns:
         string: A JSON string of nested arrays.
     """
-    equations = parse_input(input)
+    try:
+        equations = parse_input(input)
+    except:
+        raise SyntaxError()
+
     try:
         equations.check_validity(dependent_dimensions=True)
-    except validity.ExpressionException as e:
-        raise e.replace_expressions()       
+    except ExpressionException as e:
+        raise e.replace_expressions()
 
     # The internal names of constant matrices are replaced with their names in
     # the input.
