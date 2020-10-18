@@ -56,7 +56,10 @@ def run_linnea(input, time_limit=10):
         raise GenerationError("An error occurred during the algorithm generation.")
 
     if not output:
-        # TODO check for row vectors.
+        for equation in equations:
+            for expr, _ in equation.rhs.preorder_iter():
+                if isinstance(expr, ae.Vector) and expr.rows == 1:
+                    raise GenerationError("Row vectors are not fully supported yet.")
         raise GenerationError("An error occurred during the algorithm generation.")
 
     return output
