@@ -21,6 +21,18 @@ class GenerationError(Exception):
 variable_regex = re.compile("([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([0-9]+)")
 matrix_reges = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)")
 
+
+def syntax_error_msg(input):
+    msg = ""
+    opening = input.count("(")
+    closing = input.count(")")
+    if opening < closing:
+        msg = "Missing '('."
+    elif opening > closing:
+        msg = "Missing ')'."
+    return msg
+
+
 def run_linnea(input, time_limit=10):
     """Run Linnea code generation.
 
@@ -42,7 +54,7 @@ def run_linnea(input, time_limit=10):
     try:
         equations = parse_input(input)
     except:
-        raise SyntaxError()
+        raise SyntaxError(syntax_error_msg(input))
     
     try:
         graph = DerivationGraph(equations)
@@ -87,7 +99,7 @@ def dependent_dimensions(input):
     try:
         equations = parse_input(input)
     except:
-        raise SyntaxError()
+        raise SyntaxError(syntax_error_msg(input))
 
     try:
         equations.check_validity(dependent_dimensions=True)
