@@ -33,7 +33,7 @@ def syntax_error_msg(input):
     return msg
 
 
-def run_linnea(input, time_limit=10):
+def run_linnea(input, time_limit=10, number_of_algorithms=1):
     """Run Linnea code generation.
 
     This function runs the code generation of Linnea on the input and returns
@@ -44,9 +44,11 @@ def run_linnea(input, time_limit=10):
     Args:
         input (str): Description of the input.
         time_limit (int, optional): Time limit for the generation in seconds.
+        number_of_algorithms (int, optional): The maximal number of algorithms
+            to generate.
 
     Returns:
-        str: The generated code.
+        list: List of algorithms (as str).
     """
     
     linnea.config.set_verbosity(0)
@@ -59,7 +61,7 @@ def run_linnea(input, time_limit=10):
     try:
         graph = DerivationGraph(equations)
         graph.derivation(time_limit=time_limit, merging=True, pruning_factor=1.)
-        output = graph.optimal_algorithm_to_str()
+        output = [algorithm.code_as_function() for algorithm in graph.k_best_algorithms(number_of_algorithms)]
     except ConflictingProperties as e:
         raise e
     except ExpressionException as e:
