@@ -23,13 +23,13 @@ matrix_reges = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*
 
 
 def syntax_error_msg(input):
-    msg = ""
+    msg = "Syntax error."
     opening = input.count("(")
     closing = input.count(")")
     if opening < closing:
-        msg = "Missing '('."
+        msg = "Syntax error: Missing '('."
     elif opening > closing:
-        msg = "Missing ')'."
+        msg = "Syntax error: Missing ')'."
     return msg
 
 
