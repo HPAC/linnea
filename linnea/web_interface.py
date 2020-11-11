@@ -5,6 +5,9 @@ from . import utils
 
 from linnea.algebra.validity import ExpressionException, InvalidExpression, \
                                     SizeMismatch, ConflictingProperties
+from .algebra.properties import Property
+
+from tatsu.exceptions import TatSuException
 
 import linnea.config
 import linnea.algebra.expression as ae
@@ -19,18 +22,34 @@ class GenerationError(Exception):
     pass
 
 variable_regex = re.compile("([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([0-9]+)")
-matrix_reges = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)")
+matrix_regex = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)")
+properties_regex = re.compile("<(.*)>")
+property_names = set(property.value for property in Property)
 
 
 def syntax_error_msg(input):
-    msg = "Syntax error."
+    for properties_str in properties_regex.findall(input):
+        for property_str in properties_str.split(","):
+            property_name = property_str.strip()
+            if property_name and not property_name in property_names:
+                return "Unknown property {}.".format(property_name)
+
     opening = input.count("(")
     closing = input.count(")")
     if opening < closing:
-        msg = "Syntax error: Missing '('."
+        return "Missing '('."
     elif opening > closing:
-        msg = "Syntax error: Missing ')'."
-    return msg
+        return "Missing ')'."
+
+    return "Syntax error."
+
+
+def generation_error_msg(equations):
+    for equation in equations:
+        for expr, _ in equation.rhs.preorder_iter():
+            if isinstance(expr, ae.Vector) and expr.rows == 1:
+                return "Row vectors are not fully supported yet."
+    return "An error occurred during the algorithm generation."
 
 
 def run_linnea(input, time_limit=10, number_of_algorithms=1):
@@ -55,7 +74,7 @@ def run_linnea(input, time_limit=10, number_of_algorithms=1):
 
     try:
         equations = parse_input(input)
-    except:
+    except TatSuException:
         raise SyntaxError(syntax_error_msg(input))
     
     try:
@@ -67,18 +86,10 @@ def run_linnea(input, time_limit=10, number_of_algorithms=1):
     except ExpressionException as e:
         raise e.replace_expressions()
     except:
-        for equation in equations:
-            for expr, _ in equation.rhs.preorder_iter():
-                if isinstance(expr, ae.Vector) and expr.rows == 1:
-                    raise GenerationError("Row vectors are not fully supported yet.")
-        raise GenerationError("An error occurred during the algorithm generation.")
+        raise GenerationError(generation_error_msg(equations))
 
     if not output:
-        for equation in equations:
-            for expr, _ in equation.rhs.preorder_iter():
-                if isinstance(expr, ae.Vector) and expr.rows == 1:
-                    raise GenerationError("Row vectors are not fully supported yet.")
-        raise GenerationError("An error occurred during the algorithm generation.")
+        raise GenerationError(generation_error_msg(equations))
 
     return output
 
@@ -104,7 +115,7 @@ def dependent_dimensions(input):
     """
     try:
         equations = parse_input(input)
-    except:
+    except TatSuException:
         raise SyntaxError(syntax_error_msg(input))
 
     try:
@@ -119,7 +130,7 @@ def dependent_dimensions(input):
         variables[name] = val
 
     renaming = dict()
-    for type, name, rows, cols in matrix_reges.findall(input):
+    for type, name, rows, cols in matrix_regex.findall(input):
         if type == "IdentityMatrix":
             prefix = "I"
         elif type == "ZeroMatrix":

@@ -66,10 +66,10 @@ def check_validity(expr, dependent_dimensions=False):
         elif isinstance(expr, Matrix):
             rows, columns = expr.size
             if rows == 1:
-                msg = "Matrix {} has one row."
+                msg = "Matrix {} has one row. Use Vector instead."
                 raise InvalidExpression(msg, expr)
             if columns == 1:
-                msg = "Matrix {} has one column."
+                msg = "Matrix {} has one column. Use Vector instead."
                 raise InvalidExpression(msg, expr)          
 
         for prop in properties:
