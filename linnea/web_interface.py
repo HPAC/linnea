@@ -25,9 +25,18 @@ variable_regex = re.compile("([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([0-9]+)")
 matrix_regex = re.compile("(IdentityMatrix|ZeroMatrix)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)")
 properties_regex = re.compile("<(.*)>")
 property_names = set(property.value for property in Property)
+size_regex = re.compile("=\s*(.*)")
+type_regex = re.compile("Matrix|IdentityMatrix|ZeroMatrix|ColumnVector|RowVector|Scalar")
 
 
 def syntax_error_msg(input):
+    first_op_def = type_regex.search(input)
+    if first_op_def:
+        variable_defs = input[0:first_op_def.start()]
+        for size_str in size_regex.findall(variable_defs):
+            if not size_str.isdecimal():
+                return "Invalid size {}.".format(size_str)
+
     for properties_str in properties_regex.findall(input):
         for property_str in properties_str.split(","):
             property_name = property_str.strip()
