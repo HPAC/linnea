@@ -354,6 +354,33 @@ class Algorithm():
 
         return "\n\n".join(code_list)
 
+    def derivation_website(self):
+        """Generates a description of how the algorithm was found for the website.
+
+        Both equations and matched kernels are represented as strings containing
+        tex code.
+
+        Returns:
+            list: A list of tuples of an integer and a string. The integer
+                denotes whether the string contains an equation (0) or matched
+                kernels (1).
+        """
+        output = []
+
+        for is_matched_kernel, group in itertools.groupby(self.kernels_and_equations, lambda x: isinstance(x, MatchedKernel)):
+            if is_matched_kernel:
+                strings = []
+                for matched_kernel in group:
+                    strings.append(matched_kernel.to_tex(algin_char=True))
+                tex_code = "\\begin{{align}}\n{}\n\\end{{align}}".format("\\\\\n".join(strings))
+                output.append((1, tex_code)) 
+            else:
+                for equations in group:
+                    output.append((0, equations.to_tex()))
+        
+        output.append((0, self.final_equations.to_tex()))
+        return output
+
     def remove_duplicate_lines(self, lines, known_lines):
         """Removes all strings from lines that are in known_lines.
 
@@ -562,6 +589,13 @@ class MatchedKernel():
 
     def __hash__(self):
         return hash((self.signature, self.operation))
+
+    def to_tex(self, algin_char=False):
+        if algin_char:
+            template = "{} &\\leftarrow {}"
+        else:
+            template = "{} \\leftarrow {}"
+        return template.format(self.operation.lhs.to_tex(), self.operation.rhs.to_tex())
         
 
 def derivation_to_file(output_name, subdir_name, algorithm_name, derivation):

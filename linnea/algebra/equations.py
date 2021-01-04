@@ -448,6 +448,12 @@ class Equations():
     def to_cpp_expression(self, lib):
         return "\n".join([equation.to_cpp_expression(lib) for equation in self.equations])
 
+    def to_tex(self):
+        strings = []
+        for equation in self.equations:
+            strings.append(" ".join([equation.lhs.to_tex(), "&:=", equation.rhs.to_tex()]))
+        return "\\begin{{align}}\n{}\n\\end{{align}}".format("\\\\\n".join(strings))
+
     def input_output(self):
         input = []
         output = []

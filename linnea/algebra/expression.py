@@ -190,6 +190,9 @@ class Expression(matchpy.Expression):
     def to_julia_expression(self):
         raise NotImplementedError()
 
+    def to_tex(self):
+        raise NotImplementedError()
+
 def _test_relation_commutative(l1, l2, relation):
     """Helper function for inverse_of, transpose_of
 
@@ -460,6 +463,9 @@ class Equal(Operator):
             template_str = "auto {0} = ({1}).eval();"
         return template_str.format(*map(operator.methodcaller("to_cpp_expression", lib), self.operands))
 
+    def to_tex(self):
+        return "{0} = {1}".format(*map(operator.methodcaller("to_tex"), self.operands))
+
 class Plus(Operator):
     """docstring for Plus"""
 
@@ -502,6 +508,14 @@ class Plus(Operator):
         operand_str = '+'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
         return "({0})".format(operand_str)
 
+    def to_tex(self):
+        operands_strs = []
+        for operand in self.operands:
+            if isinstance(operand, Times):
+                operands_strs.append("({})".format(operand.to_tex()))
+            else:
+                operands_strs.append(operand.to_tex())
+        return '+'.join(operands_strs)
 
 class Times(Operator):
     """docstring for Times"""
@@ -601,6 +615,15 @@ class Times(Operator):
 
     def to_cpp_expression(self, lib):
         return '*'.join(map(operator.methodcaller("to_cpp_expression", lib), self.operands))
+
+    def to_tex(self):
+        operands_strs = []
+        for operand in self.operands:
+            if isinstance(operand, Plus):
+                operands_strs.append("({})".format(operand.to_tex()))
+            else:
+                operands_strs.append(operand.to_tex())
+        return ' '.join(operands_strs)
 
 
 class LinSolveL(Operator):
@@ -802,6 +825,13 @@ class Transpose(Operator):
             template_str = "({0}).t()"
         return template_str.format(self.operands[0].to_cpp_expression(lib))
 
+    def to_tex(self):
+        if isinstance(self.operands[0], (Times, Plus)):
+            template = "({0})^{{T}}"
+        else:
+            template = "{0}^{{T}}"
+        return template.format(self.operands[0].to_tex())
+
 
 class Conjugate(Operator):
     """docstring for Conjugate"""
@@ -953,6 +983,13 @@ class Inverse(Operator):
                 template_str = "blaze::inv({0})"
         return template_str.format(self.operands[0].to_cpp_expression(lib))
 
+    def to_tex(self):
+        if isinstance(self.operands[0], (Times, Plus)):
+            template = "({0})^{{-1}}"
+        else:
+            template = "{0}^{{-1}}"
+        return template.format(self.operands[0].to_tex())
+
 class InverseTranspose(Operator):
     """docstring for InverseTranspose"""
 
@@ -1008,6 +1045,13 @@ class InverseTranspose(Operator):
         elif lib is CppLibrary.Blaze:
             template_str = "blaze::inv(blaze::trans({0}))"
         return template_str.format(self.operands[0].to_cpp_expression(lib))
+
+    def to_tex(self):
+        if isinstance(self.operands[0], (Times, Plus)):
+            template = "({0})^{{-T}}"
+        else:
+            template = "{0}^{{-T}}"
+        return template.format(self.operands[0].to_tex())
 
 class InverseConjugate(Operator):
     """docstring for InverseConjugate"""
@@ -1092,6 +1136,14 @@ class Scalar(Symbol):
     def __copy__(self):
         return Scalar(self.name, self.indices)
 
+    def to_tex(self):
+        if self.name.startswith("tmp"):
+            return "s_{{{}}}".format(self.name[3:])
+        elif len(self.name) > 1:
+            return "\\text{{{}}}".format(self.name)
+        else:
+            return self.name
+
 
 class Vector(Symbol):
     """docstring for Vector"""
@@ -1109,6 +1161,14 @@ class Vector(Symbol):
 
     def __copy__(self):
         return Vector(self.name, self.size, self.indices, self.properties)
+
+    def to_tex(self):
+        if self.name.startswith("tmp"):
+            return "v_{{{}}}".format(self.name[3:])
+        elif len(self.name) > 1:
+            return "\\text{{{}}}".format(self.name)
+        else:
+            return self.name
 
 
 class Matrix(Symbol):
@@ -1137,6 +1197,16 @@ class Matrix(Symbol):
 
     def __copy__(self):
         return Matrix(self.name, self.size, self.indices, self.properties)
+
+    def to_tex(self):
+        if self.name.startswith("tmp"):
+            return "M_{{{}}}".format(self.name[3:])
+        elif self.factorization_labels:
+            return "{}_{{{}}}".format(self.name[:1], self.name[1:])
+        elif len(self.name) > 1:
+            return "\\text{{{}}}".format(self.name)
+        else:
+            return self.name
 
 ######################
 # constant symbols
@@ -1194,6 +1264,12 @@ class IdentityMatrix(ConstantMatrix):
     def __copy__(self):
         return IdentityMatrix(*self.size)
 
+    def to_tex(self):
+        if self.rows == self.columns:
+            return "I_{{{}}}".format(self.rows)
+        else:   
+            return "I_{{({1}, {2})}}".format(*self.size)
+
 
 class ZeroMatrix(ConstantMatrix):
     """docstring for ZeroMatrix"""
@@ -1215,6 +1291,12 @@ class ZeroMatrix(ConstantMatrix):
 
     def __copy__(self):
         return ZeroMatrix(*self.size)
+
+    def to_tex(self):
+        if self.rows == self.columns:
+            return "0_{{{1}}}".format(self.rows)
+        else:   
+            return "0_{{({1}, {2})}}".format(*self.size)
 
 
 class ConstantScalar(Scalar, Constant):
@@ -1238,16 +1320,19 @@ class ConstantScalar(Scalar, Constant):
         return "{0}({1})".format(self.__class__.__name__, self.value)
 
     def to_matlab_expression(self):
-        return "{0}".format(self.value)
+        return str(self.value)
 
     def to_julia_expression(self):
-        return "{0}".format(self.value)
+        return str(self.value)
 
     def to_cpp_expression(self, lib):
-        return "{0}".format(self.value)
+        return str(self.value)
 
     def __copy__(self):
         return Scalar(self.value)
+
+    def to_tex(self):
+        return str(self.value)
 
 
 class Index():
