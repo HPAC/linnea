@@ -79,7 +79,7 @@ def run_linnea(input, time_limit=10, number_of_algorithms=1):
         list: List of tuples containing algorithms (as str) and a description of
             the generation (as a list of tuples).
     """
-    
+    linnea.config.clear_all()
     linnea.config.set_verbosity(0)
 
     try:
@@ -123,6 +123,8 @@ def dependent_dimensions(input):
     Returns:
         string: A JSON string of nested arrays.
     """
+    linnea.config.clear_all()
+
     try:
         equations = parse_input(input)
     except TatSuException:
