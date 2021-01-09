@@ -509,13 +509,7 @@ class Plus(Operator):
         return "({0})".format(operand_str)
 
     def to_tex(self):
-        operands_strs = []
-        for operand in self.operands:
-            if isinstance(operand, Times):
-                operands_strs.append("({})".format(operand.to_tex()))
-            else:
-                operands_strs.append(operand.to_tex())
-        return '+'.join(operands_strs)
+        return '+'.join(map(operator.methodcaller("to_tex"), self.operands))
 
 class Times(Operator):
     """docstring for Times"""
