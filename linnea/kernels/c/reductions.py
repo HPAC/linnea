@@ -1,6 +1,6 @@
 # from clak.kernels.utils.reductions import KernelDescription, \
 #                                           Op1, Op2, \
-#                                           ExpressionKV, PropertyKV, DefaultValueKV, OperatorKV, \
+#                                           OperationKV, PropertyKV, DefaultValueKV, OperatorKV, \
 #                                           KernelType
 # from clak.kernels.utils.general import SizeArgument, PropertyArgument, StrideArgument
 
@@ -30,7 +30,7 @@ out = Scalar("out")
 cf = lambda d: 1
 
 scalar_product = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Times(alpha, beta)}
         ),
@@ -53,7 +53,7 @@ out = Scalar("out")
 cf = lambda d: 1
 
 scalar_sum = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(alpha, beta)}
     ),
@@ -82,7 +82,7 @@ cf = lambda d: 2*d["N"]
 # pattern and operands, same kernel call.
 
 dot = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Times(Transpose(x),y)}
     ),
@@ -104,7 +104,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["N"]
 
 scal = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Times(alpha, x)}
     ),
@@ -126,7 +126,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["N"]
 
 axpy = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(Times(alpha, x), y)}),
     [
@@ -154,7 +154,7 @@ alpha = Scalar("alpha")
 cf = lambda d: 2*d["N"]*d["M"]
 
 ger = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(Times(alpha, x, Transpose(y)), A)}
     ),
@@ -182,7 +182,7 @@ cf = lambda d: 2*d["N"]*d["M"]
 
 # IMPORTANT: for this (non-overwriting) case, A has to be initialized with zeros
 ger_alt = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Times(alpha, x, Transpose(y))}
     ),
@@ -212,7 +212,7 @@ beta = Scalar("beta")
 cf = lambda d: 2*d["N"]*d["M"]
 
 gemv = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(Times(alpha, Op1(A), x), Times(beta, y))}
     ),
@@ -242,7 +242,7 @@ x = Vector("x", (n, 1))
 cf = lambda d: d["N"]**2
 
 trsv = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Times(Op1(Inverse(A)), x)}
     ),
@@ -275,7 +275,7 @@ beta = Scalar("beta")
 cf = lambda d: 2*d["N"]*d["M"]*d["K"]
 
 gemm = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(Times(alpha, Op1(A), Op2(B)), Times(beta, C))}
     ),
@@ -307,7 +307,7 @@ alpha = Scalar("alpha")
 cf = lambda d: (d["N"]**2)*d["M"]
 
 trsm = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         "side",
         {"L": Times(alpha, Op1(Inverse(A)), B),
          "R": Times(alpha, B, Op1(Inverse(A)))}
@@ -343,7 +343,7 @@ cto = Scalar("cto")
 cf = lambda d: d["N"]*d["M"]
 
 lascl = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Times(cto, Inverse(cfrom), A)}
     ),
@@ -380,7 +380,7 @@ A.set_property(Property.SQUARE)
 cf = lambda d: 2*d["N"]**3
 
 getri = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Inverse(A)}
     ),
@@ -408,7 +408,7 @@ A.set_property(Property.SQUARE)
 cf = lambda d: (d["N"]**3)/3
 
 trtri = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Inverse(A)}
     ),
@@ -432,7 +432,7 @@ A = Matrix("A", (n, n))
 cf = lambda d: 0
 
 transpose = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Transpose(A)}
     ),
@@ -454,7 +454,7 @@ x = Vector("x", (n, 1))
 cf = lambda d: 0
 
 transpose_vector = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Transpose(x)}
     ),
@@ -478,7 +478,7 @@ cf = lambda d: 2*d["N"]*d["M"]
 # NOTE We are adding up columns. Thus, incx and incy are column stride
 # TODO what about not doing the pointer arithmetic in the signature: i < N*ldA, i+=ldA
 matrix_sum_NN = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(Times(alpha, A), B)} # a*x+y
     ),
@@ -513,7 +513,7 @@ cf = lambda d: 2*d["N"]*d["M"]
 # NOTE We are adding up columns. Thus, incx and incy are column stride
 # TODO what about not doing the pointer arithmetic in the signature: i < N*ldA, i+=ldA
 matrix_sum_TN = KernelDescription(
-    ExpressionKV(
+    OperationKV(
     None,
     {None: Plus(Times(alpha, Transpose(A)), B)} # a*x+y
     ),
@@ -548,7 +548,7 @@ cf = lambda d: 2*d["N"]*d["M"]
 # NOTE We are adding up columns. Thus, incx and incy are column stride
 # TODO what about not doing the pointer arithmetic in the signature: i < N*ldA, i+=ldA
 matrix_sum_NT = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(Times(alpha, A), Transpose(B))} # a*x+y
     ),
@@ -585,7 +585,7 @@ cf = lambda d: 2*d["N"]*d["M"]
 # NOTE We are adding up columns. Thus, incx and incy are column stride
 # TODO what about not doing the pointer arithmetic in the signature: i < N*ldA, i+=ldA
 matrix_sum_TT = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {None: Plus(Times(alpha, Transpose(A)), Transpose(B))} # a*x+y
     ),

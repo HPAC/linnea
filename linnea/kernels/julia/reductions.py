@@ -1,7 +1,8 @@
 from ..utils.reductions import KernelDescription, \
                                Op1, Op2, \
-                               ExpressionKV, PropertyKV, DefaultValueKV, OperatorKV, \
-                               KernelType, KernelOption, \
+                               Operation, OperationKV, \
+                               PropertyKV, DefaultValueKV, OperatorKV, \
+                               KernelOption, \
                                OutputOperand
 
 from ..utils.general import SizeArgument, PropertyArgument, StrideArgument, \
@@ -37,10 +38,7 @@ out = Scalar("out")
 cf = lambda d: 1
 
 scalar_product = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(alpha, beta)}
-        ),
+    Operation(Times(alpha, beta)),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
      InputOperand(beta, StorageFormat.full)
@@ -61,7 +59,7 @@ out = Scalar("out")
 cf = lambda d: 1
 
 scalar_division = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         "side",
         {"R": Times(alpha, Inverse(beta)),
          "L": Times(Inverse(beta), alpha)}
@@ -86,10 +84,7 @@ out = Scalar("out")
 cf = lambda d: 1
 
 scalar_inversion = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Inverse(alpha)}
-        ),
+    Operation(Inverse(alpha)),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
     ],
@@ -109,10 +104,7 @@ out = Scalar("out")
 cf = lambda d: 1
 
 scalar_sum = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(alpha, beta)}
-    ),
+    Operation(Plus(alpha, beta)),
     [], # variants
     [InputOperand(alpha, StorageFormat.full),
      InputOperand(beta, StorageFormat.full)
@@ -136,10 +128,7 @@ out = Scalar("out")
 cf = lambda d: 2*d["N"]
 
 dot = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Transpose(x),y)}
-    ),
+    Operation(Times(Transpose(x),y)),
     [], # variants
     [InputOperand(x, StorageFormat.full),
      InputOperand(y, StorageFormat.full)
@@ -159,7 +148,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["N"]
 
 scal = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {"L": Times(alpha, x),
          "R": Times(x, alpha)}
@@ -185,10 +174,7 @@ alpha = Scalar("alpha")
 cf = lambda d: max(d["N"], d["M"]) # to get correct cost for row and column vectors
 
 axpy = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, x), y)}),
-        # {None: Plus(Times(alpha, Op1(x)), Op2(y))}),
+    Operation(Plus(Times(alpha, x), y)), # Plus(Times(alpha, Op1(x)), Op2(y))
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
         # OperatorKV("", {"N": Identity, "T": Transpose}, Op1),
@@ -205,7 +191,7 @@ axpy = KernelDescription(
     "",
     [SizeArgument("N", x, "rows"),
      SizeArgument("M", x, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 ###############
@@ -220,10 +206,7 @@ alpha = Scalar("alpha")
 cf = lambda d: 2*d["N"]*d["M"]
 
 ger = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, x, Transpose(y)), A)}
-    ),
+    Operation(Plus(Times(alpha, x, Transpose(y)), A)),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)])
     ],
@@ -248,10 +231,7 @@ alpha = Scalar("alpha")
 cf = lambda d: 2*d["N"]*d["M"]
 
 ger_alt = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(alpha, x, Transpose(y))}
-    ),
+    Operation(Times(alpha, x, Transpose(y))),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)])
     ],
@@ -283,10 +263,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["M"]**2
 
 syr = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, x, Transpose(x)), A)}
-    ),
+    Operation(Plus(Times(alpha, x, Transpose(x)), A)),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)])
     ],
@@ -308,10 +285,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["M"]**2
 
 syr_alt = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(alpha, x, Transpose(x))}
-    ),
+    Operation(Times(alpha, x, Transpose(x))),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)])
     ],
@@ -350,10 +324,7 @@ Compare performance.
 """
 
 gemv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, Op1(A), x), Times(beta, y))}
-    ),
+    Operation(Plus(Times(alpha, Op1(A), x), Times(beta, y))),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
@@ -372,7 +343,7 @@ gemv = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", A, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -387,10 +358,7 @@ beta = Scalar("beta")
 cf = lambda d: 2*d["M"]**2
 
 symv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, A, x), Times(beta, y))}
-    ),
+    Operation(Plus(Times(alpha, A, x), Times(beta, y))),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
         DefaultValueKV(beta, [ConstantScalar(0.0), ConstantScalar(1.0)])
@@ -408,7 +376,7 @@ symv = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"]),], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -424,10 +392,7 @@ x = Vector("x", (n, 1))
 cf = lambda d: d["N"]**2
 
 trmv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Op1(A), x)}
-    ),
+    Operation(Times(Op1(A), x)),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
@@ -442,7 +407,7 @@ trmv = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -460,10 +425,7 @@ Compare performance.
 """
 
 trsv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Op1(Inverse(A)), x)}
-    ),
+    Operation(Times(Op1(Inverse(A)), x)),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
@@ -478,7 +440,7 @@ trsv = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -502,10 +464,7 @@ Compare performance.
 """
 
 gemm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, Op1(A), Op2(B)), Times(beta, C))}
-    ),
+    Operation(Plus(Times(alpha, Op1(A), Op2(B)), Times(beta, C))),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         OperatorKV("transB", {"N": Identity, "T": Transpose}, Op2),
@@ -547,7 +506,7 @@ n is the size of matrix A, and m is the "other" size.
 """
 
 symm = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         "side",
         {"L": Plus(Times(alpha, A, B), Times(beta, C)),
          "R": Plus(Times(alpha, B, A), Times(beta, C))}
@@ -571,7 +530,7 @@ symm = KernelDescription(
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
      StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
-     [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -587,10 +546,7 @@ cf = lambda d: d["K"]*(d["N"]**2)
 
 
 syrk = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, Op1(A), Op1(Transpose(A))), Times(beta, C))}
-    ),
+    Operation(Plus(Times(alpha, Op1(A), Op1(Transpose(A))), Times(beta, C))),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
@@ -623,10 +579,7 @@ beta = Scalar("beta")
 cf = lambda d: 2*d["K"]*(d["N"]**2)
 
 syr2k = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, Op1(A), Op1(Transpose(B))), Times(alpha, Op1(B), Op1(Transpose(A))), Times(beta, C))}
-    ),
+    Operation(Plus(Times(alpha, Op1(A), Op1(Transpose(B))), Times(alpha, Op1(B), Op1(Transpose(A))), Times(beta, C))),
     [
         OperatorKV("trans", {"N": Identity, "T": Transpose}, Op1),
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
@@ -667,7 +620,7 @@ n is the size of matrix A, and m is the "other" size.
 
 
 trmm = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         "side",
         {"L": Times(alpha, Op1(A), B),
          "R": Times(alpha, B, Op1(A))}
@@ -690,7 +643,7 @@ trmm = KernelDescription(
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -715,7 +668,7 @@ Compare performance.
 """
 
 trsm = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         "side",
         {"L": Times(alpha, Op1(Inverse(A)), B),
          "R": Times(alpha, B, Op1(Inverse(A)))}
@@ -738,7 +691,7 @@ trsm = KernelDescription(
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 ###############
@@ -751,7 +704,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["M"]*d["N"]
 
 lascl = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {"L": Times(alpha, X),
          "R": Times(X, alpha)}
@@ -780,10 +733,7 @@ A.set_property(Property.SQUARE)
 cf = lambda d: 2*d["N"]**3
 
 getri = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Inverse(A)}
-    ),
+    Operation(Inverse(A)),
     [], # variants
     [InputOperand(A, StorageFormat.full),
     ],
@@ -793,7 +743,7 @@ getri = KernelDescription(
     "$B = inv($A)",
     "",
     [SizeArgument("N", A, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # trtri (triangular matrix inversion)
@@ -804,10 +754,7 @@ A.set_property(Property.TRIANGULAR)
 cf = lambda d: (d["N"]**3)/3
 
 trtri = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Inverse(A)}
-    ),
+    Operation(Inverse(A)),
     [
         PropertyKV("uplo", {"U": Property.UPPER_TRIANGULAR, "L": Property.LOWER_TRIANGULAR}, A)
     ], # variants
@@ -820,7 +767,7 @@ trtri = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -832,10 +779,7 @@ A.set_property(Property.SYMMETRIC)
 cf = lambda d: (d["N"]**3)/3
 
 syinv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Inverse(A)}
-    ),
+    Operation(Inverse(A)),
     [], # variants
     [InputOperand(A, StorageFormat.symmetric_triangular),
     ],
@@ -851,7 +795,7 @@ syinv = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -871,10 +815,7 @@ LinearAlgebra.LAPACK.potrs!('L', A, B)
 """
 
 posv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Inverse(A), B)}
-    ),
+    Operation(Times(Inverse(A), B)),
     [],  # variants
     [InputOperand(A, StorageFormat.symmetric_triangular),
      InputOperand(B, StorageFormat.full),
@@ -886,7 +827,7 @@ posv = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -906,10 +847,7 @@ LinearAlgebra.LAPACK.potrs!('L', A, B)
 """
 
 posvr = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(B, Inverse(A))}
-    ),
+    Operation(Times(B, Inverse(A))),
     [],  # variants
     [InputOperand(A, StorageFormat.symmetric_triangular),
      InputOperand(B, StorageFormat.full),
@@ -927,7 +865,7 @@ posvr = KernelDescription(
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -949,10 +887,7 @@ TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
 sysv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Inverse(A), B)}
-    ),
+    Operation(Times(Inverse(A), B)),
     [],  # variants
     [InputOperand(A, StorageFormat.symmetric_triangular),
      InputOperand(B, StorageFormat.full),
@@ -970,7 +905,7 @@ sysv = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -991,10 +926,7 @@ TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
 sysvr = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(B, Inverse(A))}
-    ),
+    Operation(Times(B, Inverse(A))),
     [],  # variants
     [InputOperand(A, StorageFormat.symmetric_triangular),
      InputOperand(B, StorageFormat.full),
@@ -1014,7 +946,7 @@ sysvr = KernelDescription(
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # gesv
@@ -1031,10 +963,7 @@ LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Op1(Inverse(A)), B)}
-    ),
+    Operation(Times(Op1(Inverse(A)), B)),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
     ],  # variants
@@ -1048,7 +977,7 @@ gesv = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1066,10 +995,7 @@ LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesvr = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(B, Inverse(A))}
-    ),
+    Operation(Times(B, Inverse(A))),
     [],  # variants
     [InputOperand(A, StorageFormat.full),
      InputOperand(B, StorageFormat.full),
@@ -1081,7 +1007,7 @@ gesvr = KernelDescription(
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # gesv right transpose
@@ -1098,10 +1024,7 @@ LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesvrt = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(B, InverseTranspose(A))}
-    ),
+    Operation(Times(B, InverseTranspose(A))),
     [],  # variants
     [InputOperand(A, StorageFormat.full),
      InputOperand(B, StorageFormat.full),
@@ -1113,7 +1036,7 @@ gesvrt = KernelDescription(
     "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1136,10 +1059,7 @@ LinearAlgebra.LAPACK.potrs!('L', A, B)
 """
 
 posv_vec = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Inverse(A), x)}
-    ),
+    Operation(Times(Inverse(A), x)),
     [],  # variants
     [InputOperand(A, StorageFormat.symmetric_triangular),
      InputOperand(x, StorageFormat.full),
@@ -1150,7 +1070,7 @@ posv_vec = KernelDescription(
     "LinearAlgebra.LAPACK.posv!('L', $A, $x)",
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1171,7 +1091,7 @@ posv_vec = KernelDescription(
 # """
 
 # posvr = KernelDescription(
-#     ExpressionKV(
+#     OperationKV(
 #         None,
 #         {None: Times(Transpose(x), Inverse(A))}
 #     ),
@@ -1186,7 +1106,7 @@ posv_vec = KernelDescription(
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
-#     [KernelType.identity, KernelType.transpose]
+#     options={KernelOption.transpose}
 #     )
 
 
@@ -1207,10 +1127,7 @@ TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
 sysv_vec = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Inverse(A), x)}
-    ),
+    Operation(Times(Inverse(A), x)),
     [],  # variants
     [InputOperand(A, StorageFormat.symmetric_triangular),
      InputOperand(x, StorageFormat.full),
@@ -1227,7 +1144,7 @@ sysv_vec = KernelDescription(
         ),
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1249,7 +1166,7 @@ sysv_vec = KernelDescription(
 # """
 
 # sysvr = KernelDescription(
-#     ExpressionKV(
+#     OperationKV(
 #         None,
 #         {None: Times(Transpose(x), Inverse(A))}
 #     ),
@@ -1264,7 +1181,7 @@ sysv_vec = KernelDescription(
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
-#     [KernelType.identity, KernelType.transpose]
+#     options={KernelOption.transpose}
 #     )
 
 # gesv vector
@@ -1281,10 +1198,7 @@ LinearAlgebra.LAPACK.gesv!($A, $B)
 """
 
 gesv_vec = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Op1(Inverse(A)), x)}
-    ),
+    Operation(Times(Op1(Inverse(A)), x)),
     [
         OperatorKV("transA", {"N": Identity, "T": Transpose}, Op1),
     ],  # variants
@@ -1302,7 +1216,7 @@ gesv_vec = KernelDescription(
         ),
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1321,7 +1235,7 @@ gesv_vec = KernelDescription(
 # """
 
 # gesvr = KernelDescription(
-#     ExpressionKV(
+#     OperationKV(
 #         None,
 #         {None: Times(B, Inverse(A))}
 #     ),
@@ -1336,7 +1250,7 @@ gesv_vec = KernelDescription(
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
-#     [KernelType.identity, KernelType.transpose]
+#     options={KernelOption.transpose}
 #     )
 
 # # gesv right transpose vector
@@ -1354,7 +1268,7 @@ gesv_vec = KernelDescription(
 # """
 
 # gesvrt = KernelDescription(
-#     ExpressionKV(
+#     OperationKV(
 #         None,
 #         {None: Times(B, InverseTranspose(A))}
 #     ),
@@ -1369,7 +1283,7 @@ gesv_vec = KernelDescription(
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
-#     [KernelType.identity, KernelType.transpose]
+#     options={KernelOption.transpose}
 #     )
 
 #################
@@ -1382,7 +1296,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["N"]
 
 invscal = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {"L": Times(Inverse(alpha), x),
          "R": Times(x, Inverse(alpha))}
@@ -1407,7 +1321,7 @@ alpha = Scalar("alpha")
 cf = lambda d: d["M"]*d["N"]
 
 invlascl = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {"L": Times(Inverse(alpha), X),
          "R": Times(X, Inverse(alpha))}
@@ -1434,10 +1348,7 @@ A.set_property(Property.DIAGONAL)
 cf = lambda d: d["N"]
 
 diaginv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Inverse(A)}
-    ),
+    Operation(Inverse(A)),
     [], # variants
     [InputOperand(A, StorageFormat.diagonal_vector),
     ],
@@ -1447,7 +1358,7 @@ diaginv = KernelDescription(
     "$A = 1 ./$A",
     "",
     [SizeArgument("N", A, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # matrix transposition
@@ -1457,10 +1368,7 @@ B = Matrix("B", (n, m))
 cf = lambda d: 1
 
 transpose = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Transpose(A)}
-    ),
+    Operation(Transpose(A)),
     [], # variants
     [InputOperand(A, StorageFormat.full),
     ],
@@ -1472,7 +1380,6 @@ transpose = KernelDescription(
     "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", A, "columns")], # Argument objects
-    # [KernelType.identity, KernelType.transpose]
     )
 
 # vector transposition (totally fake) (this is kind of tricky. Since it doesn't actually do anything, overwriting is never a problem. Solution: Just use different symbol for output?)
@@ -1481,10 +1388,7 @@ x = Vector("x", (n, 1))
 cf = lambda d: 0
 
 transpose_vector = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Transpose(x)}
-    ),
+    Operation(Transpose(x)),
     [], # variants
     [InputOperand(x, StorageFormat.full),
     ],
@@ -1494,7 +1398,6 @@ transpose_vector = KernelDescription(
     "# Transposing vector $x (no operation);",
     "",
     [], # Argument objects
-    # [KernelType.identity, KernelType.transpose]
     )
 
 # matrix sum
@@ -1505,10 +1408,7 @@ B = Matrix("B", (m, n))
 cf = lambda d: 2*d["N"]*d["M"]
 
 matrix_sum = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, A), B)} # a*x+y
-    ),
+    Operation(Plus(Times(alpha, A), B)),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)])
     ],
@@ -1523,7 +1423,7 @@ matrix_sum = KernelDescription(
     "",
     [SizeArgument("N", A, "columns"),
      SizeArgument("M", A, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # A + B^T
@@ -1533,10 +1433,7 @@ B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
 
 matrix_sum_transpose = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(A, Transpose(B))}
-    ),
+    Operation(Plus(A, Transpose(B))),
     [],
     [InputOperand(A, StorageFormat.full),
      InputOperand(B, StorageFormat.full),
@@ -1548,7 +1445,6 @@ matrix_sum_transpose = KernelDescription(
     "",
     [SizeArgument("N", A, "columns"),
      SizeArgument("M", A, "rows")], # Argument objects
-    [KernelType.identity]
     )
 
 # scalar * diagonal
@@ -1559,7 +1455,7 @@ alpha = Scalar("alpha")
 cf = lambda d: min(d["M"], d["N"])
 
 diagscal = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         None,
         {"L": Times(alpha, X),
          "R": Times(X, alpha)}
@@ -1603,10 +1499,7 @@ C = Matrix("C", (m, n))
 cf = lambda d: min(d["M"], d["K"], d["N"])
 
 diagdiagmul = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Op1(A), Op2(B))}
-    ),
+    Operation(Times(Op1(A), Op2(B))),
     [
         OperatorKV("", {"N": Identity, "T": Transpose}, Op1),
         OperatorKV("", {"N": Identity, "T": Transpose}, Op2),
@@ -1650,7 +1543,7 @@ B.set_property(Property.DIAGONAL)
 cf = lambda d: min(d["M"], d["N"])
 
 diagdiagsolve = KernelDescription(
-    ExpressionKV(
+    OperationKV(
         "side",
         {"L": Times(Inverse(A), B),
          "R": Times(B, Inverse(A))}
@@ -1666,7 +1559,7 @@ diagdiagsolve = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1685,10 +1578,7 @@ B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
 diagsmr = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(B, Inverse(A))}
-    ),
+    Operation(Times(B, Inverse(A))),
     [], # variants
     [InputOperand(A, StorageFormat.diagonal_vector),
      InputOperand(B, StorageFormat.full),
@@ -1706,7 +1596,7 @@ diagsmr = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1725,10 +1615,7 @@ B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
 diagsml = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Inverse(A), B)}
-    ),
+    Operation(Times(Inverse(A), B)),
     [], # variants
     [InputOperand(A, StorageFormat.diagonal_vector),
      InputOperand(B, StorageFormat.full),
@@ -1740,7 +1627,7 @@ diagsml = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1757,10 +1644,7 @@ x = Vector("x", (m, 1))
 cf = lambda d: d["M"]
 
 diagsv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Inverse(A), x)}
-    ),
+    Operation(Times(Inverse(A), x)),
     [], # variants
     [InputOperand(A, StorageFormat.diagonal_vector),
      InputOperand(x, StorageFormat.full),
@@ -1771,7 +1655,7 @@ diagsv = KernelDescription(
     "$x ./= $A",
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1796,10 +1680,7 @@ B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
 diagmmr = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(B, A)}
-    ),
+    Operation(Times(B, A)),
     [], # variants
     [InputOperand(A, StorageFormat.diagonal_vector),
      InputOperand(B, StorageFormat.full),
@@ -1817,7 +1698,7 @@ diagmmr = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1842,10 +1723,7 @@ B = Matrix("B", (m, n))
 cf = lambda d: d["M"]*d["N"]
 
 diagmml = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(A, B)}
-    ),
+    Operation(Times(A, B)),
     [], # variants
     [InputOperand(A, StorageFormat.diagonal_vector),
      InputOperand(B, StorageFormat.full),
@@ -1863,7 +1741,7 @@ diagmml = KernelDescription(
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1884,10 +1762,7 @@ x = Vector("x", (m, 1))
 cf = lambda d: d["M"]
 
 diagmv = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(A, x)}
-    ),
+    Operation(Times(A, x)),
     [], # variants
     [InputOperand(A, StorageFormat.diagonal_vector),
      InputOperand(x, StorageFormat.full),
@@ -1898,7 +1773,7 @@ diagmv = KernelDescription(
     "$x .*= $A",
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # diag + diag
@@ -1911,9 +1786,7 @@ alpha = Scalar("alpha")
 cf = lambda d: min(d["M"], d["N"])
 
 diagdiagadd = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, A), B)}),
+    Operation(Plus(Times(alpha, A), B)),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
     ],
@@ -1940,9 +1813,7 @@ alpha = Scalar("alpha")
 cf = lambda d: min(d["M"], d["N"])
 
 diagfulladd = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Plus(Times(alpha, A), B)}),
+    Operation(Plus(Times(alpha, A), B)),
     [
         DefaultValueKV(alpha, [ConstantScalar(1.0)]),
     ],
@@ -1964,7 +1835,7 @@ diagfulladd = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -1977,10 +1848,7 @@ B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
 
 pmm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(P, A)}
-    ),
+    Operation(Times(P, A)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(A, StorageFormat.full),
@@ -1992,7 +1860,7 @@ pmm = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -2005,10 +1873,7 @@ B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
 
 ptmm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Transpose(P), A)}
-    ),
+    Operation(Times(Transpose(P), A)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(A, StorageFormat.full),
@@ -2020,7 +1885,7 @@ ptmm = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -2033,10 +1898,7 @@ B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
 
 mpm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(A, P)}
-    ),
+    Operation(Times(A, P)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(A, StorageFormat.full),
@@ -2048,7 +1910,7 @@ mpm = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -2061,10 +1923,7 @@ B = Matrix("B", (n, m))
 cf = lambda d: d["N"]*d["M"]
 
 mptm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(A, Transpose(P))}
-    ),
+    Operation(Times(A, Transpose(P))),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(A, StorageFormat.full),
@@ -2076,7 +1935,7 @@ mptm = KernelDescription(
     "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # permutation * vector
@@ -2088,10 +1947,7 @@ y = Vector("y", (n, 1))
 cf = lambda d: d["N"]
 
 pvm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(P, x)}
-    ),
+    Operation(Times(P, x)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(x, StorageFormat.full),
@@ -2102,7 +1958,7 @@ pvm = KernelDescription(
     "$y = $x[$P]",
     "",
     [SizeArgument("N", P, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -2115,10 +1971,7 @@ y = Vector("y", (n, 1))
 cf = lambda d: d["N"]
 
 ptvm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Transpose(P), x)}
-    ),
+    Operation(Times(Transpose(P), x)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(x, StorageFormat.full),
@@ -2129,7 +1982,7 @@ ptvm = KernelDescription(
     "$y = $x[invperm($P)]",
     "",
     [SizeArgument("N", P, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 # permutation * permutation
@@ -2142,10 +1995,7 @@ X = Matrix("X", (n, n))
 cf = lambda d: 0
 
 ppm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(P, Q)}
-    ),
+    Operation(Times(P, Q)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(Q, StorageFormat.permutation_vector),
@@ -2156,7 +2006,7 @@ ppm = KernelDescription(
     "$X = $Q[$P]",
     "",
     [SizeArgument("N", P, "rows")], # Argument objects
-    [KernelType.identity, KernelType.transpose]
+    options={KernelOption.transpose}
     )
 
 
@@ -2170,10 +2020,7 @@ X = Matrix("X", (n, n))
 cf = lambda d: 0
 
 ptpm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(Transpose(P), Q)}
-    ),
+    Operation(Times(Transpose(P), Q)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(Q, StorageFormat.permutation_vector),
@@ -2197,10 +2044,7 @@ X = Matrix("X", (n, n))
 cf = lambda d: 0
 
 pptm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Times(P, Transpose(Q))}
-    ),
+    Operation(Times(P, Transpose(Q))),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
      InputOperand(Q, StorageFormat.permutation_vector),
@@ -2222,10 +2066,7 @@ Q = Matrix("Q", (n, n))
 cf = lambda d: 0
 
 transpose_perm = KernelDescription(
-    ExpressionKV(
-        None,
-        {None: Transpose(P)}
-    ),
+    Operation(Transpose(P)),
     [], # variants
     [InputOperand(P, StorageFormat.permutation_vector),
     ],
@@ -2235,7 +2076,6 @@ transpose_perm = KernelDescription(
     "$Q = invperm($P)",
     "",
     [SizeArgument("N", P, "rows")], # Argument objects
-    [KernelType.identity]
     )
 
 # what about diagonal A? could be almost the same as vector

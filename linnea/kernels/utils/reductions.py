@@ -39,6 +39,7 @@ class KernelType(enum.Enum):
 
 class KernelOption(enum.Enum):
     no_simplifications = 0
+    transpose = 1
 
 _op = matchpy.Wildcard.symbol("_op")
 ctx1 = matchpy.Wildcard.star("ctx1")
@@ -261,25 +262,41 @@ class KernelVariant():
     def __init__(self, arg_vals):
         self.arg_vals = arg_vals
 
-class ExpressionKV(KernelVariant):
-    """Contains information about expression variants.
+class OperationKV(KernelVariant):
+    """Contains information about operation variants.
 
-    "expression variant" is used for BLAS kernel variants where the expression
+    "operation variant" is used for BLAS kernel variants where the operation
     that is computed depends on an argument. For example, the SYMM kernel
     computes either C <- AB+C or C <- BA+C, depending on whether the "side"
     argument is "L" or "R".
 
     Attributes:
         arg_name (str): The name of the corresponding argument in the signature.
-            If this is None, then there are no expression variants for  this
+            If this is None, then there are no operation variants for  this
             kernel.
         arg_vals (dict): Maps argument values (str) to the corresponding
-            expressions (Expression).
+            operations (Expression).
     """
     def __init__(self, arg_name, arg_vals):
         super().__init__(arg_vals)
         self.arg_name = arg_name
-        
+
+class Operation(KernelVariant):
+    """Contains information about expression variants.
+
+    This object can be used for kernels that compute a fixed operation that does
+    not depend on any arguments. This class is can be used as a replacement for
+    OperationKV.
+
+    Attributes:
+        arg_name (NoneType): Is None.
+        arg_vals (dict): A dictionary of the form {None: operation}, where
+            operation is an Expression.
+    """
+    def __init__(self, operation):
+        super().__init__({None: operation})
+        self.arg_name = None
+    
 class PropertyKV(KernelVariant):
     """Contains information about property variants.
 
@@ -291,7 +308,7 @@ class PropertyKV(KernelVariant):
     Note:
         Properties of symbols that do not depend on arguments (e.g. for SYMM, A
         is always symmetric) are specified by setting that property on the
-        symbol in the expression for ExpressionKV.
+        symbol in the expression for OperationKV.
 
     Attributes:
         arg_name (str): The name of the corresponding argument in the signature.
@@ -416,14 +433,14 @@ class KernelDescription():
 
         Properties of symbols that do not depend on arguments (e.g. for SYMM, A
         is always symmetric) are specified by setting that property on the
-        symbol in the expression for ExpressionKV.
+        symbol in the expression for OperationKV.
 
     Attributes:
         signature (CodeTemplate): A string containing the signature of the
             kernel. All argument names have to be preceded by "$".
-        expr_variant (ExpressionKV): The expression variants of this kernel.
+        expr_variant (OperationKV): The expression variants of this kernel.
         variants (KernelVariant): All other variants of this kernel, excluding
-            the ExpressionKV object.
+            the OperationKV object.
         arguments (Argument): The arguments of the kernel.
         return_value (OutputOperand): The operand that contains the result of the
             kernel.
@@ -447,14 +464,12 @@ class KernelDescription():
                  signature,
                  post_code,
                  arguments,
-                 kernel_types=[KernelType.identity],
                  constraints=[],
                  options=set()):
         self.expr_variant = expr_variant
         self.variants = variants
         self.input_operands = input_operands
         self.return_value = return_value
-        self.kernel_types = kernel_types
         self.cost_function = cost_function
         self.constraints = constraints
         self.options = options
@@ -602,8 +617,10 @@ class KernelDescription():
                 # print(constraints)
 
                 kernel_io.replace_variables(self.wildcards)
-                for kernel_type in self.kernel_types:
-                    yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, kernel_type, kernel_io)        
+                yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, KernelType.identity, kernel_io)
+                
+                if KernelOption.transpose in self.options:
+                    yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, KernelType.transpose, kernel_io)
 
 ############################
 # Auxiliary functions
@@ -670,11 +687,11 @@ if __name__ == "__main__":
     # print(replace_symbol(Times(alpha, A, B), alpha, one))
 
     # gemm = KernelDescription("gemm($transA, $transB, $M, $N, $K, $alpha, $A, $ldA, $B, $ldB, $beta, $C, $ldC)"
-    #                          [ExpressionKV(Times(A, B))],
+    #                          [OperationKV(Times(A, B))],
     #                          [])
 
     trsm = KernelDescription("trsm($side, $uplo, $transA, $diag, $M, $N, $alpha, $A, $ldA, $B, $ldB)",
-                             ExpressionKV(
+                             OperationKV(
                                 "side",
                                 {"L": Times(alpha, Op1(Inverse(A)), B),
                                  "R": Times(alpha, B, Op1(Inverse(A)))}
