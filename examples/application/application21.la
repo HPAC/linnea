@@ -5,7 +5,7 @@ ColumnVector b(n) <>
 ColumnVector x(m) <>
 ColumnVector x0(m) <>
 Matrix A(n, m) <FullRank>
-Matrix P(n, n) <SPD>
-Matrix Q(m, m) <SPD>
+Matrix P(n, n) <SPSD>
+Matrix Q(m, m) <SPSD>
 
 x =  x0 + inv(trans(A)*P*A + Q)*trans(A)*P*(b - A*x0)

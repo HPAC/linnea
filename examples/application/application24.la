@@ -6,9 +6,9 @@ ColumnVector xout(n) <>
 ColumnVector y(m) <>
 IdentityMatrix I_n(n, n)
 Matrix A(m, n) <FullRank>
-Matrix Cin(n, n) <SPD>
+Matrix Cin(n, n) <SPSD>
 Matrix Cout(n, n) <>
-Matrix Cz(m, m) <SPD>
+Matrix Cz(m, m) <SPSD>
 Matrix K(n, m) <>
 
 K = Cin*trans(A)*inv(Cz + A*Cin*trans(A))

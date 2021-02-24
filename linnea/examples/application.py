@@ -806,8 +806,8 @@ class Example20():
         m = 200
 
         A = Matrix("A", (n, m), properties = [Property.FULL_RANK])
-        P = Matrix("P", (n, n), properties = [Property.SPD]) # covariance matrix
-        Q = Matrix("Q", (m, m), properties = [Property.SPD]) # covariance matrix
+        P = Matrix("P", (n, n), properties = [Property.SPSD]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [Property.SPSD]) # covariance matrix
         b = Vector("b", (n, 1))
         x0 = Vector("x0", (m, 1))
         x = Vector("x", (m, 1))
@@ -831,8 +831,8 @@ class Example21():
         m = 200
 
         A = Matrix("A", (n, m), properties = [Property.FULL_RANK])
-        P = Matrix("P", (n, n), properties = [Property.SPD]) # covariance matrix
-        Q = Matrix("Q", (m, m), properties = [Property.SPD]) # covariance matrix
+        P = Matrix("P", (n, n), properties = [Property.SPSD]) # covariance matrix
+        Q = Matrix("Q", (m, m), properties = [Property.SPSD]) # covariance matrix
         b = Vector("b", (n, 1))
         x0 = Vector("x0", (m, 1))
         x = Vector("x", (m, 1))
@@ -859,8 +859,8 @@ class Example22():
         m = 1500
 
         A = Matrix("A", (m, n), properties = [Property.FULL_RANK])
-        Cx = Matrix("Cx", (n, n), properties = [Property.SPD]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [Property.SPD]) # covariance matrix
+        Cx = Matrix("Cx", (n, n), properties = [Property.SPSD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [Property.SPSD]) # covariance matrix
         y = Vector("y", (m, 1))
         x = Vector("x", (n, 1))
         xout = Vector("xout", (n, 1))
@@ -917,8 +917,8 @@ class Example24():
 
         A = Matrix("A", (m, n), properties = [Property.FULL_RANK])
         K = Matrix("K", (n, m), properties = [Property.FULL_RANK])
-        Cin = Matrix("Cin", (n, n), properties = [Property.SPD]) # covariance matrix
-        Cz = Matrix("Cz", (m, m), properties = [Property.SPD]) # covariance matrix
+        Cin = Matrix("Cin", (n, n), properties = [Property.SPSD]) # covariance matrix
+        Cz = Matrix("Cz", (m, m), properties = [Property.SPSD]) # covariance matrix
         y = Vector("y", (m, 1))
         x = Vector("x", (n, 1))
 
