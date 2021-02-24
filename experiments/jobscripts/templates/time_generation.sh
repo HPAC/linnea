@@ -11,7 +11,6 @@
 
 echo $(printf "{name}%03d" ${var_array_idx})
 
-module purge
 module load DEVELOP
 module load python/{python_version}
 

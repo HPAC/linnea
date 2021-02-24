@@ -10,9 +10,8 @@
 {spec_exclusive}
 {spec_node}
 
-module purge
 module load MISC
-module load matlab/2019b
+module load matlab/2020a
 
 cd {linnea_results_path}
 mkdir -p {name}/execution/matlab/t{threads}

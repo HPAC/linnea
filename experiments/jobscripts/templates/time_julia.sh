@@ -10,9 +10,8 @@
 {spec_exclusive}
 {spec_node}
 
-module purge
+module switch intel/19.0 clang/{clang_version}
 module load DEVELOP
-module load clang/{clang_version}
 
 cd {linnea_results_path}/
 mkdir -p {name}/execution/{output_subdir}/t{threads}

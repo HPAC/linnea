@@ -10,11 +10,11 @@
 {spec_exclusive}
 {spec_node}
 
-module purge
+module switch intel/19.0 clang/{clang_version}
 module load DEVELOP
 module load LIBRARIES
 module load intelmkl/{intel_version}
-module load clang/{clang_version}
+module load cmake/{cmake_version}
 
 cd {linnea_results_path}
 mkdir -p {name}/execution/cpp/t{threads}
