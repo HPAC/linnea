@@ -5,6 +5,7 @@
 #{directive} {flag_output} "{linnea_output_path}/logs/time_cpp_t{threads}_{name}{string_array_idx}.txt"
 #{directive} {flag_time} {time_execution}
 #{directive} {flag_memory}{memory}
+#{directive} {flag_threads} {threads}
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 {spec_exclusive}

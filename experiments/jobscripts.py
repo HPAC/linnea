@@ -95,6 +95,7 @@ scheduler_vars = {
         "flag_output":          "-o",
         "flag_time":            "-t",
         "flag_memory":          "--mem=",
+        "flag_threads":         "-n",
         "flag_group":           "-A",
         "flag_model":           "-C",
         "flag_exclusive":       "--exclusive",
