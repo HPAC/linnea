@@ -6,6 +6,7 @@
 #{directive} {flag_time} {time_execution}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_threads} {threads}
+#{directive} {flag_tasks_per_core}{tasks_per_core}
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 {spec_exclusive}

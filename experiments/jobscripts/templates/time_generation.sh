@@ -5,6 +5,7 @@
 #{directive} {flag_output} "{linnea_output_path}/logs/time_gen_{merging_label}_{name}{string_array_idx}.txt"
 #{directive} {flag_time} {time_generation}
 #{directive} {flag_memory}{memory}
+#{directive} {flag_tasks_per_core}{tasks_per_core}
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 {spec_exclusive}

@@ -96,6 +96,7 @@ scheduler_vars = {
         "flag_time":            "-t",
         "flag_memory":          "--mem=",
         "flag_threads":         "-n",
+        "flag_tasks_per_core":  "--ntasks-per-core=",
         "flag_group":           "-A",
         "flag_model":           "-C",
         "flag_exclusive":       "--exclusive",
@@ -140,6 +141,8 @@ def generate_scripts(experiment, number_of_experiments,  num_threads):
 
     time_configuration = {**experiment_configuration['time'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
     generate_configuration = {**experiment_configuration['generate'], **experiment_configuration['path'], **experiment_configuration['version'], **scheduler_vars[scheduler]}
+
+    time_configuration["tasks_per_core"] = "1" # prevents hyperthreading
 
     for threads in num_threads:
         time_configuration_copy = time_configuration.copy()
