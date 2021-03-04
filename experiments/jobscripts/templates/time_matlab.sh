@@ -5,6 +5,7 @@
 #{directive} {flag_output} "{linnea_output_path}/logs/time_matlab_t{threads}_{name}{string_array_idx}.txt"
 #{directive} {flag_time} {time_execution}
 #{directive} {flag_memory}{memory}
+#{directive} {flag_nodes} {nodes}
 #{directive} {flag_threads} {threads}
 #{directive} {flag_tasks_per_core}{tasks_per_core}
 #{directive} {flag_group} {group}
