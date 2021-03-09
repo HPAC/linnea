@@ -27,7 +27,7 @@ echo "Please make sure you have the following packages installed:"
 echo "cmake v3.13.2"
 echo "clang 9.0"
 echo "python 3.9.1"
-echo "Intel MKL 2019"
+echo "Intel MKL 2020"
 
 echo "Linnea environment dir: $LINNEA_INSTALL_DIR"
 echo
@@ -37,14 +37,14 @@ echo
 module switch intel/19.0 clang/9.0 && CLANG_MODULE="YES" || CLANG_MODULE="NO"
 module load DEVELOP
 module load LIBRARIES
-module load intelmkl/2019 && INTEL_MKL_MODULE="YES" || INTEL_MKL_MODULE="NO"
+module load intelmkl/2020 && INTEL_MKL_MODULE="YES" || INTEL_MKL_MODULE="NO"
 module load cmake/3.13.2 && CMAKE_MODULE="YES" || CMAKE_MODULE="NO"
 module load python/3.9.1 && PYTHON_MODULE="YES" || PYTHON_MODULE="NO"
 
 echo "############################################"
 echo "Python 3.9.1:..." $PYTHON_MODULE
 echo "CMake 3.13.2:..." $CMAKE_MODULE
-echo "Intel MKL 2019:....." $INTEL_MKL_MODULE
+echo "Intel MKL 2020:....." $INTEL_MKL_MODULE
 echo "Clang 9.0:.........." $CLANG_MODULE
 echo "############################################"
 echo "If all above modules are loaded you should proceed with the installation."
