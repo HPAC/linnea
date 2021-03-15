@@ -13,8 +13,10 @@
 {spec_exclusive}
 {spec_node}
 
-module switch intel/19.0 clang/{clang_version}
 module load DEVELOP
+module unload intel/19.0
+module load gcc/{gcc_version}
+module load intelmkl/{intel_version}
 
 cd {linnea_results_path}/
 mkdir -p {name}/execution/{output_subdir}/t{threads}

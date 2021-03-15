@@ -25,7 +25,7 @@ function prompt {
 echo "############################################"
 echo "Please make sure you have the following packages installed:"
 echo "cmake v3.13.2"
-echo "clang 9.0"
+echo "gcc 10.0"
 echo "python 3.9.1"
 echo "Intel MKL 2020"
 
@@ -34,9 +34,10 @@ echo
 echo "############################################"
 echo
 
-module switch intel/19.0 clang/9.0 && CLANG_MODULE="YES" || CLANG_MODULE="NO"
 module load DEVELOP
 module load LIBRARIES
+module unload intel/19.0 
+module load gcc/10 && GCC_MODULE="YES" || GCC_MODULE="NO"
 module load intelmkl/2020 && INTEL_MKL_MODULE="YES" || INTEL_MKL_MODULE="NO"
 module load cmake/3.13.2 && CMAKE_MODULE="YES" || CMAKE_MODULE="NO"
 module load python/3.9.1 && PYTHON_MODULE="YES" || PYTHON_MODULE="NO"
@@ -45,7 +46,7 @@ echo "############################################"
 echo "Python 3.9.1:..." $PYTHON_MODULE
 echo "CMake 3.13.2:..." $CMAKE_MODULE
 echo "Intel MKL 2020:....." $INTEL_MKL_MODULE
-echo "Clang 9.0:.........." $CLANG_MODULE
+echo "gcc 10.0:.........." $GCC_MODULE
 echo "############################################"
 echo "If all above modules are loaded you should proceed with the installation."
 prompt

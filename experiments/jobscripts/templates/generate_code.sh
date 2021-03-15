@@ -8,9 +8,10 @@
 #{directive} {flag_group} {group}
 #{directive} {flag_model} {model}
 
-module switch intel/19.0 clang/{clang_version}
 module load DEVELOP
 module load LIBRARIES
+module unload intel/19.0
+module load gcc/{gcc_version}
 module load intelmkl/{intel_version}
 module load cmake/{cmake_version}
 module load python/{python_version}
