@@ -14,6 +14,7 @@
 {spec_node}
 
 module load DEVELOP
+module load LIBRARIES
 module unload intel/19.0
 module load gcc/{gcc_version}
 module load intelmkl/{intel_version}
