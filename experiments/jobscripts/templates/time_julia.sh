@@ -18,6 +18,7 @@ module load LIBRARIES
 module unload intel/19.0
 module load gcc/{gcc_version}
 module load intelmkl/{intel_version}
+module load python/{python_version} # This is necessary here. Why?
 
 cd {linnea_results_path}/
 mkdir -p {name}/execution/{output_subdir}/t{threads}
