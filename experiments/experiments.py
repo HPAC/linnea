@@ -194,6 +194,7 @@ def main():
 
 
     num_threads = [1, 24]
+    repetitions = 20
 
     if args.mode == "time_generation":
 
@@ -244,7 +245,7 @@ def main():
                     else:
                         break
 
-                generate_experiment_code(name, example.eqns, algorithm_name, num_threads, args.k_best, k)
+                generate_experiment_code(name, example.eqns, algorithm_name, num_threads, repetitions, args.k_best, k)
 
     elif args.mode == "jobscripts":
         generate_scripts(args.experiment, len(examples), num_threads)

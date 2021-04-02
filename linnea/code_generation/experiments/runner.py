@@ -16,13 +16,13 @@ algorithm_test = {config.Language.Julia: textwrap.dedent(
                                          """),
                     config.Language.Cpp: ""}
 
-algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"; {1}], Benchmarker.measure(20, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
+algorithm_plot = {config.Language.Julia: """Benchmarker.add_data(plotter, ["{0}"; {1}], Benchmarker.measure({2}, {0}, map(MatrixGenerator.unwrap, matrices)...) );""",
                     config.Language.Cpp: ""}
 
 
 
-def runner_to_file(runner_name, output_name, language, num_threads, algorithms=[]):
-
+def runner_to_file(runner_name, output_name, language, num_threads, repetitions, algorithms=[]):
+    
     if language is config.Language.Julia:
         file_name = "{}_t{}.jl".format(runner_name, num_threads)
         template_name = "runner.jl"
@@ -47,7 +47,7 @@ def runner_to_file(runner_name, output_name, language, num_threads, algorithms=[
     for subdir_name, algorithm_name in algorithms:
         includes.append(incl_format.format(subdir_name, algorithm_name))
         tests.append(test_format.format(algorithm_name))
-        plots.append(plot_format.format(algorithm_name, num_threads))
+        plots.append(plot_format.format(algorithm_name, num_threads, repetitions))
 
 
     runner_template = utils.get_template(template_name, language)
@@ -55,13 +55,14 @@ def runner_to_file(runner_name, output_name, language, num_threads, algorithms=[
     if language == config.Language.Julia:
         runner_file = runner_template.format(
             num_threads = num_threads,
+            repetitions = repetitions,
             includes = "\n".join(includes),
             tests = textwrap.indent("\n".join(tests), "    "),
             experiment_name = output_name,
             measurements = textwrap.indent("\n".join(plots), "    "),
         )
     else:
-        runner_file = runner_template.format(num_threads = num_threads, experiment_name = output_name)
+        runner_file = runner_template.format(num_threads = num_threads, repetitions = repetitions, experiment_name = output_name)
 
     if config.verbosity >= 2:
         print("Generate runner file {}".format(file_path))
@@ -83,10 +84,10 @@ def generate_cmake_script(output_name, num_threads):
     output_file.close()
 
 
-def generate_runner(output_name, algorithms, num_threads):
+def generate_runner(output_name, algorithms, num_threads, repetitions):
 
     for threads in num_threads:
-        runner_to_file("runner", output_name, config.Language.Julia, threads, algorithms=algorithms)
-        runner_to_file("runner", output_name, config.Language.Matlab, threads)
-        runner_to_file("runner", output_name, config.Language.Cpp, threads)
+        runner_to_file("runner", output_name, config.Language.Julia, threads, repetitions, algorithms=algorithms)
+        runner_to_file("runner", output_name, config.Language.Matlab, threads, repetitions)
+        runner_to_file("runner", output_name, config.Language.Cpp, threads, repetitions)
     generate_cmake_script(output_name, num_threads)

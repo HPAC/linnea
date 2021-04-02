@@ -27,8 +27,8 @@ function main()
     @info("Running Benchmarks...")
     plotter = Benchmarker.Plot("julia_results_{experiment_name}", ["algorithm"; "threads"]);
 {measurements}
-    Benchmarker.add_data(plotter, ["naive_julia"; {num_threads}], Benchmarker.measure(20, naive, matrices...) );
-    Benchmarker.add_data(plotter, ["recommended_julia"; {num_threads}], Benchmarker.measure(20, recommended, matrices...) );
+    Benchmarker.add_data(plotter, ["naive_julia"; {num_threads}], Benchmarker.measure({repetitions}, naive, matrices...) );
+    Benchmarker.add_data(plotter, ["recommended_julia"; {num_threads}], Benchmarker.measure({repetitions}, recommended, matrices...) );
     Benchmarker.finish(plotter);
     @info("Benchmarks complete")
 end

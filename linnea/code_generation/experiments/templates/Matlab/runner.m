@@ -13,6 +13,6 @@ recomd_mat = recommended_();
 %fprintf('Naive(0, 0): %f\\n', recomd_mat(1, 1));
 
 benchmarker = Benchmarker();
-benchmarker.benchmark({{'naive_matlab', {num_threads}}}, 20, naive_);
-benchmarker.benchmark({{'recommended_matlab', {num_threads}}}, 20, recommended_);
+benchmarker.benchmark({{'naive_matlab', {num_threads}}}, {repetitions}, naive_);
+benchmarker.benchmark({{'recommended_matlab', {num_threads}}}, {repetitions}, recommended_);
 benchmarker.save('matlab_results_{experiment_name}');

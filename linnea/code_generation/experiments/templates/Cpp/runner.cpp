@@ -42,12 +42,12 @@ int main(int argc, char ** argv)
     //std::cout << "Armadillo naive(0,0): " <<res_naive(0, 0) << std::endl;
 
     std::array<std::string, 2> labels_arma_n{{ {{"naive_armadillo", "{num_threads}"}} }};
-    benchmark.run(file, labels_arma_n, 20, [&]() {{
+    benchmark.run(file, labels_arma_n, {repetitions}, [&]() {{
             call(naive_armadillo{{}}, matrices, Indices{{}});
             }});
 
     std::array<std::string, 2> labels_arma_r{{ {{"recommended_armadillo", "{num_threads}"}} }};
-    benchmark.run(file, labels_arma_r, 20, [&]() {{
+    benchmark.run(file, labels_arma_r, {repetitions}, [&]() {{
             call(recommended_armadillo{{}}, matrices, Indices{{}});
             }});
     }}
@@ -62,12 +62,12 @@ int main(int argc, char ** argv)
     //std::cout << "Eigen naive(0,0): " << res_naive(0, 0) << std::endl;
 
     std::array<std::string, 2> labels_eigen_n{{ {{"naive_eigen", "{num_threads}"}} }};
-    benchmark.run(file, labels_eigen_n, 20, [&]() {{
+    benchmark.run(file, labels_eigen_n, {repetitions}, [&]() {{
             call(naive_eigen{{}}, matrices, Indices{{}});
             }});
 
     std::array<std::string, 2> labels_eigen_r{{ {{"recommended_eigen", "{num_threads}"}} }};
-    benchmark.run(file, labels_eigen_r, 20, [&]() {{
+    benchmark.run(file, labels_eigen_r, {repetitions}, [&]() {{
             call(recommended_eigen{{}}, matrices, Indices{{}});
             }});
     }}
