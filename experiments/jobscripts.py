@@ -56,6 +56,12 @@ def time_k_best_script(replacement):
         print("Writing", file_name)
         output_file.write(template_str.format(runner_name="runner_k_best_t{}".format(replacement["threads"]), output_subdir="k_best", **replacement))
 
+    # TODO we currently don't generate a runner with one repetition for multiple threads
+    file_name = "{}/{}/time_k_best_r1_t{}.sh".format(replacement['linnea_jobscripts_path'], replacement["name"], replacement["threads"])
+    with open(file_name, "wt", encoding='utf-8') as output_file:
+        print("Writing", file_name)
+        output_file.write(template_str.format(runner_name="runner_k_best_r1_t{}".format(replacement["threads"]), output_subdir="k_best", **replacement))
+
 def generate_code_scripts(replacement):
 
     template_path = "jobscripts/templates/generate_code.sh"
