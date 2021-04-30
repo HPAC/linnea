@@ -253,7 +253,10 @@ class DerivationGraphBase(base.GraphBase):
         if graph:
             self.write_graph(output_name, graph_style)
         
+        t_start = time.perf_counter()
         algorithms = list(self.k_best_algorithms(algorithms_limit, algorithm_name, no_duplicates, k_best, pruning_factor))
+        t_end = time.perf_counter()
+        print("Graph search time:", t_end-t_start)
 
         self.print_result("Number of algorithms:", len(algorithms))
 
@@ -280,7 +283,10 @@ class DerivationGraphBase(base.GraphBase):
 
                 if code:
                     file_name = os.path.join(code_path, algorithm_file_name)
+                    t_start = time.perf_counter()
                     cgu.to_file(file_name, algorithm.code_as_function())
+                    t_end = time.perf_counter()
+                    print("Code generation time:", t_end-t_start)
                     if derivation:
                         file_name = os.path.join(code_path, derivation_file_name)
                         cgu.to_file(file_name, algorithm.derivation())
