@@ -121,18 +121,25 @@ There are the following options (those are the names used in Python, the command
 
 ## Publications
 
-A number of publications that discuss different aspects of Linnea can be found [here](http://hpac.rwth-aachen.de/publications/author/Barthels). If you want to cite Linnea, please reference [this paper](http://arxiv.org/abs/1912.12924):
+A number of publications that discuss different aspects of Linnea can be found [here](http://hpac.rwth-aachen.de/publications/author/Barthels). If you want to cite Linnea, please reference [this paper](https://dl.acm.org/doi/10.1145/3446632):
 
 ```
-@article{barthels2019,
-    author      = {Henrik Barthels and Christos Psarras and Paolo Bientinesi},
-    title       = {{L}innea: {A}utomatic {G}eneration of {E}fficient {L}inear {A}lgebra {P}rograms},
-    journal     = {CoRR},
-    volume      = {abs/1912.12924},
-    year        = {2019},
-    url         = {http://arxiv.org/abs/1912.12924},
-    eprinttype  = {arXiv},
-    eprint      = {1912.12924},
+@article{barthels2021,
+    author = {Barthels, Henrik and Psarras, Christos and Bientinesi, Paolo},
+    title = {{L}innea: {A}utomatic {G}eneration of {E}fficient {L}inear {A}lgebra {P}rograms},
+    year = {2021},
+    issue_date = {June 2021},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {47},
+    number = {3},
+    issn = {0098-3500},
+    url = {https://doi.org/10.1145/3446632},
+    doi = {10.1145/3446632},
+    journal = {ACM Trans. Math. Softw.},
+    month = jun,
+    articleno = {22},
+    numpages = {26},
 }
 ```
 
