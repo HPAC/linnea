@@ -1133,10 +1133,8 @@ class Scalar(Symbol):
     def to_tex(self):
         if self.name.startswith("tmp"):
             return "s_{{{}}}".format(self.name[3:])
-        elif len(self.name) > 1:
-            return "\\text{{{}}}".format(self.name)
         else:
-            return self.name
+            return utils.name_to_tex(self.name)
 
 
 class Vector(Symbol):
@@ -1159,10 +1157,8 @@ class Vector(Symbol):
     def to_tex(self):
         if self.name.startswith("tmp"):
             return "v_{{{}}}".format(self.name[3:])
-        elif len(self.name) > 1:
-            return "\\text{{{}}}".format(self.name)
         else:
-            return self.name
+            return utils.name_to_tex(self.name)
 
 
 class Matrix(Symbol):
@@ -1197,10 +1193,8 @@ class Matrix(Symbol):
             return "M_{{{}}}".format(self.name[3:])
         elif self.factorization_labels:
             return "{}_{{{}}}".format(self.name[:1], self.name[1:])
-        elif len(self.name) > 1:
-            return "\\text{{{}}}".format(self.name)
         else:
-            return self.name
+            return utils.name_to_tex(self.name)
 
 ######################
 # constant symbols

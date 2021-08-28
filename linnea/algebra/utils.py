@@ -83,3 +83,36 @@ def scalar_subexpressions(expr):
         scalar_expressions.remove(delete2)
 
     return scalar_expressions
+
+
+def name_to_tex(name):
+    underscore_pos = name.find("_")
+    if underscore_pos == -1:
+        if name[0].isalpha() and name[1:].isdigit():
+            return "{}_{{{}}}".format(name[0], name[1:])
+        elif len(name) > 1:
+            return "\\text{{{}}}".format(name)
+        else:
+            return name
+    else:
+        main_name = name[0:underscore_pos]
+        if len(main_name) > 1:
+            main_name = "\\text{{{}}}".format(main_name)
+
+        subscript = name[underscore_pos+1:]
+        if len(subscript) > 1 and not subscript.isdigit():
+            subscript = "\\text{{{}}}".format(subscript)
+
+        return "{}_{{{}}}".format(main_name, subscript)
+
+
+if __name__ == '__main__':
+    print(name_to_tex("A_B_C"))
+    print(name_to_tex("A_12"))
+    print(name_to_tex("AB_12"))
+    print(name_to_tex("AB_ab"))
+    print(name_to_tex("A_B"))
+    print(name_to_tex("A_ab"))
+    print(name_to_tex("A12"))
+    print(name_to_tex("AB"))
+    print(name_to_tex("A"))
