@@ -1,6 +1,6 @@
 # Linnea
 
-Linnea is an experimental tool for the automatic generation of optimized code for linear algebra problems. It is developed at the [High-Performance and Automatic Computing group](http://hpac.rwth-aachen.de) at RWTH Aachen University. An online demo of Linnea can be found [here](http://linnea.cs.umu.se).
+Linnea is an experimental tool for the automatic generation of optimized code for linear algebra problems. It is developed at the [High-Performance and Automatic Computing group](http://hpac.rwth-aachen.de) at RWTH Aachen University. An online demo of Linnea can be found [here](https://linnea.cs.umu.se).
 
 ## Installation
 
