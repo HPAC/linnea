@@ -763,7 +763,7 @@ trtri = KernelDescription(
     OutputOperand(A, StorageFormat.as_overwritten), # return value
     cf, # cost function
     "",
-    "LinearAlgebra.LAPACK.trtri!($uplo, $diag, $A)",
+    "LAPACK.trtri!($uplo, $diag, $A)",
     "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
@@ -810,8 +810,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-LinearAlgebra.LAPACK.potrf!('L', A)
-LinearAlgebra.LAPACK.potrs!('L', A, B)
+LAPACK.potrf!('L', A)
+LAPACK.potrs!('L', A, B)
 """
 
 posv = KernelDescription(
@@ -823,7 +823,7 @@ posv = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "LinearAlgebra.LAPACK.posv!('L', $A, $B)",
+    "LAPACK.posv!('L', $A, $B)",
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -842,8 +842,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-LinearAlgebra.LAPACK.potrf!('L', A)
-LinearAlgebra.LAPACK.potrs!('L', A, B)
+LAPACK.potrf!('L', A)
+LAPACK.potrs!('L', A, B)
 """
 
 posvr = KernelDescription(
@@ -858,7 +858,7 @@ posvr = KernelDescription(
     textwrap.dedent(
         """\
         $B = $B'
-        LinearAlgebra.LAPACK.posv!('L', $A, $B)
+        LAPACK.posv!('L', $A, $B)
         $B = $B'\
         """
         ),
@@ -881,8 +881,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative. As a preliminary solution, we copy A.
 
-(A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
-LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
+(A, ipiv) = LAPACK.sytrf!('L', A)
+LAPACK.sytrs!('L', A, ipiv, B)
 TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
@@ -899,7 +899,7 @@ sysv = KernelDescription(
         """\
         tmp = Array{Float64}(undef, $M, $M)
         blascopy!($M*$M, $A, 1, tmp, 1)
-        LinearAlgebra.LAPACK.sysv!('L', tmp, $B)\
+        LAPACK.sysv!('L', tmp, $B)\
         """
         ),
     "",
@@ -920,8 +920,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-(A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
-LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
+(A, ipiv) = LAPACK.sytrf!('L', A)
+LAPACK.sytrs!('L', A, ipiv, B)
 TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
@@ -939,7 +939,7 @@ sysvr = KernelDescription(
         $B = transpose($B)
         tmp = Array{Float64}(undef, $M, $M)
         blascopy!($M*$M, $A, 1, tmp, 1)
-        LinearAlgebra.LAPACK.sysv!('L', tmp, $B)
+        LAPACK.sysv!('L', tmp, $B)
         $B = transpose($B)\
         """
         ),
@@ -959,7 +959,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-LinearAlgebra.LAPACK.gesv!($A, $B)
+LAPACK.gesv!($A, $B)
 """
 
 gesv = KernelDescription(
@@ -973,7 +973,7 @@ gesv = KernelDescription(
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "($A, ipiv, info) = LinearAlgebra.LAPACK.getrf!($A)\nLinearAlgebra.LAPACK.getrs!($transA, $A, ipiv, $B)",
+    "($A, ipiv, info) = LAPACK.getrf!($A)\nLAPACK.getrs!($transA, $A, ipiv, $B)",
     "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -991,7 +991,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-LinearAlgebra.LAPACK.gesv!($A, $B)
+LAPACK.gesv!($A, $B)
 """
 
 gesvr = KernelDescription(
@@ -1020,7 +1020,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-LinearAlgebra.LAPACK.gesv!($A, $B)
+LAPACK.gesv!($A, $B)
 """
 
 gesvrt = KernelDescription(
@@ -1054,8 +1054,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-LinearAlgebra.LAPACK.potrf!('L', A)
-LinearAlgebra.LAPACK.potrs!('L', A, B)
+LAPACK.potrf!('L', A)
+LAPACK.potrs!('L', A, B)
 """
 
 posv_vec = KernelDescription(
@@ -1067,7 +1067,7 @@ posv_vec = KernelDescription(
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
     "",
-    "LinearAlgebra.LAPACK.posv!('L', $A, $x)",
+    "LAPACK.posv!('L', $A, $x)",
     "",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1086,8 +1086,8 @@ posv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# LinearAlgebra.LAPACK.potrf!('L', A)
-# LinearAlgebra.LAPACK.potrs!('L', A, B)
+# LAPACK.potrf!('L', A)
+# LAPACK.potrs!('L', A, B)
 # """
 
 # posvr = KernelDescription(
@@ -1102,7 +1102,7 @@ posv_vec = KernelDescription(
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
 #     "",
-#     "$B = $B'\nLinearAlgebra.LAPACK.posv!('L', $A, $B)\n$B = $B'",
+#     "$B = $B'\nLAPACK.posv!('L', $A, $B)\n$B = $B'",
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
@@ -1121,8 +1121,8 @@ cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-(A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
-LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
+(A, ipiv) = LAPACK.sytrf!('L', A)
+LAPACK.sytrs!('L', A, ipiv, B)
 TODO For whatever reason, sytrs is very slow. Investigate.
 """
 
@@ -1139,7 +1139,7 @@ sysv_vec = KernelDescription(
         """\
         tmp = Array{Float64}(undef, $M, $M)
         blascopy!($M*$M, $A, 1, tmp, 1)
-        LinearAlgebra.LAPACK.sysv!('L', tmp, $x)\
+        LAPACK.sysv!('L', tmp, $x)\
         """
         ),
     "",
@@ -1160,8 +1160,8 @@ sysv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# (A, ipiv) = LinearAlgebra.LAPACK.sytrf!('L', A)
-# LinearAlgebra.LAPACK.sytrs!('L', A, ipiv, B)
+# (A, ipiv) = LAPACK.sytrf!('L', A)
+# LAPACK.sytrs!('L', A, ipiv, B)
 # TODO For whatever reason, sytrs is very slow. Investigate.
 # """
 
@@ -1177,7 +1177,7 @@ sysv_vec = KernelDescription(
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
 #     "",
-#     "$B = $B'\nLinearAlgebra.LAPACK.sysv!('L', $A, $B)\n$B = $B'",
+#     "$B = $B'\nLAPACK.sysv!('L', $A, $B)\n$B = $B'",
 #     "",
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
@@ -1194,7 +1194,7 @@ cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
 alternative
-LinearAlgebra.LAPACK.gesv!($A, $B)
+LAPACK.gesv!($A, $B)
 """
 
 gesv_vec = KernelDescription(
@@ -1210,8 +1210,8 @@ gesv_vec = KernelDescription(
     "",
     textwrap.dedent(
         """\
-        ($A, ipiv, info) = LinearAlgebra.LAPACK.getrf!($A)
-        LinearAlgebra.LAPACK.getrs!($transA, $A, ipiv, $x)\
+        ($A, ipiv, info) = LAPACK.getrf!($A)
+        LAPACK.getrs!($transA, $A, ipiv, $x)\
         """
         ),
     "",
@@ -1231,7 +1231,7 @@ gesv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# LinearAlgebra.LAPACK.gesv!($A, $B)
+# LAPACK.gesv!($A, $B)
 # """
 
 # gesvr = KernelDescription(
@@ -1264,7 +1264,7 @@ gesv_vec = KernelDescription(
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
 # alternative
-# LinearAlgebra.LAPACK.gesv!($A, $B)
+# LAPACK.gesv!($A, $B)
 # """
 
 # gesvrt = KernelDescription(
