@@ -375,7 +375,7 @@ symv = KernelDescription(
     "symv!($uplo, $alpha, $A, $x, $beta, $y)",
     "",
     [SizeArgument("M", A, "rows"),
-     StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"]),], # Argument objects
+     StorageFormatArgument("uplo", A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"}),], # Argument objects
     options={KernelOption.transpose}
     )
 
@@ -529,7 +529,7 @@ symm = KernelDescription(
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
-     StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+     StorageFormatArgument("uplo", A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})], # Argument objects
     options={KernelOption.transpose}
     )
 
@@ -564,7 +564,7 @@ syrk = KernelDescription(
     "",
     [SizeArgument("N", Op1(A), "rows"),
      SizeArgument("K", Op1(A), "columns"),
-     StorageFormatArgument("uplo", C, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+     StorageFormatArgument("uplo", C, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})], # Argument objects
     )
 
 
@@ -598,7 +598,7 @@ syr2k = KernelDescription(
     "",
     [SizeArgument("N", Op1(A), "rows"),
      SizeArgument("K", Op1(A), "columns"),
-     StorageFormatArgument("uplo", C, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+     StorageFormatArgument("uplo", C, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})], # Argument objects
     )
 
 
@@ -794,7 +794,7 @@ syinv = KernelDescription(
         ),
     "",
     [SizeArgument("N", A, "rows"),
-     StorageFormatArgument("uplo", A, StorageFormat.symmetric_lower_triangular, ["L", "U"])], # Argument objects
+     StorageFormatArgument("uplo", A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})], # Argument objects
     options={KernelOption.transpose}
     )
 

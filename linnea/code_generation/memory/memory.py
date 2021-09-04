@@ -202,19 +202,25 @@ class Memory():
             operand_mapping (dict):
                 Maps argument names (str) to memory location names (str). To be
                 used to replace argument names in the signature.
+            actual_storage_formats (dict):
+                Maps operands names to the storage formats that are actually
+                used for by the kernels, after storage format conversions. To be
+                used to replace storage format arguments in the signature.
         """
 
         # print(input, output)
 
         memory_operations_before = []
         memory_operations_after = []
+        actual_storage_formats = dict()
         # print(self.content_string_with_format())
         for operand, storage_format in kernel_io.input_operands:
+            actual_storage_formats[operand.name] = storage_format
             if not isinstance(operand, Constant):
                 """
                 Is it ok that storage conversion happens while the references are
                 updated? At the moment, storage conversion does not touch the
-                references. Should if ever to that, one should happen after the
+                references. Should we ever do that, one should happen after the
                 other.
 
                 At the moment, this more or less works "by accident" if one kernel
@@ -231,7 +237,14 @@ class Memory():
                     # print("storage format conversion necessary")
                     # print(storage_format, self.storage_format[operand.name])
                     memory_operations_before.extend(self.storage_conversion(operand, storage_format))
-
+                    actual_storage_formats[operand.name] = self.storage_format[operand.name]
+                elif storage_format == StorageFormat.symmetric_triangular:
+                    # If the required storage format is symmetric_triangular, 
+                    # and the input storage format is compatible, we still have
+                    # to decide whether to use symmetric_lower_triangular or 
+                    # symmetric_upper_triangular to set all arguments. This
+                    # decision is arbitrary.
+                    actual_storage_formats[operand.name] = StorageFormat.symmetric_lower_triangular
         """
         Create mapping of operand names to memory location names. This has to be
         done after the storage format conversion operations because they change
@@ -266,8 +279,10 @@ class Memory():
                     # we need a list of those properties, and a replacement for
                     # each. Then the question is when to replace between
                     # matching and code gen.
+                    # TODO Is this a good place?
                     if isinstance(input_operand, IdentityMatrix) and storage_format is StorageFormat.symmetric_triangular:
-                        storage_format = StorageFormat.full
+                        storage_format = StorageFormat.symmetric_lower_triangular
+                        actual_storage_formats[operand.name] = storage_format
 
                     if _output:
                         # If the constant is passed as an argument that is
@@ -294,7 +309,7 @@ class Memory():
                             if isinstance(input_operand, ConstantScalar):
                                 operand_mapping[variable.variable_name] = str(input_operand.value)
                             elif isinstance(input_operand, IdentityMatrix):
-                                if storage_format == StorageFormat.full:
+                                if storage_format <= StorageFormat.full:
                                     operand_mapping[variable.variable_name] = "Array{{{0}}}(I, {1}, {2})".format(config.data_type_string, *input_operand.size)
                                 elif storage_format == StorageFormat.diagonal_vector:
                                     operand_mapping[variable.variable_name] = "ones({0}, {1})".format(config.data_type_string, min(input_operand.size))
@@ -331,6 +346,7 @@ class Memory():
                         self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
                     else:
                         self.storage_format[operand.name] = storage_format
+                    actual_storage_formats[operand.name] = self.storage_format[operand.name]
 
                     # code generation
                     memory_operations_before.append(AllocateMemory(copy.deepcopy(new_location)))
@@ -354,6 +370,7 @@ class Memory():
                             self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
                     else:
                         self.storage_format[operand.name] = storage_format
+                    actual_storage_formats[operand.name] = self.storage_format[operand.name]
 
                 # code generation: none
 
@@ -402,6 +419,7 @@ class Memory():
                             self.storage_format[operand.name] = StorageFormat.symmetric_lower_triangular
                     else:
                         self.storage_format[operand.name] = storage_format
+                    actual_storage_formats[operand.name] = self.storage_format[operand.name]
 
                 # code generation
                 memory_operations_before.append(AllocateMemory(new_location_copy))
@@ -433,7 +451,7 @@ class Memory():
                     operand_mapping[variable.variable_name] = self.lookup[output_operand.name].name
         # print(operand_mapping)
 
-        return memory_operations_before, memory_operations_after, operand_mapping
+        return memory_operations_before, memory_operations_after, operand_mapping, actual_storage_formats
 
 
     def _remove_operand(self, operand):

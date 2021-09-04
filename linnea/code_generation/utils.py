@@ -5,6 +5,7 @@ from ..algebra.expression import Symbol, Times, \
 from ..algebra.equations import Equations
 from ..algebra.properties import Property
 from ..utils import PropertyConstraint, is_inverse
+from .. import kernels
 
 from .. import config
 
@@ -254,6 +255,9 @@ class Algorithm():
 
         late_arguments = []
         for argument in arguments:
+            if isinstance(argument, kernels.utils.general.StorageFormatArgument):
+                late_arguments.append(argument)
+                continue
             try:
                 pre_code, arg_replacement = argument.get_replacement(matched_kernel.operand_dict, memory)
             except memory_module.OperandNotInMemory:
@@ -271,8 +275,7 @@ class Algorithm():
                 argument_mapping[argument.name] = arg_replacement   
 
         # print(matched_kernel.operation)
-        mem_ops_before, mem_ops_after, operand_mapping = memory.add_operation(matched_kernel.kernel_io, self.liveness, line_number)
-        # print(operand_mapping)
+        mem_ops_before, mem_ops_after, operand_mapping, actual_storage_formats = memory.add_operation(matched_kernel.kernel_io, self.liveness, line_number)
 
         if mem_ops_before:
             mem_code_before = "".join([mem_op.code() for mem_op in mem_ops_before])
@@ -280,7 +283,7 @@ class Algorithm():
 
         # print(late_arguments)
         for argument in late_arguments:
-            pre_code, arg_replacement = argument.get_replacement(matched_kernel.operand_dict, memory)
+            pre_code, arg_replacement = argument.get_replacement(matched_kernel.operand_dict, memory, actual_storage_formats)
             if pre_code:
                 argument_pre_code.append(pre_code)
             argument_mapping[argument.name] = arg_replacement 

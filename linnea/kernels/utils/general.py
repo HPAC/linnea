@@ -100,9 +100,11 @@ class Argument():
         self.operand = operand
 
     def get_value(self, match_dict, memory):
+        # TODO it looks like SizeArgument are the only ones that actually need
+        # this funtion.
         raise NotImplementedError()
 
-    def get_replacement(self, match_dict, memory):
+    def get_replacement(self, match_dict, memory, storage_formats):
         """
 
         Returns:
@@ -133,7 +135,7 @@ class SizeArgument(Argument):
             raise ValueError("{} is not a valid dimension.".format(self.dimension))
         # return operator.attrgetter(self.dimension)(match_dict[self.operand.name])
 
-    def get_replacement(self, match_dict, memory=None):
+    def get_replacement(self, match_dict, memory=None, storage_formats=None):
         if config.c:
             value = self.get_value(match_dict)
             if self.as_value:
@@ -170,7 +172,7 @@ class StrideArgument(Argument):
         else:
             raise ValueError("{} is not a valid dimension.".format(self.dimension))
 
-    def get_replacement(self, match_dict, memory):
+    def get_replacement(self, match_dict, memory, storage_formats=None):
         if config.c:
             value = self.get_value(match_dict, memory)
             if self.as_value:
@@ -196,7 +198,7 @@ class PropertyArgument(Argument):
     def get_value(self, match_dict, memory=None):
         return self.property
 
-    def get_replacement(self, match_dict, memory=None):
+    def get_replacement(self, match_dict, memory=None, storage_formats=None):
         has_property = match_dict[self.operand.variable_name].has_property(self.property)
         replacement = None
         if has_property:
@@ -214,36 +216,19 @@ class PropertyArgument(Argument):
         return "".join(["PropertyArgument(", self.name, ", ", repr(self.operand), ", ", repr(self.property), ", ", repr(self.values), ")"])
 
 class StorageFormatArgument(Argument):
-    """docstring for StorageFormatArgument"""
-    def __init__(self, name, operand, storage_format, values):
+    def __init__(self, name, operand, storage_formats):
         super().__init__(name, operand)
-        self.storage_format = storage_format
-        self.values = values
+        self.storage_formats = storage_formats
 
-    def get_value(self, match_dict, memory):
-        return self.storage_format
-
-    def get_replacement(self, match_dict, memory):
+    def get_replacement(self, match_dict, memory, storage_formats):
         replacement = None
         matched_operand_name = match_dict[self.operand.variable_name].name
-        try:
-            storage_format = memory.storage_format[matched_operand_name]
-        except KeyError:
-            raise memory_module.OperandNotInMemory()
 
-        # The problem here is the following: At the moment, this function will
-        # be called before storage format conversion will be generated. As a
-        # result, storage_format might have a value that does not make sense for
-        # symmetric matrices. To fix this, one could make this a
-        # "late argument". Right now, this "fix" works because
-        # symmetric_upper_triangular is (almost?) never used.
-        if storage_format is sf.StorageFormat.symmetric_upper_triangular:
-        # if not self.storage_format <= storage_format:
-            replacement = self.values[1]
-        else: #elif self.storage_format <= storage_format:
-            replacement = self.values[0]
-        # else:
-        #     raise sf.IncompatibleStorageFormats()
+        storage_format = storage_formats[matched_operand_name]
+        try:
+            replacement = self.storage_formats[storage_format]
+        except KeyError:
+            raise sf.IncompatibleStorageFormats("Expected one of {}, got {}.".format([format.name for format in self.storage_formats.keys()] , storage_format))
 
         if config.c:
             return None, "".join(["\"", replacement, "\""])
@@ -253,7 +238,7 @@ class StorageFormatArgument(Argument):
             raise config.LanguageOptionNotImplemented()
 
     def __repr__(self):
-        return "".join(["StorageFormatArgument(", self.name, ", ", repr(self.operand), ", ", repr(self.storage_format), ", ", repr(self.values), ")"])
+        return "".join(["StorageFormatArgument(", self.name, ", ", repr(self.operand), ", ", repr(self.storage_formats), ")"])
 
 class ConstantArgument(Argument):
     """docstring for ConstantArgument"""

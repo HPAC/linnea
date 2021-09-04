@@ -162,7 +162,7 @@ eigendecomposition = FactorizationKernel(
     CodeTemplate("$_W, $_A = LAPACK.syev!('V', $uplo, $_A)"),
     None,
     [SizeArgument("N", _A, "rows"),
-     StorageFormatArgument("uplo", _A, StorageFormat.symmetric_lower_triangular, ["L", "U"]),]
+     StorageFormatArgument("uplo", _A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})]
     )
 
 
