@@ -7,12 +7,12 @@ from .. import special_properties
 from .utils import DS_step, generate_representations, find_operands_to_factor, \
                    find_explicit_symbol_inverse
 
-from .base import derivation
+from .base import equations
 
 import itertools
 import functools
 
-class DerivationGraph(derivation.DerivationGraphBase):
+class DerivationGraph(equations.DerivationGraphBase):
 
     def derivation(self, time_limit=60, merging=True, dead_ends=True, pruning_factor=1.0):
         

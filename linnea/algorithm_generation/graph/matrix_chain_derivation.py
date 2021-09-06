@@ -10,12 +10,12 @@ from ...import config
 
 from .. import reductions
 
-from .base import derivation
+from .base import equations
 
 import math
 
 
-class DerivationGraph(derivation.DerivationGraphBase):
+class DerivationGraph(equations.DerivationGraphBase):
 
     def derivation(self):
 
