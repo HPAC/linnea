@@ -366,7 +366,7 @@ class EquationsGraph(base.Graph):
 
         return cgu.Algorithm(algorithm_name, self.input, current_node.equations, kernels_and_equations, cost)
 
-class DerivationGraphNode(base.GraphNodeBase):
+class DerivationGraphNode(base.GraphNode):
 
     _counter = 0
 

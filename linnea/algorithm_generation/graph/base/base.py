@@ -291,7 +291,7 @@ class PathDoesNotExist(Exception):
     pass
 
 
-class GraphNodeBase():
+class GraphNode():
 
     def __init__(self, factored_operands=None, previous_DS_step=None):
 
@@ -566,7 +566,7 @@ class GraphNodeBase():
         it is sufficiently fast for practical purposes.
 
         Args:
-            self (GraphNodeBase): This is v in the paper.
+            self (GraphNode): This is v in the paper.
             k (int): This is k in the paper.
 
         Returns:

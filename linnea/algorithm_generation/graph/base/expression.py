@@ -24,7 +24,7 @@ class ExpressionGraphBase(base.Graph):
         return new_nodes
 
 
-class ExpressionGraphNode(base.GraphNodeBase):
+class ExpressionGraphNode(base.GraphNode):
 
     _counter = 0
 
