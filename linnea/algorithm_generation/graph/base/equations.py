@@ -29,7 +29,7 @@ class EquationsGraph(base.Graph):
     def __init__(self, input):
         super().__init__()
         self.input = input
-        self.root = DerivationGraphNode(input)
+        self.root = EquationsGraphNode(input)
         self.nodes = [self.root]
 
 
@@ -209,7 +209,7 @@ class EquationsGraph(base.Graph):
 
 
     def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_DS_step=None):
-        new_node = DerivationGraphNode(equations, factored_operands, previous_DS_step)
+        new_node = EquationsGraphNode(equations, factored_operands, previous_DS_step)
         predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
         self.nodes.append(new_node)
         return new_node
@@ -366,7 +366,7 @@ class EquationsGraph(base.Graph):
 
         return cgu.Algorithm(algorithm_name, self.input, current_node.equations, kernels_and_equations, cost)
 
-class DerivationGraphNode(base.GraphNode):
+class EquationsGraphNode(base.GraphNode):
 
     _counter = 0
 
@@ -374,9 +374,9 @@ class DerivationGraphNode(base.GraphNode):
         super().__init__(factored_operands, previous_DS_step)
 
         # IDs for dot output
-        self.id = DerivationGraphNode._counter
+        self.id = EquationsGraphNode._counter
         self.name = "".join(["node", str(self.id)])
-        DerivationGraphNode._counter +=1
+        EquationsGraphNode._counter +=1
         self.equations = equations
         self.generator = None
         
