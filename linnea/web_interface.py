@@ -1,6 +1,6 @@
 from .frontend.utils import parse_input
 from .frontend.export import export_expression
-from .algorithm_generation.graph.derivation import DerivationGraph
+from .algorithm_generation.graph.search_graph import DerivationGraph
 from . import utils
 
 from linnea.algebra.validity import ExpressionException, InvalidExpression, \

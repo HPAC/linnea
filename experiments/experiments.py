@@ -18,7 +18,7 @@ linnea.config.init()
 from linnea.config import Language
 import linnea.examples.examples
 import linnea.examples.application as application
-from linnea.algorithm_generation.graph.derivation import DerivationGraph
+from linnea.algorithm_generation.graph.search_graph import DerivationGraph
 from linnea.code_generation.experiments.utils import generate_experiment_code
 from linnea.examples.random_expressions import generate_equation
 
