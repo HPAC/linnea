@@ -8,7 +8,7 @@ import os
 import collections
 
 
-class GraphBase():
+class Graph():
 
     def __init__(self):
         super().__init__()

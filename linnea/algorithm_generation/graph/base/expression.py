@@ -2,7 +2,7 @@ from . import base
 
 from ....algebra.expression import Symbol
 
-class ExpressionGraphBase(base.GraphBase):
+class ExpressionGraphBase(base.Graph):
     """
 
     Graph for expressions.

@@ -20,7 +20,7 @@ import os.path
 import math
 import time
 
-class DerivationGraphBase(base.GraphBase):
+class DerivationGraphBase(base.Graph):
     """
 
     Graph for equations.
