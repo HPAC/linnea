@@ -15,7 +15,7 @@ from .base import equations
 import math
 
 
-class DerivationGraph(equations.DerivationGraphBase):
+class DerivationGraph(equations.EquationsGraph):
 
     def derivation(self):
 
