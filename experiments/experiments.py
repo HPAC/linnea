@@ -18,7 +18,7 @@ linnea.config.init()
 from linnea.config import Language
 import linnea.examples.examples
 import linnea.examples.application as application
-from linnea.algorithm_generation.graph.search_graph import DerivationGraph
+from linnea.algorithm_generation.graph.search_graph import SearchGraph
 from linnea.code_generation.experiments.utils import generate_experiment_code
 from linnea.examples.random_expressions import generate_equation
 
@@ -31,7 +31,7 @@ def measure(experiment, example, name, merging):
         # calls initialization that have to be done before each repetition
         example.init()
 
-    graph = DerivationGraph(example.eqns)
+    graph = SearchGraph(example.eqns)
     trace = graph.derivation(
                         time_limit=30*60,
                         merging=merging,
@@ -92,7 +92,7 @@ def generate(experiment, example, name, k_best=False):
         intensity_dir = "intensity"
         subdir_name_experiments = "experiments"
 
-    graph = DerivationGraph(example.eqns)
+    graph = SearchGraph(example.eqns)
     trace = graph.derivation(
                         time_limit=30*60,
                         merging=True,

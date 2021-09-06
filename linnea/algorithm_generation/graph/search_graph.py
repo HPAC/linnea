@@ -12,7 +12,7 @@ from .base import equations
 import itertools
 import functools
 
-class DerivationGraph(equations.EquationsGraph):
+class SearchGraph(equations.EquationsGraph):
 
     def derivation(self, time_limit=60, merging=True, dead_ends=True, pruning_factor=1.0):
         

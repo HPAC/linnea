@@ -99,9 +99,9 @@ def main():
         config.set_output_name(example_name)
         equations = example.eqns
 
-    from .algorithm_generation.graph.derivation import DerivationGraph  
+    from .algorithm_generation.graph.derivation import SearchGraph  
 
-    graph = DerivationGraph(equations)
+    graph = SearchGraph(equations)
     trace = graph.derivation(time_limit=config.time_limit,
                              merging=config.merging_branches,
                              dead_ends=config.dead_ends,

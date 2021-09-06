@@ -1,6 +1,6 @@
 from .frontend.utils import parse_input
 from .frontend.export import export_expression
-from .algorithm_generation.graph.search_graph import DerivationGraph
+from .algorithm_generation.graph.search_graph import SearchGraph
 from . import utils
 
 from linnea.algebra.validity import ExpressionException, InvalidExpression, \
@@ -88,7 +88,7 @@ def run_linnea(input, time_limit=10, number_of_algorithms=1):
         raise SyntaxError(syntax_error_msg(input))
     
     try:
-        graph = DerivationGraph(equations)
+        graph = SearchGraph(equations)
         graph.derivation(time_limit=time_limit, merging=True, pruning_factor=1.)
         output = [(algorithm.code_as_function(), algorithm.derivation_website())  for algorithm in graph.k_best_algorithms(number_of_algorithms)]
     except ConflictingProperties as e:

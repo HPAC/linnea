@@ -6,14 +6,14 @@ if __name__ == "__main__":
     linnea.config.set_output_code_path(".")
     linnea.config.init()
 
-    from linnea.algorithm_generation.graph.search_graph import DerivationGraph
+    from linnea.algorithm_generation.graph.search_graph import SearchGraph
 
     from input1 import equations
 
     # import linnea.examples.examples
     # equations = linnea.examples.examples.Example001().eqns
 
-    graph = DerivationGraph(equations)
+    graph = SearchGraph(equations)
     graph.derivation(time_limit=60,
                      merging=True,
                      dead_ends=True,
