@@ -10,7 +10,7 @@ from ..algebra.properties import Property
 
 from ..algebra.equations import Equations
 
-from .. import derivation
+from .. import algorithm_generation
 
 
 #######################

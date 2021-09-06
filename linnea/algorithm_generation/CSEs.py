@@ -732,9 +732,9 @@ if __name__ == "__main__":
 
     linnea.config.init()
 
-    from linnea.derivation.graph.constructive import DerivationGraph
-    # from linnea.derivation.graph.exhaustive import DerivationGraph
-    # from linnea.derivation.graph.matrix_chain_derivation import DerivationGraph
+    from linnea.algorithm_generation.graph.constructive import DerivationGraph
+    # from linnea.algorithm_generation.graph.exhaustive import DerivationGraph
+    # from linnea.algorithm_generation.graph.matrix_chain_derivation import DerivationGraph
 
     import linnea.examples.examples
 

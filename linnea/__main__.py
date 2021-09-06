@@ -99,7 +99,7 @@ def main():
         config.set_output_name(example_name)
         equations = example.eqns
 
-    from .derivation.graph.derivation import DerivationGraph  
+    from .algorithm_generation.graph.derivation import DerivationGraph  
 
     graph = DerivationGraph(equations)
     trace = graph.derivation(time_limit=config.time_limit,

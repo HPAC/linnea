@@ -198,7 +198,7 @@ def init():
 
 def clear_all():
     from linnea import temporaries
-    from linnea.derivation import partitioning
+    from linnea.algorithm_generation import partitioning
     from linnea.kernels.julia import collections
     temporaries.clear()
     partitioning.clear()

@@ -6,7 +6,7 @@ if __name__ == "__main__":
     linnea.config.set_output_code_path(".")
     linnea.config.init()
 
-    from linnea.derivation.graph.derivation import DerivationGraph
+    from linnea.algorithm_generation.graph.derivation import DerivationGraph
 
     from input1 import equations
 

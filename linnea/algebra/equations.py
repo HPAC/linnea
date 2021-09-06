@@ -1,5 +1,5 @@
 from .. import temporaries
-from ..derivation.partitioning import _propagate_partitioning, apply_partitioning
+from ..algorithm_generation.partitioning import _propagate_partitioning, apply_partitioning
 
 from . import expression as ae
 from . import transformations as at

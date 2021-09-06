@@ -8,9 +8,7 @@ from ..algebra.properties import Property
 
 from ..algebra.equations import Equations
 
-from .. import derivation
-
-from ..derivation import special_properties
+from ..algorithm_generation import special_properties
 
 
 class Example01():
