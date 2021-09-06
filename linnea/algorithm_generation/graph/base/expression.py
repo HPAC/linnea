@@ -9,9 +9,7 @@ class ExpressionGraphBase(base.Graph):
     """
 
     def __init__(self, root_expr):
-        super().__init__()
-        self.root = ExpressionGraphNode(root_expr)
-        self.nodes = [self.root]
+        super().__init__(ExpressionGraphNode(root_expr))
 
 
     def create_nodes(self, predecessor, *description):

@@ -27,10 +27,8 @@ class EquationsGraph(base.Graph):
     """
 
     def __init__(self, input):
-        super().__init__()
+        super().__init__(EquationsGraphNode(input))
         self.input = input
-        self.root = EquationsGraphNode(input)
-        self.nodes = [self.root]
 
 
     def best_first_search(self, time_limit=60, merging=True, dead_ends=True, pruning_factor=1.0):

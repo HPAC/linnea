@@ -10,8 +10,10 @@ import collections
 
 class Graph():
 
-    def __init__(self):
+    def __init__(self, root):
         super().__init__()
+        self.root = root
+        self.nodes = [root]
         self.k_best_state = 1
 
     def print(self, str):
