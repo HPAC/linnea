@@ -10,8 +10,7 @@ from ... import factorizations
 from ... import kernels
 
 from ..utils import generate_representations, find_operands_to_factor, \
-                    GenerationStep, is_dead_end, PriorityStack, process_next_simple, \
-                    OperationType, is_explicit_inversion
+                    GenerationStep, is_dead_end, PriorityStack
 
 from . import base
 
@@ -130,12 +129,12 @@ class EquationsGraph(base.Graph):
 
 
     def GS_kernels_constructive(self, node, equations):
-        for new_equations, edge_label in self.TR_kernels_constructive(equations):
+        for new_equations, edge_label in kernels.TR_kernels_constructive(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 
     def GS_kernels(self, node, equations):
-        for new_equations, edge_label in self.TR_kernels(equations):
+        for new_equations, edge_label in kernels.TR_kernels(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 
@@ -168,42 +167,6 @@ class EquationsGraph(base.Graph):
 
             for new_equations, edge_label in factorizations.apply_factorizations(equations, operands_to_factor, factorization_dict):
                 yield self.create_node(node, new_equations, edge_label, equations, factored_operands=operands_to_factor, previous_generation_step=GenerationStep.factorizations)
-
-
-    def TR_kernels_constructive(self, equations):
-        equation, eqn_idx = equations.process_next()
-        if not equation:
-            return
-        pos, op_type = process_next_simple(equation)
-
-        if op_type == OperationType.times:
-            yield from kernels.apply_matrix_chain_algorithm(equations, eqn_idx, pos, is_explicit_inversion(equation[pos]))
-        elif op_type == OperationType.plus:
-            yield from kernels.apply_sum_algorithm(equations, eqn_idx, pos)
-        elif op_type == OperationType.unary:
-            yield from kernels.apply_unary_kernels(equations, eqn_idx, pos)
-
-
-    def TR_kernels(self, equations):
-        equation, eqn_idx = equations.process_next()
-        if not equation:
-            return
-
-        pos, op_type = process_next_simple(equation)
-
-        if op_type == OperationType.unary:
-            # There is no need to do anything in this case here because
-            # TR_kernels_constructive does it already.
-            return
-        else:
-            # yield_from can't be used in this case, because we need to know if a kernel was yielded
-            kernel_yielded = False
-            for kernel in kernels.apply_kernels(equations, eqn_idx, (1,)):
-                kernel_yielded = True
-                yield kernel
-            if not kernel_yielded:
-                # only use unary kernels if nothing else can be done
-                yield from kernels.apply_unary_kernels(equations, eqn_idx, (1,))
 
 
     def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_generation_step=None):

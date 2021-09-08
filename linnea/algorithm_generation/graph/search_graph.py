@@ -4,8 +4,7 @@ from ...utils import is_inverse, roundrobin
 
 from .. import special_properties
 
-from .utils import GenerationStep, generate_representations, find_operands_to_factor, \
-                   find_explicit_symbol_inverse
+from .utils import GenerationStep, generate_representations, find_operands_to_factor
 
 from .base import equations
 
