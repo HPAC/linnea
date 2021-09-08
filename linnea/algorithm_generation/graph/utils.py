@@ -355,7 +355,7 @@ def inverse_type(expr):
                     #print(" ".join(["compound, factor because of:", str(tmp_expr)]) )
                     return (ExpressionType.compound_inverse, op_type)
                 else:
-                    # if there are none, use reductions
+                    # if there are none, use other kernels
                     continue
                    
         # When we end up here, we know that there are no operands to factor in
@@ -366,7 +366,7 @@ def inverse_type(expr):
 def identify_inverses_eqns(equations):
     """Identifies an innermost inverse in equations."""
     use_factorizations = False
-    use_reductions = False
+    use_kernels = False
 
     for eqn_idx, equation in enumerate(equations):
         # always starting at right-hand side
@@ -377,14 +377,14 @@ def identify_inverses_eqns(equations):
                 continue
             elif type == ExpressionType.simple_inverse:
                 use_factorizations = True
-                return (eqn_idx, inv_pos, use_factorizations, use_reductions)
+                return (eqn_idx, inv_pos, use_factorizations, use_kernels)
             elif type == ExpressionType.compound_inverse_no_factor:
-                use_reductions = True
-                return (eqn_idx, inv_pos, use_factorizations, use_reductions)
+                use_kernels = True
+                return (eqn_idx, inv_pos, use_factorizations, use_kernels)
             elif type == ExpressionType.compound_inverse:
                 use_factorizations = True
-                use_reductions = True
-                return (eqn_idx, inv_pos, use_factorizations, use_reductions)
+                use_kernels = True
+                return (eqn_idx, inv_pos, use_factorizations, use_kernels)
 
     return (None, None, False, False)
 

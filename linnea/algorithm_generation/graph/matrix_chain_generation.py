@@ -8,7 +8,7 @@ from ...algebra import expression as ae
 
 from ...import config
 
-from .. import reductions
+from .. import kernels
 
 from .base import equations
 
@@ -38,6 +38,6 @@ class MatrixChainGraph(equations.EquationsGraph):
 
     def TR_matrix_chain(self, equations):
         if isinstance(equations[0].rhs, ae.Times):
-            yield from reductions.apply_matrix_chain_algorithm(equations, 0, (1,))
+            yield from kernels.apply_matrix_chain_algorithm(equations, 0, (1,))
         else:
-            yield from reductions.apply_unary_kernels(equations, 0, (1,))
+            yield from kernels.apply_unary_kernels(equations, 0, (1,))

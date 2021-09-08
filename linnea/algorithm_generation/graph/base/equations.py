@@ -7,7 +7,7 @@ from .... import config
 from ... import tricks
 from ... import CSEs
 from ... import factorizations
-from ... import reductions
+from ... import kernels
 
 from ..utils import generate_representations, find_operands_to_factor, \
                     GenerationStep, is_dead_end, PriorityStack, process_next_simple, \
@@ -177,11 +177,11 @@ class EquationsGraph(base.Graph):
         pos, op_type = process_next_simple(equation)
 
         if op_type == OperationType.times:
-            yield from reductions.apply_matrix_chain_algorithm(equations, eqn_idx, pos, is_explicit_inversion(equation[pos]))
+            yield from kernels.apply_matrix_chain_algorithm(equations, eqn_idx, pos, is_explicit_inversion(equation[pos]))
         elif op_type == OperationType.plus:
-            yield from reductions.apply_sum_algorithm(equations, eqn_idx, pos)
+            yield from kernels.apply_sum_algorithm(equations, eqn_idx, pos)
         elif op_type == OperationType.unary:
-            yield from reductions.apply_unary_kernels(equations, eqn_idx, pos)
+            yield from kernels.apply_unary_kernels(equations, eqn_idx, pos)
 
 
     def TR_kernels(self, equations):
@@ -196,14 +196,14 @@ class EquationsGraph(base.Graph):
             # TR_kernels_constructive does it already.
             return
         else:
-            # yield_from can't be used in this case, because we need to know if a reduction was yielded
-            reduction_yielded = False
-            for reduction in reductions.apply_reductions(equations, eqn_idx, (1,)):
-                reduction_yielded = True
-                yield reduction
-            if not reduction_yielded:
+            # yield_from can't be used in this case, because we need to know if a kernel was yielded
+            kernel_yielded = False
+            for kernel in kernels.apply_kernels(equations, eqn_idx, (1,)):
+                kernel_yielded = True
+                yield kernel
+            if not kernel_yielded:
                 # only use unary kernels if nothing else can be done
-                yield from reductions.apply_unary_kernels(equations, eqn_idx, (1,))
+                yield from kernels.apply_unary_kernels(equations, eqn_idx, (1,))
 
 
     def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_generation_step=None):

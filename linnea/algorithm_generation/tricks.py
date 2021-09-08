@@ -12,7 +12,7 @@ from .. import temporaries
 
 from ..utils import is_inverse
 
-from .reductions import decompose_sum
+from .kernels import decompose_sum
 
 import matchpy
 import copy

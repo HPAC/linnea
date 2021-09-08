@@ -20,7 +20,7 @@ collections_module = config.import_collections()
 class MatrixSumNotComputable(Exception):
     pass
 
-def apply_reductions(equations, eqn_idx, initial_pos):
+def apply_kernels(equations, eqn_idx, initial_pos):
 
     initial_node = equations[eqn_idx][initial_pos]
 
