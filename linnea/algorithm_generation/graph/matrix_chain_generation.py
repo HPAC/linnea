@@ -28,10 +28,10 @@ class MatrixChainGraph(equations.EquationsGraph):
 
 
     def successor_generator(self, node):
-        yield from self.DFS_matrix_chain(node, node.equations)
+        yield from self.GS_matrix_chain(node, node.equations)
 
 
-    def DFS_matrix_chain(self, node, equations):
+    def GS_matrix_chain(self, node, equations):
         for new_equations, edge_label in self.TR_matrix_chain(equations):
             yield self.create_node(node, new_equations, edge_label, equations)
 

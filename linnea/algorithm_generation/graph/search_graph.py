@@ -62,11 +62,11 @@ class SearchGraph(equations.EquationsGraph):
         gen_var_single1, gen_var_single2, gen_var_single3 = itertools.tee(generate_representations(node.equations, eqn_idx), 3)
         gen_var1, gen_var2 = itertools.tee(generate_representations(node.equations), 2)
 
-        kernels_constructive = map(functools.partial(self.DFS_kernels_constructive, node), gen_var_single1)
-        kernels = map(functools.partial(self.DFS_kernels, node), gen_var_single2)
-        CSE_replacement = map(functools.partial(self.DFS_CSE_replacement, node), gen_var1)
-        tricks = map(functools.partial(self.DFS_tricks, node), gen_var_single3)
-        factorizations = map(functools.partial(self.DFS_factorizations, node), gen_var2)
+        kernels_constructive = map(functools.partial(self.GS_kernels_constructive, node), gen_var_single1)
+        kernels = map(functools.partial(self.GS_kernels, node), gen_var_single2)
+        CSE_replacement = map(functools.partial(self.GS_CSE_replacement, node), gen_var1)
+        tricks = map(functools.partial(self.GS_tricks, node), gen_var_single3)
+        factorizations = map(functools.partial(self.GS_factorizations, node), gen_var2)
 
         if GenerationStep.factorizations in node.applied_generation_steps:
             funs = [kernels_constructive, CSE_replacement, kernels, tricks]
@@ -86,16 +86,16 @@ class SearchGraph(equations.EquationsGraph):
     # def successor_generator(self, node):
 
     #     if GenerationStep.factorizations in node.applied_generation_steps:
-    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_tricks]
+    #         funs = [self.GS_kernels_constructive, self.GS_kernels, self.GS_CSE_replacement, self.GS_tricks]
     #     elif GenerationStep.kernels in node.applied_generation_steps:
-    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
+    #         funs = [self.GS_kernels_constructive, self.GS_kernels, self.GS_CSE_replacement, self.GS_factorizations, self.GS_tricks]
     #     elif GenerationStep.CSE in node.applied_generation_steps:
     #         # there are cases where doing CSE replacement twice results in better solutions
-    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
+    #         funs = [self.GS_kernels_constructive, self.GS_kernels, self.GS_CSE_replacement, self.GS_factorizations, self.GS_tricks]
     #     elif GenerationStep.tricks in node.applied_generation_steps:
-    #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations]
+    #         funs = [self.GS_kernels_constructive, self.GS_kernels, self.GS_CSE_replacement, self.GS_factorizations]
     #     else:
-    #         funs = [self.DFS_CSE_replacement, self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_factorizations, self.DFS_tricks]
+    #         funs = [self.GS_CSE_replacement, self.GS_kernels_constructive, self.GS_kernels, self.GS_factorizations, self.GS_tricks]
 
     #     generators = [fun(node, eqns) for eqns, fun in itertools.product(generate_representations(node.equations), funs)]
     #     yield from self.roundrobin(*generators)

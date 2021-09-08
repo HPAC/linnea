@@ -38,7 +38,7 @@ def apply_factorizations(equations, operands_to_factor, factorization_dict):
       to make sure that for A+inv(A), the first A is not factored.
     - Some factorizations rule out others. If Cholesky can be applied, LU
       will no be applied. Which factorization can be applied per operand is
-      decided in DFS_factorizations(). The factorization_dict contains the
+      decided in GS_factorizations(). The factorization_dict contains the
       valid factorizations.
 
     This function applies factorization in all possible combinations that

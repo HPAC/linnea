@@ -129,30 +129,30 @@ class EquationsGraph(base.Graph):
         return trace_data, terminal_nodes
 
 
-    def DFS_kernels_constructive(self, node, equations):
+    def GS_kernels_constructive(self, node, equations):
         for new_equations, edge_label in self.TR_kernels_constructive(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 
-    def DFS_kernels(self, node, equations):
+    def GS_kernels(self, node, equations):
         for new_equations, edge_label in self.TR_kernels(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 
-    def DFS_tricks(self, node, equations):
+    def GS_tricks(self, node, equations):
         for new_equations, edge_label in tricks.apply_tricks(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.tricks)
 
 
-    def DFS_CSE_replacement(self, node, equations):
+    def GS_CSE_replacement(self, node, equations):
         for new_equations in CSEs.find_CSEs(equations):
             yield self.create_node(node, new_equations, (), equations, previous_generation_step=GenerationStep.CSE)
 
 
-    def DFS_factorizations(self, node, equations):
-        """Factorization derivation step.
+    def GS_factorizations(self, node, equations):
+        """Generation step for the application of factorizations.
 
-        This derivation step applies factorizations to the active nodes. For a
+        This generation step applies factorizations to the active nodes. For a
         description of how exactly factorizations are applied, see the docstring
         of TR_factorizations().
         """
