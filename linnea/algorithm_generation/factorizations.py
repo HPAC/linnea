@@ -1,5 +1,6 @@
 from ..algebra.expression import Symbol, Times, Plus
 from ..algebra.equations import Equations
+from ..algebra.properties import Property
 from ..utils import powerset, is_inverse, is_transpose
 
 from .. import config
@@ -12,13 +13,16 @@ import matchpy
 
 collections_module = config.import_collections()
 
+
 @unique
 class InverseType(Enum):
     linear_system = 1
     explicit_inversion = 2
     none = 3
 
+
 Occurrence = namedtuple('Occurrence', ['eqn_idx', 'position', 'operand', 'type', 'group', 'symbol'])
+
 
 def apply_factorizations(equations, operands_to_factor, factorization_dict):
     """This function generates new equations by applying factorizations.
@@ -229,3 +233,60 @@ def find_blocking_products(equations, operands_to_factor):
                 # We can't remove cases with one operand only because of (X^T X)^-1 X^T y, where QR does lead to a solution.
                 if len(ops) > 1 and ops <= operands_to_factor:
                     yield set(op.name for op in ops)
+
+
+def find_operands_to_factor(equations, eqn_idx=None):
+    """Finds all operands to factor.
+
+    Finds all operands that may require factorizations. Those are operands that
+    have the property ADMITS_FACTORIZATION and appear within an inverse.
+
+    Args:
+        equations (Equations): The equations that are searched.
+
+    Returns:
+        set: A set of operands.
+    """
+    # this is independent of variants (most likely)
+
+    eqn_indices = None
+    if eqn_idx is not None:
+        eqn_indices = [eqn_idx]
+    else:
+        eqn_indices = range(len(equations))
+
+    operands_to_factor = set()
+    for _eqn_idx in eqn_indices:
+        equation = equations[_eqn_idx]
+        for inv_expr, inv_pos in inverse_positions(equation.rhs, (1,)):
+            for expr, pos in inv_expr.preorder_iter():
+                if isinstance(expr, Symbol) and expr.has_property(Property.ADMITS_FACTORIZATION):
+                    operands_to_factor.add(expr)
+
+    """Operands that have not been computed yet can not be factored. An operand
+    tmp is not computed yet if there is an equation tmp = expr where expr is not
+    a Symbol.
+    """
+    for _eqn_idx in eqn_indices:
+        equation = equations[_eqn_idx]
+        if equation.lhs in operands_to_factor and not isinstance(equation.rhs, Symbol):
+            operands_to_factor.remove(equation.lhs)
+
+    return operands_to_factor
+
+
+def inverse_positions(expr, position=[]):
+    """Returns positions of all inverses (including InverseTranspose, …).
+
+    Positions are return in postorder
+    (see https://en.wikipedia.org/wiki/Tree_traversal)
+    """
+    if isinstance(expr, Symbol):
+        return
+
+    for n, operand in enumerate(expr.operands):
+        new_position = position + (n,)
+        yield from inverse_positions(operand, new_position)
+
+    if is_inverse(expr):
+        yield expr, position

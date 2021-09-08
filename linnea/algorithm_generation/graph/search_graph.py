@@ -1,10 +1,10 @@
 from ...algebra import expression as ae
 
-from ...utils import is_inverse, roundrobin
+from ...utils import roundrobin
 
 from .. import special_properties
 
-from .utils import GenerationStep, generate_representations, find_operands_to_factor
+from .utils import GenerationStep, generate_representations
 
 from .base import equations
 

@@ -9,8 +9,8 @@ from ... import CSEs
 from ... import factorizations
 from ... import kernels
 
-from ..utils import generate_representations, find_operands_to_factor, \
-                    GenerationStep, is_dead_end, PriorityStack
+from ..utils import generate_representations, GenerationStep, is_dead_end, \
+                    PriorityStack
 
 from . import base
 
@@ -157,7 +157,7 @@ class EquationsGraph(base.Graph):
         """
 
         # find all matrices that need to factored
-        operands_to_factor = find_operands_to_factor(equations)
+        operands_to_factor = factorizations.find_operands_to_factor(equations)
 
         operands_to_factor -= node.factored_operands
         if operands_to_factor:
