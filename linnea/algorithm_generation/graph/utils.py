@@ -58,7 +58,7 @@ class OperationType(Enum):
 
 
 @unique
-class DS_step(Enum):
+class GenerationStep(Enum):
     factorizations = 1
     kernels = 2
     tricks = 3

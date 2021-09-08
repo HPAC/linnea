@@ -31,14 +31,14 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
             new_nodes = []
             
             for node in self.active_nodes:
-                new_nodes.extend(self.create_nodes(node, *self.TR_matrix_chain_kernels(node.expression)))
-                new_nodes.extend(self.create_nodes(node, *self.TR_unary_kernels(node.expression)))
+                new_nodes.extend(self.create_nodes(node, *self.GS_matrix_chain_kernels(node.expression)))
+                new_nodes.extend(self.create_nodes(node, *self.GS_unary_kernels(node.expression)))
             
             self.active_nodes = new_nodes
-            self.DS_merge_nodes()
+            self.merge_nodes()
             
 
-    def DS_merge_nodes(self):
+    def merge_nodes(self):
         """Merges redundant nodes in the search graph.
 
         Returns the number of removed nodes.
@@ -60,7 +60,7 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
         return len(remove)
 
 
-    def TR_matrix_chain_kernels(self, expression):
+    def GS_matrix_chain_kernels(self, expression):
         kernel, substitution = select_optimal_match(collections_module.matrix_chain_DN.match(expression))
 
         if kernel:
@@ -71,7 +71,7 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
         return []
 
 
-    def TR_unary_kernels(self, expression):
+    def GS_unary_kernels(self, expression):
         transformed_expressions = []
 
         # iterate over all subexpressions

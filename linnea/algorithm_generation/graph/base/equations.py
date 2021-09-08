@@ -10,7 +10,7 @@ from ... import factorizations
 from ... import reductions
 
 from ..utils import generate_representations, find_operands_to_factor, \
-                    DS_step, is_dead_end, PriorityStack, process_next_simple, \
+                    GenerationStep, is_dead_end, PriorityStack, process_next_simple, \
                     OperationType, is_explicit_inversion
 
 from . import base
@@ -131,22 +131,22 @@ class EquationsGraph(base.Graph):
 
     def DFS_kernels_constructive(self, node, equations):
         for new_equations, edge_label in self.TR_kernels_constructive(equations):
-            yield self.create_node(node, new_equations, edge_label, equations, previous_DS_step=DS_step.kernels)
+            yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 
     def DFS_kernels(self, node, equations):
         for new_equations, edge_label in self.TR_kernels(equations):
-            yield self.create_node(node, new_equations, edge_label, equations, previous_DS_step=DS_step.kernels)
+            yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 
     def DFS_tricks(self, node, equations):
         for new_equations, edge_label in tricks.apply_tricks(equations):
-            yield self.create_node(node, new_equations, edge_label, equations, previous_DS_step=DS_step.tricks)
+            yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.tricks)
 
 
     def DFS_CSE_replacement(self, node, equations):
         for new_equations in CSEs.find_CSEs(equations):
-            yield self.create_node(node, new_equations, (), equations, previous_DS_step=DS_step.CSE)
+            yield self.create_node(node, new_equations, (), equations, previous_generation_step=GenerationStep.CSE)
 
 
     def DFS_factorizations(self, node, equations):
@@ -167,7 +167,7 @@ class EquationsGraph(base.Graph):
             factorization_dict = factorizations.construct_factorization_dict(operands_to_factor)
 
             for new_equations, edge_label in factorizations.apply_factorizations(equations, operands_to_factor, factorization_dict):
-                yield self.create_node(node, new_equations, edge_label, equations, factored_operands=operands_to_factor, previous_DS_step=DS_step.factorizations)
+                yield self.create_node(node, new_equations, edge_label, equations, factored_operands=operands_to_factor, previous_generation_step=GenerationStep.factorizations)
 
 
     def TR_kernels_constructive(self, equations):
@@ -206,14 +206,14 @@ class EquationsGraph(base.Graph):
                 yield from reductions.apply_unary_kernels(equations, eqn_idx, (1,))
 
 
-    def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_DS_step=None):
-        new_node = EquationsGraphNode(equations, factored_operands, previous_DS_step)
+    def create_node(self, predecessor, equations, matched_kernels, original_equations, factored_operands=None, previous_generation_step=None):
+        new_node = EquationsGraphNode(equations, factored_operands, previous_generation_step)
         predecessor.set_labeled_edge(new_node, base.EdgeLabel(*matched_kernels), original_equations)
         self.nodes.append(new_node)
         return new_node
 
 
-    def create_nodes(self, predecessor, *description, factored_operands=None, previous_DS_step=None):
+    def create_nodes(self, predecessor, *description, factored_operands=None, previous_generation_step=None):
         new_nodes = []
         # print(description)
         # if description:
@@ -223,7 +223,7 @@ class EquationsGraph(base.Graph):
             _factored_operands = _factored_operands.union(factored_operands)
 
         for equations, matched_kernels, original_equations in description:
-            new_node = self.create_node(predecessor, equations, matched_kernels, original_equations, _factored_operands.copy(), previous_DS_step)
+            new_node = self.create_node(predecessor, equations, matched_kernels, original_equations, _factored_operands.copy(), previous_generation_step)
             new_nodes.append(new_node)
         return new_nodes
 
@@ -368,8 +368,8 @@ class EquationsGraphNode(base.GraphNode):
 
     _counter = 0
 
-    def __init__(self, equations=None, factored_operands=None, previous_DS_step=None):
-        super().__init__(factored_operands, previous_DS_step)
+    def __init__(self, equations=None, factored_operands=None, previous_generation_step=None):
+        super().__init__(factored_operands, previous_generation_step)
 
         # IDs for dot output
         self.id = EquationsGraphNode._counter

@@ -4,7 +4,7 @@ from ...utils import is_inverse, roundrobin
 
 from .. import special_properties
 
-from .utils import DS_step, generate_representations, find_operands_to_factor, \
+from .utils import GenerationStep, generate_representations, find_operands_to_factor, \
                    find_explicit_symbol_inverse
 
 from .base import equations
@@ -68,14 +68,14 @@ class SearchGraph(equations.EquationsGraph):
         tricks = map(functools.partial(self.DFS_tricks, node), gen_var_single3)
         factorizations = map(functools.partial(self.DFS_factorizations, node), gen_var2)
 
-        if DS_step.factorizations in node.applied_DS_steps:
+        if GenerationStep.factorizations in node.applied_generation_steps:
             funs = [kernels_constructive, CSE_replacement, kernels, tricks]
-        elif DS_step.kernels in node.applied_DS_steps:
+        elif GenerationStep.kernels in node.applied_generation_steps:
             funs = [kernels_constructive, CSE_replacement, factorizations, kernels, tricks]
-        elif DS_step.CSE in node.applied_DS_steps:
+        elif GenerationStep.CSE in node.applied_generation_steps:
             # there are cases where doing CSE replacement twice results in better solutions
             funs = [kernels_constructive, CSE_replacement, factorizations, kernels, tricks]
-        elif DS_step.tricks in node.applied_DS_steps:
+        elif GenerationStep.tricks in node.applied_generation_steps:
             funs = [kernels_constructive, CSE_replacement, factorizations, kernels]
         else:
             funs = [CSE_replacement, kernels_constructive, factorizations, kernels, tricks]
@@ -85,14 +85,14 @@ class SearchGraph(equations.EquationsGraph):
 
     # def successor_generator(self, node):
 
-    #     if DS_step.factorizations in node.applied_DS_steps:
+    #     if GenerationStep.factorizations in node.applied_generation_steps:
     #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_tricks]
-    #     elif DS_step.kernels in node.applied_DS_steps:
+    #     elif GenerationStep.kernels in node.applied_generation_steps:
     #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
-    #     elif DS_step.CSE in node.applied_DS_steps:
+    #     elif GenerationStep.CSE in node.applied_generation_steps:
     #         # there are cases where doing CSE replacement twice results in better solutions
     #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations, self.DFS_tricks]
-    #     elif DS_step.tricks in node.applied_DS_steps:
+    #     elif GenerationStep.tricks in node.applied_generation_steps:
     #         funs = [self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_CSE_replacement, self.DFS_factorizations]
     #     else:
     #         funs = [self.DFS_CSE_replacement, self.DFS_kernels_constructive, self.DFS_kernels, self.DFS_factorizations, self.DFS_tricks]

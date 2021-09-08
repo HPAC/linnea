@@ -295,7 +295,7 @@ class PathDoesNotExist(Exception):
 
 class GraphNode():
 
-    def __init__(self, factored_operands=None, previous_DS_step=None):
+    def __init__(self, factored_operands=None, previous_generation_step=None):
 
         self.successors = []
         self.edge_labels = []
@@ -327,9 +327,9 @@ class GraphNode():
         else:
             self.factored_operands = factored_operands
 
-        self.applied_DS_steps = set()
-        if previous_DS_step:
-            self.add_applied_step(previous_DS_step)
+        self.applied_generation_steps = set()
+        if previous_generation_step:
+            self.add_applied_step(previous_generation_step)
 
         # contains REAPath objects
         self.k_shortest_paths = []
@@ -342,16 +342,16 @@ class GraphNode():
         self.factored_operands.update(factored_operands)
 
     def add_applied_step(self, applied_step):
-        """Add an applied derivation step.
+        """Add an applied generation step.
 
-        For some derivation steps, the current node stays active. This can cause
-        the same derivation step to be applied multiple times to the same node.
+        For some generation steps, the current node stays active. This can cause
+        the same generation step to be applied multiple times to the same node.
         To avoid this, nodes are labelled if those steps are applied.
 
         Args:
-            applied_steps (DS_step): The derivation step that was applied.
+            applied_steps (GenerationStep): The generation step that was applied.
         """
-        self.applied_DS_steps.add(applied_step)
+        self.applied_generation_steps.add(applied_step)
 
     def get_payload(self):
         raise NotImplementedError()
@@ -431,7 +431,7 @@ class GraphNode():
 
         self.edge_labels.extend(other.edge_labels)
         self.original_equations.extend(other.original_equations)
-        self.applied_DS_steps.update(other.applied_DS_steps)
+        self.applied_generation_steps.update(other.applied_generation_steps)
         self.factored_operands.update(other.factored_operands)
         self.update_cost(other, idx_shift)
 
