@@ -124,7 +124,7 @@ class EquationsGraph(base.Graph):
                 break
 
         else:
-            self.print("No further derivations possible.")
+            self.print("No further generation steps possible.")
 
         return trace_data, terminal_nodes
 
@@ -231,7 +231,7 @@ class EquationsGraph(base.Graph):
     def write_output(
             self,
             code=True,
-            derivation=False,
+            generation_steps=False,
             output_name="tmp",
             experiment_code=False,
             k_best=False,
@@ -255,7 +255,7 @@ class EquationsGraph(base.Graph):
 
         self.print_result("Number of algorithms:", len(algorithms))
 
-        if code or derivation or experiment_code:
+        if code or generation_steps or experiment_code:
             output_path = os.path.join(config.output_code_path, output_name)
             code_path = os.path.join(output_path, config.language.name, subdir_name)
             experiment_path = os.path.join(output_path, config.language.name, subdir_name_experiments)
@@ -265,30 +265,30 @@ class EquationsGraph(base.Graph):
                 # Removing existing algorithm files
                 if code:
                     cgu.remove_files(code_path)
-                    cgu.remove_files(os.path.join(code_path, "derivation"))
+                    cgu.remove_files(os.path.join(code_path, "generation_steps"))
                 if experiment_code:
                     cgu.remove_files(experiment_path)
-                    cgu.remove_files(os.path.join(experiment_path, "derivation"))
+                    cgu.remove_files(os.path.join(experiment_path, "generation_steps"))
 
-        if code or derivation:
+        if code or generation_steps:
             for n, algorithm in enumerate(algorithms):
 
                 algorithm_file_name = "".join([algorithm.name, config.filename_extension])
-                derivation_file_name = os.path.join("derivation", "".join([algorithm.name, ".txt"]))
+                generation_steps_file_name = os.path.join("generation_steps", "".join([algorithm.name, ".txt"]))
 
                 if code:
                     file_name = os.path.join(code_path, algorithm_file_name)
                     cgu.to_file(file_name, algorithm.code_as_function())
-                    if derivation:
-                        file_name = os.path.join(code_path, derivation_file_name)
-                        cgu.to_file(file_name, algorithm.derivation())
+                    if generation_steps:
+                        file_name = os.path.join(code_path, generation_steps_file_name)
+                        cgu.to_file(file_name, algorithm.generation_steps())
 
                 if experiment_code:
                     file_name = os.path.join(experiment_path, algorithm_file_name)
                     cgu.to_file(file_name, algorithm.code_as_function(experiment=True))
-                    if derivation:
-                        file_name = os.path.join(experiment_path, derivation_file_name)
-                        cgu.to_file(file_name, algorithm.derivation())
+                    if generation_steps:
+                        file_name = os.path.join(experiment_path, generation_steps_file_name)
+                        cgu.to_file(file_name, algorithm.generation_steps())
 
         if experiment_code:
             generate_experiment_code(output_name, self.input, algorithm_name, [1, 24], 20, k_best, len(algorithms))

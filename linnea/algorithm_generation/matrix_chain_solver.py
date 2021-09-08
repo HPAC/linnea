@@ -83,7 +83,7 @@ class MatrixChainSolver():
                         # The matrix chain graph is only used if product can
                         # con be computed with a single kernel.
                         mc_graph = matrix_chain.MatrixChainGraph(product)
-                        mc_graph.derivation()
+                        mc_graph.generate()
                         matched_kernels, _cost, tmp = mc_graph.optimal_algorithm()
                         # mc_graph.write_graph("tmp", config.GraphStyle.full, file_name="matrix_chain_graph")
                         if not matched_kernels:

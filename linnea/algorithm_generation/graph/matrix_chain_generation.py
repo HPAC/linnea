@@ -1,4 +1,4 @@
-"""Matrix Chain Derivation Graph
+"""Matrix Chain Search Graph
 
 This module was used for the CGO 2018 paper to do experitments only with the
 matrix chain algorithm.
@@ -15,9 +15,9 @@ from .base import equations
 import math
 
 
-class DerivationGraph(equations.EquationsGraph):
+class MatrixChainGraph(equations.EquationsGraph):
 
-    def derivation(self):
+    def generate(self):
 
         old_verbosity = config.verbosity
         config.set_verbosity(0)

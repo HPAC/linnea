@@ -222,7 +222,7 @@ def generate_representations(equations, eqn_idx=None):
 
 
 def process_next(equation):
-    """Finds a subexpression to process next in the derivation.
+    """Finds a subexpression to process next in the generation.
 
     This function takes an equation as input. It is assumed that the equation
     has the form <symbol> = <expression>.
@@ -266,7 +266,7 @@ def process_next(equation):
 
 
 def process_next_simple(expression):
-    """Finds a subexpression to process next in the derivation.
+    """Finds a subexpression to process next in the generation.
 
     This is a simplified verision of process_next(). The difference is that this
     function does not take inverses into account. Thus, is can be used for

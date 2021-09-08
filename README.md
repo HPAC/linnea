@@ -60,7 +60,7 @@ The list of commandline options is available via `linnea -h`.
 
 ### Output
 
-As output, Linnea generates a directory structure that contains code files, as well a file containing a description of the derivation graph, the primary datastructure used by Linnea. Which files are generated can be set as options. Likewise, the location of the output can be specified. By default, it is the current directory.
+As output, Linnea generates a directory structure that contains code files, as well a file containing a description of the search graph, the primary datastructure used by Linnea. Which files are generated can be set as options. Likewise, the location of the output can be specified. By default, it is the current directory.
 
 For the linear system from the previous examples, the following code will be generated:
 
@@ -101,17 +101,17 @@ There are the following options (those are the names used in Python, the command
 
 * `julia_data_type` The data type used in the generated code. Either `Float32` or `Float64`. The default is `Float64`.
 
-* `merging_branches` Whether or not to merge branches in the derivation graph. The default is `true`.
+* `merging_branches` Whether or not to merge branches in the search graph. The default is `true`.
 
-* `dead_ends` Whether or not to eliminate dead ends in the derivation graph early. The default is `true`.
+* `dead_ends` Whether or not to eliminate dead ends in the search graph early. The default is `true`.
 
 * `algorithms_limit` The upper limit for the number of algorithms that are written to files. The default is `100`.
 
-* `generate_graph` Whether or not to generate a `.gv` file of the derivation graph. The default is `false`.
+* `generate_graph` Whether or not to generate a `.gv` file of the search graph. The default is `false`.
 
-* `graph_style` Style of the derivation graph. Either `full`, `simple`, or `minimal`. The default is `full`. Only applies if `generate_graph` is set to `True`.
+* `graph_style` Style of the search graph. Either `full`, `simple`, or `minimal`. The default is `full`. Only applies if `generate_graph` is set to `True`.
 
-* `generate_derivation` Whether or not to generate a description of how the algorithms were derived. The default is `false`.
+* `generate_steps` Whether or not to generate a description of how the algorithms were generated. The default is `false`.
 
 * `generate_code` Whether or not to generate the actual code of the algorithms. The default is `true`.
 

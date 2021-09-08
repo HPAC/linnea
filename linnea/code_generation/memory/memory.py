@@ -617,7 +617,7 @@ class Memory():
         If the number of references for an operand reaches zero, it is removed.
 
         The purpose of this function is to take into account that some
-        derivation steps, such as common subexpression elminiation, change the
+        generation steps, such as common subexpression elminiation, change the
         number of occurences of some operands, even though nothing is computed.
         """
         memory_operations = []

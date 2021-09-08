@@ -9,7 +9,7 @@
         "algorithms_limit": 100,
         "output_name": "tmp",
         "generate_graph": false,
-        "generate_derivation": false,
+        "generate_steps": false,
         "generate_code": true,
         "generate_experiments": false,
         "verbosity": 1,

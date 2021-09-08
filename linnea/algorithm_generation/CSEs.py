@@ -733,7 +733,6 @@ if __name__ == "__main__":
     linnea.config.init()
 
     from linnea.algorithm_generation.graph.search_graph import SearchGraph
-    # from linnea.algorithm_generation.graph.matrix_chain_derivation import DerivationGraph
 
     import linnea.examples.examples
 

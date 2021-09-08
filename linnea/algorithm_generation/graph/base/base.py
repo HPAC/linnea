@@ -32,7 +32,7 @@ class Graph():
         if config.verbosity >= 1:
             print("{0:<22}{1:>12}".format(str, val))
 
-    def derivation(self):
+    def generate(self):
         raise NotImplementedError()
 
     def terminal_nodes(self):

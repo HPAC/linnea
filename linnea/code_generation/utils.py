@@ -33,7 +33,7 @@ class Algorithm():
             Symbol = Symbol. Is used for the mapping of temporaries to output
             operands.
         kernels_and_equations (list): List of MatchedKernel and Equation
-            objects, representing the algorithm (and its derivation).
+            objects, representing the algorithm (and its generation steps).
         cost (int): The cost of the entire algorithm.
         data (int): The amount of data (number of scalars) of the input
             equations.
@@ -322,7 +322,7 @@ class Algorithm():
         return "".join(lines_list)
 
 
-    def _matched_kernel_to_derivation(self, matched_kernel):
+    def _matched_kernel_to_generation_steps(self, matched_kernel):
         """Generates pseudocode for a signle MatchedKernel objects.
 
         Args:
@@ -335,13 +335,14 @@ class Algorithm():
         Returns:
             string: Pseudocode.
         """
+        # TODO Perhaps this should be a method of MatchedKernel.
         return "{0:<30}# {1:.3g}".format(str(matched_kernel.operation), matched_kernel.cost)
 
-    def derivation(self):
+    def generation_steps(self):
         """Generates a description of how the algorithm was found.
         
         Returns:
-            string: Derivation.
+            string: Description of the generation steps.
         """
         code_list = []
 
@@ -349,7 +350,7 @@ class Algorithm():
 
         for kernel_or_equations in self.kernels_and_equations:
             if isinstance(kernel_or_equations, MatchedKernel):
-                code_list.append(self._matched_kernel_to_derivation(kernel_or_equations))
+                code_list.append(self._matched_kernel_to_generation_steps(kernel_or_equations))
             else:
                 code_list.append(str(kernel_or_equations))
 
@@ -357,7 +358,7 @@ class Algorithm():
 
         return "\n\n".join(code_list)
 
-    def derivation_website(self):
+    def generation_steps_website(self):
         """Generates a description of how the algorithm was found for the website.
 
         Both equations and matched kernels are represented as strings containing
@@ -599,18 +600,6 @@ class MatchedKernel():
         else:
             template = "{} \\leftarrow {}"
         return template.format(self.operation.lhs.to_tex(), self.operation.rhs.to_tex())
-        
-
-def derivation_to_file(output_name, subdir_name, algorithm_name, derivation):
-    file_name = os.path.join(config.output_code_path, output_name, config.language.name, subdir_name, "derivation", "".join([algorithm_name, ".txt"]))
-    directory_name = os.path.dirname(file_name)
-    if not os.path.exists(directory_name):
-        os.makedirs(directory_name)
-    output_file = open(file_name, "wt")
-    output_file.write(derivation)
-    output_file.close()
-    if config.verbosity >= 2:
-        print("Generate derivation file {}".format(file_name))
 
 
 def to_file(file_path, content):

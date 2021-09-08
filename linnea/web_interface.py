@@ -89,8 +89,8 @@ def run_linnea(input, time_limit=10, number_of_algorithms=1):
     
     try:
         graph = SearchGraph(equations)
-        graph.derivation(time_limit=time_limit, merging=True, pruning_factor=1.)
-        output = [(algorithm.code_as_function(), algorithm.derivation_website())  for algorithm in graph.k_best_algorithms(number_of_algorithms)]
+        graph.generate(time_limit=time_limit, merging=True, pruning_factor=1.)
+        output = [(algorithm.code_as_function(), algorithm.generation_steps_website())  for algorithm in graph.k_best_algorithms(number_of_algorithms)]
     except ConflictingProperties as e:
         raise e
     except ExpressionException as e:

@@ -32,16 +32,15 @@ def measure(experiment, example, name, merging):
         example.init()
 
     graph = SearchGraph(example.eqns)
-    trace = graph.derivation(
-                        time_limit=30*60,
-                        merging=merging,
-                        dead_ends=True)
+    trace = graph.generate(time_limit=30*60,
+                           merging=merging,
+                           dead_ends=True)
 
     df_trace = pd.DataFrame(trace, columns=["time", "cost"])
 
     t_start = time.perf_counter()
     graph.write_output(code=True,
-                       derivation=False,
+                       generation_steps=False,
                        output_name=name,
                        experiment_code=False,
                        algorithms_limit=1,
@@ -93,7 +92,7 @@ def generate(experiment, example, name, k_best=False):
         subdir_name_experiments = "experiments"
 
     graph = SearchGraph(example.eqns)
-    trace = graph.derivation(
+    trace = graph.generate(
                         time_limit=30*60,
                         merging=True,
                         dead_ends=True,
@@ -101,7 +100,7 @@ def generate(experiment, example, name, k_best=False):
 
     algorithms = graph.write_output(
                         code=False,
-                        derivation=True,
+                        generation_steps=True,
                         output_name=name,
                         experiment_code=True,
                         k_best=k_best,

@@ -14,7 +14,7 @@ import functools
 
 class SearchGraph(equations.EquationsGraph):
 
-    def derivation(self, time_limit=60, merging=True, dead_ends=True, pruning_factor=1.0):
+    def generate(self, time_limit=60, merging=True, dead_ends=True, pruning_factor=1.0):
         
         # TODO add argument for stopping as soon as first solution is found
         # or use time_limit == 0?

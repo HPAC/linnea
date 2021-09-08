@@ -76,7 +76,7 @@ dead_ends = False
 pruning_factor = -1
 algorithms_limit = -1
 generate_graph = False
-generate_derivation = False
+generate_steps = False
 generate_code = False
 generate_experiments = False
 verbosity = -1
@@ -162,9 +162,9 @@ def set_output_name(name):
     global output_name
     output_name = name
 
-def set_generate_derivation(generate):
-    global generate_derivation
-    generate_derivation = generate
+def set_generate_steps(generate):
+    global generate_steps
+    generate_steps = generate
 
 def set_generate_code(generate):
     global generate_code
@@ -236,7 +236,7 @@ set_dead_ends(True)
 set_pruning_factor(1.0)
 set_algorithms_limit(100)
 set_generate_graph(False)
-set_generate_derivation(False)
+set_generate_steps(False)
 set_generate_code(True)
 set_generate_experiments(False)
 set_output_code_path('.')

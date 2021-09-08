@@ -14,13 +14,13 @@ if __name__ == "__main__":
     # equations = linnea.examples.examples.Example001().eqns
 
     graph = SearchGraph(equations)
-    graph.derivation(time_limit=60,
-                     merging=True,
-                     dead_ends=True,
-                     pruning_factor=1.0)
+    graph.generate(time_limit=60,
+                   merging=True,
+                   dead_ends=True,
+                   pruning_factor=1.0)
 
     graph.write_output(code=True,
-                       derivation=False,
+                       generation_steps=False,
                        output_name="tmp",
                        experiment_code=False,
                        algorithms_limit=100,

@@ -3068,7 +3068,7 @@ class Example126():
 
         minu1 = ConstantScalar(-1.0)
 
-        # derivation.special_properties.add_expression(Times(A, W, Transpose(A)), {Property.SPD})
+        # algorithm_generation.special_properties.add_expression(Times(A, W, Transpose(A)), {Property.SPD})
 
         self.eqns = Equations(
                             Equal(

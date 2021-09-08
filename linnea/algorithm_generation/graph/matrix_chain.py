@@ -25,7 +25,7 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
             pass
 
 
-    def derivation(self):
+    def generate(self):
 
         while self.active_nodes:
             new_nodes = []
@@ -39,7 +39,7 @@ class MatrixChainGraph(egb.ExpressionGraphBase):
             
 
     def DS_merge_nodes(self):
-        """Merges redundant nodes in the derivation graph.
+        """Merges redundant nodes in the search graph.
 
         Returns the number of removed nodes.
 

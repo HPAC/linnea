@@ -29,7 +29,7 @@ def main():
     parser.add_argument("--no-code", dest="code", action="store_const", const=True, help="disable code generation")
     parser.add_argument("--no-merging", dest="merging", action="store_const", const=True, help="disable merging branches in the graph")
     parser.add_argument("-o", "--output", help="name of the output")
-    parser.add_argument("--derivation", action="store_const", const=True, help="generate description of the derivation")
+    parser.add_argument("--generation-steps", action="store_const", const=True, help="generate description of the generation steps")
     group.add_argument("--silent", action="store_const", const=True, help="suppress non-error messages")
     parser.add_argument("--time-limit", help="time limit for the generation")
     parser.add_argument("--pruning-factor", help="cutoff for pruning nodes (relative to best solution)")
@@ -64,8 +64,8 @@ def main():
         config.set_output_name(args.output)
     elif config.output_name is None: # input file name is only used for output if nothing is set in config file.
         config.set_output_name(os.path.splitext(os.path.basename(args.input))[0])
-    if args.derivation is not None:
-        config.set_generate_derivation(args.derivation)
+    if args.generation_steps is not None:
+        config.set_generate_steps(args.generation_steps)
     if args.silent is not None:
         config.set_verbosity(0)
     if args.time_limit is not None:
@@ -99,18 +99,18 @@ def main():
         config.set_output_name(example_name)
         equations = example.eqns
 
-    from .algorithm_generation.graph.derivation import SearchGraph  
+    from .algorithm_generation.graph.search_graph import SearchGraph  
 
     graph = SearchGraph(equations)
-    trace = graph.derivation(time_limit=config.time_limit,
-                             merging=config.merging_branches,
-                             dead_ends=config.dead_ends,
-                             pruning_factor=config.pruning_factor)
+    trace = graph.generate(time_limit=config.time_limit,
+                           merging=config.merging_branches,
+                           dead_ends=config.dead_ends,
+                           pruning_factor=config.pruning_factor)
     if config.verbosity >= 2:
         print(trace)
 
     graph.write_output(code=config.generate_code,
-                       derivation=config.generate_derivation,
+                       generation_steps=config.generate_steps,
                        output_name=config.output_name,
                        experiment_code=config.generate_experiments,
                        algorithms_limit=config.algorithms_limit,
