@@ -67,17 +67,6 @@ class GenerationStep(Enum):
     merge = 6
 
 
-def find_explicit_symbol_inverse(expr, position=(), predecessor=None):
-
-    if is_inverse(expr) and isinstance(expr.operand, Symbol) and not isinstance(predecessor, Times):
-        yield (expr, position)
-
-    if isinstance(expr, Operator):
-        for n, operand in enumerate(expr.operands):
-            new_position = position + (n,)
-            yield from find_explicit_symbol_inverse(operand, new_position, expr)
-
-
 # @profile
 def generate_representations(equations, eqn_idx=None):
     """Generates different representations of equations.
