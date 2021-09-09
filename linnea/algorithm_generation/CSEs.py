@@ -9,7 +9,7 @@ from ..utils import window, powerset, is_inverse, is_transpose, \
 
 from .. import temporaries
 
-from .utils import is_blocked
+from .graph.utils import is_blocked
 
 from enum import Enum, unique
 from collections import Counter

@@ -6,10 +6,10 @@ from .. import temporaries
 from .. import config
 
 from .utils import apply_kernel_with_context, apply_kernel_anywhere, \
-                   select_optimal_match, is_blocked
+                   select_optimal_match
 
 from .graph.utils import process_next, OperationType, \
-                         is_explicit_inversion
+                         is_explicit_inversion, is_blocked
 
 from . import matrix_chain_solver
 

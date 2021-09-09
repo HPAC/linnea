@@ -12,10 +12,9 @@ from ...algebra.properties import Property
 
 from ...utils import is_inverse, is_transpose
 
-from ..utils import is_blocked
-
 from enum import Enum, unique
 
+import matchpy
 import heapq
 
 
@@ -229,15 +228,35 @@ def is_dead_end(equations, factored_operands):
     return False
 
 
-def is_scalar(expr):
-    """Tests if expr only consists of scalars.
+def is_blocked(operation):
+    """Test if the operation is blocked.
 
-    Note:
-        This function may return False even expr is a scalar. Because of
-        products with vectors, an expression can be scalar even though it does
-        not exclusively consist of scalars.
+    An operation is blocked if all non-constant operands are factors from any
+    factorizations. An operation is not blocked if all operands are constants,
+    or if the output does not admit factorizations (even if all operands are
+    factors).
+
+    Example:
+        When the LU factorization is applied to A in inv(A)*x, this results in
+        inv(U)*inv(L)*x. In this case, computing inv(U)*inv(L) is not allowed
+        because both factors come from factoring A. Computing inv(L)*x is
+        allowed because x is not a factor.
+
+    Args:
+        operation (Expression): Operation to test.
+
+    Returns:
+        bool: False if this operation is not allowed, True otherwise.
+
     """
-    return all(e.has_property(Property.SCALAR) for e in expr.iterate_preorder())
+    if operation.arity == matchpy.Arity.unary and operation.factorization_labels:
+        return True
+    elif not operation.has_property(Property.ADMITS_FACTORIZATION):
+        return False
+    elif operation.has_property(Property.CONSTANT):
+        return False
+    else:
+        return all((operand.factorization_labels or operand.has_property(Property.CONSTANT)) for operand in operation.operands)
 
 
 def is_simple_plus(expr):
