@@ -669,18 +669,6 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
     left = None
     right = None
 
-    def split_operator(expr, operator):
-        # Complex conjugation and transposition can always be distributed over
-        # Times.
-        if operator is ae.InverseTranspose:
-            return ae.Inverse(transpose(expr))
-        elif operator is ae.InverseConjugate:
-            return ae.Inverse(conjugate(expr))
-        elif operator is ae.InverseConjugateTranspose:
-            return ae.Inverse(conjugate_transpose(expr))
-        else:
-            return operator(expr)
-
     scalars, non_scalars = expr.split_operands()
     scalars = [operator_fct(operand) for operand in scalars]
     scalars.sort()
@@ -746,12 +734,25 @@ def _distribute_inverse(expr, operator, operator_fct, reverse):
             if len(operand) == 1:
                 new_operands.append(operator_fct(operand[0]))
             else:
-                new_operands.append(split_operator(ae.Times(*operand), operator))
+                new_operands.append(_split_operator(ae.Times(*operand), operator))
         else:
             new_operands.append(operator_fct(operand))
 
     operands = scalars + new_operands
     return ae.Times(*operands)
+
+
+def _split_operator(expr, operator):
+        # Complex conjugation and transposition can always be distributed over
+        # Times.
+        if operator is ae.InverseTranspose:
+            return ae.Inverse(transpose(expr))
+        elif operator is ae.InverseConjugate:
+            return ae.Inverse(conjugate(expr))
+        elif operator is ae.InverseConjugateTranspose:
+            return ae.Inverse(conjugate_transpose(expr))
+        else:
+            return operator(expr)
 
 
 def admits_undistribution(expr):
