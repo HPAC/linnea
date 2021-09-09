@@ -28,17 +28,14 @@ ctx2 = matchpy.Wildcard.star("ctx2")
 class FactorizationKernel(Kernel):
     """docstring for FactorizationKernel"""
 
-    def __init__(self, pattern, input_operands, output, output_operands, cost_function, pre_code, signature, post_code, arguments):
-        super().__init__(cost_function, pre_code, signature, post_code, arguments)
+    def __init__(self, pattern, input_operands, output, output_operands, cost_function, signature, arguments):
+        super().__init__(cost_function, signature, arguments)
 
         self.pattern = pattern
         self.replacement_template = output
         self.input_operands = input_operands
         self.output_operands = output_operands
         self.operation_template = self.pattern
-
-        self.pre_code_template = pre_code
-        self.post_code_template = post_code
 
         # TODO for something like generalized schur decomposition, I potentially also need context
 

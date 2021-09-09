@@ -13,7 +13,7 @@ class Kernel():
 
     _counter = 0
 
-    def __init__(self, cost_function, pre_code, signature, post_code, arguments):
+    def __init__(self, cost_function, signature, arguments):
         self.id = Kernel._counter
         Kernel._counter += 1
         self._cost_function = cost_function
@@ -22,12 +22,6 @@ class Kernel():
 
         # list of Argument objects
         self.arguments = arguments
-
-        self.pre_code_template = pre_code
-        self.post_code_template = post_code
-
-        # self.arg = arg
-        # self.arg = arg
 
     def set_match(self, match_dict):
 
@@ -42,12 +36,6 @@ class Kernel():
         # Arguments
 
         matched_kernel.arguments = self.arguments
-
-        #############
-        # Pre/post code
-
-        matched_kernel.pre_code = self.pre_code_template
-        matched_kernel.post_code = self.post_code_template
 
         #############
         # Cost

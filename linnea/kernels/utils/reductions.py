@@ -48,8 +48,8 @@ ctx2 = matchpy.Wildcard.star("ctx2")
 class ReductionKernel(Kernel):
     """docstring for ReductionKernel"""
 
-    def __init__(self, pattern, input_operands, output_operand, cost_function, pre_code, signature, post_code, arguments, type=KernelType.identity, kernel_io=None):
-        super().__init__(cost_function, pre_code, signature, post_code, arguments)
+    def __init__(self, pattern, input_operands, output_operand, cost_function, signature, arguments, type=KernelType.identity, kernel_io=None):
+        super().__init__(cost_function, signature, arguments)
 
         """The wildcard which represents the output operand. If it also appears
         in the pattern, it is assumed that it gets overwritten.
@@ -460,9 +460,7 @@ class KernelDescription():
                  input_operands,
                  return_value,
                  cost_function,
-                 pre_code,
                  signature,
-                 post_code,
                  arguments,
                  constraints=[],
                  options=set()):
@@ -474,9 +472,7 @@ class KernelDescription():
         self.constraints = constraints
         self.options = options
 
-        self.pre_code = CodeTemplate(pre_code)
         self.signature = CodeTemplate(signature)
-        self.post_code = CodeTemplate(post_code)
 
         self.arguments = arguments
 
@@ -617,10 +613,10 @@ class KernelDescription():
                 # print(constraints)
 
                 kernel_io.replace_variables(self.wildcards)
-                yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, KernelType.identity, kernel_io)
+                yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.signature, arguments_copy2, KernelType.identity, kernel_io)
                 
                 if KernelOption.transpose in self.options:
-                    yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.pre_code, self.signature, self.post_code, arguments_copy2, KernelType.transpose, kernel_io)
+                    yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.signature, arguments_copy2, KernelType.transpose, kernel_io)
 
 ############################
 # Auxiliary functions

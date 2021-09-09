@@ -45,9 +45,7 @@ scalar_product = KernelDescription(
     ],
     OutputOperand(out, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$out = $alpha * $beta",
-    "",
     [], # Argument objects
     )
 
@@ -70,9 +68,7 @@ scalar_division = KernelDescription(
     ],
     OutputOperand(out, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$out = $alpha / $beta",
-    "",
     [], # Argument objects
     options={KernelOption.no_simplifications}
     )
@@ -90,9 +86,7 @@ scalar_inversion = KernelDescription(
     ],
     OutputOperand(out, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$out = 1.0 / $alpha",
-    "",
     [], # Argument objects
     )
 
@@ -111,9 +105,7 @@ scalar_sum = KernelDescription(
     ],
     OutputOperand(out, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$out = $alpha + $beta",
-    "",
     [], # Argument objects
     )
 
@@ -135,9 +127,7 @@ dot = KernelDescription(
     ],
     OutputOperand(out, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$out = BLAS.dot($N, $x, 1, $y, 1)",
-    "",
     [SizeArgument("N", x, "rows")], # Argument objects
     )
 
@@ -159,9 +149,7 @@ scal = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "scal!($N, $alpha, $x, 1)",
-    "",
     [SizeArgument("N", x, "rows")], # Argument objects
     options={KernelOption.no_simplifications}
     )
@@ -186,9 +174,7 @@ axpy = KernelDescription(
     ],
     OutputOperand(y, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "axpy!($alpha, $x, $y) # vectors",
-    "",
     [SizeArgument("N", x, "rows"),
      SizeArgument("M", x, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -217,9 +203,7 @@ ger = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "ger!($alpha, $x, $y, $A)",
-    "",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
     )
@@ -241,7 +225,6 @@ ger_alt = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$A .= $alpha.*$x.*transpose($y)",
     # textwrap.dedent(
     #     """\
@@ -249,7 +232,6 @@ ger_alt = KernelDescription(
     #     ger!($alpha, $x, $y, $A)\
     #     """
     #     ),
-    "",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
     )
@@ -273,9 +255,7 @@ syr = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.symmetric_lower_triangular), # return value
     cf, # cost function
-    "",
     "syr!('L', $alpha, $x, $A)",
-    "",
     [SizeArgument("M", x, "rows")], # Argument objects
     )
 
@@ -294,7 +274,6 @@ syr_alt = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.symmetric_lower_triangular), # return value
     cf, # cost function
-    "",
     # If A is not allocated, use "$A = zeros($type, ($M, $N))\n"
     textwrap.dedent(
         """\
@@ -302,7 +281,6 @@ syr_alt = KernelDescription(
         syr!('L', $alpha, $x, $A)\
         """
         ),
-    "",
     [SizeArgument("M", x, "rows")], # Argument objects
     )
 
@@ -338,9 +316,7 @@ gemv = KernelDescription(
     ],
     OutputOperand(y, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "gemv!($transA, $alpha, $A, $x, $beta, $y)",
-    "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", A, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -371,9 +347,7 @@ symv = KernelDescription(
     ],
     OutputOperand(y, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "symv!($uplo, $alpha, $A, $x, $beta, $y)",
-    "",
     [SizeArgument("M", A, "rows"),
      StorageFormatArgument("uplo", A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"}),], # Argument objects
     options={KernelOption.transpose}
@@ -402,9 +376,7 @@ trmv = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "trmv!($uplo, $transA, $diag, $A, $x)",
-    "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     options={KernelOption.transpose}
@@ -435,9 +407,7 @@ trsv = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "trsv!($uplo, $transA, $diag, $A, $x)",
-    "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     options={KernelOption.transpose}
@@ -479,9 +449,7 @@ gemm = KernelDescription(
     ],
     OutputOperand(C, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "gemm!($transA, $transB, $alpha, $A, $B, $beta, $C)",
-    "",
     [SizeArgument("M", Op1(A), "rows"),
      SizeArgument("N", Op2(B), "columns"),
      SizeArgument("K", Op1(A), "columns")], # Argument objects
@@ -523,9 +491,7 @@ symm = KernelDescription(
     ],
     OutputOperand(C, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "symm!($side, $uplo, $alpha, $A, $B, $beta, $C)",
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
@@ -559,9 +525,7 @@ syrk = KernelDescription(
     ],
     OutputOperand(C, StorageFormat.symmetric_triangular_out), # return value
     cf, # cost function
-    "",
     "syrk!($uplo, $transA, $alpha, $A, $beta, $C)",
-    "",
     [SizeArgument("N", Op1(A), "rows"),
      SizeArgument("K", Op1(A), "columns"),
      StorageFormatArgument("uplo", C, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})], # Argument objects
@@ -593,9 +557,7 @@ syr2k = KernelDescription(
     ],
     OutputOperand(C, StorageFormat.symmetric_triangular_out), # return value
     cf, # cost function
-    "",
     "syr2k!($uplo, $trans, $alpha, $A, $B, $beta, $C)",
-    "",
     [SizeArgument("N", Op1(A), "rows"),
      SizeArgument("K", Op1(A), "columns"),
      StorageFormatArgument("uplo", C, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})], # Argument objects
@@ -636,9 +598,7 @@ trmm = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "trmm!($side, $uplo, $transA, $diag, $alpha, $A, $B)",
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
@@ -684,9 +644,7 @@ trsm = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "trsm!($side, $uplo, $transA, $diag, $alpha, $A, $B)",
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
      SizeArgument("K", A, "rows"),
@@ -715,9 +673,7 @@ lascl = KernelDescription(
     ],
     OutputOperand(X, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "scal!($MN, $alpha, $X, 1)",
-    "",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns"),
      SizeArgument("MN", X, "entries")], # Argument objects
@@ -739,9 +695,7 @@ getri = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B = inv($A)",
-    "",
     [SizeArgument("N", A, "columns")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -762,9 +716,7 @@ trtri = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.as_overwritten), # return value
     cf, # cost function
-    "",
     "LAPACK.trtri!($uplo, $diag, $A)",
-    "",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
     options={KernelOption.transpose}
@@ -785,14 +737,12 @@ syinv = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.symmetric_triangular_out), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         ($A, ipiv, info) = LAPACK.sytrf!($uplo, $A)
         LAPACK.sytri!($uplo, $A, ipiv)\
         """
         ),
-    "",
     [SizeArgument("N", A, "rows"),
      StorageFormatArgument("uplo", A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})], # Argument objects
     options={KernelOption.transpose}
@@ -822,9 +772,7 @@ posv = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "LAPACK.posv!('L', $A, $B)",
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -854,7 +802,6 @@ posvr = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         $B = $B'
@@ -862,7 +809,6 @@ posvr = KernelDescription(
         $B = $B'\
         """
         ),
-    "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -894,7 +840,6 @@ sysv = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         tmp = Array{Float64}(undef, $M, $M)
@@ -902,7 +847,6 @@ sysv = KernelDescription(
         LAPACK.sysv!('L', tmp, $B)\
         """
         ),
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -933,7 +877,6 @@ sysvr = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         $B = transpose($B)
@@ -943,7 +886,6 @@ sysvr = KernelDescription(
         $B = transpose($B)\
         """
         ),
-    "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -972,9 +914,7 @@ gesv = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "($A, ipiv, info) = LAPACK.getrf!($A)\nLAPACK.getrs!($transA, $A, ipiv, $B)",
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1002,9 +942,7 @@ gesvr = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B = $B/lufact!($A)",
-    "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1031,9 +969,7 @@ gesvrt = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B = $B/lufact!($A')",
-    "",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1066,9 +1002,7 @@ posv_vec = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "LAPACK.posv!('L', $A, $x)",
-    "",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -1101,9 +1035,9 @@ posv_vec = KernelDescription(
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
-#     "",
+#
 #     "$B = $B'\nLAPACK.posv!('L', $A, $B)\n$B = $B'",
-#     "",
+#
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
 #     options={KernelOption.transpose}
@@ -1134,7 +1068,6 @@ sysv_vec = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         tmp = Array{Float64}(undef, $M, $M)
@@ -1142,7 +1075,6 @@ sysv_vec = KernelDescription(
         LAPACK.sysv!('L', tmp, $x)\
         """
         ),
-    "",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -1176,9 +1108,9 @@ sysv_vec = KernelDescription(
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
-#     "",
+#
 #     "$B = $B'\nLAPACK.sysv!('L', $A, $B)\n$B = $B'",
-#     "",
+#
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
 #     options={KernelOption.transpose}
@@ -1207,14 +1139,12 @@ gesv_vec = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         ($A, ipiv, info) = LAPACK.getrf!($A)
         LAPACK.getrs!($transA, $A, ipiv, $x)\
         """
         ),
-    "",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -1245,9 +1175,9 @@ gesv_vec = KernelDescription(
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
-#     "",
+#
 #     "$B = $B/lufact!($A)",
-#     "",
+#
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
 #     options={KernelOption.transpose}
@@ -1278,9 +1208,9 @@ gesv_vec = KernelDescription(
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
 #     cf, # cost function
-#     "",
+#
 #     "$B = $B/lufact!($A')",
-#     "",
+#
 #     [SizeArgument("M", B, "columns"),
 #      SizeArgument("N", B, "rows")], # Argument objects
 #     options={KernelOption.transpose}
@@ -1307,9 +1237,7 @@ invscal = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$x ./= $alpha",
-    "",
     [SizeArgument("N", x, "rows")], # Argument objects
     options={KernelOption.no_simplifications}
     )
@@ -1332,9 +1260,7 @@ invlascl = KernelDescription(
     ],
     OutputOperand(X, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$X ./= $alpha",
-    "",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns")], # Argument objects
     options={KernelOption.no_simplifications}
@@ -1354,9 +1280,7 @@ diaginv = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.diagonal_vector), # return value
     cf, # cost function
-    "",
     "$A = 1 ./$A",
-    "",
     [SizeArgument("N", A, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -1374,10 +1298,8 @@ transpose = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     # $B = Array{$type}($N, $M)
     """transpose!($B, $A)""",
-    "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", A, "columns")], # Argument objects
     )
@@ -1394,9 +1316,7 @@ transpose_vector = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "# Transposing vector $x (no operation);",
-    "",
     [], # Argument objects
     )
 
@@ -1418,9 +1338,7 @@ matrix_sum = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "axpy!($alpha, $A, $B) # matrices",
-    "",
     [SizeArgument("N", A, "columns"),
      SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1440,9 +1358,7 @@ matrix_sum_transpose = KernelDescription(
     ],
     OutputOperand(A, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$A .+= transpose($B)",
-    "",
     [SizeArgument("N", A, "columns"),
      SizeArgument("M", A, "rows")], # Argument objects
     )
@@ -1466,9 +1382,7 @@ diagscal = KernelDescription(
     ],
     OutputOperand(X, StorageFormat.diagonal_vector), # return value
     cf, # cost function
-    "",
     "scal!(min($M, $N), $alpha, $X, 1)",
-    "",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns")], # Argument objects
     options={KernelOption.no_simplifications}
@@ -1509,7 +1423,6 @@ diagdiagmul = KernelDescription(
     ],
     OutputOperand(C, StorageFormat.diagonal_vector), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         for i = 1:min(length($A), length($B));
@@ -1520,7 +1433,6 @@ diagdiagmul = KernelDescription(
         end;\
         """
         ),
-    "",
     [SizeArgument("M", A, "rows"),
      SizeArgument("K", A, "columns"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1554,9 +1466,7 @@ diagdiagsolve = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.diagonal_vector), # return value
     cf, # cost function
-    "",
     "$B ./= $A;",
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1585,7 +1495,6 @@ diagsmr = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         @views for i = 1:size($B, 2);
@@ -1593,7 +1502,6 @@ diagsmr = KernelDescription(
         end;\
         """
         ),
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1622,9 +1530,7 @@ diagsml = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B ./= $A;",
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1651,9 +1557,7 @@ diagsv = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$x ./= $A",
-    "",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -1687,7 +1591,6 @@ diagmmr = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         for i = 1:size($B, 2);
@@ -1695,7 +1598,6 @@ diagmmr = KernelDescription(
         end;\
         """
         ),
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1730,7 +1632,6 @@ diagmml = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         for i = 1:size($B, 2);
@@ -1738,7 +1639,6 @@ diagmml = KernelDescription(
         end;\
         """
         ), # this has better spacial locality than view($B, i, :)[:] .*= $A[i];
-    "",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1769,9 +1669,7 @@ diagmv = KernelDescription(
     ],
     OutputOperand(x, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$x .*= $A",
-    "",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -1796,9 +1694,7 @@ diagdiagadd = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.diagonal_vector), # return value
     cf, # cost function
-    "",
     "axpy!($alpha, $A, $B) # diagonal matrices",
-    "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
     )
@@ -1823,7 +1719,6 @@ diagfulladd = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.as_overwritten), # return value
     cf, # cost function
-    "",
     textwrap.dedent(
         """\
         d = $A;
@@ -1832,7 +1727,6 @@ diagfulladd = KernelDescription(
         end;\
         """
         ), # the variable d is used here to make sure that the identity matrix is no created inside the loop
-    "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1855,9 +1749,7 @@ pmm = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B = $A[$P,:]",
-    "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1880,9 +1772,7 @@ ptmm = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B = $A[invperm($P),:]",
-    "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1905,9 +1795,7 @@ mpm = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B = $A[:,invperm($P)]",
-    "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1930,9 +1818,7 @@ mptm = KernelDescription(
     ],
     OutputOperand(B, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$B = $A[:,$P]",
-    "",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -1954,9 +1840,7 @@ pvm = KernelDescription(
     ],
     OutputOperand(y, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$y = $x[$P]",
-    "",
     [SizeArgument("N", P, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -1978,9 +1862,7 @@ ptvm = KernelDescription(
     ],
     OutputOperand(y, StorageFormat.full), # return value
     cf, # cost function
-    "",
     "$y = $x[invperm($P)]",
-    "",
     [SizeArgument("N", P, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -2002,9 +1884,7 @@ ppm = KernelDescription(
     ],
     OutputOperand(X, StorageFormat.permutation_vector), # return value
     cf, # cost function
-    "",
     "$X = $Q[$P]",
-    "",
     [SizeArgument("N", P, "rows")], # Argument objects
     options={KernelOption.transpose}
     )
@@ -2027,9 +1907,7 @@ ptpm = KernelDescription(
     ],
     OutputOperand(X, StorageFormat.permutation_vector), # return value
     cf, # cost function
-    "",
     "$X = $Q[invperm($P)]",
-    "",
     [SizeArgument("N", P, "rows")], # Argument objects
     )
 
@@ -2051,9 +1929,7 @@ pptm = KernelDescription(
     ],
     OutputOperand(X, StorageFormat.permutation_vector), # return value
     cf, # cost function
-    "",
     "$X = invperm($Q)[$P]",
-    "",
     [SizeArgument("N", P, "rows")], # Argument objects
     )
 
@@ -2072,9 +1948,7 @@ transpose_perm = KernelDescription(
     ],
     OutputOperand(Q, StorageFormat.permutation_vector), # return value
     cf, # cost function
-    "",
     "$Q = invperm($P)",
-    "",
     [SizeArgument("N", P, "rows")], # Argument objects
     )
 

@@ -36,9 +36,7 @@ cholesky = FactorizationKernel(
     Times(_L, Transpose(_L)),
     [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.NON_SINGULAR], StorageFormat.lower_triangular)],
     cf,
-    None,
     CodeTemplate("""LAPACK.potrf!('L', $_A)"""),
-    None,
     [SizeArgument("N", _A, "rows")],
     )
 
@@ -63,9 +61,7 @@ plu = FactorizationKernel(
      OutputOperand(_P, None, ("N", "N"), [Property.PERMUTATION], StorageFormat.ipiv)
     ],
     cf,
-    CodeTemplate(),
     CodeTemplate("($_A, $_P, info) = LAPACK.getrf!($_A)"),
-    CodeTemplate(),
     [SizeArgument("N", _A, "rows")],
     )
 
@@ -96,9 +92,7 @@ qr_square = FactorizationKernel(
      OutputOperand(_R, _A, ("N", "N"), [Property.FULL_RANK, Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
     ],
     cf_qr_square,
-    CodeTemplate(),
     CodeTemplate("$_A = qr!($_A)"),
-    CodeTemplate(),
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
     )
@@ -128,9 +122,7 @@ qr_column = FactorizationKernel(
      OutputOperand(_R, _A, ("N", "N"), [Property.FULL_RANK, Property.UPPER_TRIANGULAR, Property.SQUARE], StorageFormat.QRfact_R)
     ],
     cf_qr_column,
-    None,
     CodeTemplate("$_A = qr!($_A)"),
-    None,
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
     )
@@ -158,9 +150,7 @@ eigendecomposition = FactorizationKernel(
      OutputOperand(_W, None, ("N", "N"), [Property.DIAGONAL, Property.SQUARE], StorageFormat.diagonal_vector)
     ],
     cf_eigen,
-    None,
     CodeTemplate("$_W, $_A = LAPACK.syev!('V', $uplo, $_A)"),
-    None,
     [SizeArgument("N", _A, "rows"),
      StorageFormatArgument("uplo", _A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"})]
     )
@@ -190,9 +180,7 @@ singular_value_cp = FactorizationKernel(
      OutputOperand(_V, None, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full)
     ],
     cf,
-    None,
     CodeTemplate("(_, $_S, $_V) = LAPACK.gesvd!('O', 'S', $_A)"),
-    None,
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
     )
@@ -215,9 +203,7 @@ singular_value_sq = FactorizationKernel(
      OutputOperand(_V, None, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full)
     ],
     cf,
-    None,
     CodeTemplate("(_, $_S, $_V) = LAPACK.gesvd!('O', 'S', $_A)"),
-    None,
     [SizeArgument("N", _A, "rows")],
     )
 
@@ -239,9 +225,7 @@ singular_value_rp = FactorizationKernel(
      OutputOperand(_V, _A, ("M", "N"), [Property.ORTHOGONAL_ROWS], StorageFormat.full)
     ],
     cf,
-    None,
     CodeTemplate("($_U, $_S, _) = LAPACK.gesvd!('S', 'O', $_A)"),
-    None,
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
     )

@@ -248,11 +248,6 @@ class Algorithm():
 
         signature = matched_kernel.signature.safe_substitute_copy(matched_kernel.other_replacements)
 
-        if matched_kernel.pre_code:
-            kernel_pre_code = matched_kernel.pre_code.safe_substitute_copy(matched_kernel.other_replacements)
-        if matched_kernel.post_code:
-            kernel_post_code = matched_kernel.post_code.safe_substitute_copy(matched_kernel.other_replacements)
-
         late_arguments = []
         for argument in arguments:
             if isinstance(argument, kernels.utils.general.StorageFormatArgument):
@@ -293,16 +288,8 @@ class Algorithm():
 
         signature.safe_substitute(operand_mapping)
 
-        if matched_kernel.pre_code:
-            kernel_pre_code.safe_substitute(operand_mapping)
-        if matched_kernel.post_code:
-            kernel_post_code.safe_substitute_copy(operand_mapping)
-
         if argument_pre_code:
             lines_list.extend(self.remove_duplicate_lines(argument_pre_code, known_lines))
-
-        if matched_kernel.pre_code:
-            lines_list.append(kernel_pre_code.safe_substitute_str(argument_mapping))
 
         lines_list.append(config.comment)
         lines_list.append(str(matched_kernel.operation))
@@ -310,9 +297,6 @@ class Algorithm():
 
         lines_list.append(signature.safe_substitute_str(argument_mapping))
         lines_list.append("\n")
-
-        if matched_kernel.post_code:
-            lines_list.append(kernel_post_code.safe_substitute_str(argument_mapping))
 
         if mem_ops_after:
             mem_code_after = "".join([mem_op.code() for mem_op in mem_ops_after])
@@ -581,8 +565,6 @@ class MatchedKernel():
 
         self.signature = None
         self.arguments = None
-        self.pre_code = None
-        self.post_code = None
 
         self.other_replacements = None
 
