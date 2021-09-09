@@ -16,38 +16,8 @@ from ..utils import is_blocked
 
 from enum import Enum, unique
 
-import copy
-import itertools
-import operator
 import heapq
 
-@unique
-class ExpressionType(Enum):
-    # An expression of the form Inverse(Symbol), where Symbol has a property
-    # that makes factorizations unnecessary.
-    simple_inverse_no_factor = 1
-
-    # An expression of the form Inverse(Symbol), where Symbol has a property
-    # that makes factorizations necessary.
-    simple_inverse = 2
-
-    # An expression of the form Inverse(Times(…)) or Inverse(Plus(…)), where
-    # the operands of Times/Plus have properties that make factorizations
-    # unnecessary.
-    compound_inverse_no_factor = 3
-
-    # An expression of the form Inverse(Times(…)) or Inverse(Plus(…)), where
-    # the operands of have properties that make factorizations necessary.
-    compound_inverse = 4
-
-    # One of the following:
-    # Plus(…) where all operands are either Symbol, Transpose(Symbol) or
-    # Minus(Symbol).
-    # Times(…) where all operands are either Symbol, Transpose(Symbol), 
-    # Minus(Symbol), … or simple inverses that don't require factorizations.
-    simple = 5
-
-    none = 6
 
 @unique
 class OperationType(Enum):
@@ -169,51 +139,6 @@ def generate_representations(equations, eqn_idx=None):
         yield equations
 
 
-
-def process_next(equation):
-    """Finds a subexpression to process next in the generation.
-
-    This function takes an equation as input. It is assumed that the equation
-    has the form <symbol> = <expression>.
-
-    Returns a tuple with
-    - the path to the expression to process next
-    - the type of that expression (as ExpressionType)
-    - the operation type of that expression, if applicable (as OperationType)
-
-    Subexpressions are selected as follows:
-    1. The first inverse (according to postorder) that requires further
-       processing.
-    2. If there is no such inverese, the first (according to postorder) simple
-       plus of simple times.
-    """
-
-    # It is necessary to search for inverses first because it's possible that
-    # simple plus or times is inside an inverse, so factorizations have to be
-    # used.
-    for expr, pos in inverse_positions(equation.rhs, (1,)):
-        expr_type, op_type = inverse_type(expr)
-        if expr_type == ExpressionType.simple_inverse_no_factor:
-            continue
-        else:
-            return (pos, expr_type, op_type)
-
-
-    for expr, pos in process_next_generator(equation.rhs, (1,)):
-        # expr = equation[pos]
-        # print("here", expr, expr.size)
-        # print(list((n, n.size) for n in expr.iterate_preorder()))
-        # if is_scalar(expr):
-            # print("here")
-        if isinstance(expr, Plus) and is_simple_plus(expr):
-            return (pos, ExpressionType.simple, OperationType.plus)
-        elif isinstance(expr, Times) and is_simple_times(expr):
-            return (pos, ExpressionType.simple, OperationType.times)
-
-    # (1,) = position of right-hand side
-    return ((1,), ExpressionType.none, OperationType.none)
-
-
 def process_next_simple(expression):
     """Finds a subexpression to process next in the generation.
 
@@ -271,71 +196,6 @@ def process_next_generator(expr, position=()):
             new_position = position + (n,)
             yield from process_next_generator(operand, new_position)
     yield (expr, position)
-
-
-def inverse_type(expr):
-    """Infers the ExpressionType of the inverse expr."""
-
-    first_operand = expr.operands[0]
-
-    op_type = None
-    if isinstance(first_operand, Times):
-        op_type = OperationType.times
-    elif isinstance(first_operand, Plus):
-        op_type = OperationType.plus
-
-    if isinstance(first_operand, Symbol):
-        if not first_operand.has_property(Property.ADMITS_FACTORIZATION):
-            # if expr is an inverse of a symbol but has a property
-            # that makes factorization unnecessary, skip this inverse
-            #print(" ".join(["don't factor:", str(first_operand)]) )
-            return (ExpressionType.simple_inverse_no_factor, op_type)
-        else:
-            # otherwise, use factorization
-            #print(" ".join(["factor:", str(first_operand)]) )
-            return (ExpressionType.simple_inverse, op_type)
-    else:
-        # if expr is an inverse of a compound expression
-        for tmp_expr, pos in expr.preorder_iter():
-            # search for operands that could be factored
-            if isinstance(tmp_expr, Matrix):
-                if first_operand.has_property(Property.ADMITS_FACTORIZATION):
-                    # if there is one, use factorizations
-                    #print(" ".join(["compound, factor because of:", str(tmp_expr)]) )
-                    return (ExpressionType.compound_inverse, op_type)
-                else:
-                    # if there are none, use other kernels
-                    continue
-                   
-        # When we end up here, we know that there are no operands to factor in
-        # this compund inverse.
-        return (ExpressionType.compound_inverse_no_factor, op_type)
-
-
-def identify_inverses_eqns(equations):
-    """Identifies an innermost inverse in equations."""
-    use_factorizations = False
-    use_kernels = False
-
-    for eqn_idx, equation in enumerate(equations):
-        # always starting at right-hand side
-        # inverse_positions uses postorder, so we look at deeper inverses first
-        for inv_expr, inv_pos in inverse_positions(equation.rhs, (1,)):
-            type = inverse_type(inv_expr)
-            if type == ExpressionType.simple_inverse_no_factor:
-                continue
-            elif type == ExpressionType.simple_inverse:
-                use_factorizations = True
-                return (eqn_idx, inv_pos, use_factorizations, use_kernels)
-            elif type == ExpressionType.compound_inverse_no_factor:
-                use_kernels = True
-                return (eqn_idx, inv_pos, use_factorizations, use_kernels)
-            elif type == ExpressionType.compound_inverse:
-                use_factorizations = True
-                use_kernels = True
-                return (eqn_idx, inv_pos, use_factorizations, use_kernels)
-
-    return (None, None, False, False)
 
 
 def is_explicit_inversion(matrix_chain):
