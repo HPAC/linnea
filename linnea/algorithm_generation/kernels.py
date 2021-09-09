@@ -5,8 +5,7 @@ from ..code_generation.utils import MatchedKernel
 from .. import temporaries
 from .. import config
 
-from .utils import apply_kernel_with_context, apply_kernel_anywhere, \
-                   select_optimal_match
+from .utils import select_optimal_match
 
 from .graph.utils import process_next, OperationType, \
                          is_explicit_inversion, is_blocked
@@ -173,6 +172,75 @@ def decompose_sum(expr):
         raise MatrixSumNotComputable("{} is not computable.".format(expr))
 
     return expr, matched_kernels
+
+
+def apply_kernel_with_context(expr, many_to_one_matcher):
+    """Applies the optimal kernel to an expressions.
+
+    This function applies the optimal matching kernel of the many_to_one_matcher
+    to expr and returns the replacement, as well as the matched kernel.
+
+    The functions only searches for matches at the root of expr, and it expects
+    many_to_one_matcher to use the patterns with context variables
+    (Kernel.pattern_with_context).
+
+    Args:
+        expr (Expression): The expression where the kernel should be applied.
+        many_to_one_matcher (ManyToOneMatcher): Matcher for kernel patterns with
+            context. The label has to be the kernel.
+
+    Returns:
+        A tuple containing
+        - the replacement (Expression)
+        - the matched kernel (MatchedKernel)
+        If no match was found, the replacement is the input expression and
+        instead of the matched kernel, None is returned.
+    """
+
+    optimal_match = (None, None)
+    min_cost = math.inf
+
+    for kernel, substitution in many_to_one_matcher.match(expr):
+        cost = kernel.cost(substitution)
+        if cost < min_cost:
+            optimal_match = (kernel, substitution)
+
+    kernel, substitution = optimal_match
+    if kernel:
+        matched_kernel = kernel.set_match(substitution, True)
+        expr = matched_kernel.replacement
+        return expr, matched_kernel
+    return (expr, None)
+
+
+def apply_kernel_anywhere(expr, discrimination_net):
+    """Applies one kernel to an expressions.
+
+    This function applies the first matching kernel of the discrimination_net to
+    expr and returns the replacement, as well as the matched kernel.
+
+    The functions searches for matches anywhere in expr, and it expects
+    discrimination_net to use the pattern without context variables
+    (Kernel.pattern).
+
+    Args:
+        expr (Expression): The expression where the kernel should be applied.
+        discrimination_net (DiscriminationNet): Discrimination net for kernel
+        patterns without context. The final_label has to be the kernel.
+
+    Returns:
+        A tuple containing
+        - the replacement (Expression)
+        - the matched kernel (MatchedKernel)
+        If no match was found, the replacement is the input expression and
+        instead of the matched kernel, None is returned.
+    """
+    for node, pos in expr.preorder_iter():
+        for kernel, substitution in discrimination_net.match(node):
+            matched_kernel = kernel.set_match(substitution, False)
+            expr = matchpy.replace(expr, pos, matched_kernel.replacement)
+            return expr, matched_kernel
+    return (expr, None)
 
 
 def decompose_sum_old(expr):
