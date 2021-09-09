@@ -3,7 +3,7 @@ from ..algebra.expression import Times
 from .. import config
 collections_module = config.import_collections()
 
-from .graph import matrix_chain
+from .graph import matrix_chain_graph
 
 import math
 import itertools
@@ -82,7 +82,7 @@ class MatrixChainSolver():
                     else:
                         # The matrix chain graph is only used if product can
                         # con be computed with a single kernel.
-                        mc_graph = matrix_chain.MatrixChainGraph(product)
+                        mc_graph = matrix_chain_graph.MatrixChainGraph(product)
                         mc_graph.generate()
                         matched_kernels, _cost, tmp = mc_graph.optimal_algorithm()
                         # mc_graph.write_graph("tmp", config.GraphStyle.full, file_name="matrix_chain_graph")
