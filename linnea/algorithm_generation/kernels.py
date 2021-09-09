@@ -8,7 +8,7 @@ from .. import config
 from .utils import apply_kernel_with_context, apply_kernel_anywhere, \
                    select_optimal_match, is_blocked
 
-from .graph.utils import process_next_simple, OperationType, \
+from .graph.utils import process_next, OperationType, \
                          is_explicit_inversion
 
 from . import matrix_chain_solver
@@ -28,7 +28,7 @@ def TR_kernels_constructive(equations):
     equation, eqn_idx = equations.process_next()
     if not equation:
         return
-    pos, op_type = process_next_simple(equation)
+    pos, op_type = process_next(equation)
 
     if op_type == OperationType.times:
         yield from apply_matrix_chain_algorithm(equations, eqn_idx, pos, is_explicit_inversion(equation[pos]))
@@ -43,7 +43,7 @@ def TR_kernels(equations):
     if not equation:
         return
 
-    pos, op_type = process_next_simple(equation)
+    pos, op_type = process_next(equation)
 
     if op_type == OperationType.unary:
         # There is no need to do anything in this case here because

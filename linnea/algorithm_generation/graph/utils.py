@@ -139,18 +139,12 @@ def generate_representations(equations, eqn_idx=None):
         yield equations
 
 
-def process_next_simple(expression):
+def process_next(expression):
     """Finds a subexpression to process next in the generation.
-
-    This is a simplified verision of process_next(). The difference is that this
-    function does not take inverses into account. Thus, is can be used for
-    expression where it is already known that factorizations have to be applied
-    (like compund inverses), but it still has to be determined what to do in
-    addition to that (solving sums or products, or applying unary operators).
 
     As input, this function takes an expression. If this expression is a
     subexpression of a another expression, the optional argument position can be
-    used to ensure that process_next_simple returns the correct path to the
+    used to ensure that this function returns the correct path to the
     subexpression to process next.
 
     Returns a tuple with
