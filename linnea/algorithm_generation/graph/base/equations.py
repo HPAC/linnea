@@ -129,12 +129,12 @@ class EquationsGraph(base.Graph):
 
 
     def GS_kernels_constructive(self, node, equations):
-        for new_equations, edge_label in kernels.TR_kernels_constructive(equations):
+        for new_equations, edge_label in kernels.apply_kernels_constructive(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 
     def GS_kernels(self, node, equations):
-        for new_equations, edge_label in kernels.TR_kernels(equations):
+        for new_equations, edge_label in kernels.apply_kernels_exhaustive(equations):
             yield self.create_node(node, new_equations, edge_label, equations, previous_generation_step=GenerationStep.kernels)
 
 

@@ -23,7 +23,7 @@ class MatrixSumNotComputable(Exception):
     pass
 
 
-def TR_kernels_constructive(equations):
+def apply_kernels_constructive(equations):
     equation, eqn_idx = equations.process_next()
     if not equation:
         return
@@ -37,7 +37,7 @@ def TR_kernels_constructive(equations):
         yield from apply_unary_kernels(equations, eqn_idx, pos)
 
 
-def TR_kernels(equations):
+def apply_kernels_exhaustive(equations):
     equation, eqn_idx = equations.process_next()
     if not equation:
         return
@@ -46,7 +46,7 @@ def TR_kernels(equations):
 
     if op_type == OperationType.unary:
         # There is no need to do anything in this case here because
-        # TR_kernels_constructive does it already.
+        # apply_kernels_constructive does it already.
         return
     else:
         # yield_from can't be used in this case, because we need to know if a kernel was yielded
