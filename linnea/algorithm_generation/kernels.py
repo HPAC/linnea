@@ -66,7 +66,7 @@ def apply_kernels(equations, eqn_idx, initial_pos):
     for node, _pos in initial_node.preorder_iter():
         pos = initial_pos + _pos
 
-        for grouped_kernels in collections_module.reduction_MA.match(node).grouped():
+        for grouped_kernels in collections_module.kernel_MA.match(node).grouped():
 
             kernel, substitution = select_optimal_match(grouped_kernels)
             

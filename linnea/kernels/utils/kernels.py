@@ -10,7 +10,7 @@ from .general import PropertyConstraints, \
                      to_wildcard_name, \
                      SizeArgument, ConstantArgument, \
                      substitute_symbols_with_wildcards, \
-                     Kernel, \
+                     AbstractKernel, \
                      InputOperand, \
                      PropertyTuple
 
@@ -45,8 +45,8 @@ _op = matchpy.Wildcard.symbol("_op")
 ctx1 = matchpy.Wildcard.star("ctx1")
 ctx2 = matchpy.Wildcard.star("ctx2")
 
-class ReductionKernel(Kernel):
-    """docstring for ReductionKernel"""
+class Kernel(AbstractKernel):
+    """docstring for Kernel"""
 
     def __init__(self, pattern, input_operands, output_operand, cost_function, signature, arguments, type=KernelType.identity, kernel_io=None):
         super().__init__(cost_function, signature, arguments)
@@ -219,7 +219,7 @@ class ReductionKernel(Kernel):
         #############
         # Blocked products
 
-        # Not relevant for reductions.   
+        # Not relevant for kernels.   
 
         return matched_kernel
 
@@ -330,7 +330,7 @@ class DefaultValueKV(KernelVariant):
     is reasonable to use 1 for alpha and 0 and 1 for beta. Then, this kernel can
     also be used if there are no scalars and/or no addition. Otherwise, the
     kernel could only be used if every wildcard matches one operand. In all
-    cases, one ReductionKernel is generated where no default values are used.
+    cases, one Kernel is generated where no default values are used.
 
     Note:
         For each operand that is supposed to be replaced with default values,
@@ -419,7 +419,7 @@ class KernelDescription():
     """Description of BLAS-like kernels.
 
     This class contains a complete description of a BLAS-like kernel. It is
-    used to generate ReductionKernel objects for specific instances of this
+    used to generate Kernel objects for specific instances of this
     kernel. In this context, an "instance" is a fixed combination of arguments,
     for example whether a certain operand is transposed or not, or whether a
     matrix is upper or lower triangular. The motivation is that each such
@@ -500,10 +500,10 @@ class KernelDescription():
         self.return_value.operand = self.wildcards[self.return_value.operand.name]
 
     def generate_kernels(self):
-        """Generator for ReductionKernel objects.
+        """Generator for Kernel objects.
 
         Yields:
-            ReductionKernel: Each object represents one instance of a BLAS-like
+            Kernel: Each object represents one instance of a BLAS-like
                 kernel.
         """
         # TODO using dictionaries for arg_vals does not make a lot of sense
@@ -613,10 +613,10 @@ class KernelDescription():
                 # print(constraints)
 
                 kernel_io.replace_variables(self.wildcards)
-                yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.signature, arguments_copy2, KernelType.identity, kernel_io)
+                yield Kernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.signature, arguments_copy2, KernelType.identity, kernel_io)
                 
                 if KernelOption.transpose in self.options:
-                    yield ReductionKernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.signature, arguments_copy2, KernelType.transpose, kernel_io)
+                    yield Kernel(matchpy.Pattern(expr_copy2, *constraints_list), remaining_input_operands, self.return_value, self.cost_function, self.signature, arguments_copy2, KernelType.transpose, kernel_io)
 
 ############################
 # Auxiliary functions

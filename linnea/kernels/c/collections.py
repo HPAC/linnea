@@ -2,31 +2,31 @@
 
 import itertools
 
-from . import reductions
+from . import kernels
 from . import factorizations
 
 
-# Normal reduction kernels
+# Kernels
 other_kernel_descriptions = [
-     clak.kernels.c.reductions.scalar_product,
-     clak.kernels.c.reductions.scalar_sum,
-     clak.kernels.c.reductions.dot,
-     clak.kernels.c.reductions.ger,
-     clak.kernels.c.reductions.ger_alt,
-     clak.kernels.c.reductions.gemv,
-     clak.kernels.c.reductions.trsv,
-     clak.kernels.c.reductions.gemm,
-     clak.kernels.c.reductions.trsm
+     clak.kernels.c.kernels.scalar_product,
+     clak.kernels.c.kernels.scalar_sum,
+     clak.kernels.c.kernels.dot,
+     clak.kernels.c.kernels.ger,
+     clak.kernels.c.kernels.ger_alt,
+     clak.kernels.c.kernels.gemv,
+     clak.kernels.c.kernels.trsv,
+     clak.kernels.c.kernels.gemm,
+     clak.kernels.c.kernels.trsm
      ]
 
 others = list(itertools.chain.from_iterable( list(description.generate_kernels()) for description in other_kernel_descriptions ))
 
-# Unary reduction kernels
+# Unary kernels
 unary_kernel_descriptions = [
-     clak.kernels.c.reductions.getri,
-     clak.kernels.c.reductions.trtri,
-     clak.kernels.c.reductions.transpose,
-     clak.kernels.c.reductions.transpose_vector
+     clak.kernels.c.kernels.getri,
+     clak.kernels.c.kernels.trtri,
+     clak.kernels.c.kernels.transpose,
+     clak.kernels.c.kernels.transpose_vector
      ]
 
 unary_kernels = list(itertools.chain.from_iterable( list(description.generate_kernels()) for description in unary_kernel_descriptions ))
@@ -34,22 +34,22 @@ unary_kernels = list(itertools.chain.from_iterable( list(description.generate_ke
 # Addition kernels (for AdditionGraph)
 # The order is (somewhat) important. Addition comes before scaling.
 addition_kernel_descriptions = [
-     clak.kernels.c.reductions.axpy,
-     clak.kernels.c.reductions.scal,
-     clak.kernels.c.reductions.matrix_sum_NN,
-     clak.kernels.c.reductions.matrix_sum_TN,
-     clak.kernels.c.reductions.matrix_sum_NT,
-     clak.kernels.c.reductions.matrix_sum_TT,
-     clak.kernels.c.reductions.lascl,
+     clak.kernels.c.kernels.axpy,
+     clak.kernels.c.kernels.scal,
+     clak.kernels.c.kernels.matrix_sum_NN,
+     clak.kernels.c.kernels.matrix_sum_TN,
+     clak.kernels.c.kernels.matrix_sum_NT,
+     clak.kernels.c.kernels.matrix_sum_TT,
+     clak.kernels.c.kernels.lascl,
      ]
 
 addition_kernels = list(itertools.chain.from_iterable( list(description.generate_kernels()) for description in addition_kernel_descriptions ))
 
-reductions = others + addition_kernels
+kernels = others + addition_kernels
 
-matrix_chain_kernels = [kernel for kernel in reductions if kernel.is_matrix_chain_kernel()]
+matrix_chain_kernels = [kernel for kernel in kernels if kernel.is_matrix_chain_kernel()]
 
-# matrix_sum = list(clak.kernels.c.reductions.matrix_sum.generate_kernels())[0]
+# matrix_sum = list(clak.kernels.c.kernels.matrix_sum.generate_kernels())[0]
 
 cholesky = clak.kernels.c.factorizations.cholesky
 eigendecomposition = clak.kernels.c.factorizations.eigendecomposition

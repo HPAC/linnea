@@ -1,7 +1,7 @@
 
 import itertools
 
-from . import reductions
+from . import kernels
 from . import factorizations
 
 import matchpy
@@ -9,74 +9,74 @@ import matchpy
 def to_kernels(descriptions):
     return list(itertools.chain.from_iterable( list(description.generate_kernels()) for description in descriptions))
 
-scalar_product = list(reductions.scalar_product.generate_kernels())
-scalar_division = list(reductions.scalar_division.generate_kernels())
-scalar_inversion = list(reductions.scalar_inversion.generate_kernels())
-scalar_sum = list(reductions.scalar_sum.generate_kernels())
-dot = list(reductions.dot.generate_kernels())
-ger = list(reductions.ger.generate_kernels())
-ger_alt = list(reductions.ger_alt.generate_kernels())
-gemv = list(reductions.gemv.generate_kernels())
-trsv = list(reductions.trsv.generate_kernels())
-gemm = list(reductions.gemm.generate_kernels())
-trsm = list(reductions.trsm.generate_kernels())
-getri = list(reductions.getri.generate_kernels())
-trtri = list(reductions.trtri.generate_kernels())
-syinv = list(reductions.syinv.generate_kernels())
-diaginv = list(reductions.diaginv.generate_kernels())
-transpose = list(reductions.transpose.generate_kernels())
-transpose_vector = list(reductions.transpose_vector.generate_kernels())
-axpy = list(reductions.axpy.generate_kernels())
-scal = list(reductions.scal.generate_kernels())
-matrix_sum = list(reductions.matrix_sum.generate_kernels())
-matrix_sum_transpose = list(reductions.matrix_sum_transpose.generate_kernels())
-lascl = list(reductions.lascl.generate_kernels())
-syrk = list(reductions.syrk.generate_kernels())
-syr2k = list(reductions.syr2k.generate_kernels())
-symv = list(reductions.symv.generate_kernels())
-trmv = list(reductions.trmv.generate_kernels())
-syr = list(reductions.syr.generate_kernels())
-syr_alt = list(reductions.syr_alt.generate_kernels())
-trmm = list(reductions.trmm.generate_kernels())
-symm = list(reductions.symm.generate_kernels())
-diagdiagmul = list(reductions.diagdiagmul.generate_kernels())
-diagdiagsolve = list(reductions.diagdiagsolve.generate_kernels())
-diagsmr = list(reductions.diagsmr.generate_kernels())
-diagsml = list(reductions.diagsml.generate_kernels())
-diagsv = list(reductions.diagsv.generate_kernels())
-diagmmr = list(reductions.diagmmr.generate_kernels())
-diagmml = list(reductions.diagmml.generate_kernels())
-diagmv = list(reductions.diagmv.generate_kernels())
-diagscal = list(reductions.diagscal.generate_kernels())
-diagdiagadd = list(reductions.diagdiagadd.generate_kernels())
-diagfulladd = list(reductions.diagfulladd.generate_kernels())
-invscal = list(reductions.invscal.generate_kernels())
-invlascl = list(reductions.invlascl.generate_kernels())
+scalar_product = list(kernels.scalar_product.generate_kernels())
+scalar_division = list(kernels.scalar_division.generate_kernels())
+scalar_inversion = list(kernels.scalar_inversion.generate_kernels())
+scalar_sum = list(kernels.scalar_sum.generate_kernels())
+dot = list(kernels.dot.generate_kernels())
+ger = list(kernels.ger.generate_kernels())
+ger_alt = list(kernels.ger_alt.generate_kernels())
+gemv = list(kernels.gemv.generate_kernels())
+trsv = list(kernels.trsv.generate_kernels())
+gemm = list(kernels.gemm.generate_kernels())
+trsm = list(kernels.trsm.generate_kernels())
+getri = list(kernels.getri.generate_kernels())
+trtri = list(kernels.trtri.generate_kernels())
+syinv = list(kernels.syinv.generate_kernels())
+diaginv = list(kernels.diaginv.generate_kernels())
+transpose = list(kernels.transpose.generate_kernels())
+transpose_vector = list(kernels.transpose_vector.generate_kernels())
+axpy = list(kernels.axpy.generate_kernels())
+scal = list(kernels.scal.generate_kernels())
+matrix_sum = list(kernels.matrix_sum.generate_kernels())
+matrix_sum_transpose = list(kernels.matrix_sum_transpose.generate_kernels())
+lascl = list(kernels.lascl.generate_kernels())
+syrk = list(kernels.syrk.generate_kernels())
+syr2k = list(kernels.syr2k.generate_kernels())
+symv = list(kernels.symv.generate_kernels())
+trmv = list(kernels.trmv.generate_kernels())
+syr = list(kernels.syr.generate_kernels())
+syr_alt = list(kernels.syr_alt.generate_kernels())
+trmm = list(kernels.trmm.generate_kernels())
+symm = list(kernels.symm.generate_kernels())
+diagdiagmul = list(kernels.diagdiagmul.generate_kernels())
+diagdiagsolve = list(kernels.diagdiagsolve.generate_kernels())
+diagsmr = list(kernels.diagsmr.generate_kernels())
+diagsml = list(kernels.diagsml.generate_kernels())
+diagsv = list(kernels.diagsv.generate_kernels())
+diagmmr = list(kernels.diagmmr.generate_kernels())
+diagmml = list(kernels.diagmml.generate_kernels())
+diagmv = list(kernels.diagmv.generate_kernels())
+diagscal = list(kernels.diagscal.generate_kernels())
+diagdiagadd = list(kernels.diagdiagadd.generate_kernels())
+diagfulladd = list(kernels.diagfulladd.generate_kernels())
+invscal = list(kernels.invscal.generate_kernels())
+invlascl = list(kernels.invlascl.generate_kernels())
 # direct solvers (so far for matrix chain paper only. Problem: They overwrite A and B, which can not be expressed at the moment)
-posv = list(reductions.posv.generate_kernels())
-posvr = list(reductions.posvr.generate_kernels())
-sysv = list(reductions.sysv.generate_kernels())
-sysvr = list(reductions.sysvr.generate_kernels())
-gesv = list(reductions.gesv.generate_kernels())
-gesvr = list(reductions.gesvr.generate_kernels())
-gesvrt = list(reductions.gesvrt.generate_kernels())
-posv_vec = list(reductions.posv_vec.generate_kernels())
-sysv_vec = list(reductions.sysv_vec.generate_kernels())
-gesv_vec = list(reductions.gesv_vec.generate_kernels())
+posv = list(kernels.posv.generate_kernels())
+posvr = list(kernels.posvr.generate_kernels())
+sysv = list(kernels.sysv.generate_kernels())
+sysvr = list(kernels.sysvr.generate_kernels())
+gesv = list(kernels.gesv.generate_kernels())
+gesvr = list(kernels.gesvr.generate_kernels())
+gesvrt = list(kernels.gesvrt.generate_kernels())
+posv_vec = list(kernels.posv_vec.generate_kernels())
+sysv_vec = list(kernels.sysv_vec.generate_kernels())
+gesv_vec = list(kernels.gesv_vec.generate_kernels())
 # operations with permutation matrices
-pmm = list(reductions.pmm.generate_kernels())
-ptmm = list(reductions.ptmm.generate_kernels())
-mpm = list(reductions.mpm.generate_kernels())
-mptm = list(reductions.mptm.generate_kernels())
-pvm = list(reductions.pvm.generate_kernels())
-ptvm = list(reductions.ptvm.generate_kernels())
-ppm = list(reductions.ppm.generate_kernels())
-ptpm = list(reductions.ptpm.generate_kernels())
-pptm = list(reductions.pptm.generate_kernels())
-transpose_perm = list(reductions.transpose_perm.generate_kernels())
+pmm = list(kernels.pmm.generate_kernels())
+ptmm = list(kernels.ptmm.generate_kernels())
+mpm = list(kernels.mpm.generate_kernels())
+mptm = list(kernels.mptm.generate_kernels())
+pvm = list(kernels.pvm.generate_kernels())
+ptvm = list(kernels.ptvm.generate_kernels())
+ppm = list(kernels.ppm.generate_kernels())
+ptpm = list(kernels.ptpm.generate_kernels())
+pptm = list(kernels.pptm.generate_kernels())
+transpose_perm = list(kernels.transpose_perm.generate_kernels())
 
 # Currently, this list is not used (except for obtaining matrix chain kernels.)
-reductions = list(itertools.chain(
+kernels = list(itertools.chain(
                 scalar_product,
                 scalar_division,
                 scalar_sum,
@@ -181,7 +181,7 @@ scaling_kernels = list(itertools.chain(
             ))
 
 
-matrix_chain_kernels = [kernel for kernel in reductions if kernel.is_matrix_chain_kernel()]
+matrix_chain_kernels = [kernel for kernel in kernels if kernel.is_matrix_chain_kernel()]
 
 cholesky = factorizations.cholesky
 eigendecomposition = factorizations.eigendecomposition
@@ -215,11 +215,11 @@ addition_kernel_MA = matchpy.ManyToOneMatcher()
 for kernel in addition_kernels:
     addition_kernel_MA.add(kernel.pattern_with_context, label=kernel)
 
-reduction_MA = matchpy.ManyToOneMatcher()
-for kernel in reductions:
-    reduction_MA.add(kernel.pattern_with_context, label=kernel)
+kernel_MA = matchpy.ManyToOneMatcher()
+for kernel in kernels:
+    kernel_MA.add(kernel.pattern_with_context, label=kernel)
 
 def clear():
-    global addition_kernel_MA, reduction_MA
+    global addition_kernel_MA, kernel_MA
     addition_kernel_MA.clear()
-    reduction_MA.clear()
+    kernel_MA.clear()

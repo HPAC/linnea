@@ -8,14 +8,14 @@ from ...code_generation.memory import storage_format as sf
 
 import matchpy
 
-class Kernel():
-    """docstring for Kernel"""
+class AbstractKernel():
+    """docstring for AbstractKernel"""
 
     _counter = 0
 
     def __init__(self, cost_function, signature, arguments):
-        self.id = Kernel._counter
-        Kernel._counter += 1
+        self.id = AbstractKernel._counter
+        AbstractKernel._counter += 1
         self._cost_function = cost_function
 
         self.signature = signature
@@ -58,7 +58,7 @@ class Kernel():
 class PropertyConstraints():
     """docstring for PropertyConstraints
     
-    Acts as a constraint 'function' for wildcards in reduction kernels.
+    Acts as a constraint 'function' for wildcards in kernels.
     """
     def __init__(self):
         self.property_dict = dict()

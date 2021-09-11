@@ -1,4 +1,4 @@
-# from clak.kernels.utils.reductions import KernelDescription, \
+# from clak.kernels.utils.kernels import KernelDescription, \
 #                                           Op1, Op2, \
 #                                           OperationKV, PropertyKV, DefaultValueKV, OperatorKV, \
 #                                           KernelType

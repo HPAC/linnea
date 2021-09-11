@@ -6,11 +6,11 @@ from ...algebra.properties import Property
 from ... import temporaries
 
 from ..utils.general import substitute_symbols_with_wildcards, \
-                               to_wildcard_name, \
-                               to_c_variable, to_c_variable_definition, \
-                               SizeArgument, \
-                               Kernel, \
-                               InputOperand
+                            to_wildcard_name, \
+                            to_c_variable, to_c_variable_definition, \
+                            SizeArgument, \
+                            AbstractKernel, \
+                            InputOperand
 
 from ...code_generation.utils import MatchedKernel, KernelIO
 
@@ -25,7 +25,7 @@ import matchpy
 ctx1 = matchpy.Wildcard.star("ctx1")
 ctx2 = matchpy.Wildcard.star("ctx2")
 
-class FactorizationKernel(Kernel):
+class FactorizationKernel(AbstractKernel):
     """docstring for FactorizationKernel"""
 
     def __init__(self, pattern, input_operands, output, output_operands, cost_function, signature, arguments):

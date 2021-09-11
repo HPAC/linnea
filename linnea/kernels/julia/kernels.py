@@ -1,4 +1,4 @@
-from ..utils.reductions import KernelDescription, \
+from ..utils.kernels import KernelDescription, \
                                Op1, Op2, \
                                Operation, OperationKV, \
                                PropertyKV, DefaultValueKV, OperatorKV, \
