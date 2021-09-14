@@ -28,7 +28,7 @@ import matchpy
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _L = matchpy.Wildcard.symbol("_L")
-cf = lambda d: (d["N"]**3)/3
+cf = lambda N: (N**3)/3
 
 cholesky = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SPSD})),
@@ -50,7 +50,7 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _P = matchpy.Wildcard.symbol("_P")
 _L = matchpy.Wildcard.symbol("_L")
 _U = matchpy.Wildcard.symbol("_U")
-cf = lambda d: 2*(d["N"]**3)/3
+cf = lambda N: 2*(N**3)/3
 
 plu = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.NON_SINGULAR})),
@@ -77,9 +77,9 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _Q = matchpy.Wildcard.symbol("_Q")
 _R = matchpy.Wildcard.symbol("_R")
 
-def cf_qr_square(d):
-    cost = 2*d["N"]**2*(d["M"]-d["N"]/3) # for R
-    cost += 4*(d["M"]**2*d["N"]-d["M"]*d["N"]**2+d["N"]**3/3)
+def cf_qr_square(M, N):
+    cost = 2*N**2*(M-N/3) # for R
+    cost += 4*(M**2*N-M*N**2+N**3/3)
     return cost
 
 # TODO I think A does not have to be a full rank matrix. In that case, I don't get a full Q.
@@ -107,9 +107,9 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _Q = matchpy.Wildcard.symbol("_Q")
 _R = matchpy.Wildcard.symbol("_R")
 
-def cf_qr_column(d):
-    cost = 2*d["N"]**2*(d["M"]-d["N"]/3) # for R
-    cost += 2*d["N"]**2*(d["M"]-d["N"]/3) # for Q (because it has size m x n)
+def cf_qr_column(M, N):
+    cost = 2*N**2*(M-N/3) # for R
+    cost += 2*N**2*(M-N/3) # for Q (because it has size m x n)
     return cost
 
 # TODO I think A does not have to be a full rank matrix. In that case, I don't get a full Q.
@@ -136,10 +136,10 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _Z = matchpy.Wildcard.symbol("_Z")
 _W = matchpy.Wildcard.symbol("_W")
 
-def cf_eigen(d):
-    cost = 4/3*d["N"]**3 # reduction to tridiagional form
-    cost += d["N"]**2 # solve
-    cost += 2*d["N"]**3 # backtransformation
+def cf_eigen(N):
+    cost = 4/3*N**3 # reduction to tridiagional form
+    cost += N**2 # solve
+    cost += 2*N**3 # backtransformation
     return cost
 
 eigendecomposition = FactorizationKernel(
@@ -169,7 +169,7 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _U = matchpy.Wildcard.symbol("_U")
 _S = matchpy.Wildcard.symbol("_S")
 _V = matchpy.Wildcard.symbol("_V")
-cf = lambda d: 14*d["M"]*d["N"]**2 + 8*d["N"]**3
+cf = lambda M, N: 14*M*N**2 + 8*N**3
 
 singular_value_cp = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.COLUMN_PANEL})),
@@ -192,7 +192,7 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _U = matchpy.Wildcard.symbol("_U")
 _S = matchpy.Wildcard.symbol("_S")
 _V = matchpy.Wildcard.symbol("_V")
-cf = lambda d: 22*d["N"]**3
+cf = lambda N: 22*N**3
 
 singular_value_sq = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SQUARE})),
@@ -214,7 +214,7 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _U = matchpy.Wildcard.symbol("_U")
 _S = matchpy.Wildcard.symbol("_S")
 _V = matchpy.Wildcard.symbol("_V")
-cf = lambda d: 14*d["M"]*d["N"]**2 + 8*d["N"]**3
+cf = lambda M, N: 14*M*N**2 + 8*N**3
 
 singular_value_rp = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.ROW_PANEL})),

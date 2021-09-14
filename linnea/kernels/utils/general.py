@@ -51,7 +51,7 @@ class AbstractKernel():
         for arg in self.arguments:
             if isinstance(arg, SizeArgument):
                 arg_dict[arg.name] = arg.get_value(match_dict)
-        return self._cost_function(arg_dict)
+        return self._cost_function(**arg_dict)
 
 
 

@@ -35,7 +35,7 @@ k = 30
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 out = Scalar("out")
-cf = lambda d: 1
+cf = lambda: 1
 
 scalar_product = KernelDescription(
     Operation(Times(alpha, beta)),
@@ -54,7 +54,7 @@ scalar_product = KernelDescription(
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 out = Scalar("out")
-cf = lambda d: 1
+cf = lambda: 1
 
 scalar_division = KernelDescription(
     OperationKV(
@@ -77,7 +77,7 @@ scalar_division = KernelDescription(
 
 alpha = Scalar("alpha")
 out = Scalar("out")
-cf = lambda d: 1
+cf = lambda: 1
 
 scalar_inversion = KernelDescription(
     Operation(Inverse(alpha)),
@@ -95,7 +95,7 @@ scalar_inversion = KernelDescription(
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 out = Scalar("out")
-cf = lambda d: 1
+cf = lambda: 1
 
 scalar_sum = KernelDescription(
     Operation(Plus(alpha, beta)),
@@ -117,7 +117,7 @@ scalar_sum = KernelDescription(
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
 out = Scalar("out")
-cf = lambda d: 2*d["N"]
+cf = lambda N: 2*N
 
 dot = KernelDescription(
     Operation(Times(Transpose(x),y)),
@@ -135,7 +135,7 @@ dot = KernelDescription(
 
 x = Vector("x", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda d: d["N"]
+cf = lambda N: N
 
 scal = KernelDescription(
     OperationKV(
@@ -159,7 +159,7 @@ scal = KernelDescription(
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda d: max(d["N"], d["M"]) # to get correct cost for row and column vectors
+cf = lambda M, N: max(M, N) # to get correct cost for row and column vectors
 
 axpy = KernelDescription(
     Operation(Plus(Times(alpha, x), y)), # Plus(Times(alpha, Op1(x)), Op2(y))
@@ -189,7 +189,7 @@ A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 y = Vector("y", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda d: 2*d["N"]*d["M"]
+cf = lambda M, N: 2*N*M
 
 ger = KernelDescription(
     Operation(Plus(Times(alpha, x, Transpose(y)), A)),
@@ -212,7 +212,7 @@ A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 y = Vector("y", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda d: 2*d["N"]*d["M"]
+cf = lambda M, N: 2*N*M
 
 ger_alt = KernelDescription(
     Operation(Times(alpha, x, Transpose(y))),
@@ -242,7 +242,7 @@ ger_alt = KernelDescription(
 A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 alpha = Scalar("alpha")
-cf = lambda d: d["M"]**2
+cf = lambda M: M**2
 
 syr = KernelDescription(
     Operation(Plus(Times(alpha, x, Transpose(x)), A)),
@@ -262,7 +262,7 @@ syr = KernelDescription(
 A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 alpha = Scalar("alpha")
-cf = lambda d: d["M"]**2
+cf = lambda M: M**2
 
 syr_alt = KernelDescription(
     Operation(Times(alpha, x, Transpose(x))),
@@ -292,7 +292,7 @@ x = Vector("x", (n, 1))
 y = Vector("y", (m, 1))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: 2*d["N"]*d["M"]
+cf = lambda M, N: 2*N*M
 
 """
 TODO also use the following?
@@ -331,7 +331,7 @@ x = Vector("x", (n, 1))
 y = Vector("y", (m, 1))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: 2*d["M"]**2
+cf = lambda M: 2*M**2
 
 symv = KernelDescription(
     Operation(Plus(Times(alpha, A, x), Times(beta, y))),
@@ -363,7 +363,7 @@ TODO: Julia documentation wrong
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 x = Vector("x", (n, 1))
-cf = lambda d: d["N"]**2
+cf = lambda N: N**2
 
 trmv = KernelDescription(
     Operation(Times(Op1(A), x)),
@@ -388,7 +388,7 @@ trmv = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 x = Vector("x", (n, 1))
-cf = lambda d: d["N"]**2
+cf = lambda N: N**2
 
 """
 TODO also use the following?
@@ -424,7 +424,7 @@ B = Matrix("B", (k, n))
 C = Matrix("C", (m, n))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: 2*d["N"]*d["M"]*d["K"]
+cf = lambda M, N, K: 2*M*N*K
 
 """
 TODO also use the following?
@@ -465,7 +465,7 @@ B = Matrix("B", (k, n))
 C = Matrix("C", (m, n))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: 2*d["M"]*d["N"]*d["K"]
+cf = lambda M, N, K: 2*M*N*K
 """
 The names for the sizes in this cost function do not make a lot of sense.
 However, it is not possible to do something more consistent because of the
@@ -508,7 +508,7 @@ C = Matrix("C", (n, n))
 C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: d["K"]*(d["N"]**2)
+cf = lambda N, K: K*(N**2)
 
 
 syrk = KernelDescription(
@@ -540,7 +540,7 @@ C = Matrix("C", (n, n))
 C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda d: 2*d["K"]*(d["N"]**2)
+cf = lambda N, K: 2*K*(N**2)
 
 syr2k = KernelDescription(
     Operation(Plus(Times(alpha, Op1(A), Op1(Transpose(B))), Times(alpha, Op1(B), Op1(Transpose(A))), Times(beta, C))),
@@ -572,7 +572,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda d: d["M"]*d["N"]*d["K"]
+cf = lambda M, N, K: M*N*K
 """
 The names for the sizes in this cost function do not make a lot of sense.
 However, it is not possible to do something more consistent because of the
@@ -613,7 +613,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda d: d["M"]*d["N"]*d["K"]
+cf = lambda M, N, K: M*N*K
 """
 The names for the sizes in this cost function do not make a lot of sense.
 However, it is not possible to do something more consistent because of the
@@ -659,7 +659,7 @@ trsm = KernelDescription(
 
 X = Matrix("X", (m, n))
 alpha = Scalar("alpha")
-cf = lambda d: d["M"]*d["N"]
+cf = lambda M, N: M*N
 
 lascl = KernelDescription(
     OperationKV(
@@ -686,7 +686,7 @@ lascl = KernelDescription(
 A = Matrix("A", (n, n))
 B = Matrix("B", (n, n))
 A.set_property(Property.SQUARE)
-cf = lambda d: 2*d["N"]**3
+cf = lambda N: 2*N**3
 
 getri = KernelDescription(
     Operation(Inverse(A)),
@@ -705,7 +705,7 @@ getri = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 A.set_property(Property.TRIANGULAR)
-cf = lambda d: (d["N"]**3)/3
+cf = lambda N: (N**3)/3
 
 trtri = KernelDescription(
     Operation(Inverse(A)),
@@ -728,7 +728,7 @@ trtri = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
-cf = lambda d: (d["N"]**3)/3
+cf = lambda N: (N**3)/3
 
 syinv = KernelDescription(
     Operation(Inverse(A)),
@@ -755,7 +755,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SPD)
 B = Matrix("B", (m, n))
-cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -785,7 +785,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SPD)
 B = Matrix("B", (n, m))
-cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -821,7 +821,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
-cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -859,7 +859,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (n, m))
-cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -896,7 +896,7 @@ sysvr = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
-cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -926,7 +926,7 @@ gesv = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (n, m))
-cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -953,7 +953,7 @@ gesvr = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (n, m))
-cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -985,7 +985,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SPD)
 x = Vector("x", (m, 1))
-cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
+cf = lambda M: (M**3)/3 + 2*(M**2)
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1015,7 +1015,7 @@ posv_vec = KernelDescription(
 # A.set_property(Property.SQUARE)
 # A.set_property(Property.SPD)
 # x = Vector("x", (m, 1))
-# cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+# cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1050,7 +1050,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
 x = Vector("x", (m, 1))
-cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)
+cf = lambda M: (M**3)/3 + 2*(M**2)
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1087,7 +1087,7 @@ sysv_vec = KernelDescription(
 # A.set_property(Property.SQUARE)
 # A.set_property(Property.SYMMETRIC)
 # x = Vector("x", (m, 1))
-# cf = lambda d: (d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+# cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1121,7 +1121,7 @@ sysv_vec = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 x = Vector("x", (m, 1))
-cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)
+cf = lambda M: 2*(M**3)/3 + 2*(M**2)
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1156,7 +1156,7 @@ gesv_vec = KernelDescription(
 # A = Matrix("A", (m, m))
 # A.set_property(Property.SQUARE)
 # x = Vector("x", (m, 1))
-# cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+# cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1189,7 +1189,7 @@ gesv_vec = KernelDescription(
 # A = Matrix("A", (m, m))
 # A.set_property(Property.SQUARE)
 # x = Vector("x", (m, 1))
-# cf = lambda d: 2*(d["M"]**3)/3 + 2*(d["M"]**2)*d["N"]
+# cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1223,7 +1223,7 @@ gesv_vec = KernelDescription(
 
 x = Vector("x", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda d: d["N"]
+cf = lambda N: N
 
 invscal = KernelDescription(
     OperationKV(
@@ -1246,7 +1246,7 @@ invscal = KernelDescription(
 
 X = Matrix("X", (m, n))
 alpha = Scalar("alpha")
-cf = lambda d: d["M"]*d["N"]
+cf = lambda M, N: M*N
 
 invlascl = KernelDescription(
     OperationKV(
@@ -1271,7 +1271,7 @@ invlascl = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 A.set_property(Property.DIAGONAL)
-cf = lambda d: d["N"]
+cf = lambda N: N
 
 diaginv = KernelDescription(
     Operation(Inverse(A)),
@@ -1289,7 +1289,7 @@ diaginv = KernelDescription(
 
 A = Matrix("A", (m, n))
 B = Matrix("B", (n, m))
-cf = lambda d: 1
+cf = lambda: 1
 
 transpose = KernelDescription(
     Operation(Transpose(A)),
@@ -1300,14 +1300,13 @@ transpose = KernelDescription(
     cf, # cost function
     # $B = Array{$type}($N, $M)
     """transpose!($B, $A)""",
-    [SizeArgument("M", A, "rows"),
-     SizeArgument("N", A, "columns")], # Argument objects
+    [], # Argument objects
     )
 
 # vector transposition (totally fake) (this is kind of tricky. Since it doesn't actually do anything, overwriting is never a problem. Solution: Just use different symbol for output?)
 
 x = Vector("x", (n, 1))
-cf = lambda d: 0
+cf = lambda: 0
 
 transpose_vector = KernelDescription(
     Operation(Transpose(x)),
@@ -1325,7 +1324,7 @@ transpose_vector = KernelDescription(
 alpha = Scalar("alpha")
 A = Matrix("A", (m, n))
 B = Matrix("B", (m, n))
-cf = lambda d: 2*d["N"]*d["M"]
+cf = lambda M, N: 2*N*M
 
 matrix_sum = KernelDescription(
     Operation(Plus(Times(alpha, A), B)),
@@ -1348,7 +1347,7 @@ matrix_sum = KernelDescription(
 
 A = Matrix("A", (m, n))
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]*d["M"]
+cf = lambda M, N: N*M
 
 matrix_sum_transpose = KernelDescription(
     Operation(Plus(A, Transpose(B))),
@@ -1368,7 +1367,7 @@ matrix_sum_transpose = KernelDescription(
 X = Matrix("X", (m, n))
 X.set_property(Property.DIAGONAL)
 alpha = Scalar("alpha")
-cf = lambda d: min(d["M"], d["N"])
+cf = lambda M, N: min(M, N)
 
 diagscal = KernelDescription(
     OperationKV(
@@ -1410,7 +1409,7 @@ A.set_property(Property.DIAGONAL)
 B = Matrix("B", (k, n))
 B.set_property(Property.DIAGONAL)
 C = Matrix("C", (m, n))
-cf = lambda d: min(d["M"], d["K"], d["N"])
+cf = lambda M, N, K: min(M, N, K)
 
 diagdiagmul = KernelDescription(
     Operation(Times(Op1(A), Op2(B))),
@@ -1452,7 +1451,7 @@ A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 B.set_property(Property.DIAGONAL)
-cf = lambda d: min(d["M"], d["N"])
+cf = lambda M, N: min(M, N)
 
 diagdiagsolve = KernelDescription(
     OperationKV(
@@ -1485,7 +1484,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
-cf = lambda d: d["M"]*d["N"]
+cf = lambda M, N: M*N
 
 diagsmr = KernelDescription(
     Operation(Times(B, Inverse(A))),
@@ -1520,7 +1519,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
-cf = lambda d: d["M"]*d["N"]
+cf = lambda M, N: M*N
 
 diagsml = KernelDescription(
     Operation(Times(Inverse(A), B)),
@@ -1547,7 +1546,7 @@ A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 x = Vector("x", (m, 1))
-cf = lambda d: d["M"]
+cf = lambda M: M
 
 diagsv = KernelDescription(
     Operation(Times(Inverse(A), x)),
@@ -1581,7 +1580,7 @@ canonical form.
 """
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
-cf = lambda d: d["M"]*d["N"]
+cf = lambda M, N: M*N
 
 diagmmr = KernelDescription(
     Operation(Times(B, A)),
@@ -1622,7 +1621,7 @@ canonical form.
 """
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
-cf = lambda d: d["M"]*d["N"]
+cf = lambda M, N: M*N
 
 diagmml = KernelDescription(
     Operation(Times(A, B)),
@@ -1659,7 +1658,7 @@ canonical form.
 """
 A.set_property(Property.SYMMETRIC)
 x = Vector("x", (m, 1))
-cf = lambda d: d["M"]
+cf = lambda M: M
 
 diagmv = KernelDescription(
     Operation(Times(A, x)),
@@ -1681,7 +1680,7 @@ A.set_property(Property.DIAGONAL)
 B = Matrix("B", (m, n))
 B.set_property(Property.DIAGONAL)
 alpha = Scalar("alpha")
-cf = lambda d: min(d["M"], d["N"])
+cf = lambda M, N: min(M, N)
 
 diagdiagadd = KernelDescription(
     Operation(Plus(Times(alpha, A), B)),
@@ -1706,7 +1705,7 @@ A = Matrix("A", (m, n))
 A.set_property(Property.DIAGONAL)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda d: min(d["M"], d["N"])
+cf = lambda M, N: min(M, N)
 
 diagfulladd = KernelDescription(
     Operation(Plus(Times(alpha, A), B)),
@@ -1739,7 +1738,7 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]*d["M"]
+cf = lambda M, N: N*M
 
 pmm = KernelDescription(
     Operation(Times(P, A)),
@@ -1762,7 +1761,7 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]*d["M"]
+cf = lambda M, N: N*M
 
 ptmm = KernelDescription(
     Operation(Times(Transpose(P), A)),
@@ -1785,7 +1784,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(Property.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]*d["M"]
+cf = lambda M, N: N*M
 
 mpm = KernelDescription(
     Operation(Times(A, P)),
@@ -1808,7 +1807,7 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(Property.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda d: d["N"]*d["M"]
+cf = lambda M, N: N*M
 
 mptm = KernelDescription(
     Operation(Times(A, Transpose(P))),
@@ -1830,7 +1829,7 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
-cf = lambda d: d["N"]
+cf = lambda N: N
 
 pvm = KernelDescription(
     Operation(Times(P, x)),
@@ -1852,7 +1851,7 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
-cf = lambda d: d["N"]
+cf = lambda N: N
 
 ptvm = KernelDescription(
     Operation(Times(Transpose(P), x)),
@@ -1874,7 +1873,7 @@ P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
 Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
-cf = lambda d: 0
+cf = lambda: 0
 
 ppm = KernelDescription(
     Operation(Times(P, Q)),
@@ -1885,7 +1884,7 @@ ppm = KernelDescription(
     OutputOperand(X, StorageFormat.permutation_vector), # return value
     cf, # cost function
     "$X = $Q[$P]",
-    [SizeArgument("N", P, "rows")], # Argument objects
+    [], # Argument objects
     options={KernelOption.transpose}
     )
 
@@ -1897,7 +1896,7 @@ P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
 Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
-cf = lambda d: 0
+cf = lambda: 0
 
 ptpm = KernelDescription(
     Operation(Times(Transpose(P), Q)),
@@ -1908,7 +1907,7 @@ ptpm = KernelDescription(
     OutputOperand(X, StorageFormat.permutation_vector), # return value
     cf, # cost function
     "$X = $Q[invperm($P)]",
-    [SizeArgument("N", P, "rows")], # Argument objects
+    [], # Argument objects
     )
 
 
@@ -1919,7 +1918,7 @@ P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
 Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
-cf = lambda d: 0
+cf = lambda: 0
 
 pptm = KernelDescription(
     Operation(Times(P, Transpose(Q))),
@@ -1930,7 +1929,7 @@ pptm = KernelDescription(
     OutputOperand(X, StorageFormat.permutation_vector), # return value
     cf, # cost function
     "$X = invperm($Q)[$P]",
-    [SizeArgument("N", P, "rows")], # Argument objects
+    [], # Argument objects
     )
 
 
@@ -1939,7 +1938,7 @@ pptm = KernelDescription(
 P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
-cf = lambda d: 0
+cf = lambda: 0
 
 transpose_perm = KernelDescription(
     Operation(Transpose(P)),
@@ -1949,7 +1948,7 @@ transpose_perm = KernelDescription(
     OutputOperand(Q, StorageFormat.permutation_vector), # return value
     cf, # cost function
     "$Q = invperm($P)",
-    [SizeArgument("N", P, "rows")], # Argument objects
+    [], # Argument objects
     )
 
 # what about diagonal A? could be almost the same as vector
