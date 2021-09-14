@@ -35,7 +35,6 @@ k = 30
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 out = Scalar("out")
-cf = lambda: 1
 
 scalar_product = KernelDescription(
     Operation(Times(alpha, beta)),
@@ -44,7 +43,7 @@ scalar_product = KernelDescription(
      InputOperand(beta, StorageFormat.full)
     ],
     OutputOperand(out, StorageFormat.full), # return value
-    cf, # cost function
+    lambda: 1,
     "$out = $alpha * $beta",
     [], # Argument objects
     )
@@ -54,7 +53,6 @@ scalar_product = KernelDescription(
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 out = Scalar("out")
-cf = lambda: 1
 
 scalar_division = KernelDescription(
     OperationKV(
@@ -67,7 +65,7 @@ scalar_division = KernelDescription(
      InputOperand(beta, StorageFormat.full)
     ],
     OutputOperand(out, StorageFormat.full), # return value
-    cf, # cost function
+    lambda: 1,
     "$out = $alpha / $beta",
     [], # Argument objects
     options={KernelOption.no_simplifications}
@@ -77,7 +75,6 @@ scalar_division = KernelDescription(
 
 alpha = Scalar("alpha")
 out = Scalar("out")
-cf = lambda: 1
 
 scalar_inversion = KernelDescription(
     Operation(Inverse(alpha)),
@@ -85,7 +82,7 @@ scalar_inversion = KernelDescription(
     [InputOperand(alpha, StorageFormat.full),
     ],
     OutputOperand(out, StorageFormat.full), # return value
-    cf, # cost function
+    lambda: 1,
     "$out = 1.0 / $alpha",
     [], # Argument objects
     )
@@ -95,7 +92,6 @@ scalar_inversion = KernelDescription(
 alpha = Scalar("alpha")
 beta = Scalar("beta")
 out = Scalar("out")
-cf = lambda: 1
 
 scalar_sum = KernelDescription(
     Operation(Plus(alpha, beta)),
@@ -104,7 +100,7 @@ scalar_sum = KernelDescription(
      InputOperand(beta, StorageFormat.full)
     ],
     OutputOperand(out, StorageFormat.full), # return value
-    cf, # cost function
+    lambda: 1,
     "$out = $alpha + $beta",
     [], # Argument objects
     )
@@ -117,7 +113,6 @@ scalar_sum = KernelDescription(
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
 out = Scalar("out")
-cf = lambda N: 2*N
 
 dot = KernelDescription(
     Operation(Times(Transpose(x),y)),
@@ -126,7 +121,7 @@ dot = KernelDescription(
      InputOperand(y, StorageFormat.full)
     ],
     OutputOperand(out, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: 2*N,
     "$out = BLAS.dot($N, $x, 1, $y, 1)",
     [SizeArgument("N", x, "rows")], # Argument objects
     )
@@ -135,7 +130,6 @@ dot = KernelDescription(
 
 x = Vector("x", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda N: N
 
 scal = KernelDescription(
     OperationKV(
@@ -148,7 +142,7 @@ scal = KernelDescription(
      InputOperand(x, StorageFormat.full)
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: N,
     "scal!($N, $alpha, $x, 1)",
     [SizeArgument("N", x, "rows")], # Argument objects
     options={KernelOption.no_simplifications}
@@ -159,7 +153,6 @@ scal = KernelDescription(
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda M, N: max(M, N) # to get correct cost for row and column vectors
 
 axpy = KernelDescription(
     Operation(Plus(Times(alpha, x), y)), # Plus(Times(alpha, Op1(x)), Op2(y))
@@ -173,7 +166,7 @@ axpy = KernelDescription(
      InputOperand(y, StorageFormat.full)
     ],
     OutputOperand(y, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: max(M, N), # to get correct cost for row and column vectors
     "axpy!($alpha, $x, $y) # vectors",
     [SizeArgument("N", x, "rows"),
      SizeArgument("M", x, "columns")], # Argument objects
@@ -189,7 +182,6 @@ A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 y = Vector("y", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda M, N: 2*N*M
 
 ger = KernelDescription(
     Operation(Plus(Times(alpha, x, Transpose(y)), A)),
@@ -202,7 +194,7 @@ ger = KernelDescription(
      InputOperand(A, StorageFormat.full)
     ],
     OutputOperand(A, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: 2*N*M,
     "ger!($alpha, $x, $y, $A)",
     [SizeArgument("M", x, "rows"),
      SizeArgument("N", y, "rows")], # Argument objects
@@ -212,7 +204,6 @@ A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 y = Vector("y", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda M, N: 2*N*M
 
 ger_alt = KernelDescription(
     Operation(Times(alpha, x, Transpose(y))),
@@ -224,7 +215,7 @@ ger_alt = KernelDescription(
      InputOperand(y, StorageFormat.full)
     ],
     OutputOperand(A, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: 2*N*M,
     "$A .= $alpha.*$x.*transpose($y)",
     # textwrap.dedent(
     #     """\
@@ -242,7 +233,6 @@ ger_alt = KernelDescription(
 A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 alpha = Scalar("alpha")
-cf = lambda M: M**2
 
 syr = KernelDescription(
     Operation(Plus(Times(alpha, x, Transpose(x)), A)),
@@ -254,7 +244,7 @@ syr = KernelDescription(
      InputOperand(A, StorageFormat.full)
     ],
     OutputOperand(A, StorageFormat.symmetric_lower_triangular), # return value
-    cf, # cost function
+    lambda M: M**2,
     "syr!('L', $alpha, $x, $A)",
     [SizeArgument("M", x, "rows")], # Argument objects
     )
@@ -262,7 +252,6 @@ syr = KernelDescription(
 A = Matrix("A", (m, n))
 x = Vector("x", (m, 1))
 alpha = Scalar("alpha")
-cf = lambda M: M**2
 
 syr_alt = KernelDescription(
     Operation(Times(alpha, x, Transpose(x))),
@@ -273,7 +262,7 @@ syr_alt = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(A, StorageFormat.symmetric_lower_triangular), # return value
-    cf, # cost function
+    lambda M: M**2,
     # If A is not allocated, use "$A = zeros($type, ($M, $N))\n"
     textwrap.dedent(
         """\
@@ -292,7 +281,6 @@ x = Vector("x", (n, 1))
 y = Vector("y", (m, 1))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda M, N: 2*N*M
 
 """
 TODO also use the following?
@@ -315,7 +303,7 @@ gemv = KernelDescription(
      InputOperand(y, StorageFormat.full),
     ],
     OutputOperand(y, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: 2*N*M,
     "gemv!($transA, $alpha, $A, $x, $beta, $y)",
     [SizeArgument("M", A, "rows"),
      SizeArgument("N", A, "columns")], # Argument objects
@@ -331,7 +319,6 @@ x = Vector("x", (n, 1))
 y = Vector("y", (m, 1))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda M: 2*M**2
 
 symv = KernelDescription(
     Operation(Plus(Times(alpha, A, x), Times(beta, y))),
@@ -346,7 +333,7 @@ symv = KernelDescription(
      InputOperand(y, StorageFormat.full),
     ],
     OutputOperand(y, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M: 2*M**2,
     "symv!($uplo, $alpha, $A, $x, $beta, $y)",
     [SizeArgument("M", A, "rows"),
      StorageFormatArgument("uplo", A, {StorageFormat.symmetric_lower_triangular: "L", StorageFormat.symmetric_upper_triangular: "U"}),], # Argument objects
@@ -363,7 +350,6 @@ TODO: Julia documentation wrong
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 x = Vector("x", (n, 1))
-cf = lambda N: N**2
 
 trmv = KernelDescription(
     Operation(Times(Op1(A), x)),
@@ -375,7 +361,7 @@ trmv = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: N**2,
     "trmv!($uplo, $transA, $diag, $A, $x)",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
@@ -388,7 +374,6 @@ trmv = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 x = Vector("x", (n, 1))
-cf = lambda N: N**2
 
 """
 TODO also use the following?
@@ -406,7 +391,7 @@ trsv = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: N**2,
     "trsv!($uplo, $transA, $diag, $A, $x)",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
@@ -424,7 +409,6 @@ B = Matrix("B", (k, n))
 C = Matrix("C", (m, n))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda M, N, K: 2*M*N*K
 
 """
 TODO also use the following?
@@ -448,7 +432,7 @@ gemm = KernelDescription(
      InputOperand(C, StorageFormat.full),
     ],
     OutputOperand(C, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N, K: 2*M*N*K,
     "gemm!($transA, $transB, $alpha, $A, $B, $beta, $C)",
     [SizeArgument("M", Op1(A), "rows"),
      SizeArgument("N", Op2(B), "columns"),
@@ -465,7 +449,6 @@ B = Matrix("B", (k, n))
 C = Matrix("C", (m, n))
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda M, N, K: 2*M*N*K
 """
 The names for the sizes in this cost function do not make a lot of sense.
 However, it is not possible to do something more consistent because of the
@@ -490,7 +473,7 @@ symm = KernelDescription(
      InputOperand(C, StorageFormat.full),
     ],
     OutputOperand(C, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N, K: 2*M*N*K,
     "symm!($side, $uplo, $alpha, $A, $B, $beta, $C)",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
@@ -508,7 +491,6 @@ C = Matrix("C", (n, n))
 C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda N, K: K*(N**2)
 
 
 syrk = KernelDescription(
@@ -524,7 +506,7 @@ syrk = KernelDescription(
      InputOperand(C, StorageFormat.symmetric_triangular),
     ],
     OutputOperand(C, StorageFormat.symmetric_triangular_out), # return value
-    cf, # cost function
+    lambda N, K: K*(N**2),
     "syrk!($uplo, $transA, $alpha, $A, $beta, $C)",
     [SizeArgument("N", Op1(A), "rows"),
      SizeArgument("K", Op1(A), "columns"),
@@ -540,7 +522,6 @@ C = Matrix("C", (n, n))
 C.set_property(Property.SYMMETRIC)
 alpha = Scalar("alpha")
 beta = Scalar("beta")
-cf = lambda N, K: 2*K*(N**2)
 
 syr2k = KernelDescription(
     Operation(Plus(Times(alpha, Op1(A), Op1(Transpose(B))), Times(alpha, Op1(B), Op1(Transpose(A))), Times(beta, C))),
@@ -556,7 +537,7 @@ syr2k = KernelDescription(
      InputOperand(C, StorageFormat.symmetric_triangular),
     ],
     OutputOperand(C, StorageFormat.symmetric_triangular_out), # return value
-    cf, # cost function
+    lambda N, K: 2*K*(N**2),
     "syr2k!($uplo, $trans, $alpha, $A, $B, $beta, $C)",
     [SizeArgument("N", Op1(A), "rows"),
      SizeArgument("K", Op1(A), "columns"),
@@ -572,7 +553,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda M, N, K: M*N*K
 """
 The names for the sizes in this cost function do not make a lot of sense.
 However, it is not possible to do something more consistent because of the
@@ -597,7 +577,7 @@ trmm = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N, K: M*N*K,
     "trmm!($side, $uplo, $transA, $diag, $alpha, $A, $B)",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
@@ -613,7 +593,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda M, N, K: M*N*K
 """
 The names for the sizes in this cost function do not make a lot of sense.
 However, it is not possible to do something more consistent because of the
@@ -643,7 +622,7 @@ trsm = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N, K: M*N*K,
     "trsm!($side, $uplo, $transA, $diag, $alpha, $A, $B)",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns"),
@@ -659,7 +638,6 @@ trsm = KernelDescription(
 
 X = Matrix("X", (m, n))
 alpha = Scalar("alpha")
-cf = lambda M, N: M*N
 
 lascl = KernelDescription(
     OperationKV(
@@ -672,7 +650,7 @@ lascl = KernelDescription(
      InputOperand(X, StorageFormat.full),
     ],
     OutputOperand(X, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: M*N,
     "scal!($MN, $alpha, $X, 1)",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns"),
@@ -686,7 +664,6 @@ lascl = KernelDescription(
 A = Matrix("A", (n, n))
 B = Matrix("B", (n, n))
 A.set_property(Property.SQUARE)
-cf = lambda N: 2*N**3
 
 getri = KernelDescription(
     Operation(Inverse(A)),
@@ -694,7 +671,7 @@ getri = KernelDescription(
     [InputOperand(A, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: 2*N**3,
     "$B = inv($A)",
     [SizeArgument("N", A, "columns")], # Argument objects
     options={KernelOption.transpose}
@@ -705,7 +682,6 @@ getri = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 A.set_property(Property.TRIANGULAR)
-cf = lambda N: (N**3)/3
 
 trtri = KernelDescription(
     Operation(Inverse(A)),
@@ -715,7 +691,7 @@ trtri = KernelDescription(
     [InputOperand(A, StorageFormat.triangular_udiag_opt),
     ],
     OutputOperand(A, StorageFormat.as_overwritten), # return value
-    cf, # cost function
+    lambda N: (N**3)/3,
     "LAPACK.trtri!($uplo, $diag, $A)",
     [SizeArgument("N", A, "rows"),
      PropertyArgument("diag", A, Property.UNIT_DIAGONAL, ["U", "N"])], # Argument objects
@@ -728,7 +704,6 @@ trtri = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
-cf = lambda N: (N**3)/3
 
 syinv = KernelDescription(
     Operation(Inverse(A)),
@@ -736,7 +711,7 @@ syinv = KernelDescription(
     [InputOperand(A, StorageFormat.symmetric_triangular),
     ],
     OutputOperand(A, StorageFormat.symmetric_triangular_out), # return value
-    cf, # cost function
+    lambda N: (N**3)/3,
     textwrap.dedent(
         """\
         ($A, ipiv, info) = LAPACK.sytrf!($uplo, $A)
@@ -755,7 +730,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SPD)
 B = Matrix("B", (m, n))
-cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -771,7 +745,7 @@ posv = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: (M**3)/3 + 2*(M**2)*N,
     "LAPACK.posv!('L', $A, $B)",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -785,7 +759,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SPD)
 B = Matrix("B", (n, m))
-cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -801,7 +774,7 @@ posvr = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: (M**3)/3 + 2*(M**2)*N,
     textwrap.dedent(
         """\
         $B = $B'
@@ -821,7 +794,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
-cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -839,7 +811,7 @@ sysv = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: (M**3)/3 + 2*(M**2)*N,
     textwrap.dedent(
         """\
         tmp = Array{Float64}(undef, $M, $M)
@@ -859,7 +831,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (n, m))
-cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -876,7 +847,7 @@ sysvr = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: (M**3)/3 + 2*(M**2)*N,
     textwrap.dedent(
         """\
         $B = transpose($B)
@@ -896,7 +867,6 @@ sysvr = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
-cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -913,7 +883,7 @@ gesv = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: 2*(M**3)/3 + 2*(M**2)*N,
     "($A, ipiv, info) = LAPACK.getrf!($A)\nLAPACK.getrs!($transA, $A, ipiv, $B)",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -926,7 +896,6 @@ gesv = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (n, m))
-cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -941,7 +910,7 @@ gesvr = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: 2*(M**3)/3 + 2*(M**2)*N,
     "$B = $B/lufact!($A)",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
@@ -953,7 +922,6 @@ gesvr = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 B = Matrix("B", (n, m))
-cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -968,7 +936,7 @@ gesvrt = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: 2*(M**3)/3 + 2*(M**2)*N,
     "$B = $B/lufact!($A')",
     [SizeArgument("M", B, "columns"),
      SizeArgument("N", B, "rows")], # Argument objects
@@ -985,7 +953,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SPD)
 x = Vector("x", (m, 1))
-cf = lambda M: (M**3)/3 + 2*(M**2)
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1001,7 +968,7 @@ posv_vec = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M: (M**3)/3 + 2*(M**2),
     "LAPACK.posv!('L', $A, $x)",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1015,7 +982,6 @@ posv_vec = KernelDescription(
 # A.set_property(Property.SQUARE)
 # A.set_property(Property.SPD)
 # x = Vector("x", (m, 1))
-# cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1034,7 +1000,7 @@ posv_vec = KernelDescription(
 #      InputOperand(B, StorageFormat.full),
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
-#     cf, # cost function
+#     lambda M, N: (M**3)/3 + 2*(M**2)*N,
 #
 #     "$B = $B'\nLAPACK.posv!('L', $A, $B)\n$B = $B'",
 #
@@ -1050,7 +1016,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 A.set_property(Property.SYMMETRIC)
 x = Vector("x", (m, 1))
-cf = lambda M: (M**3)/3 + 2*(M**2)
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1067,7 +1032,7 @@ sysv_vec = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M: (M**3)/3 + 2*(M**2),
     textwrap.dedent(
         """\
         tmp = Array{Float64}(undef, $M, $M)
@@ -1087,7 +1052,6 @@ sysv_vec = KernelDescription(
 # A.set_property(Property.SQUARE)
 # A.set_property(Property.SYMMETRIC)
 # x = Vector("x", (m, 1))
-# cf = lambda M, N: (M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1107,7 +1071,7 @@ sysv_vec = KernelDescription(
 #      InputOperand(B, StorageFormat.full),
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
-#     cf, # cost function
+#     lambda M, N: (M**3)/3 + 2*(M**2)*N,
 #
 #     "$B = $B'\nLAPACK.sysv!('L', $A, $B)\n$B = $B'",
 #
@@ -1121,7 +1085,6 @@ sysv_vec = KernelDescription(
 A = Matrix("A", (m, m))
 A.set_property(Property.SQUARE)
 x = Vector("x", (m, 1))
-cf = lambda M: 2*(M**3)/3 + 2*(M**2)
 
 """
 TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1138,7 +1101,7 @@ gesv_vec = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M: 2*(M**3)/3 + 2*(M**2),
     textwrap.dedent(
         """\
         ($A, ipiv, info) = LAPACK.getrf!($A)
@@ -1156,7 +1119,6 @@ gesv_vec = KernelDescription(
 # A = Matrix("A", (m, m))
 # A.set_property(Property.SQUARE)
 # x = Vector("x", (m, 1))
-# cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1174,7 +1136,7 @@ gesv_vec = KernelDescription(
 #      InputOperand(B, StorageFormat.full),
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
-#     cf, # cost function
+#     lambda M, N: 2*(M**3)/3 + 2*(M**2)*N,
 #
 #     "$B = $B/lufact!($A)",
 #
@@ -1189,7 +1151,6 @@ gesv_vec = KernelDescription(
 # A = Matrix("A", (m, m))
 # A.set_property(Property.SQUARE)
 # x = Vector("x", (m, 1))
-# cf = lambda M, N: 2*(M**3)/3 + 2*(M**2)*N
 
 # """
 # TODO problem: both A and B are overwritten, but it's not possible to express that here
@@ -1207,7 +1168,7 @@ gesv_vec = KernelDescription(
 #      InputOperand(B, StorageFormat.full),
 #     ],
 #     OutputOperand(B, StorageFormat.full), # return value
-#     cf, # cost function
+#     lambda M, N: 2*(M**3)/3 + 2*(M**2)*N,
 #
 #     "$B = $B/lufact!($A')",
 #
@@ -1223,7 +1184,6 @@ gesv_vec = KernelDescription(
 
 x = Vector("x", (n, 1))
 alpha = Scalar("alpha")
-cf = lambda N: N
 
 invscal = KernelDescription(
     OperationKV(
@@ -1236,7 +1196,7 @@ invscal = KernelDescription(
      InputOperand(x, StorageFormat.full)
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: N,
     "$x ./= $alpha",
     [SizeArgument("N", x, "rows")], # Argument objects
     options={KernelOption.no_simplifications}
@@ -1246,7 +1206,6 @@ invscal = KernelDescription(
 
 X = Matrix("X", (m, n))
 alpha = Scalar("alpha")
-cf = lambda M, N: M*N
 
 invlascl = KernelDescription(
     OperationKV(
@@ -1259,7 +1218,7 @@ invlascl = KernelDescription(
      InputOperand(X, StorageFormat.full),
     ],
     OutputOperand(X, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: M*N,
     "$X ./= $alpha",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns")], # Argument objects
@@ -1271,7 +1230,6 @@ invlascl = KernelDescription(
 A = Matrix("A", (n, n))
 A.set_property(Property.SQUARE)
 A.set_property(Property.DIAGONAL)
-cf = lambda N: N
 
 diaginv = KernelDescription(
     Operation(Inverse(A)),
@@ -1279,7 +1237,7 @@ diaginv = KernelDescription(
     [InputOperand(A, StorageFormat.diagonal_vector),
     ],
     OutputOperand(A, StorageFormat.diagonal_vector), # return value
-    cf, # cost function
+    lambda N: N,
     "$A = 1 ./$A",
     [SizeArgument("N", A, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1289,7 +1247,6 @@ diaginv = KernelDescription(
 
 A = Matrix("A", (m, n))
 B = Matrix("B", (n, m))
-cf = lambda: 1
 
 transpose = KernelDescription(
     Operation(Transpose(A)),
@@ -1297,7 +1254,7 @@ transpose = KernelDescription(
     [InputOperand(A, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda: 1,
     # $B = Array{$type}($N, $M)
     """transpose!($B, $A)""",
     [], # Argument objects
@@ -1306,7 +1263,6 @@ transpose = KernelDescription(
 # vector transposition (totally fake) (this is kind of tricky. Since it doesn't actually do anything, overwriting is never a problem. Solution: Just use different symbol for output?)
 
 x = Vector("x", (n, 1))
-cf = lambda: 0
 
 transpose_vector = KernelDescription(
     Operation(Transpose(x)),
@@ -1314,7 +1270,7 @@ transpose_vector = KernelDescription(
     [InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda: 0,
     "# Transposing vector $x (no operation);",
     [], # Argument objects
     )
@@ -1324,7 +1280,6 @@ transpose_vector = KernelDescription(
 alpha = Scalar("alpha")
 A = Matrix("A", (m, n))
 B = Matrix("B", (m, n))
-cf = lambda M, N: 2*N*M
 
 matrix_sum = KernelDescription(
     Operation(Plus(Times(alpha, A), B)),
@@ -1336,7 +1291,7 @@ matrix_sum = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: 2*N*M,
     "axpy!($alpha, $A, $B) # matrices",
     [SizeArgument("N", A, "columns"),
      SizeArgument("M", A, "rows")], # Argument objects
@@ -1347,7 +1302,6 @@ matrix_sum = KernelDescription(
 
 A = Matrix("A", (m, n))
 B = Matrix("B", (n, m))
-cf = lambda M, N: N*M
 
 matrix_sum_transpose = KernelDescription(
     Operation(Plus(A, Transpose(B))),
@@ -1356,7 +1310,7 @@ matrix_sum_transpose = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(A, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: N*M,
     "$A .+= transpose($B)",
     [SizeArgument("N", A, "columns"),
      SizeArgument("M", A, "rows")], # Argument objects
@@ -1367,7 +1321,6 @@ matrix_sum_transpose = KernelDescription(
 X = Matrix("X", (m, n))
 X.set_property(Property.DIAGONAL)
 alpha = Scalar("alpha")
-cf = lambda M, N: min(M, N)
 
 diagscal = KernelDescription(
     OperationKV(
@@ -1380,7 +1333,7 @@ diagscal = KernelDescription(
      InputOperand(X, StorageFormat.diagonal_vector),
     ],
     OutputOperand(X, StorageFormat.diagonal_vector), # return value
-    cf, # cost function
+    lambda M, N: min(M, N),
     "scal!(min($M, $N), $alpha, $X, 1)",
     [SizeArgument("M", X, "rows"),
      SizeArgument("N", X, "columns")], # Argument objects
@@ -1409,7 +1362,6 @@ A.set_property(Property.DIAGONAL)
 B = Matrix("B", (k, n))
 B.set_property(Property.DIAGONAL)
 C = Matrix("C", (m, n))
-cf = lambda M, N, K: min(M, N, K)
 
 diagdiagmul = KernelDescription(
     Operation(Times(Op1(A), Op2(B))),
@@ -1421,7 +1373,7 @@ diagdiagmul = KernelDescription(
      InputOperand(B, StorageFormat.diagonal_vector),
     ],
     OutputOperand(C, StorageFormat.diagonal_vector), # return value
-    cf, # cost function
+    lambda M, N, K: min(M, N, K),
     textwrap.dedent(
         """\
         for i = 1:min(length($A), length($B));
@@ -1451,7 +1403,6 @@ A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
 B.set_property(Property.DIAGONAL)
-cf = lambda M, N: min(M, N)
 
 diagdiagsolve = KernelDescription(
     OperationKV(
@@ -1464,7 +1415,7 @@ diagdiagsolve = KernelDescription(
      InputOperand(B, StorageFormat.diagonal_vector),
     ],
     OutputOperand(B, StorageFormat.diagonal_vector), # return value
-    cf, # cost function
+    lambda M, N: min(M, N),
     "$B ./= $A;",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1484,7 +1435,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
-cf = lambda M, N: M*N
 
 diagsmr = KernelDescription(
     Operation(Times(B, Inverse(A))),
@@ -1493,7 +1443,7 @@ diagsmr = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: M*N,
     textwrap.dedent(
         """\
         @views for i = 1:size($B, 2);
@@ -1519,7 +1469,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 B = Matrix("B", (m, n))
-cf = lambda M, N: M*N
 
 diagsml = KernelDescription(
     Operation(Times(Inverse(A), B)),
@@ -1528,7 +1477,7 @@ diagsml = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: M*N,
     "$B ./= $A;",
     [SizeArgument("M", B, "rows"),
      SizeArgument("N", B, "columns")], # Argument objects
@@ -1546,7 +1495,6 @@ A = Matrix("A", (m, m))
 A.set_property(Property.DIAGONAL)
 A.set_property(Property.SQUARE)
 x = Vector("x", (m, 1))
-cf = lambda M: M
 
 diagsv = KernelDescription(
     Operation(Times(Inverse(A), x)),
@@ -1555,7 +1503,7 @@ diagsv = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M: M,
     "$x ./= $A",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1580,7 +1528,6 @@ canonical form.
 """
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
-cf = lambda M, N: M*N
 
 diagmmr = KernelDescription(
     Operation(Times(B, A)),
@@ -1589,7 +1536,7 @@ diagmmr = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: M*N,
     textwrap.dedent(
         """\
         for i = 1:size($B, 2);
@@ -1621,7 +1568,6 @@ canonical form.
 """
 A.set_property(Property.SYMMETRIC)
 B = Matrix("B", (m, n))
-cf = lambda M, N: M*N
 
 diagmml = KernelDescription(
     Operation(Times(A, B)),
@@ -1630,7 +1576,7 @@ diagmml = KernelDescription(
      InputOperand(B, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: M*N,
     textwrap.dedent(
         """\
         for i = 1:size($B, 2);
@@ -1658,7 +1604,6 @@ canonical form.
 """
 A.set_property(Property.SYMMETRIC)
 x = Vector("x", (m, 1))
-cf = lambda M: M
 
 diagmv = KernelDescription(
     Operation(Times(A, x)),
@@ -1667,7 +1612,7 @@ diagmv = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(x, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M: M,
     "$x .*= $A",
     [SizeArgument("M", A, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1680,7 +1625,6 @@ A.set_property(Property.DIAGONAL)
 B = Matrix("B", (m, n))
 B.set_property(Property.DIAGONAL)
 alpha = Scalar("alpha")
-cf = lambda M, N: min(M, N)
 
 diagdiagadd = KernelDescription(
     Operation(Plus(Times(alpha, A), B)),
@@ -1692,7 +1636,7 @@ diagdiagadd = KernelDescription(
      InputOperand(B, StorageFormat.diagonal_vector)
     ],
     OutputOperand(B, StorageFormat.diagonal_vector), # return value
-    cf, # cost function
+    lambda M, N: min(M, N),
     "axpy!($alpha, $A, $B) # diagonal matrices",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
@@ -1705,7 +1649,6 @@ A = Matrix("A", (m, n))
 A.set_property(Property.DIAGONAL)
 B = Matrix("B", (m, n))
 alpha = Scalar("alpha")
-cf = lambda M, N: min(M, N)
 
 diagfulladd = KernelDescription(
     Operation(Plus(Times(alpha, A), B)),
@@ -1717,7 +1660,7 @@ diagfulladd = KernelDescription(
      InputOperand(B, StorageFormat.explicit_diagonal)
     ],
     OutputOperand(B, StorageFormat.as_overwritten), # return value
-    cf, # cost function
+    lambda M, N: min(M, N),
     textwrap.dedent(
         """\
         d = $A;
@@ -1738,7 +1681,6 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda M, N: N*M
 
 pmm = KernelDescription(
     Operation(Times(P, A)),
@@ -1747,7 +1689,7 @@ pmm = KernelDescription(
      InputOperand(A, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: N*M,
     "$B = $A[$P,:]",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
@@ -1761,7 +1703,6 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 A = Matrix("A", (n, m))
 B = Matrix("B", (n, m))
-cf = lambda M, N: N*M
 
 ptmm = KernelDescription(
     Operation(Times(Transpose(P), A)),
@@ -1770,7 +1711,7 @@ ptmm = KernelDescription(
      InputOperand(A, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: N*M,
     "$B = $A[invperm($P),:]",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
@@ -1784,7 +1725,6 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(Property.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda M, N: N*M
 
 mpm = KernelDescription(
     Operation(Times(A, P)),
@@ -1793,7 +1733,7 @@ mpm = KernelDescription(
      InputOperand(A, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: N*M,
     "$B = $A[:,invperm($P)]",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
@@ -1807,7 +1747,6 @@ A = Matrix("A", (n, m))
 P = Matrix("P", (m, m))
 P.set_property(Property.PERMUTATION)
 B = Matrix("B", (n, m))
-cf = lambda M, N: N*M
 
 mptm = KernelDescription(
     Operation(Times(A, Transpose(P))),
@@ -1816,7 +1755,7 @@ mptm = KernelDescription(
      InputOperand(A, StorageFormat.full),
     ],
     OutputOperand(B, StorageFormat.full), # return value
-    cf, # cost function
+    lambda M, N: N*M,
     "$B = $A[:,$P]",
     [SizeArgument("N", A, "rows"),
      SizeArgument("M", A, "columns")], # Argument objects
@@ -1829,7 +1768,6 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
-cf = lambda N: N
 
 pvm = KernelDescription(
     Operation(Times(P, x)),
@@ -1838,7 +1776,7 @@ pvm = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(y, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: N,
     "$y = $x[$P]",
     [SizeArgument("N", P, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1851,7 +1789,6 @@ P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 x = Vector("x", (n, 1))
 y = Vector("y", (n, 1))
-cf = lambda N: N
 
 ptvm = KernelDescription(
     Operation(Times(Transpose(P), x)),
@@ -1860,7 +1797,7 @@ ptvm = KernelDescription(
      InputOperand(x, StorageFormat.full),
     ],
     OutputOperand(y, StorageFormat.full), # return value
-    cf, # cost function
+    lambda N: N,
     "$y = $x[invperm($P)]",
     [SizeArgument("N", P, "rows")], # Argument objects
     options={KernelOption.transpose}
@@ -1873,7 +1810,6 @@ P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
 Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
-cf = lambda: 0
 
 ppm = KernelDescription(
     Operation(Times(P, Q)),
@@ -1882,7 +1818,7 @@ ppm = KernelDescription(
      InputOperand(Q, StorageFormat.permutation_vector),
     ],
     OutputOperand(X, StorageFormat.permutation_vector), # return value
-    cf, # cost function
+    lambda: 0,
     "$X = $Q[$P]",
     [], # Argument objects
     options={KernelOption.transpose}
@@ -1896,7 +1832,6 @@ P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
 Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
-cf = lambda: 0
 
 ptpm = KernelDescription(
     Operation(Times(Transpose(P), Q)),
@@ -1905,7 +1840,7 @@ ptpm = KernelDescription(
      InputOperand(Q, StorageFormat.permutation_vector),
     ],
     OutputOperand(X, StorageFormat.permutation_vector), # return value
-    cf, # cost function
+    lambda: 0,
     "$X = $Q[invperm($P)]",
     [], # Argument objects
     )
@@ -1918,7 +1853,6 @@ P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
 Q.set_property(Property.PERMUTATION)
 X = Matrix("X", (n, n))
-cf = lambda: 0
 
 pptm = KernelDescription(
     Operation(Times(P, Transpose(Q))),
@@ -1927,7 +1861,7 @@ pptm = KernelDescription(
      InputOperand(Q, StorageFormat.permutation_vector),
     ],
     OutputOperand(X, StorageFormat.permutation_vector), # return value
-    cf, # cost function
+    lambda: 0,
     "$X = invperm($Q)[$P]",
     [], # Argument objects
     )
@@ -1938,7 +1872,6 @@ pptm = KernelDescription(
 P = Matrix("P", (n, n))
 P.set_property(Property.PERMUTATION)
 Q = Matrix("Q", (n, n))
-cf = lambda: 0
 
 transpose_perm = KernelDescription(
     Operation(Transpose(P)),
@@ -1946,7 +1879,7 @@ transpose_perm = KernelDescription(
     [InputOperand(P, StorageFormat.permutation_vector),
     ],
     OutputOperand(Q, StorageFormat.permutation_vector), # return value
-    cf, # cost function
+    lambda: 0,
     "$Q = invperm($P)",
     [], # Argument objects
     )

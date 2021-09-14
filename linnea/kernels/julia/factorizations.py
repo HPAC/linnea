@@ -28,14 +28,13 @@ import matchpy
 
 _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _L = matchpy.Wildcard.symbol("_L")
-cf = lambda N: (N**3)/3
 
 cholesky = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SPSD})),
     [InputOperand(_A, StorageFormat.symmetric_lower_triangular)],
     Times(_L, Transpose(_L)),
     [OutputOperand(_L, _A, ("N", "N"), [Property.LOWER_TRIANGULAR, Property.NON_SINGULAR], StorageFormat.lower_triangular)],
-    cf,
+    lambda N: (N**3)/3,
     CodeTemplate("""LAPACK.potrf!('L', $_A)"""),
     [SizeArgument("N", _A, "rows")],
     )
@@ -50,7 +49,6 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _P = matchpy.Wildcard.symbol("_P")
 _L = matchpy.Wildcard.symbol("_L")
 _U = matchpy.Wildcard.symbol("_U")
-cf = lambda N: 2*(N**3)/3
 
 plu = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.NON_SINGULAR})),
@@ -60,7 +58,7 @@ plu = FactorizationKernel(
      OutputOperand(_U, _A, ("N", "N"), [Property.UPPER_TRIANGULAR, Property.NON_SINGULAR], StorageFormat.upper_triangular),
      OutputOperand(_P, None, ("N", "N"), [Property.PERMUTATION], StorageFormat.ipiv)
     ],
-    cf,
+    lambda N: 2*(N**3)/3,
     CodeTemplate("($_A, $_P, info) = LAPACK.getrf!($_A)"),
     [SizeArgument("N", _A, "rows")],
     )
@@ -169,7 +167,6 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _U = matchpy.Wildcard.symbol("_U")
 _S = matchpy.Wildcard.symbol("_S")
 _V = matchpy.Wildcard.symbol("_V")
-cf = lambda M, N: 14*M*N**2 + 8*N**3
 
 singular_value_cp = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.COLUMN_PANEL})),
@@ -179,7 +176,7 @@ singular_value_cp = FactorizationKernel(
      OutputOperand(_S, None, ("N", "N"), [Property.DIAGONAL], StorageFormat.diagonal_vector),
      OutputOperand(_V, None, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full)
     ],
-    cf,
+    lambda M, N: 14*M*N**2 + 8*N**3,
     CodeTemplate("(_, $_S, $_V) = LAPACK.gesvd!('O', 'S', $_A)"),
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
@@ -192,7 +189,6 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _U = matchpy.Wildcard.symbol("_U")
 _S = matchpy.Wildcard.symbol("_S")
 _V = matchpy.Wildcard.symbol("_V")
-cf = lambda N: 22*N**3
 
 singular_value_sq = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.SQUARE})),
@@ -202,7 +198,7 @@ singular_value_sq = FactorizationKernel(
      OutputOperand(_S, None, ("N", "N"), [Property.DIAGONAL], StorageFormat.diagonal_vector),
      OutputOperand(_V, None, ("N", "N"), [Property.ORTHOGONAL], StorageFormat.full)
     ],
-    cf,
+    lambda N: 22*N**3,
     CodeTemplate("(_, $_S, $_V) = LAPACK.gesvd!('O', 'S', $_A)"),
     [SizeArgument("N", _A, "rows")],
     )
@@ -214,7 +210,6 @@ _A = matchpy.Wildcard.symbol("_A", symbol_type=ae.Matrix)
 _U = matchpy.Wildcard.symbol("_U")
 _S = matchpy.Wildcard.symbol("_S")
 _V = matchpy.Wildcard.symbol("_V")
-cf = lambda M, N: 14*M*N**2 + 8*N**3
 
 singular_value_rp = FactorizationKernel(
     matchpy.Pattern(_A, PropertyConstraint("_A", {Property.ROW_PANEL})),
@@ -224,7 +219,7 @@ singular_value_rp = FactorizationKernel(
      OutputOperand(_S, None, ("M", "M"), [Property.DIAGONAL], StorageFormat.diagonal_vector),
      OutputOperand(_V, _A, ("M", "N"), [Property.ORTHOGONAL_ROWS], StorageFormat.full)
     ],
-    cf,
+    lambda M, N: 14*M*N**2 + 8*N**3,
     CodeTemplate("($_U, $_S, _) = LAPACK.gesvd!('S', 'O', $_A)"),
     [SizeArgument("M", _A, "rows"),
      SizeArgument("N", _A, "columns")],
