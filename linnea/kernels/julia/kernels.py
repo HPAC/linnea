@@ -650,11 +650,9 @@ lascl = KernelDescription(
      InputOperand(X, StorageFormat.full),
     ],
     OutputOperand(X, StorageFormat.full), # return value
-    lambda M, N: M*N,
+    lambda MN: MN,
     "scal!($MN, $alpha, $X, 1)",
-    [SizeArgument("M", X, "rows"),
-     SizeArgument("N", X, "columns"),
-     SizeArgument("MN", X, "entries")], # Argument objects
+    [SizeArgument("MN", X, "entries")], # Argument objects
     options={KernelOption.no_simplifications}
     )
 
