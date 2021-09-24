@@ -5,8 +5,7 @@
 #{directive} {flag_output} "{linnea_output_path}/logs/gen_{name}{ref}{string_array_idx}.txt"
 #{directive} {flag_time} {time}
 #{directive} {flag_memory}{memory}
-#{directive} {flag_group} {group}
-#{directive} {flag_model} {model}
+{options}
 
 module load DEVELOP
 module load LIBRARIES

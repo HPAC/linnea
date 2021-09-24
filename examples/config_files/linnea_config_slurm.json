@@ -13,19 +13,15 @@
         {
             "time": "2:00:00",
             "memory": "8000M",
-            "group": "aices",
-            "model": "hwx2680"
+            "options": ["-A aices", "-C hwx2680"]
         },
         "time":
         {
             "time_generation": "2:00:00",
             "time_execution": "48:00:00",
             "memory": "16000M",
-            "group": "aices",
-            "model": "hwx2680",
-            "exclusive": true,
-            "node": "",
-            "repetitions": 1
+            "repetitions": 1,
+            "options": ["-A aices", "-C hwx2680", "--exclusive"]
         },
         "path":
         {

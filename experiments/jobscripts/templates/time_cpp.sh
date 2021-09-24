@@ -8,10 +8,7 @@
 #{directive} {flag_nodes} {nodes}
 #{directive} {flag_threads} {threads}
 #{directive} {flag_tasks_per_core}{tasks_per_core}
-#{directive} {flag_group} {group}
-#{directive} {flag_model} {model}
-{spec_exclusive}
-{spec_node}
+{options}
 
 module load DEVELOP
 module load LIBRARIES

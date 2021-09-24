@@ -13,19 +13,15 @@
         {
             "time": "2:00",
             "memory": "4000",
-            "group": "aices2",
-            "model": "model==Haswell_EP"
+            "options": ["-P aices2", "-R model==Haswell_EP"]
         },
         "time":
         {
             "time_generation": "2:00",
             "time_execution": "3:00",
             "memory": "4000",
-            "group": "aices2",
-            "model": "model==Haswell_EP",
-            "exclusive": false,
-            "node": "linuxihdc074",
-            "repetitions": 1
+            "repetitions": 1,
+            "options": ["-P aices2", "-R model==Haswell_EP", "-x", "-m linuxihdc074"]
         },
         "path":
         {

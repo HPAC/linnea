@@ -6,9 +6,7 @@
 #{directive} {flag_time} {time_generation}
 #{directive} {flag_memory}{memory}
 #{directive} {flag_tasks_per_core}{tasks_per_core}
-#{directive} {flag_group} {group}
-#{directive} {flag_model} {model}
-{spec_exclusive}
+{options}
 
 echo $(printf "{name}%03d" ${var_array_idx})
 
