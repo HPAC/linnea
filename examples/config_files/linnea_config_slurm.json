@@ -2,6 +2,7 @@
     "experiments":
     {
         "scheduler": "SLURM",
+        "threads": [1, 24],
         "version":
         {
             "cmake_version": "3.13.2",

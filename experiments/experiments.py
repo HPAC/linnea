@@ -1,16 +1,9 @@
 import pandas as pd
 import time
-import numpy
-import itertools
 import argparse
 import collections
 import random
 import os
-import logging
-
-logging.basicConfig(level=logging.INFO,
-                    format='%(name)-2s: %(levelname)-2s %(message)s')
-
 import linnea.config
 
 linnea.config.init()
@@ -192,7 +185,7 @@ def main():
         job_examples = [JobExample(examples[args.jobindex-1], name)]
 
 
-    num_threads = [1, 24]
+    threads = linnea.config.experiment_configuration["threads"]
     repetitions = 20
 
     if args.mode == "time_generation":
@@ -244,10 +237,10 @@ def main():
                     else:
                         break
 
-                generate_experiment_code(name, example.eqns, algorithm_name, num_threads, repetitions, args.k_best, k)
+                generate_experiment_code(name, example.eqns, algorithm_name, threads, repetitions, args.k_best, k)
 
     elif args.mode == "jobscripts":
-        generate_scripts(args.experiment, len(examples), num_threads)
+        generate_scripts(args.experiment, len(examples), threads)
 
 
 if __name__ == "__main__":

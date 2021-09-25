@@ -2,6 +2,7 @@
     "experiments":
     {
         "scheduler": "LSF",
+        "threads": [1, 24],
         "version":
         {
             "cmake_version": "3.10.1",

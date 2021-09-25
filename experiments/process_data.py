@@ -1,7 +1,13 @@
 import os.path
 import pandas as pd
 import math
+import argparse
 from statistics import median
+from linnea import config
+
+config.init()
+
+num_threads = None
 
 def read_results_generation(experiment, number_of_experiments):
 
@@ -74,7 +80,7 @@ def read_results_execution(experiment_name, number_of_experiments):
 
     language_dfs = []
     for language in ["julia", "matlab", "cpp"]:
-        for threads in [1, 24]:
+        for threads in num_threads:
             path = os.path.join(experiment_name, "execution", language, "t{}".format(threads))
             if os.path.exists(path):
                 file_dfs = []                
@@ -215,11 +221,11 @@ def read_results_k_best(experiment_name, number_of_experiments):
     path = os.path.join(experiment_name, "execution", "k_best")
     file_dfs = []
     file_dfs_raw = dict()
-    for threads in [1, 24]:
+    for threads in num_threads:
         file_dfs_raw[threads] = []
 
     for example in example_names:
-        for threads in [1, 24]:
+        for threads in num_threads:
 
             file_path = "{0}/t{1}/julia_results_{2}_timings.txt".format(path, threads, example)
             if os.path.isfile(file_path):
@@ -402,8 +408,7 @@ def get_column_names(experiment):
 
 def process_data_execution(data, experiment_name, intensity_cols):
 
-    # for threads in [24]:
-    for threads in [1, 24]:
+    for threads in num_threads:
         experiment = "{}_t{}".format(experiment_name, threads)
 
         execution_results = data.xs(threads, level=2)
@@ -509,7 +514,7 @@ def process_write_time(write_time_data, experiment):
 
 def process_data_k_best(data, intensity_data, experiment_name):
 
-    for threads in [1, 24]:
+    for threads in num_threads:
         experiment = "{}_t{}".format(experiment_name, threads)
 
         k_best_data = data.xs(threads, level=2)
@@ -582,8 +587,7 @@ def process_data_k_best(data, intensity_data, experiment_name):
 
 def process_data_optimal_solution(execution_data, k_best_data, intensity_data, experiment_name):
 
-    # for threads in [24]:
-    for threads in [1, 24]:
+    for threads in num_threads:
         experiment = "{}_t{}".format(experiment_name, threads)
 
         execution_results = execution_data.xs(threads, level=2)
@@ -634,7 +638,22 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         speedup_over_linnea_CI.to_csv("{}_k_best_speedup_over_linnea_OS_CI.csv".format(experiment), na_rep="NaN")
 
 
-if __name__ == '__main__':
+def main():
+    global num_threads
+    parser = argparse.ArgumentParser(prog="experiments")
+    parser.add_argument('-t','--threads', nargs='+', type=int)
+    args = parser.parse_args()
+
+    try:
+        num_threads = config.experiment_configuration["threads"]
+    except KeyError:
+        pass
+
+    if args.threads:
+        num_threads = args.threads
+
+    if not num_threads:
+        raise Exception("Number of threads not set.")
 
     experiments = [("random", 100), ("application", 25)]
 
@@ -726,4 +745,5 @@ if __name__ == '__main__':
     process_data_optimal_solution(execution_results_combined, k_best_data_combined, intensity_cols, "combined")
 
 
- 
+if __name__ == '__main__':
+    main()

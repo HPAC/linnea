@@ -105,7 +105,7 @@ scheduler_vars = {
         }
     }
 
-def generate_scripts(experiment, number_of_experiments,  num_threads):
+def generate_scripts(experiment, number_of_experiments,  threads):
 
     experiment_configuration = config.experiment_configuration
 
@@ -140,9 +140,9 @@ def generate_scripts(experiment, number_of_experiments,  num_threads):
     time_configuration["nodes"] = "1" # prevents that one experiment runs on more than one node
     time_configuration["tasks_per_core"] = "1" # prevents hyperthreading
 
-    for threads in num_threads:
+    for t in threads:
         time_configuration_copy = time_configuration.copy()
-        time_configuration_copy["threads"] = threads
+        time_configuration_copy["threads"] = t
         time_execution_scripts(time_configuration_copy)
         time_k_best_script(time_configuration_copy)
 
