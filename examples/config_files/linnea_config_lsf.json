@@ -3,6 +3,7 @@
     {
         "scheduler": "LSF",
         "threads": [1, 24],
+        "repetitions": 20,
         "version":
         {
             "cmake_version": "3.10.1",
@@ -21,7 +22,6 @@
             "time_generation": "2:00",
             "time_execution": "3:00",
             "memory": "4000",
-            "repetitions": 1,
             "options": ["-P aices2", "-R model==Haswell_EP", "-x", "-m linuxihdc074"]
         },
         "path":

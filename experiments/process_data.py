@@ -8,6 +8,8 @@ from linnea import config
 config.init()
 
 num_threads = None
+base_time = None
+speedup_reference = None
 
 def read_results_generation(experiment, number_of_experiments):
 
@@ -255,7 +257,7 @@ def read_results_k_best(experiment_name, number_of_experiments):
     if file_dfs:
         for threads, data in file_dfs_raw.items():
             df_raw = pd.concat(data, axis=1)
-            df_raw.to_csv("{}_t{}_k_best_raw.csv".format(experiment, threads), na_rep="NaN")
+            df_raw.to_csv("{}_t{}_k_best_raw.csv".format(experiment_name, threads), na_rep="NaN")
 
         df = pd.concat(file_dfs, sort=True)
         return df
@@ -597,7 +599,7 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
 
         execution_results = execution_results.reorder_levels([1, 0], axis=1)
         execution_results.columns = ["_".join(col).strip() for col in execution_results.columns.values]
-        execution_results = pd.concat([execution_results, intensity_cols], axis=1, sort=True)
+        execution_results = pd.concat([execution_results, intensity_data], axis=1, sort=True)
 
         k_best = k_best_data.xs(threads, level=2).copy()
         k_best.drop(["naive_julia", "recommended_julia"], level=1, inplace=True)
@@ -605,7 +607,7 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         execution_time["algorithm0"] = k_best.xs("algorithm0", level=1)[base_time]
 
         speedup_data = to_speedup_data(execution_time, speedup_reference)
-        speedup_over_linnea = compare_to_fastest(speedup_data, intensity_cols)
+        speedup_over_linnea = compare_to_fastest(speedup_data, intensity_data)
         speedup_over_linnea.to_csv("{}_k_best_speedup_over_linnea.csv".format(experiment), na_rep="NaN")
 
         k_best_time_stats = k_best.loc[k_best.groupby(level=0)[base_time].idxmin().dropna()]
@@ -614,7 +616,7 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         execution_time["algorithm0"] = k_best_time_stats[base_time]
 
         speedup_data = to_speedup_data(execution_time, speedup_reference)
-        speedup_data = pd.concat([speedup_data, intensity_cols], axis=1, sort=True)
+        speedup_data = pd.concat([speedup_data, intensity_data], axis=1, sort=True)
         speedup_data.to_csv("{}_speedup_OS.csv".format(experiment), na_rep="NaN")
 
         execution_results["algorithm0_min_time"] = k_best_time_stats["min_time"]
@@ -626,20 +628,20 @@ def process_data_optimal_solution(execution_data, k_best_data, intensity_data, e
         speedup_data_CI = to_speedup_data_CI(execution_results.dropna())
         speedup_data_CI.to_csv("{}_speedup_OS_CI.csv".format(experiment), na_rep="NaN")
 
-        # execution_time = pd.concat([execution_time, intensity_cols], axis=1, sort=True)
+        # execution_time = pd.concat([execution_time, intensity_data], axis=1, sort=True)
         
         performance_profiles_data = to_performance_profiles_data(performance_profiles_data_reduce(execution_time))
         performance_profiles_data.to_csv("{}_performance_profile_OS.csv".format(experiment), na_rep="NaN")
         
-        speedup_over_linnea = compare_to_fastest(speedup_data, intensity_cols)
+        speedup_over_linnea = compare_to_fastest(speedup_data, intensity_data)
         speedup_over_linnea.to_csv("{}_k_best_speedup_over_linnea_OS.csv".format(experiment), na_rep="NaN")
 
-        speedup_over_linnea_CI = compare_to_fastest(speedup_data_CI, intensity_cols)
+        speedup_over_linnea_CI = compare_to_fastest(speedup_data_CI, intensity_data)
         speedup_over_linnea_CI.to_csv("{}_k_best_speedup_over_linnea_OS_CI.csv".format(experiment), na_rep="NaN")
 
 
 def main():
-    global num_threads
+    global num_threads, base_time, speedup_reference
     parser = argparse.ArgumentParser(prog="experiments")
     parser.add_argument('-t','--threads', nargs='+', type=int)
     args = parser.parse_args()

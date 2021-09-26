@@ -186,7 +186,7 @@ def main():
 
 
     threads = linnea.config.experiment_configuration["threads"]
-    repetitions = 20
+    repetitions = linnea.config.experiment_configuration["repetitions"]
 
     if args.mode == "time_generation":
 

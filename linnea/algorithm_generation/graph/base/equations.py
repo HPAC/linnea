@@ -254,7 +254,7 @@ class EquationsGraph(base.Graph):
                         cgu.to_file(file_name, algorithm.generation_steps())
 
         if experiment_code:
-            generate_experiment_code(output_name, self.input, algorithm_name, config.experiment_configuration["threads"], 20, k_best, len(algorithms))
+            generate_experiment_code(output_name, self.input, algorithm_name, config.experiment_configuration["threads"], config.experiment_configuration["repetitions"], k_best, len(algorithms))
 
         return algorithms
 

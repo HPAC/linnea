@@ -3,6 +3,7 @@
     {
         "scheduler": "SLURM",
         "threads": [1, 24],
+        "repetitions": 20,
         "version":
         {
             "cmake_version": "3.13.2",
@@ -21,7 +22,6 @@
             "time_generation": "2:00:00",
             "time_execution": "48:00:00",
             "memory": "16000M",
-            "repetitions": 1,
             "options": ["-A aices", "-C hwx2680", "--exclusive"]
         },
         "path":
