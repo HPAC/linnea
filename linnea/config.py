@@ -292,7 +292,7 @@ def load_config(config_file=''):
                 for key, value in configuration['experiments']['path'].items():
                     if key in ['linnea_src_path', 'linnea_lib_path', 'linnea_julia_path', 'linnea_virtualenv_path']:
                         configuration['experiments']['path'][key] = check_path(value)
-                    elif key in ['linnea_output_path', 'linnea_results_path', 'linnea_jobscripts_path']:
+                    elif key in ['linnea_output_path', 'linnea_results_path', 'linnea_jobscripts_path', 'linnea_logs_path']:
                         configuration['experiments']['path'][key] = create_path(value)
                         if key == 'linnea_results_path':
                             set_results_path(value)

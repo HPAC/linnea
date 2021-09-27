@@ -31,6 +31,7 @@
             "linnea_output_path":       "$HOME/Linnea/output",
             "linnea_results_path":      "$HOME/Linnea/output/results",
             "linnea_jobscripts_path":   "$HOME/Linnea/output/jobscripts",
+            "linnea_logs_path":         "$HOME/Linnea/output/logs",
             "linnea_virtualenv_path":   "$HOME/Linnea/linnea.venv",
             "linnea_julia_path":        "$HOME/Linnea/src/julia"
         }
