@@ -284,10 +284,10 @@ def _is_simple_summand(expr):
 
 def is_simple_times(expr):
     """Test if expr is sufficiently simple for matrix chain algorithm."""
-    return len(expr.operands)>1 and all([_is_simple_times(operand) for operand in expr.operands])
+    return len(expr.operands)>1 and all([is_simple_factor(operand) for operand in expr.operands])
 
 
-def _is_simple_times(expr):
+def is_simple_factor(expr):
     # TODO what is missing?
     if isinstance(expr, Symbol):
         return True
