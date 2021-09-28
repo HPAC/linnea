@@ -471,5 +471,9 @@ def infer_property(expr, prop):
         raise NotImplementedError("No function to infer %s" % prop)
     return func(expr)
 
+def set_expression_property(expr, property):
+    tmp = temporaries.create_tmp(expr)
+    tmp.set_property(property)
+
 if __name__ == "__main__":
     pass

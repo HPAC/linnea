@@ -2,8 +2,6 @@ from ...algebra import expression as ae
 
 from ...utils import roundrobin
 
-from .. import special_properties
-
 from .utils import GenerationStep, generate_representations
 
 from .base import equations

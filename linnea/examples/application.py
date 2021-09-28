@@ -5,10 +5,9 @@ from ..algebra.expression import Symbol, Scalar, Vector, Matrix, ConstantScalar,
                                  ConjugateTranspose, Index, IdentityMatrix
 
 from ..algebra.properties import Property
+from ..algebra.property_inference import set_expression_property
 
 from ..algebra.equations import Equations
-
-from ..algorithm_generation import special_properties
 
 
 class Example01():
@@ -681,10 +680,10 @@ class Example16():
         k = Scalar("k")
         k.set_property(Property.POSITIVE)
         minus1 = ConstantScalar(-1.0)
-        kminus1 = Plus(k, minus1) # this is positive too, but using special_properties doesn't work
+        kminus1 = Plus(k, minus1) # this is positive too, but using set_expression_property doesn't work
 
         # This works:
-        # special_properties.add_expression(Plus(Times(kminus1, Il), Times(Transpose(Wk), A, Bin, Transpose(A), Wk)), [Property.SPD])
+        # set_expression_property(Plus(Times(kminus1, Il), Times(Transpose(Wk), A, Bin, Transpose(A), Wk)), Property.SPD)
         
         self.eqns = Equations(
                         Equal(Bout,
