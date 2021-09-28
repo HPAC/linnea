@@ -1,8 +1,6 @@
 from . import expression as ae
 from .properties import Property
 
-from ..utils import window
-
 import operator
 import matchpy
 import itertools

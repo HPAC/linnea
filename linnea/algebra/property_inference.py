@@ -1,5 +1,3 @@
-import copy
-
 from . import expression as ae
 from .properties import Property, implications, negative_implications, \
                         binary_implications_backwards
