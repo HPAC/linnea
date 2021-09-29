@@ -260,21 +260,26 @@ def is_blocked(operation):
 
 
 def is_simple_plus(expr):
+    """Test if expr is sufficiently simple for decompose_sum()."""
     if isinstance(expr, Symbol):
         return False
     return len(expr.operands)>1 and all(is_simple_summand(operand) for operand in expr.operands)
 
 
 def is_simple_summand(expr):
-    if _is_simple_summand(expr):
+    if is_transposed_symbol(expr):
         return True
-    elif isinstance(expr, Times) and len(expr.operands) == 2 and any(isinstance(operand, Scalar) for operand in expr.operands):
-        return True
-    else:
-        return False
+    elif isinstance(expr, Times) and len(expr.operands) == 2:
+        scalars, non_scalars = expr.split_operands()
+        if len(scalars) == 2 and all(isinstance(operand, Scalar) for operand in scalars):
+            return True
+        elif (len(scalars) == 1 and isinstance(scalars[0], Scalar)
+            and len(non_scalars) == 1 and is_transposed_symbol(non_scalars[0])):
+            return True
+    return False
 
 
-def _is_simple_summand(expr):
+def is_transposed_symbol(expr):
     if isinstance(expr, Symbol):
         return True
     else:
