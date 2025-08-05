@@ -188,7 +188,7 @@ class Algorithm():
         for line_number, matched_kernel in enumerate(self.matched_kernels):
             code_list.append(self._matched_kernel_to_code(matched_kernel, line_number, memory, known_lines))
         code_list.append("t_end = time_ns()\n")
-        code_list.append(f"println(\"$(run_id) $(t_end) {self.name} {self.cost} $(t_end-t_start)\")\n")
+        code_list.append(f"println(\"$(run_id); $(t_end); {self.name}; {self.cost}; $(t_end-t_start)\")\n")
         code_list.append(config.comment)
         code_list.append(memory.content_string_with_format())
         code_list.append("\n")
@@ -299,13 +299,14 @@ class Algorithm():
         lines_list.append("\n")
 
         kernel_name = str(matched_kernel.signature).split("!")[0]
+        kernel_name = kernel_name.replace('$_', '')
         kernel_cost = matched_kernel.cost
         #print(kernel_name, kernel_cost)
         lines_list.append("t1 = time_ns()\n")
         lines_list.append(signature.safe_substitute_str(argument_mapping))
         lines_list.append("\n")
         lines_list.append("t2 = time_ns()\n")
-        lines_list.append(f"println(\"$(run_id) $(t1) {kernel_name} {kernel_cost} $(t2-t1)\")\n")
+        lines_list.append(f"println(\"$(run_id); $(t1); {kernel_name}; {kernel_cost}; $(t2-t1)\")\n")
 
         if mem_ops_after:
             mem_code_after = "".join([mem_op.code() for mem_op in mem_ops_after])
