@@ -1,0 +1,3 @@
+[submodule "linnea_inspector"]
+	path = linnea_inspector
+	url = https://github.com/process-inspector/linnea_inspector.git
