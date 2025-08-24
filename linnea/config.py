@@ -85,6 +85,7 @@ graph_style = None
 experiment_configuration = dict()
 output_code_path = None
 results_path = None
+instrument = False
 
 def set_language(_language):
     global language, filename_extension, comment, julia, c, matlab
